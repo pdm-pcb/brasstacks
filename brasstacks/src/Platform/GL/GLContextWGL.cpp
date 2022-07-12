@@ -1,0 +1,195 @@
+#include "brasstacks/System/pch.hpp"
+#include "brasstacks/Platform/GL/GLContextWGL.hpp"
+
+#include "brasstacks/Engine/TargetWindow.hpp"
+
+namespace btx {
+
+void wgl_init();
+
+void GLContextWGL::init() {
+    // first, get a context so we can get a context
+    wgl_init();
+
+    //
+    // next, let's ask for a modern pixel format
+    //
+    int pixel_attributes[] = {
+        WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,
+        WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,
+        WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,
+        WGL_COLOR_BITS_ARB,         32,
+        WGL_DEPTH_BITS_ARB,         24,
+        WGL_STENCIL_BITS_ARB,        8,
+        WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+        WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+        0
+    };
+
+    // retrieve the win32 device context
+    _device = ::GetDC(_window);
+
+    int pixel_format;
+    ::UINT formats_found;     // should I be enumerating these?
+    ::BOOL result = ::wglChoosePixelFormatARB(
+        _device,
+        pixel_attributes,
+        nullptr,
+        1,                // max formats
+        &pixel_format,
+        &formats_found
+    );
+
+	if(result == FALSE) {
+		::MessageBox(nullptr, "wglChoosePixelFormatARB failed", "Error", MB_OK);
+	}
+
+    // set the format we requested
+    result = ::SetPixelFormat(_device, pixel_format, nullptr);
+
+	if(result == FALSE) {
+		::MessageBox(nullptr, "SetPixelFormat failed", "Error", MB_OK);
+	}
+
+    //
+    // the pixel format is sorted, so now on to the rendering context
+    //
+
+    int context_attributes[] {
+        WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+        WGL_CONTEXT_MINOR_VERSION_ARB, 6,
+#ifdef DEBUG
+        WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
+#endif
+        WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+        0
+    };
+
+    _context = ::wglCreateContextAttribsARB(_device, 0, context_attributes);
+
+    if(_context == nullptr) {
+        ::MessageBox(
+            nullptr, "wglCreateContextAttribsARB failed",
+            "Error", MB_OK
+        );
+    }
+
+    result = ::wglMakeCurrent(_device, _context);
+
+	if(result == FALSE) {
+		::MessageBox(nullptr, "wglMakeCurrent failed", "Error", MB_OK);
+	}
+
+// #ifdef DEBUG
+    // // since the context is good, create the debugging helper
+    // _debugger = new GLDebugger;
+// #endif
+
+    BTX_ENGINE_INFO("Initialized WGL context:\n    {}\n    {}\n    {}",
+                    ::glGetString(GL_RENDERER), ::glGetString(GL_VENDOR),
+                    ::glGetString(GL_VERSION));
+}
+
+void GLContextWGL::shutdown() {
+	::wglMakeCurrent(_device, nullptr);
+	::wglDeleteContext(_context);
+    ::ReleaseDC(_window, _device);
+}
+
+void GLContextWGL::swap_buffers() {
+    ::SwapBuffers(_device);
+}
+
+void GLContextWGL::set_swap_interval(uint8_t interval) {
+    ::wglSwapIntervalEXT(interval);
+}
+
+GLContextWGL::GLContextWGL(const TargetWindow *window) :
+    _window  { static_cast<::HWND>(window->get_native()) },
+    _device  { nullptr },
+    _context { nullptr }
+{
+
+}
+
+GLContextWGL::~GLContextWGL() {
+
+}
+
+void wgl_init() {
+    //
+    // First things first: let's get a window up that we can attach an OpenGL
+    // context to
+    //
+    auto hinstance = static_cast<::HINSTANCE>(GetModuleHandle(nullptr));
+    ::HWND window = CreateWindow(
+        "static",   // window class
+        "",         // window name
+        WS_POPUP,   // window style
+        0, 0,       // x,y coordinates
+        1, 1,       // width/height
+        nullptr,    // parent
+        nullptr,    // menu
+        hinstance,  // "instance"
+        nullptr     // lpParam
+    );
+
+    // grab the device from the new window
+    ::HDC device = ::GetDC(window);
+
+    //
+    // Next up: get the basic pixel format
+    //
+    ::PIXELFORMATDESCRIPTOR pfd { };
+    pfd.nSize      = sizeof(::PIXELFORMATDESCRIPTOR);
+    pfd.nVersion   = 1u;
+    pfd.dwFlags    = PFD_DRAW_TO_WINDOW|PFD_SUPPORT_OPENGL;
+    pfd.iPixelType = PFD_TYPE_RGBA;
+    pfd.cColorBits = 32u;
+    pfd.cDepthBits = 24u;
+    pfd.iLayerType = PFD_MAIN_PLANE;
+
+    // enumerate and select the format we specified
+    int pixel_format = ::ChoosePixelFormat(device, &pfd);
+    if(pixel_format == 0) {
+        ::MessageBox(nullptr, "ChoosePixelFormat failed", "Error", MB_OK);
+    }
+
+    // set the format
+    BOOL result = ::SetPixelFormat(device, pixel_format, nullptr);
+    if(result == FALSE) {
+        ::MessageBox(nullptr, "SetPixelFormat failed", "Error", MB_OK);
+    }
+
+    //
+    // Time to create a legacy context
+    //
+    ::HGLRC context = ::wglCreateContext(device);
+    if(context == nullptr) {
+        ::MessageBox(nullptr, "wglCreateContext failed", "Error", MB_OK);
+    }
+
+    result = ::wglMakeCurrent(device, context);
+    if(result == FALSE) {
+        ::MessageBox(nullptr, "wglMakeCurrent failed", "Error", MB_OK);
+    }
+
+    //
+    // Now leverage glad2 so I don't have to type all of that out
+    //
+    if(!gladLoaderLoadGL()) {
+        ::MessageBox(nullptr, "Unable to load GL via GLAD", "Error", MB_OK);
+    }
+
+    if(!gladLoaderLoadWGL(device)) {
+        ::MessageBox(nullptr, "Unable to load WGL via GLAD", "Error", MB_OK);
+    }
+
+    // Clean up after ourselves
+    ::wglMakeCurrent(device, nullptr);
+    ::wglDeleteContext(context);
+    ::ReleaseDC(window, device);
+    ::DestroyWindow(window);
+}
+
+} // namespace btx
