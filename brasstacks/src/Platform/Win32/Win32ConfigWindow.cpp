@@ -469,15 +469,29 @@ void Win32ConfigWindow::_populate_gpu_list() {
 void Win32ConfigWindow::_populate_res_list() {
     ::DWORD res_index = 0;
     ::CHAR  list_string[64] { };
-    ::CHAR    prev_string[64] { };
+    ::CHAR  prev_string[64] { };
 
     ::DEVMODE mode { };
     mode.dmSize = sizeof(mode);
 
+    float sixteen_by_nine   = 16.0f / 9.0f;
+    float twentyone_by_nine = 21.0f / 9.0f;
+
     while(::EnumDisplaySettings(nullptr, res_index++, &mode)) {
+        if(mode.dmDisplayFrequency < 60) {
+            continue;
+        }
+
+        float aspect = static_cast<float>(mode.dmPelsWidth) / mode.dmPelsHeight;
+        if(aspect != sixteen_by_nine) {
+            if(aspect != twentyone_by_nine) {
+                continue;
+            } 
+        }
+
         std::sprintf(list_string, "%dx%d @ %dhz",
                      mode.dmPelsWidth, mode.dmPelsHeight,
-                     mode.dmDisplayFrequency, mode.dmBitsPerPel
+                     mode.dmDisplayFrequency
         );
 
         if(std::strcmp(list_string, prev_string) == 0) {

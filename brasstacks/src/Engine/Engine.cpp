@@ -56,7 +56,7 @@ void Engine::renderer() {
 
 Engine::Engine() :
     _render_context { RenderContext::create() },
-    _clear_color    { 0.25f, 0.35f, 0.15f, 1.0f }
+    _clear_color    { 0.11f, 0.11f, 0.11f, 1.0f }
 {
     TargetWindow::current()->subscribe_to(this, EventType::WindowClosed);
     TargetWindow::current()->subscribe_to(this, EventType::KeyPressed);
