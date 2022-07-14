@@ -32,8 +32,6 @@ unsigned int indices[] = {  // note that we start from 0!
 
 namespace btx {
 
-void wgl_init();
-
 void GLContextWGL::run() {
 
 

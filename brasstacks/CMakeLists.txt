@@ -18,6 +18,9 @@ add_library(
     "src/Events/KeyboardEvent.cpp"
     "src/Events/MouseEvent.cpp"
     "src/Events/EventPublisher.cpp"
+    "src/Meshes/VertexBuffer.cpp"
+    "src/Meshes/VertexLayout.cpp"
+    "src/Meshes/IndexBuffer.cpp"
 )
 
 target_include_directories(
