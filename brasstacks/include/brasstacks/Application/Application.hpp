@@ -3,6 +3,8 @@
 
 #include "brasstacks/Events/EventListener.hpp"
 
+#include <atomic>
+
 namespace btx {
 	
 class Application : public EventListener {
@@ -21,7 +23,7 @@ public:
     virtual ~Application();
 
 private:
-    bool _running;
+    std::atomic<bool> _running;
 };
 
 Application * create_application();

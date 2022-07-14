@@ -3,19 +3,23 @@
 
 #include "brasstacks/Engine/RenderContext.hpp"
 
+#include <atomic>
+
 namespace btx {
 
 class TargetWindow;
 
 class GLContextWGL : public RenderContext {
 public:
-    void init() override;
+    void init()     override;
+    void run()      override;
     void shutdown() override;
-    void swap_buffers() override;
+
     void set_swap_interval(uint8_t interval) override;
+    void set_clear_color(float r, float g, float b, float a) override;
 
     explicit GLContextWGL(const TargetWindow *window);
-    ~GLContextWGL();
+    ~GLContextWGL() = default;
 
     GLContextWGL() = delete;
 
@@ -29,6 +33,10 @@ private:
     ::HWND  _window;
     ::HDC   _device;
     ::HGLRC _context;
+
+    std::atomic<bool> _running;
+
+    void _driver_hooks();
 };
 
 } // namespace btx

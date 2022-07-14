@@ -4,11 +4,11 @@
 class Demo : public btx::Application {
 public:
     Demo() {
-        BTX_TRACE("Whee!");
+        BTX_TRACE("User constructor");
     }
 
     ~Demo() override {
-        BTX_TRACE("Eehw!");
+        BTX_TRACE("User destructor");
     }
 };
 

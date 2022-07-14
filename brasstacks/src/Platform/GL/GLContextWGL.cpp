@@ -1,15 +1,31 @@
 #include "brasstacks/System/pch.hpp"
 #include "brasstacks/Platform/GL/GLContextWGL.hpp"
 
-#include "brasstacks/Engine/TargetWindow.hpp"
+#include "brasstacks/Application/TargetWindow.hpp"
+
+typedef std::chrono::high_resolution_clock HRC;
+typedef HRC::time_point Point;
 
 namespace btx {
 
 void wgl_init();
 
+void GLContextWGL::run() {
+    _running = true;
+    while(_running) {
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        ::SwapBuffers(_device);
+    }
+
+    BTX_ENGINE_TRACE("Shutting down WGL");
+	::wglMakeCurrent(_device, nullptr);
+	::wglDeleteContext(_context);
+    ::ReleaseDC(_window, _device);
+}
+
 void GLContextWGL::init() {
     // first, get a context so we can get a context
-    wgl_init();
+    _driver_hooks();
 
     //
     // next, let's ask for a modern pixel format
@@ -90,33 +106,7 @@ void GLContextWGL::init() {
                     ::glGetString(GL_VERSION));
 }
 
-void GLContextWGL::shutdown() {
-	::wglMakeCurrent(_device, nullptr);
-	::wglDeleteContext(_context);
-    ::ReleaseDC(_window, _device);
-}
-
-void GLContextWGL::swap_buffers() {
-    ::SwapBuffers(_device);
-}
-
-void GLContextWGL::set_swap_interval(uint8_t interval) {
-    ::wglSwapIntervalEXT(interval);
-}
-
-GLContextWGL::GLContextWGL(const TargetWindow *window) :
-    _window  { static_cast<::HWND>(window->get_native()) },
-    _device  { nullptr },
-    _context { nullptr }
-{
-
-}
-
-GLContextWGL::~GLContextWGL() {
-
-}
-
-void wgl_init() {
+void GLContextWGL::_driver_hooks() {
     //
     // First things first: let's get a window up that we can attach an OpenGL
     // context to
@@ -191,5 +181,28 @@ void wgl_init() {
     ::ReleaseDC(window, device);
     ::DestroyWindow(window);
 }
+
+void GLContextWGL::shutdown() {
+    _running = false;
+}
+
+void GLContextWGL::set_swap_interval(uint8_t interval) {
+    BTX_ENGINE_TRACE("Swap interval set to {}", interval);
+    ::wglSwapIntervalEXT(interval);
+}
+
+void GLContextWGL::set_clear_color(float r, float g, float b, float a) {
+    BTX_ENGINE_TRACE(
+        "Clear color set to ({:0.2f}, {:0.2f}, {:0.2f}, {:0.2f})",
+        r, g, b, a
+    );
+    ::glClearColor(r, g, b, a);
+}
+
+GLContextWGL::GLContextWGL(const TargetWindow *window) :
+    _window  { static_cast<::HWND>(window->get_native()) },
+    _device  { nullptr },
+    _context { nullptr }
+{ }
 
 } // namespace btx

@@ -15,7 +15,7 @@ public:
     void run() override;
 
     Win32ConfigWindow();
-    ~Win32ConfigWindow();
+    ~Win32ConfigWindow() = default;
 
     Win32ConfigWindow(const Win32ConfigWindow &&) = delete;
     Win32ConfigWindow(Win32ConfigWindow &)        = delete;
@@ -51,8 +51,14 @@ private:
     std::vector<ConfigWindow::DisplaySettings> _display_settings;
 
     void _populate_ui();
-    void _populate_lists();
+    void _populate_gpu_list();
+    void _populate_res_list();
+    void _populate_api_list();
     void _set_defaults();
+
+    void _select_gpu(::LRESULT selection);
+    void _select_res(::LRESULT selection);
+    void _select_api(::LRESULT selection);
 
     static ::LRESULT CALLBACK _wndproc(::HWND window, ::UINT msg,
                                        ::WPARAM wparam, ::LPARAM lparam);

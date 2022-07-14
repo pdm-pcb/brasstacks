@@ -1,13 +1,15 @@
 #ifndef BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
 #define BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
 
-#include "brasstacks/Engine/TargetWindow.hpp"
+#include "brasstacks/Application/TargetWindow.hpp"
 
 namespace btx {
 
 class Win32TargetWindow : public TargetWindow {
 public:
-    void run() override;
+    void init()     override;
+    void run()      override;
+    void shutdown() override;
 
     void * get_native() const override { return static_cast<void *>(_window); }
 
@@ -24,6 +26,11 @@ private:
     ::HWND   _window;
     ::LPCSTR _classname;
     ::LPBYTE _raw_message;
+
+    struct {
+        int x;
+        int y;
+    } _client_center;
 
     void _register_input();
 

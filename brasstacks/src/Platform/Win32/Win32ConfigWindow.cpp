@@ -62,7 +62,9 @@ void Win32ConfigWindow::run() {
         case WM_CREATE:
         {
             _populate_ui();
-            _populate_lists();
+            _populate_gpu_list();
+            _populate_res_list();
+            _populate_api_list();
             _set_defaults();    // TODO: set defaults based on what's already
                                 //       in RenderConfig, if anything. This
                                 //       should imply storing actual information
@@ -177,8 +179,21 @@ void Win32ConfigWindow::run() {
                     ::CheckDlgButton(_window, IDC_FULLSCREEN,
                                      checked ? BST_UNCHECKED : BST_CHECKED);
 
-                    // use the negated state because we just changed it
-                    RenderConfig::fullscreen = !checked;
+                    // negate it, since we just changed it
+                    checked = !checked;
+                    RenderConfig::fullscreen = checked;
+
+                    if(checked) {
+                        ::LRESULT res_count = ::SendMessage(
+                            _res_list, LB_GETCOUNT, 0, 0
+                        );
+                        _select_res(res_count - 1);
+                        ::EnableWindow(_res_list, false);
+                    }
+                    else {
+                        _select_res(0);
+                        ::EnableWindow(_res_list, true);
+                    }
                     break;
                 }
 
@@ -190,16 +205,28 @@ void Win32ConfigWindow::run() {
                             0, 0
                         );
 
-                        RenderConfig::selected_api = selection;
+                        ::LRESULT api_index = ::SendMessage(
+                            _api_combobox,
+                            CB_GETITEMDATA,
+                            selection, 0
+                        );
+
+                        RenderConfig::selected_api = api_index;
+
+                        BTX_ENGINE_TRACE(
+                            "{} selected",
+                            RenderConfig::supported_apis[api_index]
+                        );
                     }
                     break;
 
                 case IDC_START:
-                    BTX_ENGINE_TRACE("It's go-time");
                     ::SendMessage(window, WM_CLOSE, wparam, lparam);
+                    break;
 
                 case IDC_QUIT:
-                    BTX_ENGINE_TRACE("Button exit request received");
+                    WindowCloseEvent event;
+                    publish(EventType::WindowClosed, event);
                     ::SendMessage(window, WM_CLOSE, wparam, lparam);
                     break;
             }
@@ -218,11 +245,33 @@ void Win32ConfigWindow::run() {
             }
             break;
 
+        case WM_KEYUP:
+            if(wparam == VK_RETURN) {
+                ::SendMessage(window, WM_CLOSE, wparam, lparam);
+            }
+            break;
+
         case WM_CLOSE:
-            ::PostQuitMessage(0);
-            return 0;
+            ::ReleaseDC(_window, _device);
+            ::DestroyWindow(_gpu_list_label);
+            ::DestroyWindow(_gpu_list);
+            ::DestroyWindow(_res_list_label);
+            ::DestroyWindow(_res_list);
+            ::DestroyWindow(_gpu_label);
+            ::DestroyWindow(_chosen_gpu);
+            ::DestroyWindow(_res_label);
+            ::DestroyWindow(_chosen_res);
+            ::DestroyWindow(_api_combobox);
+            ::DestroyWindow(_vsync);
+            ::DestroyWindow(_fullscreen);
+            ::DestroyWindow(_start);
+            ::DestroyWindow(_quit);
+            ::DestroyWindow(_window);
+            ::UnregisterClass(_classname, 0);
+            break;
 
         case WM_DESTROY:
+            ::PostQuitMessage(0);
             return 0;
 
         default: break;
@@ -396,7 +445,7 @@ void Win32ConfigWindow::_populate_ui() {
     }
 }
 
-void Win32ConfigWindow::_populate_lists() {
+void Win32ConfigWindow::_populate_gpu_list() {
     _device = ::GetDC(_window);
     if(_device == nullptr) {
         ::MessageBox(nullptr, "GetDC() failed", "Error", MB_OK);
@@ -425,8 +474,11 @@ void Win32ConfigWindow::_populate_lists() {
         ::SendMessage(_gpu_list, LB_SETITEMDATA, list_pos,
                       static_cast<::LPARAM>(_adapters.size() - 1));
     }
+}
 
-    dev_index = 0;
+void Win32ConfigWindow::_populate_res_list() {
+    ::DWORD res_index = 0;
+    ::CHAR  list_string[64] { };
 
     ::DEVMODE mode { };
     ::CHAR    prev_string[64] { };
@@ -436,7 +488,7 @@ void Win32ConfigWindow::_populate_lists() {
     float sixteen_by_nine   = 16.0f / 9.0f;
     float twentyone_by_nine = 21.0f / 9.0f;
 
-    while(::EnumDisplaySettings(nullptr, dev_index++, &mode)) {
+    while(::EnumDisplaySettings(nullptr, res_index++, &mode)) {
         if(mode.dmDisplayFrequency < 60) {
             continue;
         }
@@ -473,43 +525,63 @@ void Win32ConfigWindow::_populate_lists() {
         ::SendMessage(_res_list, LB_SETITEMDATA, list_pos,
                       static_cast<::LPARAM>(_display_settings.size() - 1));
     }
+}
+
+void Win32ConfigWindow::_populate_api_list() {
+    size_t api_index = 0;
 
     for(const auto name : RenderConfig::supported_apis) {
-        ::SendMessage(
+        ::LRESULT list_pos = ::SendMessage(
             _api_combobox,
             CB_ADDSTRING, 0,
             reinterpret_cast<::LPARAM>(name)
         );
+
+        ::SendMessage(_api_combobox, CB_SETITEMDATA, list_pos,
+                      static_cast<::LPARAM>(api_index++));
     }
 }
 
 void Win32ConfigWindow::_set_defaults() {
-    // select the zero-th GPU by default
-    ::SendMessage(_gpu_list, LB_SETCURSEL, 0, 0);
-    ::SendMessage(_gpu_list, LB_SETCARETINDEX, 0, FALSE);
+    _select_gpu(0); // hopefully the default GPU
+    _select_res(0); // lowest resolution and refresh rate
+    _select_api(0); // OpenGL
+
+    // disable the "future" features
+    ::EnableWindow(_gpu_list, false);
+    ::EnableWindow(_api_combobox, false);
+}
+
+void Win32ConfigWindow::_select_gpu(::LRESULT selection) {
+    ::SendMessage(_gpu_list, LB_SETCURSEL, selection, 0);
+    ::SendMessage(_gpu_list, LB_SETCARETINDEX, selection, FALSE);
     ::SendMessage(
         _window,
         WM_COMMAND,
         MAKEWPARAM(IDC_GPU_LIST, LBN_SELCHANGE),
         0
     );
+}
 
-    // select the lowest resolution rate by default
-    ::SendMessage(_res_list, LB_SETCURSEL, 0, 0);
-    ::SendMessage(_res_list, LB_SETCARETINDEX, 0, FALSE);
+void Win32ConfigWindow::_select_res(::LRESULT selection) {
+    ::SendMessage(_res_list, LB_SETCURSEL, selection, 0);
+    ::SendMessage(_res_list, LB_SETCARETINDEX, selection, FALSE);
     ::SendMessage(
         _window,
         WM_COMMAND,
         MAKEWPARAM(IDC_RES_LIST, LBN_SELCHANGE),
         0
     );
+}
 
-    // select OpenGL by default
-    ::SendMessage(_api_combobox, CB_SETCURSEL, 0, 0);
-
-    // disable the "future" features
-    ::EnableWindow(_gpu_list, false);
-    ::EnableWindow(_api_combobox, false);
+void Win32ConfigWindow::_select_api(::LRESULT selection) {
+    ::SendMessage(_api_combobox, CB_SETCURSEL, selection, 0);
+    ::SendMessage(
+        _window,
+        WM_COMMAND,
+        MAKEWPARAM(IDC_API, CBN_SELCHANGE),
+        0
+    );
 }
 
 Win32ConfigWindow::Win32ConfigWindow() :
@@ -563,25 +635,6 @@ Win32ConfigWindow::Win32ConfigWindow() :
         WINDOW_X, WINDOW_Y,
         0
     );
-}
-
-Win32ConfigWindow::~Win32ConfigWindow() {
-    ::ReleaseDC(_window, _device);
-    ::DestroyWindow(_gpu_list_label);
-    ::DestroyWindow(_gpu_list);
-    ::DestroyWindow(_res_list_label);
-    ::DestroyWindow(_res_list);
-    ::DestroyWindow(_gpu_label);
-    ::DestroyWindow(_chosen_gpu);
-    ::DestroyWindow(_res_label);
-    ::DestroyWindow(_chosen_res);
-    ::DestroyWindow(_api_combobox);
-    ::DestroyWindow(_vsync);
-    ::DestroyWindow(_fullscreen);
-    ::DestroyWindow(_start);
-    ::DestroyWindow(_quit);
-    ::DestroyWindow(_window);
-    ::UnregisterClass(_classname, 0);
 }
 
 } // namespace btx

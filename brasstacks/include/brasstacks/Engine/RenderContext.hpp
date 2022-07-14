@@ -9,12 +9,14 @@ class TargetWindow;
 
 class RenderContext {
 public:
-    virtual void init() = 0;
+    virtual void init()     = 0;
+    virtual void run()      = 0;
     virtual void shutdown() = 0;
-    virtual void swap_buffers() = 0;
+    
     virtual void set_swap_interval(uint8_t interval) = 0;
+    virtual void set_clear_color(float r, float g, float b, float a) = 0;
 
-    static RenderContext * create(const TargetWindow *window);
+    static RenderContext * create();
 
     virtual ~RenderContext() = default;
 };

@@ -59,10 +59,16 @@
 #include "brasstacks/Events/EventPublisher.hpp"
 #include "brasstacks/Events/EventListener.hpp"
 #include "brasstacks/Events/WindowEvent.hpp"
+#include "brasstacks/Events/MouseEvent.hpp"
+#include "brasstacks/Events/KeyboardEvent.hpp"
+#include "brasstacks/System/Input/KeyCodes.hpp"
 
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
 #include <system_error>
+#include <thread>
+#include <atomic>
+#include <chrono>
 
 #endif // BRASSTACKS_UTILITY_PCH_HPP

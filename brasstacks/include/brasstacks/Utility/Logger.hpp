@@ -41,8 +41,6 @@ private:
     #define BTX_WARN(...)            ::btx::Logger::client()->warn(__VA_ARGS__)
     #define BTX_ERROR(...)           ::btx::Logger::client()->error(__VA_ARGS__);
     #define BTX_CRITICAL(...)        ::btx::Logger::client()->critical(__VA_ARGS__);
-
-    #define BTX_ASSERT(x, ...) assert(x && __VA_ARGS__)
 // #else
 //     #define BTX_ENGINE_TRACE(...)    
 //     #define BTX_ENGINE_INFO(...)     
@@ -55,8 +53,6 @@ private:
 //     #define BTX_WARN(...)            
 //     #define BTX_ERROR(...)           
 //     #define BTX_CRITICAL(...)
-
-//     #define BTX_ASSERT(x, ...)
 // #endif // DEBUG
 
 #endif // BRASSTACKS_UTILITY_LOGGER_HPP

@@ -1,5 +1,5 @@
 #include "brasstacks/System/pch.hpp"
-#include "brasstacks/Engine/TargetWindow.hpp"
+#include "brasstacks/Application/TargetWindow.hpp"
 
 #ifdef __linux__
     #include "brasstacks/Platform/X11/X11TargetWindow.hpp"
@@ -8,6 +8,8 @@
 #endif
 
 namespace btx {
+
+TargetWindow *TargetWindow::_current = nullptr;
 
 TargetWindow * TargetWindow::create() {
 #ifdef __linux__

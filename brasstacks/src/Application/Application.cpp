@@ -2,13 +2,14 @@
 #include "brasstacks/Application/Application.hpp"
 
 #include "brasstacks/Application/ConfigWindow.hpp"
-#include "brasstacks/Engine/TargetWindow.hpp"
-#include "brasstacks/Engine/RenderContext.hpp"
+#include "brasstacks/Application/TargetWindow.hpp"
+#include "brasstacks/Engine/Engine.hpp"
 
 namespace btx {
 
 void Application::on_event(Event &event) {
     if(event.type() == EventType::WindowClosed) {
+        BTX_ENGINE_TRACE("Application received WindowClosed");
         _running = false;
     }
 }
@@ -23,34 +24,32 @@ void Application::configure(const char *conf_filename) {
 }
 
 void Application::run() {
-    if(!_running) {     // TODO: Implement a messaging system for this
+    if(!_running) {
         return;
     }
 
-    TargetWindow *target_window   = TargetWindow::create();
-    RenderContext *render_context = RenderContext::create(target_window);
-
+    TargetWindow *target_window  = TargetWindow::create();
+    target_window->init();
     target_window->subscribe_to(this, EventType::WindowClosed);
+    TargetWindow::set_current(target_window);
 
-    ::glClearColor(0.25f, 0.5f, 0.15f, 1.0f);
-    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    render_context->swap_buffers();
+    Engine *engine = new Engine;
+    std::thread render_thread(&Engine::renderer, engine);
 
     target_window->run();
-    render_context->shutdown();
+    render_thread.join();
 
-    delete render_context;
     delete target_window;
 }
 
 Application::Application() :
     _running { true }
 {
-    BTX_ENGINE_TRACE("Here we goooooooooooooo~");
+    BTX_ENGINE_TRACE("Application constructor");
 }
 
 Application::~Application() {
-    BTX_ENGINE_TRACE("There we weeeeeeeeeeeeeent~");
+    BTX_ENGINE_TRACE("Application destructor");
 }
 
 } // namespace btx

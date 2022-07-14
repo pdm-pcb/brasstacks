@@ -12,11 +12,15 @@ class RenderContext;
 
 class TargetWindow : public EventPublisher {
 public:
-    virtual void run() = 0;
+    virtual void init()     = 0;
+    virtual void run()      = 0;
+    virtual void shutdown() = 0;
 
     virtual void * get_native() const = 0;
 
     static TargetWindow * create();
+    static TargetWindow * current()               { return _current;   }
+    static void set_current(TargetWindow *window) { _current = window; }
 
     virtual ~TargetWindow() = default;
 
@@ -27,6 +31,8 @@ public:
     TargetWindow & operator=(TargetWindow &)        = delete;
 
 protected:
+    static TargetWindow *_current;
+
     TargetWindow() = default;
 };
 
