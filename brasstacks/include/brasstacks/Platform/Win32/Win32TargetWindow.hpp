@@ -30,7 +30,7 @@ private:
     struct {
         int x;
         int y;
-    } _client_center;
+    } _window_center;
 
     void _register_input();
 

@@ -183,17 +183,7 @@ void Win32ConfigWindow::run() {
                     checked = !checked;
                     RenderConfig::fullscreen = checked;
 
-                    if(checked) {
-                        ::LRESULT res_count = ::SendMessage(
-                            _res_list, LB_GETCOUNT, 0, 0
-                        );
-                        _select_res(res_count - 1);
-                        ::EnableWindow(_res_list, false);
-                    }
-                    else {
-                        _select_res(0);
-                        ::EnableWindow(_res_list, true);
-                    }
+                    BTX_ENGINE_TRACE("VSync {}", checked ? "on" : "off");
                     break;
                 }
 
@@ -479,30 +469,15 @@ void Win32ConfigWindow::_populate_gpu_list() {
 void Win32ConfigWindow::_populate_res_list() {
     ::DWORD res_index = 0;
     ::CHAR  list_string[64] { };
-
-    ::DEVMODE mode { };
     ::CHAR    prev_string[64] { };
 
+    ::DEVMODE mode { };
     mode.dmSize = sizeof(mode);
 
-    float sixteen_by_nine   = 16.0f / 9.0f;
-    float twentyone_by_nine = 21.0f / 9.0f;
-
     while(::EnumDisplaySettings(nullptr, res_index++, &mode)) {
-        if(mode.dmDisplayFrequency < 60) {
-            continue;
-        }
-
-        float aspect = static_cast<float>(mode.dmPelsWidth) / mode.dmPelsHeight;
-        if(aspect != sixteen_by_nine) {
-            if(aspect != twentyone_by_nine) {
-                continue;
-            } 
-        }
-
         std::sprintf(list_string, "%dx%d @ %dhz",
                      mode.dmPelsWidth, mode.dmPelsHeight,
-                     mode.dmDisplayFrequency
+                     mode.dmDisplayFrequency, mode.dmBitsPerPel
         );
 
         if(std::strcmp(list_string, prev_string) == 0) {

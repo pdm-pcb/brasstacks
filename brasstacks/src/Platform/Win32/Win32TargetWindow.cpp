@@ -15,6 +15,8 @@ void Win32TargetWindow::run() {
         ::TranslateMessage(&msg);
         ::DispatchMessage(&msg);
     }
+
+    shutdown();
 }
 
 void Win32TargetWindow::init() {
@@ -48,24 +50,47 @@ void Win32TargetWindow::init() {
         ::MessageBox(nullptr, "CreateWindowEx() failed", "Error", MB_OK);
     }
 
-    int monitor_x = ::GetSystemMetrics(SM_CXSCREEN);
-    int monitor_y = ::GetSystemMetrics(SM_CYSCREEN);
+    int pos_x = 0;
+    int pos_y = 0;
 
-    int center_x = (monitor_x / 2) - (RenderConfig::window_x_res / 2);
-    int center_y = (monitor_y / 2) - (RenderConfig::window_y_res / 2);
+    if(RenderConfig::fullscreen) {
+        ::DEVMODE mode { };
+        mode.dmSize = sizeof(mode);
 
-    _client_center.x = center_x;
-    _client_center.y = center_y;
+        mode.dmPelsWidth        = RenderConfig::window_x_res;
+        mode.dmPelsHeight       = RenderConfig::window_y_res;
+        mode.dmDisplayFrequency = RenderConfig::refresh_rate;
+        mode.dmBitsPerPel       = 32;
+        mode.dmFields           = DM_PELSWIDTH | DM_PELSHEIGHT |
+                                  DM_DISPLAYFREQUENCY | DM_BITSPERPEL;
+
+        ::HRESULT hr = ::ChangeDisplaySettingsA(&mode, CDS_FULLSCREEN);
+        if(hr != DISP_CHANGE_SUCCESSFUL) {
+            BTX_ENGINE_ERROR("CDS returned {}", hr);
+            ::MessageBox(_window, "Display change failed", "Error", MB_OK);
+        }
+    }
+    else {
+        int display_x = ::GetSystemMetrics(SM_CXSCREEN);
+        int display_y = ::GetSystemMetrics(SM_CYSCREEN);
+
+        _window_center.x = (display_x / 2);
+        _window_center.y = (display_y / 2);
+
+        pos_x = _window_center.x - (RenderConfig::window_x_res / 2);
+        pos_y = _window_center.y - (RenderConfig::window_y_res / 2);
+    }
 
     ::SetWindowPos(
         _window, nullptr,
-        center_x, center_y,
+        pos_x, pos_y,
         static_cast<int>(RenderConfig::window_x_res),
         static_cast<int>(RenderConfig::window_y_res),
         0
     );
+
+    ::SetCursorPos(_window_center.x, _window_center.y);
     ::SetCapture(_window);
-    ::SetCursorPos(center_x, center_y);
     ::SetCursor(nullptr);
     ::ShowCursor(false);
 
@@ -75,6 +100,14 @@ void Win32TargetWindow::init() {
 void Win32TargetWindow::shutdown() {
     ::DestroyWindow(_window);
     ::UnregisterClass(_classname, 0);
+
+    if(RenderConfig::fullscreen) {
+        ::HRESULT hr = ::ChangeDisplaySettingsA(nullptr, 0);
+        if(hr != DISP_CHANGE_SUCCESSFUL) {
+            BTX_ENGINE_ERROR("CDS returned {}", hr);
+            ::MessageBox(_window, "Display change failed", "Error", MB_OK);
+        }
+    }
 }
 
 void Win32TargetWindow::_register_input() {
@@ -279,7 +312,7 @@ void Win32TargetWindow::_register_input() {
                 }
                 case RIM_TYPEMOUSE:
                 {
-                    ::SetCursorPos(_client_center.x, _client_center.y);
+                    ::SetCursorPos(_window_center.x, _window_center.y);
                     ::SetCursor(nullptr);
 
                     ::RAWMOUSE mouse = input->data.mouse;
@@ -346,7 +379,7 @@ Win32TargetWindow::Win32TargetWindow() :
     _window        { nullptr },
     _classname     { "Win32TargetWindow" },
     _raw_message   { new ::BYTE[64] }, 
-    _client_center { 0, 0 }
+    _window_center { 0, 0 }
 { }
 
 Win32TargetWindow::~Win32TargetWindow() {
