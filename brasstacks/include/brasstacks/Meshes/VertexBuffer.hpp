@@ -10,12 +10,11 @@ class VertexBuffer {
 public:
     virtual void bind() = 0;
 
-    virtual void set_buffer(uint32_t size, uint32_t stride, void *buffer) = 0;
+    virtual void set_buffer(void *buffer, uint32_t size) = 0;
     virtual void set_indices(const uint32_t *indices,
                              const uint32_t index_count) = 0;
 
     virtual void set_layout(const ElementList &elements) = 0;
-    virtual void set_layout(const VertexLayout &layout)  = 0;
 
     static VertexBuffer * create();
 

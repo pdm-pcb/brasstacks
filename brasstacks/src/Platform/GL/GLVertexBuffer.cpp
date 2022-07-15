@@ -7,8 +7,23 @@ void GLVertexBuffer::bind() {
     glBindVertexArray(_vao);
 }
 
-void GLVertexBuffer::set_buffer(uint32_t size, uint32_t stride, void *buffer) {
+void GLVertexBuffer::set_buffer(void *buffer, uint32_t size) {
+    if(_vao == GL_NONE) {
+        BTX_ENGINE_ERROR("Must create VAO before VBO");
+        return;
+    }
+    if(_layout == nullptr) {    // TODO: Perhaps I should have the layout as a constructor argument, then...
+        BTX_ENGINE_ERROR("Must set vertex layout before assigning data")
+        return;
+    }
+
     glCreateBuffers(1, &_vbo);
+    
+    if(_vbo == GL_NONE) {
+        BTX_ENGINE_ERROR("glCreateBuffers() failed for VBO");
+        return;
+    }
+
     glNamedBufferStorage(
         _vbo,
         size,
@@ -16,17 +31,26 @@ void GLVertexBuffer::set_buffer(uint32_t size, uint32_t stride, void *buffer) {
         GL_DYNAMIC_STORAGE_BIT
     );
     glVertexArrayVertexBuffer(
-        _vao,       // vaobj
-        0,          // bindingindex
-        _vbo,       // buffer
-        0,          // offset
-        stride      // stride
+        _vao, 0,          // vaobj, binding index
+        _vbo, 0,          // buffer, offset
+        _layout->stride() // stride
     );
 }
 
 void GLVertexBuffer::set_indices(const uint32_t *indices,
                                  const uint32_t index_count) {
+    if(_vao == GL_NONE) {
+        BTX_ENGINE_ERROR("Must create VAO before IBO");
+        return;
+    }
+
     glCreateBuffers(1, &_ibo);
+    
+    if(_ibo == GL_NONE) {
+        BTX_ENGINE_ERROR("glCreateBuffers() failed for IBO");
+        return;
+    }
+
     glNamedBufferStorage(
         _ibo,
         sizeof(uint32_t) * index_count,
@@ -37,18 +61,18 @@ void GLVertexBuffer::set_indices(const uint32_t *indices,
 }
 
 void GLVertexBuffer::set_layout(const ElementList &elements) {
-    VertexLayout layout { elements };
-    set_layout(layout);
+    _layout = new VertexLayout { elements };
+    _set_layout();
 }
 
-void GLVertexBuffer::set_layout(const VertexLayout &layout) {
+void GLVertexBuffer::_set_layout() {
 	uint32_t elem_count   = 0;
     uint32_t layout_count = 0;
 	uint32_t data_type    = GL_NONE;
 
     using type = VBElement::Type;
 
-	for(const auto &element : layout.elements()) {
+	for(const auto &element : _layout->elements()) {
         switch(element._type) {
             case type::float32: elem_count = 1; data_type = GL_FLOAT;          break;
             case type::int8:    elem_count = 1; data_type = GL_BYTE;           break;
@@ -108,9 +132,14 @@ void GLVertexBuffer::set_layout(const VertexLayout &layout) {
 }
 
 GLVertexBuffer::GLVertexBuffer() :
-    _vao { 0 }, _vbo { 0 }, _ibo { 0 }
+    _vao { GL_NONE }, _vbo { GL_NONE }, _ibo { GL_NONE },
+    _layout { nullptr }
 {
     glCreateVertexArrays(1, &_vao);
+
+    if(_vao == GL_NONE) {
+        BTX_ENGINE_ERROR("glCreateVertexArrays() failed");
+    }
 }
 
 } // namespace btx

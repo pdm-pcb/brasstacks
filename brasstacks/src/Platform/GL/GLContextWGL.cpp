@@ -7,13 +7,13 @@
 typedef std::chrono::high_resolution_clock HRC;
 typedef HRC::time_point Point;
 
-const char *vertexShaderSource = "#version 330 core\n"
+const char *vertexShaderSource = "#version 460 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
+const char *fragmentShaderSource = "#version 460 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
@@ -21,12 +21,12 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "}\n\0";
 
 float vertices[] = {
-    0.5f,  0.5f, 0.0f,  // top right
-    0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left 
+     0.5f,  0.5f, 0.0f, 0.0f,  // top right
+     0.5f, -0.5f, 0.0f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f, 0.0f   // top left 
 };
-uint32_t indices[] = {  // note that we start from 0!
+uint32_t indices[] = {
     0, 1, 3,  // first Triangle
     1, 2, 3   // second Triangle
 };
@@ -35,9 +35,9 @@ namespace btx {
 
 void GLContextWGL::run() {
     VertexBuffer *buffer = VertexBuffer::create();
-    buffer->set_buffer(sizeof(vertices), 3 * sizeof(float), vertices);
-    buffer->set_indices(indices, 6);
     buffer->set_layout({ { "POSITION", VBElement::Type::vec4f, false } });
+    buffer->set_buffer(vertices, sizeof(vertices));
+    buffer->set_indices(indices, 6);
 
 
 
