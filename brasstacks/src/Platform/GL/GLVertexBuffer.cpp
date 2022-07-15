@@ -28,8 +28,8 @@ void GLVertexBuffer::set_buffer(void *buffer, uint32_t size) {
     );
 }
 
-void GLVertexBuffer::set_indices(const uint32_t *indices,
-                                 const uint32_t index_count) {
+void GLVertexBuffer::set_indices(const Mesh::Face *faces,
+                                 const uint32_t face_count) {
     glCreateBuffers(1, &_ibo);
     
     if(_ibo == GL_NONE) {
@@ -39,8 +39,8 @@ void GLVertexBuffer::set_indices(const uint32_t *indices,
 
     glNamedBufferStorage(
         _ibo,
-        sizeof(uint32_t) * index_count,
-        indices,
+        sizeof(Mesh::Face) * face_count,
+        faces,
         GL_DYNAMIC_STORAGE_BIT
     );
     glVertexArrayElementBuffer(_vao, _ibo);
@@ -91,7 +91,8 @@ void GLVertexBuffer::_set_layout() {
 				if(element._per_vertex == false) {
 					glVertexAttribDivisor(layout_count, 1);
 				}
-				layout_count++;
+                glVertexArrayAttribBinding(_vao, layout_count, 0);
+				++layout_count;
 				break;
 
 			case type::mat4f:
@@ -105,15 +106,22 @@ void GLVertexBuffer::_set_layout() {
                         element._offset
                     );
 					glVertexAttribDivisor(layout_count, 1);
-					layout_count++;
+                    glVertexArrayAttribBinding(_vao, layout_count, 0);
+					++layout_count;
 				}
 				break;
+
+            default:
+                BTX_ENGINE_ERROR("Unknown OpenGL element type.");
+                break;
 		}
 	}
 }
 
 GLVertexBuffer::GLVertexBuffer(const ElementList &elements) :
-    _vao { GL_NONE }, _vbo { GL_NONE }, _ibo { GL_NONE },
+    _vao    { GL_NONE },
+    _vbo    { GL_NONE },
+    _ibo    { GL_NONE },
     _layout { new VertexLayout { elements } }
 {
     glCreateVertexArrays(1, &_vao);

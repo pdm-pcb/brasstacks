@@ -2,6 +2,7 @@
 #define BRASSTACKS_MESHES_VERTEXBUFFER_HPP
 
 #include "brasstacks/Meshes/VertexLayout.hpp"
+#include "brasstacks/Meshes/Mesh.hpp"
 #include <cstdint>
 
 namespace btx {
@@ -11,8 +12,8 @@ public:
     virtual void bind() = 0;
 
     virtual void set_buffer(void *buffer, uint32_t size) = 0;
-    virtual void set_indices(const uint32_t *indices,
-                             const uint32_t index_count) = 0;
+    virtual void set_indices(const Mesh::Face *faces,
+                             const uint32_t face_count) = 0;
 
     static VertexBuffer * create(const ElementList &elements);
 
