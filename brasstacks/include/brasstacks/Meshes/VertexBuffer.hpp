@@ -1,10 +1,34 @@
 #ifndef BRASSTACKS_MESHES_VERTEXBUFFER_HPP
 #define BRASSTACKS_MESHES_VERTEXBUFFER_HPP
 
+#include "brasstacks/Meshes/VertexLayout.hpp"
+#include <cstdint>
+
 namespace btx {
 
 class VertexBuffer {
+public:
+    virtual void bind() = 0;
 
+    virtual void set_buffer(uint32_t size, uint32_t stride, void *buffer) = 0;
+    virtual void set_indices(const uint32_t *indices,
+                             const uint32_t index_count) = 0;
+
+    virtual void set_layout(const ElementList &elements) = 0;
+    virtual void set_layout(const VertexLayout &layout)  = 0;
+
+    static VertexBuffer * create();
+
+    virtual ~VertexBuffer() = default;
+
+    VertexBuffer(const VertexBuffer &&) = delete;
+    VertexBuffer(VertexBuffer &)        = delete;
+
+    VertexBuffer & operator=(const VertexBuffer &&) = delete;
+    VertexBuffer & operator=(VertexBuffer &)        = delete;
+
+protected:
+    VertexBuffer() = default;
 };
 
 } // namespace btx

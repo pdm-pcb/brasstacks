@@ -2,6 +2,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(spdlog REQUIRED)
+find_package(glm REQUIRED)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -10,9 +11,9 @@ add_library(
     "src/Utility/Logger.cpp"
 	"src/Application/Application.cpp"
     "src/Application/ConfigWindow.cpp"
+    "src/Application/TargetWindow.cpp"
     "src/Engine/Engine.cpp"
     "src/Engine/RenderConfig.cpp"
-    "src/Application/TargetWindow.cpp"
     "src/Engine/RenderContext.cpp"
     "src/Events/WindowEvent.cpp"
     "src/Events/KeyboardEvent.cpp"
@@ -36,6 +37,7 @@ target_precompile_headers(
 target_link_libraries(
 	brasstacks PUBLIC
 	"spdlog"
+    "glm"
 )
 
 if("${BTX_RENDER_API}" MATCHES "GL")
@@ -52,6 +54,11 @@ if("${BTX_RENDER_API}" MATCHES "GL")
     target_include_directories(
         brasstacks PUBLIC
         "${GLAD_DIR}/include"
+    )
+
+    target_sources (
+        brasstacks PUBLIC
+        "src/Platform/GL/GLVertexBuffer.cpp"
     )
 
 	if(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
