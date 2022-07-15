@@ -14,9 +14,7 @@ public:
     virtual void set_indices(const uint32_t *indices,
                              const uint32_t index_count) = 0;
 
-    virtual void set_layout(const ElementList &elements) = 0;
-
-    static VertexBuffer * create();
+    static VertexBuffer * create(const ElementList &elements);
 
     virtual ~VertexBuffer() = default;
 

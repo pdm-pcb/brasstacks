@@ -8,15 +8,6 @@ void GLVertexBuffer::bind() {
 }
 
 void GLVertexBuffer::set_buffer(void *buffer, uint32_t size) {
-    if(_vao == GL_NONE) {
-        BTX_ENGINE_ERROR("Must create VAO before VBO");
-        return;
-    }
-    if(_layout == nullptr) {    // TODO: Perhaps I should have the layout as a constructor argument, then...
-        BTX_ENGINE_ERROR("Must set vertex layout before assigning data")
-        return;
-    }
-
     glCreateBuffers(1, &_vbo);
     
     if(_vbo == GL_NONE) {
@@ -39,11 +30,6 @@ void GLVertexBuffer::set_buffer(void *buffer, uint32_t size) {
 
 void GLVertexBuffer::set_indices(const uint32_t *indices,
                                  const uint32_t index_count) {
-    if(_vao == GL_NONE) {
-        BTX_ENGINE_ERROR("Must create VAO before IBO");
-        return;
-    }
-
     glCreateBuffers(1, &_ibo);
     
     if(_ibo == GL_NONE) {
@@ -58,11 +44,6 @@ void GLVertexBuffer::set_indices(const uint32_t *indices,
         GL_DYNAMIC_STORAGE_BIT
     );
     glVertexArrayElementBuffer(_vao, _ibo);
-}
-
-void GLVertexBuffer::set_layout(const ElementList &elements) {
-    _layout = new VertexLayout { elements };
-    _set_layout();
 }
 
 void GLVertexBuffer::_set_layout() {
@@ -131,15 +112,17 @@ void GLVertexBuffer::_set_layout() {
 	}
 }
 
-GLVertexBuffer::GLVertexBuffer() :
+GLVertexBuffer::GLVertexBuffer(const ElementList &elements) :
     _vao { GL_NONE }, _vbo { GL_NONE }, _ibo { GL_NONE },
-    _layout { nullptr }
+    _layout { new VertexLayout { elements } }
 {
     glCreateVertexArrays(1, &_vao);
 
     if(_vao == GL_NONE) {
         BTX_ENGINE_ERROR("glCreateVertexArrays() failed");
     }
+
+    _set_layout();
 }
 
 } // namespace btx

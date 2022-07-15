@@ -12,9 +12,7 @@ public:
     void set_buffer(void *buffer, uint32_t size) override;
     void set_indices(const uint32_t *faces, const uint32_t face_count) override;
 
-    void set_layout(const ElementList &elements) override;
-
-    GLVertexBuffer();
+    GLVertexBuffer(const ElementList &elements);
 
 private:
     GLuint _vao;

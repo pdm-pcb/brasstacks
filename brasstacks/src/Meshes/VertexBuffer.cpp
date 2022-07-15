@@ -13,14 +13,14 @@
 
 namespace btx {
 
-VertexBuffer * VertexBuffer::create() {
+VertexBuffer * VertexBuffer::create(const ElementList &elements) {
 #ifdef __linux__
     // ...?
 #elif defined(_WIN32)
     #ifdef BTX_DIRECTX11
     // ...?
     #elif defined(BTX_OPENGL)
-        return new GLVertexBuffer();
+        return new GLVertexBuffer(elements);
     #endif
 #endif   
 }

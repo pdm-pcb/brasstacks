@@ -34,8 +34,9 @@ uint32_t indices[] = {
 namespace btx {
 
 void GLContextWGL::run() {
-    VertexBuffer *buffer = VertexBuffer::create();
-    buffer->set_layout({ { "POSITION", VBElement::Type::vec4f, false } });
+    VertexBuffer *buffer = VertexBuffer::create({
+        { "POSITION", VBElement::Type::vec4f, false }
+    });
     buffer->set_buffer(vertices, sizeof(vertices));
     buffer->set_indices(indices, 6);
 
