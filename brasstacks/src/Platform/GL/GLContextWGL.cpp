@@ -5,43 +5,35 @@
 #include "brasstacks/Platform/GL/GLVertexBuffer.hpp"
 #include "brasstacks/Platform/GL/GLDebugger.hpp"
 
+#include "brasstacks/Meshes/MeshFlatColor.hpp"
+
 typedef std::chrono::high_resolution_clock HRC;
 typedef HRC::time_point Point;
 
-const char *vertexShaderSource = "#version 460 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
+const char *vertexShaderSource =
+    "#version 460 core\n"
+    "layout (location = 0) in vec4 aPos;\n"
+    "layout (location = 1) in vec4 aColor;\n"
+    "out vec4 ourColor;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-const char *fragmentShaderSource = "#version 460 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "    gl_Position = aPos;\n"
+    "    ourColor = aColor;\n"
     "}\n\0";
 
-float vertices[] = {
-     0.5f,  0.5f, 0.0f, 0.0f,  // top right
-     0.5f, -0.5f, 0.0f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f, 0.0f   // top left 
-};
-uint32_t indices[] = {
-    0, 1, 3,  // first Triangle
-    1, 2, 3   // second Triangle
-};
+const char *fragmentShaderSource =
+    "#version 460 core\n"
+    "out vec4 FragColor;\n"
+    "in vec4 ourColor;\n"
+    "void main()\n"
+    "{\n"
+    "    FragColor = ourColor;\n"
+    "}\n\0";
 
 namespace btx {
 
 void GLContextWGL::run() {
-    VertexBuffer *buffer = VertexBuffer::create({
-        { "POSITION", VBElement::Type::vec4f, false }
-    });
-    buffer->set_buffer(vertices, sizeof(vertices));
-    buffer->set_indices(indices, 6);
-
-
+    MeshFlatColor *buffer = new MeshFlatColor(Mesh::Primitives::Cube);
 
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -87,7 +79,7 @@ void GLContextWGL::run() {
         buffer->bind();
 
         glUseProgram(shaderProgram);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, buffer->index_count(), GL_UNSIGNED_INT, 0);
 
         ::SwapBuffers(_device);
     }
