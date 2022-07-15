@@ -3,6 +3,7 @@
 
 #include "brasstacks/Application/TargetWindow.hpp"
 #include "brasstacks/Platform/GL/GLVertexBuffer.hpp"
+#include "brasstacks/Platform/GL/GLDebugger.hpp"
 
 typedef std::chrono::high_resolution_clock HRC;
 typedef HRC::time_point Point;
@@ -94,6 +95,7 @@ void GLContextWGL::run() {
     delete buffer;
 
     BTX_ENGINE_TRACE("Shutting down WGL");
+    delete _debugger;
 	::wglMakeCurrent(_device, nullptr);
 	::wglDeleteContext(_context);
     ::ReleaseDC(_window, _device);
@@ -172,10 +174,10 @@ void GLContextWGL::init() {
 		::MessageBox(nullptr, "wglMakeCurrent failed", "Error", MB_OK);
 	}
 
-// #ifdef DEBUG
-    // // since the context is good, create the debugging helper
-    // _debugger = new GLDebugger;
-// #endif
+#ifdef DEBUG
+    // since the context is good, create the debugging helper
+    _debugger = new GLDebugger;
+#endif
 
     BTX_ENGINE_INFO("Initialized WGL context:\n    {}\n    {}\n    {}",
                     ::glGetString(GL_RENDERER), ::glGetString(GL_VENDOR),
@@ -276,9 +278,10 @@ void GLContextWGL::set_clear_color(float r, float g, float b, float a) {
 }
 
 GLContextWGL::GLContextWGL(const TargetWindow *window) :
-    _window  { static_cast<::HWND>(window->get_native()) },
-    _device  { nullptr },
-    _context { nullptr }
+    _window   { static_cast<::HWND>(window->get_native()) },
+    _device   { nullptr },
+    _context  { nullptr },
+    _debugger { nullptr }
 { }
 
 } // namespace btx

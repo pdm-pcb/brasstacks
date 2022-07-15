@@ -59,6 +59,7 @@ if("${BTX_RENDER_API}" MATCHES "GL")
     target_sources (
         brasstacks PUBLIC
         "src/Platform/GL/GLVertexBuffer.cpp"
+        "src/Platform/GL/GLDebugger.cpp"
     )
 
 	if(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")

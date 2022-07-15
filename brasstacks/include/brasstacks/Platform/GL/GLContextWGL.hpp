@@ -8,6 +8,7 @@
 namespace btx {
 
 class TargetWindow;
+class GLDebugger;
 
 class GLContextWGL : public RenderContext {
 public:
@@ -35,6 +36,8 @@ private:
     ::HGLRC _context;
 
     std::atomic<bool> _running;
+
+    GLDebugger *_debugger;
 
     void _driver_hooks();
 };
