@@ -11,7 +11,7 @@
 namespace btx {
 
 void GLContextWGL::run() {
-    MeshFlatColor   *mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
+    MeshFlatColor   *mesh   = new MeshFlatColor(Mesh::Primitives::XZPlane);
     ShaderFlatColor *shader = new ShaderFlatColor;
 
     _running = true;
@@ -20,6 +20,9 @@ void GLContextWGL::run() {
 
         mesh->bind();
         shader->bind();
+
+        shader->update_camera(glm::mat4(1.0f), glm::mat4(1.0f)); 
+        shader->set_world(glm::mat4(1.0f));
 
         glDrawElements(GL_TRIANGLES, mesh->index_count(), GL_UNSIGNED_INT, 0);
 

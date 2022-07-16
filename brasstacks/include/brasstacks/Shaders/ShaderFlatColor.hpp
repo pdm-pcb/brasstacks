@@ -16,6 +16,11 @@ public:
     void bind()   const override { _shader->bind();   }
     void unbind() const override { _shader->unbind(); }
 
+    void update_camera(const glm::mat4 &view,
+                       const glm::mat4 &projection) const override;
+
+    void set_world(const glm::mat4 &world) const;
+
     ShaderFlatColor();
     ~ShaderFlatColor();
 

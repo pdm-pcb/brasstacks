@@ -14,11 +14,13 @@ public:
     void bind();
     static void unbind();
 
+    void update_camera(const glm::mat4 &view, const glm::mat4 &proj);
+
     void add_program(const char *path, const Type type);
     void link_program();
 
     GLShader();
-    ~GLShader();
+    virtual ~GLShader();
 
     GLShader(const GLShader &other)             = delete;
     GLShader(GLShader &&other)                  = delete;
@@ -28,6 +30,7 @@ public:
 
 protected:
     GLuint handle() const { return _handle; }
+    void create_cam_ubo();
 
 private:
     GLuint _handle;
@@ -35,7 +38,9 @@ private:
     GLuint _frag;
     GLuint _geo;
 
-    void _print_shader_log()  const;    
+    GLuint _cam_ubo;
+
+    void _print_shader_log() const; 
 };
 
 } // namespace btx

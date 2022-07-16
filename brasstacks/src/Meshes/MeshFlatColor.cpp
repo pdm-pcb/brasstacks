@@ -86,13 +86,13 @@ void MeshFlatColor::_build_cube(const float scale) {
 void MeshFlatColor::_build_xz_plane(const float scale) {
     _vertices = new Vertex[_vertex_count] {
         {{ -0.5f * scale, -0.5f * scale,  0.0f, 1.0f },
-         { 0.12f, 0.34f, 0.56f, 1.0f }},
+         { 0.5f, 0.0f, 0.0f, 1.0f }},
         {{  0.5f * scale, -0.5f * scale,  0.0f, 1.0f },
-         { 0.12f, 0.34f, 0.56f, 1.0f }},
+         { 0.0f, 0.5f, 0.0f, 1.0f }},
         {{  0.5f * scale,  0.5f * scale,  0.0f, 1.0f },
-         { 0.12f, 0.34f, 0.56f, 1.0f }},
+         { 0.0f, 0.0f, 0.5f, 1.0f }},
         {{ -0.5f * scale,  0.5f * scale,  0.0f, 1.0f },
-         { 0.12f, 0.34f, 0.56f, 1.0f }},
+         { 0.5f, 0.5f, 0.0f, 1.0f }},
     };
 
     _faces = new Mesh::Face[_face_count] {

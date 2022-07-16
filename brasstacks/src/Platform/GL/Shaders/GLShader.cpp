@@ -14,6 +14,18 @@ void GLShader::unbind() {
     glUseProgram(0);
 }
 
+void GLShader::update_camera(const glm::mat4 &view,
+                             const glm::mat4 &projection) {
+    Shader::CameraBufferData data { view, projection };
+
+    glNamedBufferSubData(
+        _cam_ubo,
+        0,
+        sizeof(Shader::CameraBufferData),
+        &data
+    );
+}
+
 void GLShader::add_program(const char *path, const Type type) {
     char *source = Shader::load_source(path);
 
@@ -127,11 +139,25 @@ void GLShader::_print_shader_log() const {
     }
 }
 
+void GLShader::create_cam_ubo() {
+    glCreateBuffers(1, &_cam_ubo);
+    glNamedBufferStorage(
+        _cam_ubo,
+        sizeof(Shader::CameraBufferData),
+        nullptr,
+        GL_DYNAMIC_STORAGE_BIT
+    );
+    
+    GLuint index = glGetUniformBlockIndex(_handle, "CameraMatrixBuffer");
+    glBindBufferBase(GL_UNIFORM_BUFFER, index, _cam_ubo);
+}
+
 GLShader::GLShader() :
-    _handle { GL_NONE },
-    _vert   { GL_NONE },
-    _frag   { GL_NONE },
-    _geo    { GL_NONE }
+    _handle  { GL_NONE },
+    _vert    { GL_NONE },
+    _frag    { GL_NONE },
+    _geo     { GL_NONE },
+    _cam_ubo { GL_NONE }
 {
     _handle = glCreateProgram();
 }

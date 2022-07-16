@@ -7,6 +7,8 @@ namespace btx {
 
 class GLShaderFlatColor : public GLShader {
 public:
+    void set_world(const glm::mat4 &world);
+
     GLShaderFlatColor();
     ~GLShaderFlatColor() = default;
 
@@ -15,6 +17,11 @@ public:
 
     GLShaderFlatColor & operator=(const GLShaderFlatColor &&) = delete;
     GLShaderFlatColor & operator=(GLShaderFlatColor &)        = delete;
+
+private:
+    GLuint _world_uniform;
+
+    void _find_uniforms();
 };
 
 } // namespacec btx
