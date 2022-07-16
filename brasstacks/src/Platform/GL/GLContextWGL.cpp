@@ -16,7 +16,7 @@ void GLContextWGL::run() {
     MeshFlatColor     *mesh   = new MeshFlatColor(Mesh::Primitives::XZPlane);
     ShaderFlatColor   *shader = new ShaderFlatColor;
     PerspectiveCamera *camera = new PerspectiveCamera(
-        0.7853981853f, // pi over four
+        math::pi_over_four,
         static_cast<float>(RenderConfig::window_x_res) /
         static_cast<float>(RenderConfig::window_y_res)
     );

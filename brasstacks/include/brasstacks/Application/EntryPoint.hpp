@@ -4,6 +4,8 @@
 #include "brasstacks/Application/Application.hpp"
 #include "brasstacks/Utility/Logger.hpp"
 
+#include <cstdio>
+
 extern btx::Application * btx::create_application();
 
 int main(int argc, char **argv) {
@@ -25,6 +27,10 @@ int main(int argc, char **argv) {
     application->run();
 
     delete application;
+
+#if !DEBUG
+    getchar();
+#endif
 
     return 0;
 }

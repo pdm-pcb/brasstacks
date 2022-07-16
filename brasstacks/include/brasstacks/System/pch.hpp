@@ -55,6 +55,7 @@
 
 #include "brasstacks/Utility/Logger.hpp"
 #include "brasstacks/Utility/EnumRange.hpp"
+#include "brasstacks/Utility/math.hpp"
 #include "brasstacks/Events/Event.hpp"
 #include "brasstacks/Events/EventPublisher.hpp"
 #include "brasstacks/Events/EventListener.hpp"

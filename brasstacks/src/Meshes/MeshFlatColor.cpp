@@ -123,8 +123,8 @@ MeshFlatColor::MeshFlatColor(Primitives primitive) :
     }
 
     _vb = VertexBuffer::create({
-        { "POSITION", VBElement::Type::vec4f, false },
-        { "COLOR",    VBElement::Type::vec4f, false },
+        { "POSITION", VBElement::Type::vec4f },
+        { "COLOR",    VBElement::Type::vec4f },
     });
 
     _vb->set_buffer(_vertices, _vertex_count * sizeof(Vertex));

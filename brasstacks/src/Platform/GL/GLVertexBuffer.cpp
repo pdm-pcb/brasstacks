@@ -89,7 +89,7 @@ void GLVertexBuffer::_set_layout() {
                     element._offset
                 );
 				if(element._per_vertex == false) {
-					glVertexAttribDivisor(layout_count, 1);
+					glVertexArrayBindingDivisor(_vao, layout_count, 1);
 				}
                 glVertexArrayAttribBinding(_vao, layout_count, 0);
 				++layout_count;
@@ -105,7 +105,7 @@ void GLVertexBuffer::_set_layout() {
                         data_type, GL_FALSE,
                         element._offset
                     );
-					glVertexAttribDivisor(layout_count, 1);
+					glVertexArrayBindingDivisor(_vao, layout_count, 1);
                     glVertexArrayAttribBinding(_vao, layout_count, 0);
 					++layout_count;
 				}

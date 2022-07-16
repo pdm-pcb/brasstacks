@@ -22,7 +22,7 @@ struct VBElement {
 	uint32_t    _offset;
 	bool        _per_vertex;
 
-	VBElement(const char *name, const Type type, const bool per_vertex);
+	VBElement(const char *name, const Type type, const bool per_vertex = true);
 };
 
 using ElementList = std::initializer_list<VBElement>;
