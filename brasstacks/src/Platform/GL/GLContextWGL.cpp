@@ -7,12 +7,24 @@
 
 #include "brasstacks/Meshes/MeshFlatColor.hpp"
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
+#include "brasstacks/Cameras/PerspectiveCamera.hpp"
+#include "brasstacks/Engine/RenderConfig.hpp"
 
 namespace btx {
 
 void GLContextWGL::run() {
-    MeshFlatColor   *mesh   = new MeshFlatColor(Mesh::Primitives::XZPlane);
-    ShaderFlatColor *shader = new ShaderFlatColor;
+    MeshFlatColor     *mesh   = new MeshFlatColor(Mesh::Primitives::XZPlane);
+    ShaderFlatColor   *shader = new ShaderFlatColor;
+    PerspectiveCamera *camera = new PerspectiveCamera(
+        0.7853981853f, // pi over four
+        static_cast<float>(RenderConfig::window_x_res) /
+        static_cast<float>(RenderConfig::window_y_res)
+    );
+
+    camera->orient(
+        { 0.0f, 0.0f, 2.0f },
+        { 0.0f, 0.0f, 0.0f }
+    );
 
     _running = true;
     while(_running) {
@@ -21,7 +33,10 @@ void GLContextWGL::run() {
         mesh->bind();
         shader->bind();
 
-        shader->update_camera(glm::mat4(1.0f), glm::mat4(1.0f)); 
+        shader->update_camera(
+            camera->view_matrix(),
+            camera->projection_matrix()
+        ); 
         shader->set_world(glm::mat4(1.0f));
 
         glDrawElements(GL_TRIANGLES, mesh->index_count(), GL_UNSIGNED_INT, 0);

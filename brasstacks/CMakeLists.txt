@@ -24,6 +24,7 @@ add_library(
     "src/Meshes/MeshFlatColor.cpp"
     "src/Shaders/Shader.cpp"
     "src/Shaders/ShaderFlatColor.cpp"
+    "src/Cameras/PerspectiveCamera.cpp"
 )
 
 target_include_directories(
