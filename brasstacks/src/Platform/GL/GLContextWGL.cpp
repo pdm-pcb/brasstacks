@@ -6,85 +6,28 @@
 #include "brasstacks/Platform/GL/GLDebugger.hpp"
 
 #include "brasstacks/Meshes/MeshFlatColor.hpp"
-
-typedef std::chrono::high_resolution_clock HRC;
-typedef HRC::time_point Point;
-
-const char *vertexShaderSource =
-    "#version 460 core\n"
-    "layout (location = 0) in vec4 aPos;\n"
-    "layout (location = 1) in vec4 aColor;\n"
-    "out vec4 ourColor;\n"
-    "void main()\n"
-    "{\n"
-    "    gl_Position = aPos;\n"
-    "    ourColor = aColor;\n"
-    "}\n\0";
-
-const char *fragmentShaderSource =
-    "#version 460 core\n"
-    "out vec4 FragColor;\n"
-    "in vec4 ourColor;\n"
-    "void main()\n"
-    "{\n"
-    "    FragColor = ourColor;\n"
-    "}\n\0";
+#include "brasstacks/Shaders/ShaderFlatColor.hpp"
 
 namespace btx {
 
 void GLContextWGL::run() {
-    MeshFlatColor *buffer = new MeshFlatColor(Mesh::Primitives::Cube);
-
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-    }
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-    }
-    // link shaders
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-
-
+    MeshFlatColor   *mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
+    ShaderFlatColor *shader = new ShaderFlatColor;
 
     _running = true;
     while(_running) {
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        buffer->bind();
+        mesh->bind();
+        shader->bind();
 
-        glUseProgram(shaderProgram);
-        glDrawElements(GL_TRIANGLES, buffer->index_count(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, mesh->index_count(), GL_UNSIGNED_INT, 0);
 
         ::SwapBuffers(_device);
     }
 
-    delete buffer;
+    delete mesh;
+    delete shader;
 
     BTX_ENGINE_TRACE("Shutting down WGL");
     delete _debugger;

@@ -6,10 +6,10 @@
 #ifdef __linux__
     // ...?
 #elif defined(_WIN32)
-    #ifdef BTX_DIRECTX11
-    // ...?
-    #elif defined(BTX_OPENGL)
+    #ifdef BTX_OPENGL
         #include "brasstacks/Platform/GL/GLContextWGL.hpp"
+    #elif defined(BTX_DIRECTX11)
+        // ...?
     #endif
 #endif
 
@@ -23,12 +23,12 @@ RenderContext * RenderContext::create() {
 #ifdef __linux__
     // ...?
 #elif defined(_WIN32)
-    #ifdef BTX_DIRECTX11
-    // ...?
-    #elif defined(BTX_OPENGL)
+    #ifdef BTX_OPENGL
         return new GLContextWGL(TargetWindow::current());
         // ::glEnable(GL_DEPTH_TEST);
         // ::glEnable(GL_CULL_FACE);
+    #elif defined(BTX_DIRECTX11)
+        // ...?
     #endif
 #endif
 }

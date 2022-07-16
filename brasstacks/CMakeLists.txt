@@ -22,6 +22,8 @@ add_library(
     "src/Meshes/VertexBuffer.cpp"
     "src/Meshes/VertexLayout.cpp"
     "src/Meshes/MeshFlatColor.cpp"
+    "src/Shaders/Shader.cpp"
+    "src/Shaders/ShaderFlatColor.cpp"
 )
 
 target_include_directories(
@@ -60,6 +62,8 @@ if("${BTX_RENDER_API}" MATCHES "GL")
         brasstacks PUBLIC
         "src/Platform/GL/GLVertexBuffer.cpp"
         "src/Platform/GL/GLDebugger.cpp"
+        "src/Platform/GL/Shaders/GLShader.cpp"
+        "src/Platform/GL/Shaders/GLShaderFlatColor.cpp"
     )
 
 	if(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")

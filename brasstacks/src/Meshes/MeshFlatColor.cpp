@@ -96,8 +96,8 @@ void MeshFlatColor::_build_xz_plane(const float scale) {
     };
 
     _faces = new Mesh::Face[_face_count] {
-		{  0,  1,  2 },
-        {  2,  3,  0 }
+		{ 0, 1, 2 },
+        { 2, 3, 0 }
     };
 }
 
