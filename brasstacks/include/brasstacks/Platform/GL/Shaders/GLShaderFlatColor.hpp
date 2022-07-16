@@ -7,7 +7,7 @@ namespace btx {
 
 class GLShaderFlatColor : public GLShader {
 public:
-    void set_world(const glm::mat4 &world);
+    void set_world(const glm::mat4 &world) const;
 
     GLShaderFlatColor();
     ~GLShaderFlatColor() = default;

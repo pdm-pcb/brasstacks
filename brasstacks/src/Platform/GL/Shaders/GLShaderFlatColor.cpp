@@ -5,7 +5,7 @@
 
 namespace btx {
 
-void GLShaderFlatColor::set_world(const glm::mat4 &world) {
+void GLShaderFlatColor::set_world(const glm::mat4 &world) const {
     glUniformMatrix4fv(_world_uniform, 1, GL_FALSE, &world[0][0]);
 }
 

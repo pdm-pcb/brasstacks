@@ -17,7 +17,8 @@ public:
         Cube, Sphere, Skybox, XZPlane, XYPlane
     };
 
-    virtual uint32_t index_count() = 0;
+    virtual void bind() const = 0;
+    virtual uint32_t index_count() const = 0;
 
     virtual ~Mesh() = default;
 

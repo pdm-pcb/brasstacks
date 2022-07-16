@@ -3,17 +3,22 @@
 
 #include "brasstacks/Events/EventListener.hpp"
 
-#include <thread>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 namespace btx {
 
 class RenderContext;
+class ShaderFlatColor;
+class MeshFlatColor;
 
 class Engine : public EventListener {
 public:
     void on_event(Event &event) override;
 
-    void renderer();
+    void update_thread();
+    void render_thread();
 
     Engine();
     ~Engine();
@@ -25,6 +30,13 @@ public:
     Engine & operator=(Engine &)        = delete;
 
 private:
+    std::mutex _thread_startup;
+    std::atomic<bool> _render_thread_running;
+    std::atomic<bool> _update_thread_running;
+
+    std::condition_variable _render_thread_ready;
+    std::condition_variable _update_thread_ready;
+
     RenderContext *_render_context;
 
     struct {
@@ -33,6 +45,9 @@ private:
         float b;
         float a;
     } _clear_color;
+
+    ShaderFlatColor *_shader;
+    MeshFlatColor   *_mesh;
 };
 
 } // namespace btx

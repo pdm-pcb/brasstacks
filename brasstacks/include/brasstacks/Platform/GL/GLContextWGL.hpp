@@ -4,6 +4,7 @@
 #include "brasstacks/Engine/RenderContext.hpp"
 
 #include <atomic>
+#include <string>
 
 namespace btx {
 
@@ -39,7 +40,10 @@ private:
 
     GLDebugger *_debugger;
 
+    std::string _window_title;
+
     void _driver_hooks();
+    void _update_window_title();
 };
 
 } // namespace btx

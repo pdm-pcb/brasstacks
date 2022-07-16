@@ -1,0 +1,55 @@
+#ifndef BRASSTACKS_ENGINE_RENDERQUEUE_HPP
+#define BRASSTACKS_ENGINE_RENDERQUEUE_HPP
+
+#include <vector>
+#include <utility>
+#include <mutex>
+#include <atomic>
+#include <condition_variable>
+
+namespace btx {
+
+class Shader;
+class Mesh;
+
+class RenderQueue final {
+public:
+    using ShaderIndex = std::pair<const Shader *, size_t>;
+    using Queue       = std::vector<const Mesh *>;
+
+    static void begin_scene();
+    static void end_scene();
+
+    static void begin_draw();
+    static void end_draw();
+
+    static void submit(const Shader *shader, const Mesh *mesh);
+
+    static void init();
+    static void shutdown();
+
+    static std::vector<ShaderIndex> & get_indices() { return _shaders; }
+    static Queue get_queue(size_t index);
+
+    RenderQueue() = delete;
+    ~RenderQueue() = default;
+
+    RenderQueue(const RenderQueue &&) = delete;
+    RenderQueue(RenderQueue &)        = delete;
+
+    RenderQueue & operator=(const RenderQueue &&) = delete;
+    RenderQueue & operator=(RenderQueue &)        = delete;
+
+private:
+    static std::vector<ShaderIndex> _shaders;
+    static std::vector<Queue>       _meshes;
+
+    static std::mutex _queue_lock;
+    static std::mutex _submission_lock;
+
+    static std::condition_variable _queue_ready;
+};
+
+} // namespace btx
+
+#endif // BRASSTACKS_ENGINE_RENDERQUEUE_HPP

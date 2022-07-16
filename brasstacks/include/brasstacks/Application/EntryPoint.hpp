@@ -28,10 +28,6 @@ int main(int argc, char **argv) {
 
     delete application;
 
-#if !DEBUG
-    getchar();
-#endif
-
     return 0;
 }
 

@@ -9,12 +9,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(
     brasstacks STATIC
     "src/Utility/Logger.cpp"
+    "src/System/Clock.cpp"
 	"src/Application/Application.cpp"
     "src/Application/ConfigWindow.cpp"
     "src/Application/TargetWindow.cpp"
     "src/Engine/Engine.cpp"
     "src/Engine/RenderConfig.cpp"
     "src/Engine/RenderContext.cpp"
+    "src/Engine/RenderQueue.cpp"
     "src/Events/WindowEvent.cpp"
     "src/Events/KeyboardEvent.cpp"
     "src/Events/MouseEvent.cpp"

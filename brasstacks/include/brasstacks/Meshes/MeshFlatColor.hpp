@@ -14,9 +14,9 @@ public:
         glm::vec4 color;
     };
 
-    void bind();
+    void bind() const override;
 
-    uint32_t index_count() override;
+    uint32_t index_count() const override;
 
     explicit MeshFlatColor(Primitives primitive);
     ~MeshFlatColor();

@@ -34,11 +34,14 @@ void Application::run() {
     TargetWindow::set_current(target_window);
 
     Engine *engine = new Engine;
-    std::thread render_thread(&Engine::renderer, engine);
+    std::thread render_thread(&Engine::render_thread, engine);
+    std::thread update_thread(&Engine::update_thread, engine);
 
     target_window->run();
     render_thread.join();
+    update_thread.join();
 
+    delete engine;
     delete target_window;
 }
 

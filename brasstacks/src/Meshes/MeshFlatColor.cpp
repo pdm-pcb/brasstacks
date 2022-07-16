@@ -5,11 +5,11 @@
 
 namespace btx {
 
-void MeshFlatColor::bind() {
+void MeshFlatColor::bind() const {
     _vb->bind();
 }
 
-uint32_t MeshFlatColor::index_count() {
+uint32_t MeshFlatColor::index_count() const {
     return 3u * _face_count;
 }
 

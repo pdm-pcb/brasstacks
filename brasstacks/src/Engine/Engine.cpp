@@ -9,6 +9,11 @@
 #include "brasstacks/Events/Event.hpp"
 #include "brasstacks/Events/KeyboardEvent.hpp"
 
+
+#include "brasstacks/Shaders/ShaderFlatColor.hpp"
+#include "brasstacks/Meshes/MeshFlatColor.hpp"
+#include "brasstacks/Engine/RenderQueue.hpp"
+
 namespace btx {
 
 void Engine::on_event(Event &event) {
@@ -16,6 +21,9 @@ void Engine::on_event(Event &event) {
         case EventType::WindowClosed:
             BTX_ENGINE_TRACE("Engine received WindowClosed");
             _render_context->shutdown();
+            RenderQueue::shutdown();
+            _render_thread_running = false;
+            _update_thread_running = false;
             break;
 
         case EventType::KeyPressed:
@@ -38,7 +46,32 @@ void Engine::on_event(Event &event) {
     }
 }
 
-void Engine::renderer() {
+void Engine::update_thread() {
+    {
+        std::unique_lock<std::mutex> lock(_thread_startup);
+        _render_thread_ready.wait(
+            lock,
+            [this]{ return _render_thread_running.load(); }
+        );
+    }
+
+    _update_thread_running = true;
+
+    while(_update_thread_running) {
+        Clock::update_tick();
+
+        RenderQueue::begin_scene();
+            RenderQueue::submit(_shader, _mesh);
+            RenderQueue::submit(_shader, _mesh);
+        RenderQueue::end_scene();
+
+        Clock::update_tock();
+    }
+}
+
+void Engine::render_thread() {
+    RenderQueue::init();
+
     _render_context->init();
     _render_context->set_clear_color(
         _clear_color.r,
@@ -51,10 +84,18 @@ void Engine::renderer() {
         _render_context->set_swap_interval(1);
     }
 
+    _shader = new ShaderFlatColor;
+    _mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
+
+    _render_thread_running = true;
+    _render_thread_ready.notify_one();
+
     _render_context->run();
 }
 
 Engine::Engine() :
+    _render_thread_running { false },
+    _update_thread_running { false },
     _render_context { RenderContext::create() },
     _clear_color    { 0.11f, 0.11f, 0.11f, 1.0f }
 {

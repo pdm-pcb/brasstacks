@@ -25,8 +25,6 @@ RenderContext * RenderContext::create() {
 #elif defined(_WIN32)
     #ifdef BTX_OPENGL
         return new GLContextWGL(TargetWindow::current());
-        // ::glEnable(GL_DEPTH_TEST);
-        // ::glEnable(GL_CULL_FACE);
     #elif defined(BTX_DIRECTX11)
         // ...?
     #endif

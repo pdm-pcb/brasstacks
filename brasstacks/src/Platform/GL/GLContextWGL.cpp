@@ -9,12 +9,12 @@
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
 #include "brasstacks/Cameras/PerspectiveCamera.hpp"
 #include "brasstacks/Engine/RenderConfig.hpp"
+#include "brasstacks/Engine/RenderQueue.hpp"
 
 namespace btx {
 
 void GLContextWGL::run() {
-    MeshFlatColor     *mesh   = new MeshFlatColor(Mesh::Primitives::XZPlane);
-    ShaderFlatColor   *shader = new ShaderFlatColor;
+
     PerspectiveCamera *camera = new PerspectiveCamera(
         math::pi_over_four,
         static_cast<float>(RenderConfig::window_x_res) /
@@ -28,24 +28,41 @@ void GLContextWGL::run() {
 
     _running = true;
     while(_running) {
+        Clock::frame_tick();
+    
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        mesh->bind();
-        shader->bind();
+        RenderQueue::begin_draw();
+            for(const auto &[shader, index] : RenderQueue::get_indices()) {
+                shader->bind();
 
-        shader->update_camera(
-            camera->view_matrix(),
-            camera->projection_matrix()
-        ); 
-        shader->set_world(glm::mat4(1.0f));
+                shader->update_camera(
+                    camera->view_matrix(),
+                    camera->projection_matrix()
+                );
 
-        glDrawElements(GL_TRIANGLES, mesh->index_count(), GL_UNSIGNED_INT, 0);
+                for(const auto &mesh : RenderQueue::get_queue(index)) {
+                    dynamic_cast<const ShaderFlatColor *>(shader)->set_world(glm::mat4(1.0f));
+                    mesh->bind();
+                    ::glDrawElements(
+                        GL_TRIANGLES,
+                        mesh->index_count(),
+                        GL_UNSIGNED_INT,
+                        0
+                    );
+                }
+            }
 
+        RenderQueue::end_draw();
+
+        Clock::frame_tock();
         ::SwapBuffers(_device);
+        Clock::frame_delta_tock();
+
+        _update_window_title();
     }
 
-    delete mesh;
-    delete shader;
+    delete camera;
 
     BTX_ENGINE_TRACE("Shutting down WGL");
     delete _debugger;
@@ -126,6 +143,10 @@ void GLContextWGL::init() {
 	if(result == FALSE) {
 		::MessageBox(nullptr, "wglMakeCurrent failed", "Error", MB_OK);
 	}
+
+    ::glEnable(GL_DEPTH_TEST);
+    ::glEnable(GL_CULL_FACE);
+
 
 #ifdef DEBUG
     // since the context is good, create the debugging helper
@@ -213,6 +234,15 @@ void GLContextWGL::_driver_hooks() {
     ::DestroyWindow(window);
 }
 
+void GLContextWGL::_update_window_title() {
+    _window_title = fmt::format(
+        "{:.2f}ms {:.2f}ms",
+        Clock::frame_time(),
+        Clock::frame_delta()
+    );
+    ::SetWindowText(_window, _window_title.c_str());
+}
+
 void GLContextWGL::shutdown() {
     _running = false;
 }
@@ -234,7 +264,8 @@ GLContextWGL::GLContextWGL(const TargetWindow *window) :
     _window   { static_cast<::HWND>(window->get_native()) },
     _device   { nullptr },
     _context  { nullptr },
-    _debugger { nullptr }
+    _debugger { nullptr },
+    _window_title { "Brasstacks Engine " }
 { }
 
 } // namespace btx
