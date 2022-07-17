@@ -12,6 +12,7 @@ namespace btx {
 class RenderContext;
 class ShaderFlatColor;
 class MeshFlatColor;
+class TransformSystem;
 
 class Engine : public EventListener {
 public:
@@ -47,7 +48,9 @@ private:
     } _clear_color;
 
     ShaderFlatColor *_shader;
-    MeshFlatColor   *_mesh;
+    MeshFlatColor   *_mesh01;
+    MeshFlatColor   *_mesh02;
+    TransformSystem *_transforms;
 };
 
 } // namespace btx

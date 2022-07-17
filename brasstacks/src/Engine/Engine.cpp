@@ -58,28 +58,40 @@ void Engine::update_thread() {
     }
 
     EntityRegistrar::init();
-    Entity cube_id = EntityRegistrar::create_entity();
-    TransformSystem transforms;
-    transforms.add_entity(cube_id);
+    Entity cube_id01 = EntityRegistrar::create_entity();
+    Entity cube_id02 = EntityRegistrar::create_entity();
+    _transforms->add_entity(cube_id01);
+    _transforms->add_entity(cube_id02);
 
     _update_thread_running.store(true);
 
-    TransformComponent &transform = transforms.get_transform(cube_id);
+    TransformComponent &transform01 = _transforms->get_transform(cube_id01);
+    TransformComponent &transform02 = _transforms->get_transform(cube_id02);
+
+    glm::vec3 starting01 { 0.75f,  0.25f,  0.5f};
+    glm::vec3 starting02 {-0.75f, -0.25f, -0.5f};
 
     while(_update_thread_running) {
         Clock::update_tick();
-
         Clock::process_time();
 
-        transforms.update();
-        _mesh->set_world_mat(
-            glm::translate(glm::mat4(1.0f), transform.position) *
-            glm::mat4(transform.rotation) *
-            glm::scale(glm::mat4(1.0f), transform.scale)
-        );
+        _transforms->update();
 
         RenderQueue::begin_scene();
-            RenderQueue::submit(_shader, _mesh);
+            _mesh01->set_world_mat(
+                glm::translate(glm::mat4(1.0f), starting01) *
+                glm::mat4(transform01.rotation) *
+                glm::scale(glm::mat4(1.0f), transform01.scale)
+            );
+
+            _mesh02->set_world_mat(
+                glm::translate(glm::mat4(1.0f), starting02) *
+                glm::mat4(transform02.rotation) *
+                glm::scale(glm::mat4(1.0f), transform02.scale)
+            );
+            
+            RenderQueue::submit(_shader, _mesh01);
+            RenderQueue::submit(_shader, _mesh02);
         RenderQueue::end_scene();
 
         Clock::update_tock();
@@ -102,19 +114,29 @@ void Engine::render_thread() {
     }
 
     _shader = new ShaderFlatColor;
-    _mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
+    _mesh01 = new MeshFlatColor(Mesh::Primitives::Cube);
+    _mesh02 = new MeshFlatColor(Mesh::Primitives::Cube);
 
     _render_thread_running.store(true);
     _render_thread_ready.notify_one();
 
     _render_context->run();
+
+    delete _shader;
+    delete _mesh01;
+    delete _mesh02;
 }
 
 Engine::Engine() :
     _render_thread_running { false },
     _update_thread_running { false },
     _render_context { RenderContext::create() },
-    _clear_color    { 0.11f, 0.11f, 0.11f, 1.0f }
+    _clear_color    { 0.11f, 0.11f, 0.11f, 1.0f },
+    _shader     { nullptr },
+    _mesh01     { nullptr },
+    _mesh02     { nullptr },
+    _transforms { new TransformSystem }
+
 {
     TargetWindow::current()->subscribe_to(this, EventType::WindowClosed);
     TargetWindow::current()->subscribe_to(this, EventType::KeyPressed);
@@ -133,6 +155,8 @@ Engine::~Engine() {
     TargetWindow::current()->unsubscribe(this, EventType::MouseButtonReleased);
 
     delete _render_context;
+    
+    delete _transforms;
 }
 
 } // namespace btx

@@ -27,12 +27,11 @@ void GLContextWGL::run() {
     );
 
     _running = true;
-    while(_running) {
-        Clock::frame_tick();
-    
+    while(_running) {    
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         RenderQueue::begin_draw();
+            Clock::frame_tick();
             for(const auto &[shader, index] : RenderQueue::get_indices()) {
                 shader->bind();
 
@@ -55,9 +54,9 @@ void GLContextWGL::run() {
                 }
             }
 
+            Clock::frame_tock();
         RenderQueue::end_draw();
 
-        Clock::frame_tock();
         ::SwapBuffers(_device);
         Clock::frame_delta_tock();
 
@@ -238,7 +237,7 @@ void GLContextWGL::_driver_hooks() {
 
 void GLContextWGL::_update_window_title() {
     _window_title = fmt::format(
-        "{:.2f}ms {:.2f}ms",
+        "{:.3f}ms {:.3f}ms",
         Clock::frame_time(),
         Clock::update_time()
     );
