@@ -240,7 +240,7 @@ void GLContextWGL::_update_window_title() {
     _window_title = fmt::format(
         "{:.2f}ms {:.2f}ms",
         Clock::frame_time(),
-        Clock::frame_delta()
+        Clock::update_time()
     );
     ::SetWindowText(_window, _window_title.c_str());
 }

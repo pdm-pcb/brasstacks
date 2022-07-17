@@ -69,6 +69,8 @@ void Engine::update_thread() {
     while(_update_thread_running) {
         Clock::update_tick();
 
+        Clock::process_time();
+
         transforms.update();
         _mesh->set_world_mat(
             glm::translate(glm::mat4(1.0f), transform.position) *

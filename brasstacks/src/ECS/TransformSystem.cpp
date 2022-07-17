@@ -25,9 +25,16 @@ void TransformSystem::update() {
     for(Entity entity = 0; entity < _active_entities; ++entity) {
         TransformComponent &transform = _transforms.get_component(entity);
 
-        if(transform.scale.x <= 0.01f) continue;
+        auto rot_factor = glm::radians(25.0f * Clock::runtime());
 
-        auto scale_factor = glm::vec3(0.1f) * Clock::frame_delta();
+        auto x = glm::angleAxis(0.5f * rot_factor, glm::vec3(1.0f, 0.0f, 0.0f));
+        auto y = glm::angleAxis(rot_factor, glm::vec3(0.0f, 1.0f, 0.0f));
+        auto z = glm::angleAxis(2.0f * rot_factor, glm::vec3(0.0f, 0.0f, 1.0f));
+
+        transform.rotation = x * y * z;
+
+        if(transform.scale.x <= 0.25f) continue;
+        auto scale_factor = glm::vec3(0.001f);
         transform.scale -= scale_factor;
     }
 }
