@@ -27,6 +27,8 @@ add_library(
     "src/Shaders/Shader.cpp"
     "src/Shaders/ShaderFlatColor.cpp"
     "src/Cameras/PerspectiveCamera.cpp"
+    "src/ECS/EntityRegistrar.cpp"
+    "src/ECS/TransformSystem.cpp"
 )
 
 target_include_directories(

@@ -130,7 +130,7 @@ void GLShader::_print_shader_log() const {
     }
 
     char *log = nullptr;
-    log = new char[static_cast<size_t>(log_length)];
+    log = new char[static_cast<std::size_t>(log_length)];
 
     if(log != nullptr) {
         glGetProgramInfoLog(_handle, log_length, nullptr, log);

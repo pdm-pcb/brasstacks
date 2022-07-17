@@ -17,7 +17,7 @@ public:
     void run()      override;
     void shutdown() override;
 
-    void set_swap_interval(uint8_t interval) override;
+    void set_swap_interval(std::uint8_t interval) override;
     void set_clear_color(float r, float g, float b, float a) override;
 
     explicit GLContextWGL(const TargetWindow *window);

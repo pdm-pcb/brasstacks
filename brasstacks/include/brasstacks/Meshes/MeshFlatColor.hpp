@@ -16,7 +16,7 @@ public:
 
     void bind() const override;
 
-    uint32_t index_count() const override;
+    std::uint32_t index_count() const override;
 
     explicit MeshFlatColor(Primitives primitive);
     ~MeshFlatColor();
@@ -30,10 +30,10 @@ public:
 
 private:
     Vertex  *_vertices;
-    uint32_t _vertex_count;
+    std::uint32_t _vertex_count;
 
     Face     *_faces;
-    uint32_t _face_count;
+    std::uint32_t _face_count;
 
     VertexBuffer *_vb;
 

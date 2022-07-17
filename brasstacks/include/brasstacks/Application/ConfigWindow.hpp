@@ -8,11 +8,11 @@ namespace btx {
 class ConfigWindow : public EventPublisher {
 public:
     struct DisplaySettings {
-        uint16_t x_res;
-        uint16_t y_res;
-        uint16_t refresh_rate;
+        std::uint16_t x_res;
+        std::uint16_t y_res;
+        std::uint16_t refresh_rate;
 
-        DisplaySettings(uint16_t x, uint16_t y, uint16_t refresh) :
+        DisplaySettings(std::uint16_t x, std::uint16_t y, std::uint16_t refresh) :
             x_res { x },
             y_res { y },
             refresh_rate { refresh }

@@ -318,7 +318,7 @@ void Win32ConfigWindow::_populate_ui() {
         WS_CHILD | WS_VISIBLE | SS_LEFT,
         WINDOW_PAD + (LABEL_WIDTH / 3),
         WINDOW_PAD + LABEL_HEIGHT + (LIST_HEIGHT / 2),
-        static_cast<uint32_t>(LABEL_WIDTH * (2.0f / 3.0f)), LABEL_HEIGHT,
+        static_cast<std::uint32_t>(LABEL_WIDTH * (2.0f / 3.0f)), LABEL_HEIGHT,
         _window, 0, nullptr, nullptr
     );
 
@@ -336,7 +336,7 @@ void Win32ConfigWindow::_populate_ui() {
         WS_CHILD | WS_VISIBLE | SS_LEFT,
         WINDOW_PAD + (LABEL_WIDTH / 3),
         WINDOW_PAD + (LABEL_HEIGHT * 2) + (LIST_HEIGHT / 2),
-        static_cast<uint32_t>(LABEL_WIDTH * (2.0f / 3.0f)), LABEL_HEIGHT,
+        static_cast<std::uint32_t>(LABEL_WIDTH * (2.0f / 3.0f)), LABEL_HEIGHT,
         _window, 0, nullptr, nullptr
     );
 
@@ -369,7 +369,7 @@ void Win32ConfigWindow::_populate_ui() {
         WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
         WINDOW_PAD + (LABEL_WIDTH / 3),
         WINDOW_PAD + (LABEL_HEIGHT * 3) + (LIST_HEIGHT / 2),
-        static_cast<uint32_t>(LABEL_WIDTH * (2.0f / 3.0f)),
+        static_cast<std::uint32_t>(LABEL_WIDTH * (2.0f / 3.0f)),
         (LABEL_HEIGHT * static_cast<int>(
             RenderConfig::supported_apis.size()) * 2),
         _window, reinterpret_cast<::HMENU>(IDC_API),
@@ -506,9 +506,9 @@ void Win32ConfigWindow::_populate_res_list() {
         );
 
         _display_settings.push_back({
-            static_cast<uint16_t>(mode.dmPelsWidth),
-            static_cast<uint16_t>(mode.dmPelsHeight),
-            static_cast<uint16_t>(mode.dmDisplayFrequency)
+            static_cast<std::uint16_t>(mode.dmPelsWidth),
+            static_cast<std::uint16_t>(mode.dmPelsHeight),
+            static_cast<std::uint16_t>(mode.dmDisplayFrequency)
         });
 
         ::SendMessage(_res_list, LB_SETITEMDATA, list_pos,
@@ -517,7 +517,7 @@ void Win32ConfigWindow::_populate_res_list() {
 }
 
 void Win32ConfigWindow::_populate_api_list() {
-    size_t api_index = 0;
+    std::size_t api_index = 0;
 
     for(const auto name : RenderConfig::supported_apis) {
         ::LRESULT list_pos = ::SendMessage(

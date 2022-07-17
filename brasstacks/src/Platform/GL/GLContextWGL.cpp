@@ -42,7 +42,9 @@ void GLContextWGL::run() {
                 );
 
                 for(const auto &mesh : RenderQueue::get_queue(index)) {
-                    dynamic_cast<const ShaderFlatColor *>(shader)->set_world(glm::mat4(1.0f));
+                    dynamic_cast<const ShaderFlatColor *>(shader)->set_world(
+                        mesh->world_mat()
+                    );
                     mesh->bind();
                     ::glDrawElements(
                         GL_TRIANGLES,
@@ -247,7 +249,7 @@ void GLContextWGL::shutdown() {
     _running = false;
 }
 
-void GLContextWGL::set_swap_interval(uint8_t interval) {
+void GLContextWGL::set_swap_interval(std::uint8_t interval) {
     BTX_ENGINE_TRACE("Swap interval set to {}", interval);
     ::wglSwapIntervalEXT(interval);
 }

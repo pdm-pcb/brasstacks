@@ -13,6 +13,8 @@
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
 #include "brasstacks/Meshes/MeshFlatColor.hpp"
 #include "brasstacks/Engine/RenderQueue.hpp"
+#include "brasstacks/ECS/EntityRegistrar.hpp"
+#include "brasstacks/ECS/Systems/TransformSystem.hpp"
 
 namespace btx {
 
@@ -22,8 +24,8 @@ void Engine::on_event(Event &event) {
             BTX_ENGINE_TRACE("Engine received WindowClosed");
             _render_context->shutdown();
             RenderQueue::shutdown();
-            _render_thread_running = false;
-            _update_thread_running = false;
+            _render_thread_running.store(false);
+            _update_thread_running.store(false);
             break;
 
         case EventType::KeyPressed:
@@ -55,13 +57,26 @@ void Engine::update_thread() {
         );
     }
 
-    _update_thread_running = true;
+    EntityRegistrar::init();
+    Entity cube_id = EntityRegistrar::create_entity();
+    TransformSystem transforms;
+    transforms.add_entity(cube_id);
+
+    _update_thread_running.store(true);
+
+    TransformComponent &transform = transforms.get_transform(cube_id);
 
     while(_update_thread_running) {
         Clock::update_tick();
 
+        transforms.update();
+        _mesh->set_world_mat(
+            glm::translate(glm::mat4(1.0f), transform.position) *
+            glm::mat4(transform.rotation) *
+            glm::scale(glm::mat4(1.0f), transform.scale)
+        );
+
         RenderQueue::begin_scene();
-            RenderQueue::submit(_shader, _mesh);
             RenderQueue::submit(_shader, _mesh);
         RenderQueue::end_scene();
 
@@ -87,7 +102,7 @@ void Engine::render_thread() {
     _shader = new ShaderFlatColor;
     _mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
 
-    _render_thread_running = true;
+    _render_thread_running.store(true);
     _render_thread_ready.notify_one();
 
     _render_context->run();

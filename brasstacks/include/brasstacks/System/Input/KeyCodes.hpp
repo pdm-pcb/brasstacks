@@ -5,7 +5,7 @@
 
 // gratefully hijacked straight from glfw3.h
 namespace btx {
-using Keycode = uint32_t;
+using Keycode = std::uint32_t;
 
 constexpr Keycode KB_UNKNOWN          = 0;
 constexpr Keycode KB_SPACE            = 32;

@@ -14,7 +14,7 @@ class Mesh;
 
 class RenderQueue final {
 public:
-    using ShaderIndex = std::pair<const Shader *, size_t>;
+    using ShaderIndex = std::pair<const Shader *, std::size_t>;
     using Queue       = std::vector<const Mesh *>;
 
     static void begin_scene();
@@ -29,7 +29,7 @@ public:
     static void shutdown();
 
     static std::vector<ShaderIndex> & get_indices() { return _shaders; }
-    static Queue get_queue(size_t index);
+    static Queue get_queue(std::size_t index);
 
     RenderQueue() = delete;
     ~RenderQueue() = default;

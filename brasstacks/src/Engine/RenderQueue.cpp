@@ -35,7 +35,6 @@ void RenderQueue::end_scene() {
 
 void RenderQueue::begin_draw() {
     _queue_lock.lock();
-    assert(!_shaders.empty() && !_meshes.empty());
 }
 
 void RenderQueue::end_draw() {
@@ -72,7 +71,7 @@ void RenderQueue::submit(const Shader *shader, const Mesh *mesh) {
     }
 }
 
-RenderQueue::Queue RenderQueue::get_queue(size_t index) {
+RenderQueue::Queue RenderQueue::get_queue(std::size_t index) {
     return _meshes[index];
 }
 

@@ -24,8 +24,8 @@ char *Shader::load_source(const char *filepath) {
     auto filesize = input_file.tellg();
     input_file.seekg(0, input_file.beg);
 
-    char *dest = new char[static_cast<size_t>(filesize) + 1] { };
-    memset(dest, 0, static_cast<size_t>(filesize)  + 1);
+    char *dest = new char[static_cast<std::size_t>(filesize) + 1] { };
+    memset(dest, 0, static_cast<std::size_t>(filesize)  + 1);
 
     input_file.read(dest, filesize);
     input_file.close();

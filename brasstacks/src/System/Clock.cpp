@@ -26,7 +26,7 @@ void Clock::frame_tock() {
 }
 
 void Clock::frame_delta_tock() {
-    _frame_delta = 1e-3f * static_cast<float>(
+    _frame_delta = 1e-6f * static_cast<float>(
         duration_cast<microseconds>(HRC::now() - _frame_tick).count()
     );
 }

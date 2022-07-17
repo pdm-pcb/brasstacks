@@ -7,8 +7,8 @@
 namespace btx {
 
 struct RenderConfig {
-    static size_t adapter;
-    static size_t display; // TODO: support display picking
+    static std::size_t adapter;
+    static std::size_t display; // TODO: support display picking
 
     static int16_t window_x_res;
     static int16_t window_y_res;
@@ -17,7 +17,7 @@ struct RenderConfig {
     static bool vsync_on;
     static bool fullscreen;
 
-    static size_t selected_api;
+    static std::size_t selected_api;
     static std::vector<const char *> supported_apis;
 };
 

@@ -9,7 +9,7 @@ void MeshFlatColor::bind() const {
     _vb->bind();
 }
 
-uint32_t MeshFlatColor::index_count() const {
+std::uint32_t MeshFlatColor::index_count() const {
     return 3u * _face_count;
 }
 

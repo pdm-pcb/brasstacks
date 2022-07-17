@@ -5,7 +5,7 @@
 
 namespace btx {
 
-inline const Keycode win32_to_btx(uint32_t vkey) {
+inline const Keycode win32_to_btx(std::uint32_t vkey) {
     Keycode code = KB_UNKNOWN;
 
     switch(vkey) {

@@ -7,7 +7,7 @@ void GLVertexBuffer::bind() {
     glBindVertexArray(_vao);
 }
 
-void GLVertexBuffer::set_buffer(void *buffer, uint32_t size) {
+void GLVertexBuffer::set_buffer(void *buffer, std::uint32_t size) {
     glCreateBuffers(1, &_vbo);
     
     if(_vbo == GL_NONE) {
@@ -29,7 +29,7 @@ void GLVertexBuffer::set_buffer(void *buffer, uint32_t size) {
 }
 
 void GLVertexBuffer::set_indices(const Mesh::Face *faces,
-                                 const uint32_t face_count) {
+                                 const std::uint32_t face_count) {
     glCreateBuffers(1, &_ibo);
     
     if(_ibo == GL_NONE) {
@@ -47,9 +47,9 @@ void GLVertexBuffer::set_indices(const Mesh::Face *faces,
 }
 
 void GLVertexBuffer::_set_layout() {
-	uint32_t elem_count   = 0;
-    uint32_t layout_count = 0;
-	uint32_t data_type    = GL_NONE;
+	std::uint32_t elem_count   = 0;
+    std::uint32_t layout_count = 0;
+	std::uint32_t data_type    = GL_NONE;
 
     using type = VBElement::Type;
 
@@ -96,7 +96,7 @@ void GLVertexBuffer::_set_layout() {
 				break;
 
 			case type::mat4f:
-				for(uint32_t column = 0; column < element._count; column++) {
+				for(std::uint32_t column = 0; column < element._count; column++) {
                     glEnableVertexArrayAttrib(_vao, layout_count);
                     glVertexArrayAttribFormat(
                         _vao,

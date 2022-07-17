@@ -65,6 +65,8 @@
 #include "brasstacks/System/Clock.hpp"
 #include "brasstacks/System/Input/KeyCodes.hpp"
 #include "brasstacks/System/glm.hpp"
+#include "brasstacks/ECS/Entity.hpp"
+#include "brasstacks/ECS/Component.hpp"
 
 #include <cstdio>
 #include <cstdint>
@@ -78,5 +80,9 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <bitset>
+#include <array>
+#include <queue>
+#include <unordered_map>
 
 #endif // BRASSTACKS_UTILITY_PCH_HPP
