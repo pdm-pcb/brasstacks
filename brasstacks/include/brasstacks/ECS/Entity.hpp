@@ -1,33 +1,29 @@
 #ifndef BRASSTACKS_ECS_ENTITY_HPP
 #define BRASSTACKS_ECS_ENTITY_HPP
 
-#include "brasstacks/System/pch.hpp"
+#include "brasstacks/ECS/Component.hpp"
+
+#include <cstdint>
 
 namespace btx {
 
-constexpr uint8_t MAX_ENTITIES   = 128u;
+struct Entity {
+    using ID      = std::uint64_t;
+    using Index   = std::uint32_t;
+    using Version = std::uint32_t;
 
-using EntityID      = std::uint64_t;
-using EntityIndex   = std::uint32_t;
-using EntityVersion = std::uint32_t;
+    static ID create_id(Index index, Version version);
+    static bool valid(ID id);
+    static Index get_index(ID id);
+    static Version get_version(ID id);
 
-constexpr EntityID INVALID_ENTITY = ((EntityID)-1 << 32) | ((EntityID)0);
+    ID id;
+    Component::Mask mask;
+};
 
-EntityID create_entity_id(EntityIndex index, EntityVersion version) {
-    return ((EntityID)index << 32) | ((EntityID)version);
-}
-
-EntityIndex get_entity_index(EntityID id) {
-    return id >> 32;
-}
-
-EntityVersion get_entity_version(EntityID id) {
-    return (EntityVersion)id;
-}
-
-bool entity_valid(EntityID id) {
-    return (id >> 32) != EntityIndex(-1);
-}
+constexpr uint8_t MAX_ENTITIES = 255u;
+constexpr Entity::ID INVALID_ENTITY =
+    (static_cast<Entity::ID>(-1) << 32) | static_cast<Entity::ID>(0);
 
 };
 

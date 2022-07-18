@@ -27,6 +27,13 @@ add_library(
     "src/Shaders/Shader.cpp"
     "src/Shaders/ShaderFlatColor.cpp"
     "src/Cameras/PerspectiveCamera.cpp"
+    "src/ECS/Entity.cpp"
+    "src/ECS/Component.cpp"
+    "src/ECS/ComponentPool.cpp"
+    "src/ECS/ECS.cpp"
+    "src/ECS/ECSIter.cpp"
+    "src/ECS/Systems/CameraSystem.cpp"
+    "src/ECS/Systems/CubeSystem.cpp"
 )
 
 target_include_directories(

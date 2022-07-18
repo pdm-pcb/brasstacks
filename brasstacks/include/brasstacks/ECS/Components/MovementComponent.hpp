@@ -6,7 +6,7 @@
 namespace btx {
 
 struct MovementComponent {
-    glm::vec3 heading { 0.0f, 0.0f, -1.0f };
+    glm::vec3 direction { 0.0f, 0.0f, -1.0f };
     float speed       { 0.0f };
 };
 

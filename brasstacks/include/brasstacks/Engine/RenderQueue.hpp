@@ -48,6 +48,9 @@ private:
     static std::mutex _submission_lock;
 
     static std::condition_variable _queue_ready;
+    static bool _queue_empty;
+
+    static void _clear_queue();
 };
 
 } // namespace btx

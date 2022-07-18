@@ -21,7 +21,7 @@ public:
     void set_clear_color(float r, float g, float b, float a) override;
 
     explicit GLContextWGL(const TargetWindow *window);
-    ~GLContextWGL() = default;
+    ~GLContextWGL();
 
     GLContextWGL() = delete;
 
@@ -35,8 +35,6 @@ private:
     ::HWND  _window;
     ::HDC   _device;
     ::HGLRC _context;
-
-    std::atomic<bool> _running;
 
     Camera     *_camera;
     GLDebugger *_debugger;

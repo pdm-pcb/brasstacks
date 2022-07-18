@@ -26,12 +26,22 @@ void Win32TargetWindow::init() {
         RenderConfig::window_y_res
     );
 
+    _icon = static_cast<::HICON>(::LoadImage(
+        nullptr,
+        ("../../assets/icons/brasstacks.ico"),
+        IMAGE_ICON,
+        0, 0,
+        LR_DEFAULTSIZE | LR_LOADFROMFILE
+    ));
+
     ::WNDCLASSEX wcex { };
     wcex.cbSize = sizeof(::WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = _wndproc;
     wcex.hbrBackground = static_cast<::HBRUSH>(GetStockObject(BLACK_BRUSH));
     wcex.lpszClassName = _classname;
+    wcex.hIcon   = _icon;
+    wcex.hIconSm = _icon;
 
     if(::RegisterClassEx(&wcex) == 0) {
         ::MessageBox(nullptr, "RegisterClassEx() failed", "Error", MB_OK);
@@ -98,9 +108,6 @@ void Win32TargetWindow::init() {
 }
 
 void Win32TargetWindow::shutdown() {
-    ::DestroyWindow(_window);
-    ::UnregisterClass(_classname, 0);
-
     if(RenderConfig::fullscreen) {
         ::HRESULT hr = ::ChangeDisplaySettingsA(nullptr, 0);
         if(hr != DISP_CHANGE_SUCCESSFUL) {
@@ -363,10 +370,13 @@ void Win32TargetWindow::_register_input() {
         }
 
         case WM_CLOSE:
-            ::PostQuitMessage(0);
+            ::DestroyIcon(_icon);
+            ::DestroyWindow(_window);
+            ::UnregisterClass(_classname, 0);
             return 0;
 
         case WM_DESTROY:
+            ::PostQuitMessage(0);
             return 0;
 
         default: break;

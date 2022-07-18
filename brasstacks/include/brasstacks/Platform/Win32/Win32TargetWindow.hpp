@@ -26,6 +26,7 @@ private:
     ::HWND   _window;
     ::LPCSTR _classname;
     ::LPBYTE _raw_message;
+    ::HICON _icon;
 
     struct {
         int x;

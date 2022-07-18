@@ -45,6 +45,8 @@ private:
     ::HWND _start;
     ::HWND _quit;
 
+    ::HICON _icon;
+
     char _liststr[64];
 
     std::vector<std::string>                   _adapters;

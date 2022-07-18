@@ -14,48 +14,40 @@
 namespace btx {
 
 void GLContextWGL::run() {
-    _running = true;
-    while(_running) {    
-        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        RenderQueue::begin_draw();
-            Clock::frame_tick();
-            for(const auto &[shader, index] : RenderQueue::get_indices()) {
-                shader->bind();
+    RenderQueue::begin_draw();
+    Clock::frame_tick();
 
-                shader->update_camera(
-                    _camera->view_matrix(),
-                    _camera->projection_matrix()
+        for(const auto &[shader, index] : RenderQueue::get_indices()) {
+            shader->bind();
+
+            shader->update_camera(
+                _camera->view_matrix(),
+                _camera->projection_matrix()
+            );
+
+            for(const auto &mesh : RenderQueue::get_queue(index)) {
+                dynamic_cast<const ShaderFlatColor *>(shader)->set_world(
+                    mesh->world_mat()
                 );
-
-                for(const auto &mesh : RenderQueue::get_queue(index)) {
-                    dynamic_cast<const ShaderFlatColor *>(shader)->set_world(
-                        mesh->world_mat()
-                    );
-                    mesh->bind();
-                    ::glDrawElements(
-                        GL_TRIANGLES,
-                        mesh->index_count(),
-                        GL_UNSIGNED_INT,
-                        0
-                    );
-                }
+                mesh->bind();
+                ::glDrawElements(
+                    GL_TRIANGLES,
+                    mesh->index_count(),
+                    GL_UNSIGNED_INT,
+                    0
+                );
             }
+        }
 
-            Clock::frame_tock();
-        RenderQueue::end_draw();
+    Clock::frame_tock();
+    RenderQueue::end_draw();
 
-        ::SwapBuffers(_device);
-        Clock::frame_delta_tock();
+    ::SwapBuffers(_device);
+    Clock::frame_delta_tock();
 
-        _update_window_title();
-    }
-
-    BTX_ENGINE_TRACE("Shutting down WGL");
-    delete _debugger;
-	::wglMakeCurrent(_device, nullptr);
-	::wglDeleteContext(_context);
-    ::ReleaseDC(_window, _device);
+    _update_window_title();
 }
 
 void GLContextWGL::init(Camera *camera) {
@@ -233,7 +225,10 @@ void GLContextWGL::_update_window_title() {
 }
 
 void GLContextWGL::shutdown() {
-    _running = false;
+    BTX_ENGINE_TRACE("Shutting down WGL");
+	::wglMakeCurrent(_device, nullptr);
+	::wglDeleteContext(_context);
+    ::ReleaseDC(_window, _device);
 }
 
 void GLContextWGL::set_swap_interval(std::uint8_t interval) {
@@ -256,5 +251,9 @@ GLContextWGL::GLContextWGL(const TargetWindow *window) :
     _debugger { nullptr },
     _window_title { "Brasstacks Engine " }
 { }
+
+GLContextWGL::~GLContextWGL() {
+    delete _debugger;
+}
 
 } // namespace btx

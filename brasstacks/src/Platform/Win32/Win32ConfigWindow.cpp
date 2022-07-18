@@ -256,6 +256,7 @@ void Win32ConfigWindow::run() {
             ::DestroyWindow(_fullscreen);
             ::DestroyWindow(_start);
             ::DestroyWindow(_quit);
+            ::DestroyIcon(_icon);
             ::DestroyWindow(_window);
             ::UnregisterClass(_classname, 0);
             break;
@@ -593,6 +594,13 @@ Win32ConfigWindow::Win32ConfigWindow() :
     _quit           { nullptr },
     _liststr { }
 {
+    _icon = static_cast<::HICON>(::LoadImage(
+        nullptr,
+        ("../../assets/icons/brasstacks.ico"),
+        IMAGE_ICON,
+        0, 0,
+        LR_DEFAULTSIZE | LR_LOADFROMFILE
+    ));
 
     ::WNDCLASSEX wcex { };
     wcex.cbSize = sizeof(::WNDCLASSEX);
@@ -600,6 +608,8 @@ Win32ConfigWindow::Win32ConfigWindow() :
     wcex.lpfnWndProc = _wndproc;
     wcex.hbrBackground = ::GetSysColorBrush(COLOR_BTNFACE);
     wcex.lpszClassName = _classname;
+    wcex.hIcon   = _icon;
+    wcex.hIconSm = _icon;
 
     if(::RegisterClassEx(&wcex) == 0) {
         ::MessageBox(nullptr, "RegisterClassEx() failed", "Error", MB_OK);

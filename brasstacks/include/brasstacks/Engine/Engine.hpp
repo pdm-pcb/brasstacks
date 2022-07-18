@@ -10,6 +10,7 @@
 namespace btx {
 
 class RenderContext;
+class ECS;
 
 class ShaderFlatColor;
 class MeshFlatColor;
@@ -48,10 +49,14 @@ private:
         float a;
     } _clear_color;
 
+    ECS *_ecs;
+
+
+
     ShaderFlatColor   *_shader;
     MeshFlatColor     *_mesh01;
     MeshFlatColor     *_mesh02;
-    PerspectiveCamera *_camera;    
+    PerspectiveCamera *_camera;
 };
 
 } // namespace btx
