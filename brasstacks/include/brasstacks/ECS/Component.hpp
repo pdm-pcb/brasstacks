@@ -1,15 +1,22 @@
 #ifndef BRASSTACKS_ECS_COMPONENT_HPP
 #define BRASSTACKS_ECS_COMPONENT_HPP
 
-#include <cstdint>
-#include <bitset>
+#include "brasstacks/System/pch.hpp"
 
 namespace btx {
 
-using ComponentType = std::uint8_t;
-constexpr ComponentType MAX_COMPONENTS = 128;
+extern std::uint32_t component_counter;
 
-using Signature = std::bitset<MAX_COMPONENTS>;
+constexpr uint8_t MAX_COMPONENTS = 32u;
+
+using ComponentID   = std::uint32_t;
+using ComponentMask = std::bitset<MAX_COMPONENTS>;
+
+template <class T>
+ComponentID get_cid() {
+    static ComponentID component_id = component_counter++;
+    return component_id;
+}
 
 } // namespace btx
 

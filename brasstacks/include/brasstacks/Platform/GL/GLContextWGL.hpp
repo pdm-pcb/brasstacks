@@ -13,7 +13,7 @@ class GLDebugger;
 
 class GLContextWGL : public RenderContext {
 public:
-    void init()     override;
+    void init(Camera *camera) override;
     void run()      override;
     void shutdown() override;
 
@@ -38,6 +38,7 @@ private:
 
     std::atomic<bool> _running;
 
+    Camera     *_camera;
     GLDebugger *_debugger;
 
     std::string _window_title;

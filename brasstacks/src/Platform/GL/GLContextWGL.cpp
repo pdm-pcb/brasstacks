@@ -14,18 +14,6 @@
 namespace btx {
 
 void GLContextWGL::run() {
-
-    PerspectiveCamera *camera = new PerspectiveCamera(
-        math::pi_over_four,
-        static_cast<float>(RenderConfig::window_x_res) /
-        static_cast<float>(RenderConfig::window_y_res)
-    );
-
-    camera->orient(
-        { 0.0f, 0.0f, 2.0f },
-        { 0.0f, 0.0f, 0.0f }
-    );
-
     _running = true;
     while(_running) {    
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -36,8 +24,8 @@ void GLContextWGL::run() {
                 shader->bind();
 
                 shader->update_camera(
-                    camera->view_matrix(),
-                    camera->projection_matrix()
+                    _camera->view_matrix(),
+                    _camera->projection_matrix()
                 );
 
                 for(const auto &mesh : RenderQueue::get_queue(index)) {
@@ -63,8 +51,6 @@ void GLContextWGL::run() {
         _update_window_title();
     }
 
-    delete camera;
-
     BTX_ENGINE_TRACE("Shutting down WGL");
     delete _debugger;
 	::wglMakeCurrent(_device, nullptr);
@@ -72,7 +58,9 @@ void GLContextWGL::run() {
     ::ReleaseDC(_window, _device);
 }
 
-void GLContextWGL::init() {
+void GLContextWGL::init(Camera *camera) {
+    _camera = camera;
+
     // first, get a context so we can get a context
     _driver_hooks();
 

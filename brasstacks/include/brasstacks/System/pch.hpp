@@ -65,8 +65,6 @@
 #include "brasstacks/System/Clock.hpp"
 #include "brasstacks/System/Input/KeyCodes.hpp"
 #include "brasstacks/System/glm.hpp"
-#include "brasstacks/ECS/Entity.hpp"
-#include "brasstacks/ECS/Component.hpp"
 
 #include <cstdio>
 #include <cstdint>

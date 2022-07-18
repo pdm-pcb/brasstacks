@@ -6,10 +6,11 @@
 namespace btx {
 
 class TargetWindow;
+class Camera;
 
 class RenderContext {
 public:
-    virtual void init()     = 0;
+    virtual void init(Camera *camera)     = 0;
     virtual void run()      = 0;
     virtual void shutdown() = 0;
     

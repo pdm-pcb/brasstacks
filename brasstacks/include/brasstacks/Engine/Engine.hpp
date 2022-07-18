@@ -10,9 +10,10 @@
 namespace btx {
 
 class RenderContext;
+
 class ShaderFlatColor;
 class MeshFlatColor;
-class TransformSystem;
+class PerspectiveCamera;
 
 class Engine : public EventListener {
 public:
@@ -47,10 +48,10 @@ private:
         float a;
     } _clear_color;
 
-    ShaderFlatColor *_shader;
-    MeshFlatColor   *_mesh01;
-    MeshFlatColor   *_mesh02;
-    TransformSystem *_transforms;
+    ShaderFlatColor   *_shader;
+    MeshFlatColor     *_mesh01;
+    MeshFlatColor     *_mesh02;
+    PerspectiveCamera *_camera;    
 };
 
 } // namespace btx

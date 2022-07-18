@@ -11,6 +11,10 @@ public:
     const glm::mat4& projection_matrix() const { return _projection_matrix; }
     const glm::vec4  position()          const { return _position;          }
 
+    void set_viewmat(const glm::mat4 &view) { _view_matrix = view;       }
+    void set_projmat(const glm::mat4 &proj) { _projection_matrix = proj; }
+    void set_position(const glm::vec4 &pos) { _position = pos;           }
+
     Camera(const Camera &) = delete;
     Camera(Camera &&)      = delete;
 
@@ -18,10 +22,6 @@ public:
     Camera& operator=(Camera &&)      = delete;
 
 protected:
-    void set_viewmat(const glm::mat4 &view) { _view_matrix = view;       }
-    void set_projmat(const glm::mat4 &proj) { _projection_matrix = proj; }
-    void set_position(const glm::vec4 &pos) { _position = pos;           }
-
     Camera(glm::mat4 view, glm::mat4 projection) :
         _view_matrix { view },
         _projection_matrix { projection },
