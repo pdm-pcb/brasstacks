@@ -25,6 +25,8 @@ public:
     static float frame_delta()  { return _frame_delta;  }
     static float update_time()  { return _update_time;  }
 
+    static float tick() { update(); return _true_runtime; }
+
     Clock()  = delete;
     ~Clock() = delete;
 

@@ -109,15 +109,13 @@ void Engine::update_thread() {
 
     _update_thread_running.store(true);
     while(_update_thread_running) {
-        Clock::update_tick();
-        Clock::update();
-    
-        CameraSystem::update(_ecs, { w, a, s, d }, Clock::frame_delta());
-    
         RenderQueue::begin_scene();
-            CubeSystem::update(_ecs, Clock::frame_delta());
-        RenderQueue::end_scene();
+        Clock::update_tick();
 
+            CameraSystem::update(_ecs, { w, a, s, d }, Clock::frame_delta());
+            CubeSystem::update(_ecs, Clock::frame_delta());
+        
+        RenderQueue::end_scene();
         Clock::update_tock();
     }
 }
