@@ -62,6 +62,8 @@
 #include "brasstacks/Events/WindowEvent.hpp"
 #include "brasstacks/Events/MouseEvent.hpp"
 #include "brasstacks/Events/KeyboardEvent.hpp"
+#include "brasstacks/ECS/ECS.hpp"
+#include "brasstacks/ECS/ECSView.hpp"
 #include "brasstacks/System/Clock.hpp"
 #include "brasstacks/System/Input/KeyCodes.hpp"
 #include "brasstacks/System/glm.hpp"

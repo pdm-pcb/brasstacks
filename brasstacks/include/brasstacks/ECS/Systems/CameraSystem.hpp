@@ -26,6 +26,7 @@ private:
     static const glm::vec3 _forward;
     static const glm::vec3 _right;
     static const glm::vec3 _up;
+    static const glm::mat4 _ident;
 };
 
 } // namespace btx

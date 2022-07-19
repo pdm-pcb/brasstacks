@@ -62,6 +62,18 @@ void Engine::on_event(Event &event) {
             break;
         }
 
+        case EventType::MouseMoved:
+        {
+            auto [ x_offset, y_offset ] =
+                reinterpret_cast<MouseMovedEvent *>(&event)->offset();
+
+            auto camera = _ecs->get<CameraComponent>(CameraBag::get_active());
+            camera->pitch -= 0.00125f * y_offset;
+            camera->yaw   += 0.00125f * x_offset;
+
+            break;
+        }
+
         default: break;
     }
 }
@@ -87,15 +99,14 @@ void Engine::_add_cube() {
     ++_cube_count;
     if(_cube_count % 10 == 0) {
         add_cube = false;
+        BTX_ENGINE_TRACE(
+            "Adding cube {}: {:.02f},{:.02f},{:.02f}",
+            _cube_count,
+            cube_transform->position.x,
+            cube_transform->position.y,
+            cube_transform->position.z
+        );
     }
-
-    BTX_ENGINE_TRACE(
-        "Adding cube {}: {:.02f},{:.02f},{:.02f}",
-        _cube_count,
-        cube_transform->position.x,
-        cube_transform->position.y,
-        cube_transform->position.z
-    );
 }
 
 void Engine::update_thread() {
@@ -181,7 +192,7 @@ Engine::Engine() :
         static_cast<float>(RenderConfig::window_y_res),
         RenderConfig::near_clip, RenderConfig::far_clip
     );
-    camera_cc->lookahead = { 0.0f, 0.0f, -2.0f};
+    camera_cc->lookahead = { 0.0f, 0.0f, -2.0f };
 
     CameraBag::set_active(camera);
 }

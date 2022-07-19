@@ -10,9 +10,9 @@ namespace btx {
 
 float CubeSystem::_rot_factor = 0.0f;
 
-glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
-glm::vec3 unit_y(0.0f, 1.0f, 0.0f);
-glm::vec3 unit_z(0.0f, 0.0f, 1.0f);
+const glm::vec3 CubeSystem::_unit_x(1.0f, 0.0f, 0.0f);
+const glm::vec3 CubeSystem::_unit_y(0.0f, 1.0f, 0.0f);
+const glm::vec3 CubeSystem::_unit_z(0.0f, 0.0f, 1.0f);
 
 void CubeSystem::update(ECS *ecs, const float frame_delta) {
     _rot_factor += 0.2f * frame_delta;
@@ -23,9 +23,9 @@ void CubeSystem::update(ECS *ecs, const float frame_delta) {
     {
         auto transform = ecs->get<TransformComponent>(id);
 
-        auto x = glm::angleAxis(0.5f * _rot_factor, unit_x);
-        auto y = glm::angleAxis(1.0f * _rot_factor, unit_y);
-        auto z = glm::angleAxis(2.0f * _rot_factor, unit_z);
+        auto x = glm::angleAxis(0.5f * _rot_factor, _unit_x);
+        auto y = glm::angleAxis(1.0f * _rot_factor, _unit_y);
+        auto z = glm::angleAxis(2.0f * _rot_factor, _unit_z);
 
         transform->rotation = x * y * z;
 
