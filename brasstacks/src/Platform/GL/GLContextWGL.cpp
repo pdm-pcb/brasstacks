@@ -25,7 +25,6 @@ void GLContextWGL::run() {
 
     RenderQueue::begin_draw();
     Clock::frame_tick();
-
         
         for(const auto &[shader, index] : RenderQueue::get_indices()) {
             auto camera = ecs->get<CameraComponent>(CameraBag::get_active());
