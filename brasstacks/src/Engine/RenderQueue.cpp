@@ -1,13 +1,15 @@
 #include "brasstacks/System/pch.hpp"
 #include "brasstacks/Engine/RenderQueue.hpp"
 
+#include "brasstacks/ECS/ECS.hpp"
+
 namespace btx {
 
 std::vector<RenderQueue::ShaderIndex> RenderQueue::_shaders;
 std::vector<RenderQueue::Queue>       RenderQueue::_meshes;
 
-std::mutex              RenderQueue::_queue_lock;
-std::mutex              RenderQueue::_submission_lock;
+std::mutex RenderQueue::_queue_lock;
+std::mutex RenderQueue::_submission_lock;
 
 std::condition_variable RenderQueue::_queue_ready;
 bool RenderQueue::_queue_empty = true;
@@ -36,8 +38,8 @@ void RenderQueue::end_draw() {
     _queue_ready.notify_one();
 }
 
-void RenderQueue::submit(const Shader *shader, const Mesh *mesh) {
-    assert(shader != nullptr && mesh != nullptr);
+void RenderQueue::submit(const Shader *shader, const Entity::ID id) {
+    assert(shader != nullptr);
 
     auto iter = std::find_if(
         _shaders.begin(), _shaders.end(),
@@ -48,12 +50,12 @@ void RenderQueue::submit(const Shader *shader, const Mesh *mesh) {
 
     if(iter == _shaders.end()) {
         _meshes.emplace_back(Queue());
-        _meshes.back().reserve(25);
-        _meshes.back().emplace_back(mesh);
+        _meshes.back().reserve(RENDERQUEUE_PREALLOC);
+        _meshes.back().emplace_back(id);
         _shaders.emplace_back(std::make_pair(shader, _meshes.size() - 1));
     }
     else {
-        _meshes[iter->second].emplace_back(mesh);
+        _meshes[iter->second].emplace_back(id);
     }
 }
 
@@ -62,8 +64,8 @@ RenderQueue::Queue RenderQueue::get_queue(std::size_t index) {
 }
 
 void RenderQueue::init() {
-    _shaders.reserve(25);
-    _meshes.reserve(25);
+    _shaders.reserve(RENDERQUEUE_PREALLOC);
+    _meshes.reserve(RENDERQUEUE_PREALLOC);
 }
 
 void RenderQueue::shutdown() {

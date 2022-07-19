@@ -3,6 +3,8 @@
 
 namespace btx {
 
+ECS *ECS::_active;
+
 Entity::ID ECS::new_entity() {
     if(!_free_indices.empty()) {
         Entity::Index new_index = _free_indices.back();
@@ -22,16 +24,29 @@ Entity::ID ECS::new_entity() {
 }
 
 void ECS::destroy_entity(Entity::ID id) {
-    Entity::ID newID = Entity::create_id(
+    Entity::ID new_id = Entity::create_id(
         Entity::Index(-1),
         Entity::get_version(id) + 1
     );
 
     Entity::Index index = Entity::get_index(id);
 
-    _entities[index].id = newID;
+    _entities[index].id = new_id;
     _entities[index].mask.reset(); 
     _free_indices.push_back(index);
+}
+
+Entity & ECS::entity(Entity::Index index) {
+    return _entities[index];
+}
+
+Entity & ECS::entity(Entity::ID id) {
+    Entity::Index index = Entity::get_index(id);
+    return _entities[index];
+}
+
+std::size_t ECS::entity_count() {
+    return _entities.size();
 }
 
 } // namespace btx

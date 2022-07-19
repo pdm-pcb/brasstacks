@@ -12,7 +12,7 @@ public:
     static void update(ECS *ecs, const float frame_delta);
 
 private:
-    static float rot_factor;
+    static float _rot_factor;
 };
 
 } // namespace btx

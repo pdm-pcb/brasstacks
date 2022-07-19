@@ -2,6 +2,7 @@
 #define BRASSTACKS_ECS_CAMERASYSTEM_HPP
 
 #include "brasstacks/System/glm.hpp"
+#include "brasstacks/ECS/Entity.hpp"
 
 namespace btx {
 
@@ -24,6 +25,7 @@ public:
 private:
     static const glm::vec3 _forward;
     static const glm::vec3 _right;
+    static const glm::vec3 _up;
 };
 
 } // namespace btx

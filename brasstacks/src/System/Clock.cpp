@@ -41,7 +41,7 @@ void Clock::update_tock() {
     );
 }
 
-void Clock::process_time() {
+void Clock::update() {
     _true_runtime = 1e-6f * static_cast<float>(
             duration_cast<microseconds>(HRC::now() - _start_time).count()
     );

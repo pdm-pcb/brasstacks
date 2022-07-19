@@ -6,11 +6,14 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
+#include <random>
+
+#include "brasstacks/Meshes/MeshFlatColor.hpp"
+#include "brasstacks/ECS/ECS.hpp"
 
 namespace btx {
 
 class RenderContext;
-class ECS;
 
 class ShaderFlatColor;
 class MeshFlatColor;
@@ -33,7 +36,7 @@ public:
     Engine & operator=(Engine &)        = delete;
 
 private:
-    std::mutex _thread_startup;
+    std::mutex        _thread_startup;
     std::atomic<bool> _render_thread_running;
     std::atomic<bool> _update_thread_running;
 
@@ -41,22 +44,16 @@ private:
     std::condition_variable _update_thread_ready;
 
     RenderContext *_render_context;
-
-    struct {
-        float r;
-        float g;
-        float b;
-        float a;
-    } _clear_color;
-
     ECS *_ecs;
 
 
+    ShaderFlatColor    *_shader;
+    std::size_t        _cube_count;
+    std::random_device _rd;
+    std::mt19937       _twister;
+    std::uniform_real_distribution<float> _rng;
 
-    ShaderFlatColor   *_shader;
-    MeshFlatColor     *_mesh01;
-    MeshFlatColor     *_mesh02;
-    PerspectiveCamera *_camera;
+    void _add_cube();
 };
 
 } // namespace btx

@@ -5,16 +5,9 @@
 
 namespace btx {
 
-void MeshFlatColor::bind() const {
-    _vb->bind();
-}
-
-std::uint32_t MeshFlatColor::index_count() const {
-    return 3u * _face_count;
-}
-
-void MeshFlatColor::_build_cube(const float scale) {
-    _vertices = new Vertex[_vertex_count] {
+void MeshFlatColor::_build_cube(Vertex **vertices, Face **faces,
+                                const float scale) {
+    *vertices = new Vertex[CUBE_VERTS] {
         // front face
         {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
          { 0.1f, 0.2f, 0.65f, 1.0f }},
@@ -76,15 +69,16 @@ void MeshFlatColor::_build_cube(const float scale) {
          { 0.3f, 0.4f, 0.65f, 1.0f }},
     };
 
-    _faces = new Mesh::Face[_face_count] {
+    *faces = new Mesh::Face[CUBE_FACES] {
 		{  0,  1,  2 }, {  2,  3,  0 }, {  6,  5,  4 }, {  4,  7,  6 },
 		{  8,  9, 10 }, { 10, 11,  8 }, { 12, 13, 14 }, { 14, 15, 12 },
 		{ 16, 17, 18 }, { 18, 19, 16 }, { 20, 21, 22 }, { 22, 23, 20 }
     };
 }
 
-void MeshFlatColor::_build_xz_plane(const float scale) {
-    _vertices = new Vertex[_vertex_count] {
+void MeshFlatColor::_build_xz_plane(Vertex **vertices, Face **faces,
+                                    const float scale) {
+    *vertices = new Vertex[PLANE_VERTS] {
         {{ -0.5f * scale, -0.5f * scale,  0.0f, 1.0f },
          { 0.5f, 0.0f, 0.0f, 1.0f }},
         {{  0.5f * scale, -0.5f * scale,  0.0f, 1.0f },
@@ -95,47 +89,33 @@ void MeshFlatColor::_build_xz_plane(const float scale) {
          { 0.5f, 0.5f, 0.0f, 1.0f }},
     };
 
-    _faces = new Mesh::Face[_face_count] {
+    *faces = new Mesh::Face[PLANE_FACES] {
 		{ 0, 1, 2 },
         { 2, 3, 0 }
     };
 }
 
-MeshFlatColor::MeshFlatColor(Primitives primitive) :
-    _vertices     { nullptr },
-    _vertex_count { 0u },
-    _faces        { nullptr },
-    _face_count   { 0u },
-    _vb           { nullptr }
+void MeshFlatColor::create(const Primitives primitive, VertexBuffer **vb,
+                           Vertex **vertices, Face **faces, const float scale)
 {
-    switch(primitive) {
-        case Primitives::Cube:
-            _vertex_count = 24;
-            _face_count   = 12;
-            _build_cube(1.0f);
-            break;
-
-        case Primitives::XZPlane:
-            _vertex_count = 4;
-            _face_count   = 2;
-            _build_xz_plane(1.0f);
-            break;
-    }
-
-    _vb = VertexBuffer::create({
+    *vb = VertexBuffer::create({
         { "POSITION", VBElement::Type::vec4f },
         { "COLOR",    VBElement::Type::vec4f },
     });
 
-    _vb->set_buffer(_vertices, _vertex_count * sizeof(Vertex));
-    _vb->set_indices(_faces, _face_count);
-}
+    switch(primitive) {
+        case Primitives::Cube:
+            _build_cube(vertices, faces, scale);
+            (*vb)->set_buffer(*vertices, CUBE_VERTS * sizeof(Vertex));
+            (*vb)->set_indices(*faces, CUBE_FACES);
+            break;
 
-MeshFlatColor::~MeshFlatColor() {
-    delete[] _vertices;
-    delete[] _faces;
-
-    delete _vb;
+        case Primitives::XZPlane:
+            _build_xz_plane(vertices, faces, scale);
+            (*vb)->set_buffer(*vertices, PLANE_VERTS * sizeof(Vertex));
+            (*vb)->set_indices(*faces, PLANE_FACES);
+            break;
+    }
 }
 
 } // namespace btx

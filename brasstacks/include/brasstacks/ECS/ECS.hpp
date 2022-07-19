@@ -9,6 +9,11 @@
 #include "brasstacks/ECS/Components/MovementComponent.hpp"
 #include "brasstacks/ECS/Components/CameraComponent.hpp"
 #include "brasstacks/ECS/Components/CubeComponent.hpp"
+#include "brasstacks/ECS/Components/RenderComponent.hpp"
+
+// TODO: come back and make more sense of this, specifically ID recycling and
+//       implementing sparse/packed sets. Hell, maybe draw it out, since I'm
+//       not actually sure exactly what's going on.
 
 namespace btx {
 
@@ -16,6 +21,13 @@ class ECS final {
 public:
     Entity::ID new_entity();
     void destroy_entity(Entity::ID id);
+
+    Entity & entity(Entity::Index index);
+    Entity & entity(Entity::ID id);
+    std::size_t entity_count();
+
+    static ECS * get_active()         { return _active; }
+    static void  set_active(ECS *ecs) { _active = ecs;  }
 
     template<typename T>
     T* assign(Entity::ID id) {
@@ -43,7 +55,7 @@ public:
 
     template<typename T>
     T* get(Entity::ID id) {
-    auto index = Entity::get_index(id);
+        auto index = Entity::get_index(id);
 
         if(_entities[index].id != id) {
             return nullptr;
@@ -71,9 +83,6 @@ public:
         _entities[index].mask.reset(component_id);
     }
 
-    Entity & entity(Entity::Index index) { return _entities[index]; }
-    std::size_t entity_count() const     { return _entities.size(); }
-
     ECS() = default;
     ~ECS() = default;
 
@@ -87,6 +96,8 @@ private:
     std::vector<Entity>          _entities;
     std::vector<Entity::Index>   _free_indices;
     std::vector<ComponentPool *> _component_pools;
+
+    static ECS *_active;
 };
 
 } // namespace btx

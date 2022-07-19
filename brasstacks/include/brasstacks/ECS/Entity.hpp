@@ -21,9 +21,7 @@ struct Entity {
     Component::Mask mask;
 };
 
-constexpr uint8_t MAX_ENTITIES = 255u;
-constexpr Entity::ID INVALID_ENTITY =
-    (static_cast<Entity::ID>(-1) << 32) | static_cast<Entity::ID>(0);
+constexpr uint16_t MAX_ENTITIES = 4096u;
 
 };
 

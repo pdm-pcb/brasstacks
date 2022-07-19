@@ -9,15 +9,15 @@ namespace btx {
 
 const glm::vec3 CameraSystem::_forward(0.0f, 0.0f, -1.0f);
 const glm::vec3 CameraSystem::_right(1.0f, 0.0f, 0.0f);
+const glm::vec3 CameraSystem::_up(glm::cross(_forward, _right));
 
 void CameraSystem::update(ECS *ecs, const InputState &input,
                           const float frame_delta)
 {
-    for(const auto ent : ECSView<CameraComponent, TransformComponent,
+    for(const auto id : ECSView<CameraComponent, TransformComponent,
                                  MovementComponent>(*ecs))
     {
-        auto transform = ecs->get<TransformComponent>(ent);
-        auto movement  = ecs->get<MovementComponent>(ent);
+        auto movement  = ecs->get<MovementComponent>(id);
 
         movement->speed   = 0.0f;
         movement->direction = { 0.0f, 0.0f, 0.0f };
@@ -40,7 +40,15 @@ void CameraSystem::update(ECS *ecs, const InputState &input,
             movement->direction += -_right;
         }
 
+        auto transform = ecs->get<TransformComponent>(id);
         transform->position += movement->direction * movement->speed;
+
+        auto camera = ecs->get<CameraComponent>(id);
+        camera->view_matrix = glm::lookAt(
+            transform->position,
+            transform->position + camera->lookahead,
+            _up
+        );
     }
 }
 

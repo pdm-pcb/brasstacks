@@ -39,7 +39,7 @@ public:
         _ecs { &ecs  },
         _all { false }
     {
-        if(sizeof...(ComponentTypes) == 0) {
+        if constexpr(sizeof...(ComponentTypes) == 0) {
             _all = true;
         }
         else {

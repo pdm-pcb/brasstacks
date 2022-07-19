@@ -26,7 +26,7 @@ add_library(
     "src/Meshes/MeshFlatColor.cpp"
     "src/Shaders/Shader.cpp"
     "src/Shaders/ShaderFlatColor.cpp"
-    "src/Cameras/PerspectiveCamera.cpp"
+    "src/Cameras/CameraBag.cpp"
     "src/ECS/Entity.cpp"
     "src/ECS/Component.cpp"
     "src/ECS/ComponentPool.cpp"

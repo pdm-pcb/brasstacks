@@ -17,7 +17,7 @@ public:
     static void update_tick();
     static void update_tock();
 
-    static void process_time();
+    static void update();
 
     static float runtime()      { return _game_runtime; }
     static float true_runtime() { return _true_runtime; }

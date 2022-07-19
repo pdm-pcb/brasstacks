@@ -5,44 +5,54 @@
 #include "brasstacks/Platform/GL/GLVertexBuffer.hpp"
 #include "brasstacks/Platform/GL/GLDebugger.hpp"
 
+#include "brasstacks/ECS/ECS.hpp"
+#include "brasstacks/ECS/ECSView.hpp"
+
+
+
 #include "brasstacks/Meshes/MeshFlatColor.hpp"
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
-#include "brasstacks/Cameras/PerspectiveCamera.hpp"
+#include "brasstacks/Cameras/CameraBag.hpp"
 #include "brasstacks/Engine/RenderConfig.hpp"
 #include "brasstacks/Engine/RenderQueue.hpp"
 
 namespace btx {
 
 void GLContextWGL::run() {
+    ECS *ecs = ECS::get_active();
+
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     RenderQueue::begin_draw();
     Clock::frame_tick();
 
+        
         for(const auto &[shader, index] : RenderQueue::get_indices()) {
-            shader->bind();
+            auto camera = ecs->get<CameraComponent>(CameraBag::get_active());
 
+            shader->bind();
             shader->update_camera(
-                _camera->view_matrix(),
-                _camera->projection_matrix()
+                camera->view_matrix,
+                camera->proj_matrix
             );
 
-            for(const auto &mesh : RenderQueue::get_queue(index)) {
+            for(const auto id : RenderQueue::get_queue(index)) {
+                auto render_component = ecs->get<RenderComponent>(id);
                 dynamic_cast<const ShaderFlatColor *>(shader)->set_world(
-                    mesh->world_mat()
+                    render_component->world_mat
                 );
-                mesh->bind();
+                render_component->vb->bind();
                 ::glDrawElements(
                     GL_TRIANGLES,
-                    mesh->index_count(),
+                    render_component->face_count * 3u,
                     GL_UNSIGNED_INT,
                     0
                 );
             }
         }
 
-    Clock::frame_tock();
     RenderQueue::end_draw();
+    Clock::frame_tock();
 
     ::SwapBuffers(_device);
     Clock::frame_delta_tock();
@@ -50,9 +60,7 @@ void GLContextWGL::run() {
     _update_window_title();
 }
 
-void GLContextWGL::init(Camera *camera) {
-    _camera = camera;
-
+void GLContextWGL::init() {
     // first, get a context so we can get a context
     _driver_hooks();
 
@@ -217,7 +225,7 @@ void GLContextWGL::_driver_hooks() {
 
 void GLContextWGL::_update_window_title() {
     _window_title = fmt::format(
-        "{:.3f}ms {:.3f}ms",
+        "R:{:.3f}ms U:{:.3f}ms",
         Clock::frame_time(),
         Clock::update_time()
     );

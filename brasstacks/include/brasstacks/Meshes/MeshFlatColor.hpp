@@ -9,19 +9,16 @@ class VertexBuffer;
 
 class MeshFlatColor : public Mesh {
 public:
-    struct Vertex {
+    typedef struct {
         glm::vec4 position;
         glm::vec4 color;
-    };
+    } Vertex;
 
-    void bind() const override;
+    static void create(const Primitives primitive, VertexBuffer **vb,
+                       Vertex **vertices, Face **faces, const float scale);
 
-    std::uint32_t index_count() const override;
-
-    explicit MeshFlatColor(Primitives primitive);
-    ~MeshFlatColor();
-
-    MeshFlatColor() = delete;
+    MeshFlatColor()  = delete;
+    ~MeshFlatColor() = default;
 
     MeshFlatColor(const MeshFlatColor&) = delete;
     MeshFlatColor(MeshFlatColor&&)      = delete;
@@ -29,16 +26,9 @@ public:
     MeshFlatColor& operator=(MeshFlatColor&&)      = delete;
 
 private:
-    Vertex  *_vertices;
-    std::uint32_t _vertex_count;
-
-    Face     *_faces;
-    std::uint32_t _face_count;
-
-    VertexBuffer *_vb;
-
-    void _build_cube(const float scale);
-    void _build_xz_plane(const float scale);
+    static void _build_cube(Vertex **vertices, Face **faces, const float scale);
+    static void _build_xz_plane(Vertex **vertices, Face **faces,
+                                const float scale);
 };
 
 } // namespace btx

@@ -5,37 +5,31 @@
 
 namespace btx {
 
+constexpr std::size_t CUBE_VERTS = 24;
+constexpr std::size_t CUBE_FACES = 12;
+constexpr std::size_t PLANE_VERTS = 4;
+constexpr std::size_t PLANE_FACES = 2;
+
 class Mesh {
 public:
-    struct Face {
+    typedef struct {
         std::uint32_t index_a;
         std::uint32_t index_b;
         std::uint32_t index_c;
-    };
+    } Face;
 
     enum class Primitives {
         Cube, Sphere, Skybox, XZPlane, XYPlane
     };
 
-    virtual void bind() const = 0;
-    virtual std::uint32_t index_count() const = 0;
-
-    void set_world_mat(const glm::mat4 &world_mat) { _world_mat = world_mat; }
-    const glm::mat4 & world_mat() const { return _world_mat; }
-
-    virtual ~Mesh() = default;
+    Mesh()  = delete;
+    ~Mesh() = default;
 
     Mesh(const Mesh &&) = delete;
     Mesh(Mesh &)        = delete;
 
     Mesh & operator=(const Mesh &&) = delete;
     Mesh & operator=(Mesh &)        = delete;
-
-protected:
-    Mesh() : _world_mat { 1.0f } { }
-
-private:
-    glm::mat4 _world_mat;
 };
 
 } // namespace btx

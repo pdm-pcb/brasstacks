@@ -14,6 +14,9 @@ struct RenderConfig {
     static int16_t window_y_res;
     static int16_t refresh_rate;
 
+    static float near_clip;
+    static float far_clip;
+
     static bool vsync_on;
     static bool fullscreen;
 
