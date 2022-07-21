@@ -9,6 +9,8 @@
     // ...?
 #endif
 
+#include <concepts>
+
 namespace btx {
 
 class ShaderFlatColor : public Shader {
@@ -19,7 +21,7 @@ public:
     void update_camera(const glm::mat4 &view,
                        const glm::mat4 &projection) const override;
 
-    void set_world(const glm::mat4 &world) const;
+    void update_render_data(const RenderComponent &render_c) const override;
 
     ShaderFlatColor();
     ~ShaderFlatColor();

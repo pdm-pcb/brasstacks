@@ -39,8 +39,6 @@ void CubeSystem::update(ECS *ecs, const float frame_delta) {
 
         auto render = ecs->get<RenderComponent>(id);
         render->world_mat = T * R * S;
-
-        RenderQueue::submit(dynamic_cast<Shader *>(render->shader), id);
     }
 }
 

@@ -13,7 +13,7 @@ public:
 
     virtual void set_buffer(void *buffer, std::uint32_t size) = 0;
     virtual void set_indices(const Mesh::Face *faces,
-                             const std::uint32_t face_count) = 0;
+                             const std::size_t face_count) = 0;
 
     static VertexBuffer * create(const ElementList &elements);
 

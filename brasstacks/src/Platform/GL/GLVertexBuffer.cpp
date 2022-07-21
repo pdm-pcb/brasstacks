@@ -29,7 +29,7 @@ void GLVertexBuffer::set_buffer(void *buffer, std::uint32_t size) {
 }
 
 void GLVertexBuffer::set_indices(const Mesh::Face *faces,
-                                 const std::uint32_t face_count) {
+                                 const std::size_t face_count) {
     glCreateBuffers(1, &_ibo);
     
     if(_ibo == GL_NONE) {
@@ -119,6 +119,7 @@ void GLVertexBuffer::_set_layout() {
 }
 
 GLVertexBuffer::GLVertexBuffer(const ElementList &elements) :
+    VertexBuffer(),
     _vao    { GL_NONE },
     _vbo    { GL_NONE },
     _ibo    { GL_NONE },

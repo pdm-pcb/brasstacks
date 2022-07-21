@@ -11,7 +11,7 @@ public:
 
     void set_buffer(void *buffer, std::uint32_t size) override;
     void set_indices(const Mesh::Face *faces,
-                     const std::uint32_t face_count)  override;
+                     const std::size_t face_count)  override;
 
     GLVertexBuffer(const ElementList &elements);
 

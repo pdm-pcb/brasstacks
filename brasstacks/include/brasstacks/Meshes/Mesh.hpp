@@ -22,7 +22,10 @@ public:
         Cube, Sphere, Skybox, XZPlane, XYPlane
     };
 
-    Mesh()  = delete;
+    virtual void bind_vertex_buffer() const = 0;
+    virtual std::size_t index_count() const = 0;
+
+    Mesh()  = default;
     ~Mesh() = default;
 
     Mesh(const Mesh &&) = delete;

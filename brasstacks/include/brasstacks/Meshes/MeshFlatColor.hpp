@@ -14,11 +14,14 @@ public:
         glm::vec4 color;
     } Vertex;
 
-    static void create(const Primitives primitive, VertexBuffer **vb,
-                       Vertex **vertices, Face **faces, const float scale);
+    void bind_vertex_buffer() const override;
+    std::size_t index_count() const override { return _face_count * 3; }
 
-    MeshFlatColor()  = delete;
-    ~MeshFlatColor() = default;
+    explicit MeshFlatColor(const Primitives primitive,
+                           const float scale = 1.0f);
+    ~MeshFlatColor();
+
+    MeshFlatColor() = delete;
 
     MeshFlatColor(const MeshFlatColor&) = delete;
     MeshFlatColor(MeshFlatColor&&)      = delete;
@@ -26,9 +29,15 @@ public:
     MeshFlatColor& operator=(MeshFlatColor&&)      = delete;
 
 private:
-    static void _build_cube(Vertex **vertices, Face **faces, const float scale);
-    static void _build_xz_plane(Vertex **vertices, Face **faces,
-                                const float scale);
+    VertexBuffer *_buffer;
+    Vertex       *_vertices;
+    Face         *_faces;
+
+    std::size_t _vertex_count;
+    std::size_t _face_count;
+
+    void _build_cube(const float scale);
+    void _build_xz_plane(const float scale);
 };
 
 } // namespace btx

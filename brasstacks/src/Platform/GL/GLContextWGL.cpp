@@ -26,7 +26,7 @@ void GLContextWGL::run() {
     RenderQueue::begin_draw();
     Clock::frame_tick();
         
-        for(const auto &[shader, index] : RenderQueue::get_indices()) {
+        for(auto &[shader, index] : RenderQueue::get_indices()) {
             auto camera = ecs->get<CameraComponent>(CameraBag::get_active());
 
             shader->bind();
@@ -35,15 +35,15 @@ void GLContextWGL::run() {
                 camera->proj_matrix
             );
 
-            for(const auto id : RenderQueue::get_queue(index)) {
-                auto render_component = ecs->get<RenderComponent>(id);
-                dynamic_cast<const ShaderFlatColor *>(shader)->set_world(
-                    render_component->world_mat
-                );
-                render_component->vb->bind();
+            for(auto id : RenderQueue::get_queue(index)) {
+                auto render_c = ecs->get<RenderComponent>(id);
+
+                shader->update_render_data(*render_c);
+                render_c->mesh->bind_vertex_buffer();
+
                 ::glDrawElements(
                     GL_TRIANGLES,
-                    render_component->face_count * 3u,
+                    static_cast<GLsizei>(render_c->mesh->index_count()),
                     GL_UNSIGNED_INT,
                     0
                 );

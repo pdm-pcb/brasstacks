@@ -1,6 +1,8 @@
 #include "brasstacks/System/pch.hpp"
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
 
+#include "brasstacks/ECS/Components/RenderComponent.hpp"
+
 namespace btx {
 
 void ShaderFlatColor::update_camera(const glm::mat4 &view,
@@ -8,8 +10,8 @@ void ShaderFlatColor::update_camera(const glm::mat4 &view,
     _shader->update_camera(view, projection);
 }
 
-void ShaderFlatColor::set_world(const glm::mat4 &world) const {
-    _shader->set_world(world);
+void ShaderFlatColor::update_render_data(const RenderComponent &render_c) const {
+    _shader->set_world(render_c.world_mat);
 }
 
 ShaderFlatColor::ShaderFlatColor() {

@@ -89,12 +89,9 @@ void Engine::_add_cube() {
         -25.0f
     };
 
-    auto cube_render = _ecs->assign<RenderComponent>(new_cube);
-    MeshFlatColor::create(Mesh::Primitives::Cube, &cube_render->vb,
-                          &cube_render->vertices, &cube_render->faces, 1.0f);
-    cube_render->vertex_count = CUBE_VERTS;
-    cube_render->face_count   = CUBE_FACES;
-    cube_render->shader       = _shader;
+    auto cube_render    = _ecs->assign<RenderComponent>(new_cube);
+    cube_render->shader = _shader;
+    cube_render->mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
 
     ++_cube_count;
     if(_cube_count % 10 == 0) {
@@ -125,6 +122,13 @@ void Engine::update_thread() {
 
             CameraSystem::update(_ecs, { w, a, s, d }, Clock::frame_delta());
             CubeSystem::update(_ecs, Clock::frame_delta());
+
+            for(const auto id : ECSView<RenderComponent>(*_ecs)) {
+                auto transform = _ecs->get<TransformComponent>(id);
+                auto render = _ecs->get<RenderComponent>(id);
+
+                RenderQueue::submit(dynamic_cast<Shader *>(render->shader), id);
+            }
         
         RenderQueue::end_scene();
         Clock::update_tock();
