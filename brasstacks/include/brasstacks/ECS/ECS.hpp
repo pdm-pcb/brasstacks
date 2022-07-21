@@ -5,11 +5,11 @@
 #include "brasstacks/ECS/Component.hpp"
 #include "brasstacks/ECS/ComponentPool.hpp"
 
-#include "brasstacks/ECS/Components/TransformComponent.hpp"
-#include "brasstacks/ECS/Components/MovementComponent.hpp"
-#include "brasstacks/ECS/Components/CameraComponent.hpp"
-#include "brasstacks/ECS/Components/CubeComponent.hpp"
-#include "brasstacks/ECS/Components/RenderComponent.hpp"
+#include "brasstacks/ECS/Components/TransformComp.hpp"
+#include "brasstacks/ECS/Components/MoveComp.hpp"
+#include "brasstacks/ECS/Components/CameraComp.hpp"
+#include "brasstacks/ECS/Components/CubeComp.hpp"
+#include "brasstacks/ECS/Components/RenderComp.hpp"
 
 // TODO: come back and make more sense of this, specifically ID recycling and
 //       implementing sparse/packed sets. Hell, maybe draw it out, since I'm

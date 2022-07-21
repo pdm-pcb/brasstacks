@@ -15,13 +15,13 @@ const glm::mat4 CameraSystem::_ident(1.0f);
 void CameraSystem::update(ECS *ecs, const InputState &input,
                           const float frame_delta)
 {
-    for(const auto id : ECSView<CameraComponent,
-                                TransformComponent,
-                                MovementComponent>(*ecs))
+    for(const auto id : ECSView<CameraComp,
+                                TransformComp,
+                                MoveComp>(*ecs))
     {
-        auto camera = ecs->get<CameraComponent>(id);
+        auto camera = ecs->get<CameraComp>(id);
     
-        auto movement  = ecs->get<MovementComponent>(id);
+        auto movement  = ecs->get<MoveComp>(id);
         movement->speed   = 0.0f;
         movement->direction = { 0.0f, 0.0f, 0.0f };
 
@@ -43,7 +43,7 @@ void CameraSystem::update(ECS *ecs, const InputState &input,
             movement->direction += camera->pitch_axis;
         }
 
-        auto transform = ecs->get<TransformComponent>(id);
+        auto transform = ecs->get<TransformComp>(id);
     
         transform->position += movement->direction * movement->speed;
         transform->rotation = glm::quat({ -camera->pitch, camera->yaw, 0.0f });

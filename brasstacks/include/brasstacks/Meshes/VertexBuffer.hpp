@@ -15,7 +15,7 @@ public:
     virtual void set_indices(const Mesh::Face *faces,
                              const std::size_t face_count) = 0;
 
-    static VertexBuffer * create(const ElementList &elements);
+    static VertexBuffer * create(const VertexLayout::ElementList &elements);
 
     virtual ~VertexBuffer() = default;
 

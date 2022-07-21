@@ -13,7 +13,7 @@
 
 namespace btx {
 
-VertexBuffer * VertexBuffer::create(const ElementList &elements) {
+VertexBuffer * VertexBuffer::create(const VertexLayout::ElementList &elements) {
 #ifdef __linux__
     // ...?
 #elif defined(_WIN32)

@@ -118,7 +118,7 @@ void GLVertexBuffer::_set_layout() {
 	}
 }
 
-GLVertexBuffer::GLVertexBuffer(const ElementList &elements) :
+GLVertexBuffer::GLVertexBuffer(const VertexLayout::ElementList &elements) :
     VertexBuffer(),
     _vao    { GL_NONE },
     _vbo    { GL_NONE },
@@ -132,6 +132,28 @@ GLVertexBuffer::GLVertexBuffer(const ElementList &elements) :
     }
 
     _set_layout();
+}
+
+GLVertexBuffer::GLVertexBuffer(VertexLayout *layout) :
+    VertexBuffer(),
+    _vao    { GL_NONE },
+    _vbo    { GL_NONE },
+    _ibo    { GL_NONE },
+    _layout { layout  }
+{
+    glCreateVertexArrays(1, &_vao);
+
+    if(_vao == GL_NONE) {
+        BTX_ENGINE_ERROR("glCreateVertexArrays() failed");
+    }
+
+    _set_layout();
+}
+
+GLVertexBuffer::~GLVertexBuffer() {
+    glDeleteVertexArrays(1, &_vao);
+    glDeleteBuffers(1, &_vbo);
+    glDeleteBuffers(1, &_ibo);
 }
 
 } // namespace btx

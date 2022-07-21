@@ -13,7 +13,16 @@ public:
     void set_indices(const Mesh::Face *faces,
                      const std::size_t face_count)  override;
 
-    GLVertexBuffer(const ElementList &elements);
+    GLVertexBuffer(const VertexLayout::ElementList &elements);
+    GLVertexBuffer(VertexLayout *layout);
+
+    ~GLVertexBuffer();
+
+    GLVertexBuffer() = delete;
+    GLVertexBuffer(const GLVertexBuffer &&) = delete;
+    GLVertexBuffer(GLVertexBuffer &)        = delete;
+    GLVertexBuffer & operator=(const GLVertexBuffer &&) = delete;
+    GLVertexBuffer & operator=(GLVertexBuffer &)        = delete;
 
 private:
     GLuint _vao;

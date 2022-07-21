@@ -25,10 +25,10 @@ struct VBElement {
 	VBElement(const char *name, const Type type, const bool per_vertex = true);
 };
 
-using ElementList = std::initializer_list<VBElement>;
-
 class VertexLayout {
 public:
+    using ElementList = std::initializer_list<VBElement>;
+
 	const std::vector<VBElement> &elements() const {
 		return _elements;
 	}

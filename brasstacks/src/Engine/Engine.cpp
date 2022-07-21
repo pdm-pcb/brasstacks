@@ -67,7 +67,7 @@ void Engine::on_event(Event &event) {
             auto [ x_offset, y_offset ] =
                 reinterpret_cast<MouseMovedEvent *>(&event)->offset();
 
-            auto camera = _ecs->get<CameraComponent>(CameraBag::get_active());
+            auto camera = _ecs->get<CameraComp>(CameraBag::get_active());
             camera->pitch -= 0.00125f * y_offset;
             camera->yaw   += 0.00125f * x_offset;
 
@@ -80,16 +80,16 @@ void Engine::on_event(Event &event) {
 
 void Engine::_add_cube() {
     Entity::ID new_cube = _ecs->new_entity();
-    _ecs->assign<CubeComponent>(new_cube);
+    _ecs->assign<CubeComp>(new_cube);
 
-    auto cube_transform = _ecs->assign<TransformComponent>(new_cube);
+    auto cube_transform = _ecs->assign<TransformComp>(new_cube);
     cube_transform->position = {
         _rng(_twister),
         _rng(_twister),
         -25.0f
     };
 
-    auto cube_render    = _ecs->assign<RenderComponent>(new_cube);
+    auto cube_render    = _ecs->assign<RenderComp>(new_cube);
     cube_render->shader = _shader;
     cube_render->mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
 
@@ -123,10 +123,8 @@ void Engine::update_thread() {
             CameraSystem::update(_ecs, { w, a, s, d }, Clock::frame_delta());
             CubeSystem::update(_ecs, Clock::frame_delta());
 
-            for(const auto id : ECSView<RenderComponent>(*_ecs)) {
-                auto transform = _ecs->get<TransformComponent>(id);
-                auto render = _ecs->get<RenderComponent>(id);
-
+            for(const auto id : ECSView<RenderComp>(*_ecs)) {
+                auto render = _ecs->get<RenderComp>(id);
                 RenderQueue::submit(dynamic_cast<Shader *>(render->shader), id);
             }
         
@@ -184,12 +182,12 @@ Engine::Engine() :
     ECS::set_active(_ecs);
 
     Entity::ID camera = _ecs->new_entity();
-    _ecs->assign<MovementComponent>(camera);
+    _ecs->assign<MoveComp>(camera);
 
-    auto camera_tc = _ecs->assign<TransformComponent>(camera);
+    auto camera_tc = _ecs->assign<TransformComp>(camera);
     camera_tc->position = { 0.0f, 0.0f, 2.0f };
 
-    auto camera_cc = _ecs->assign<CameraComponent>(camera);
+    auto camera_cc = _ecs->assign<CameraComp>(camera);
     camera_cc->proj_matrix = glm::perspective(
         math::pi_over_four,
         static_cast<float>(RenderConfig::window_x_res) /

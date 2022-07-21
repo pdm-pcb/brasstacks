@@ -1,11 +1,11 @@
-#ifndef BRASSTACKS_ECS_COMPONENTS_CAMERACOMPONENT_HPP
-#define BRASSTACKS_ECS_COMPONENTS_CAMERACOMPONENT_HPP
+#ifndef BRASSTACKS_ECS_COMPONENTS_CAMERACOMP_HPP
+#define BRASSTACKS_ECS_COMPONENTS_CAMERACOMP_HPP
 
 #include "brasstacks/System/glm.hpp"
 
 namespace btx {
 
-struct CameraComponent {
+struct CameraComp {
     glm::mat4 view_matrix { 1.0f };
     glm::mat4 proj_matrix { 1.0f };
     glm::vec3 lookahead   { 0.0f };
@@ -20,4 +20,4 @@ struct CameraComponent {
 
 } // namespace btx
 
-#endif // BRASSTACKS_ECS_COMPONENTS_CAMERACOMPONENT_HPP
+#endif // BRASSTACKS_ECS_COMPONENTS_CAMERACOMP_HPP

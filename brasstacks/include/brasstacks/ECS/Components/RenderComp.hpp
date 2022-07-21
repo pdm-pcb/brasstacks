@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_ECS_COMPONENTS_RENDERCOMPONENT
-#define BRASSTACKS_ECS_COMPONENTS_RENDERCOMPONENT
+#ifndef BRASSTACKS_ECS_COMPONENTS_RENDERCOMP_HPP
+#define BRASSTACKS_ECS_COMPONENTS_RENDERCOMP_HPP
 
 #include "brasstacks/System/glm.hpp"
 
@@ -8,7 +8,7 @@ namespace btx {
 class Shader;
 class Mesh;
 
-struct RenderComponent {
+struct RenderComp {
     Shader   *shader    { nullptr };
     Mesh     *mesh      { nullptr };
     glm::mat4 world_mat { 1.0f };
@@ -16,4 +16,4 @@ struct RenderComponent {
 
 } // namespace brasstacks
 
-#endif // BRASSTACKS_ECS_COMPONENTS_RENDERCOMPONENT
+#endif // BRASSTACKS_ECS_COMPONENTS_RENDERCOMP_HPP
