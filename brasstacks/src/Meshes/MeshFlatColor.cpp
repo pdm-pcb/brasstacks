@@ -79,15 +79,15 @@ void MeshFlatColor::_build_cube(const float scale) {
     };
 }
 
-void MeshFlatColor::_build_xz_plane(const float scale) {
+void MeshFlatColor::_build_xzplane(const float scale, const float y_offset) {
     _vertices = new Vertex[_vertex_count] {
-        {{ -0.5f * scale, -0.5f * scale,  0.0f, 1.0f },
+        {{ -0.5f * scale,  y_offset,  0.5f * scale, 1.0f },
          { 0.5f, 0.0f, 0.0f, 1.0f }},
-        {{  0.5f * scale, -0.5f * scale,  0.0f, 1.0f },
+        {{  0.5f * scale,  y_offset,  0.5f * scale, 1.0f },
          { 0.0f, 0.5f, 0.0f, 1.0f }},
-        {{  0.5f * scale,  0.5f * scale,  0.0f, 1.0f },
+        {{  0.5f * scale,  y_offset, -0.5f * scale, 1.0f },
          { 0.0f, 0.0f, 0.5f, 1.0f }},
-        {{ -0.5f * scale,  0.5f * scale,  0.0f, 1.0f },
+        {{ -0.5f * scale,  y_offset, -0.5f * scale, 1.0f },
          { 0.5f, 0.5f, 0.0f, 1.0f }},
     };
 
@@ -97,10 +97,30 @@ void MeshFlatColor::_build_xz_plane(const float scale) {
     };
 }
 
-MeshFlatColor::MeshFlatColor(const Primitives primitive, const float scale) :
+void MeshFlatColor::_build_xyplane(const float scale, const float z_offset) {
+    _vertices = new Vertex[_vertex_count] {
+        {{ -0.5f * scale, -0.5f * scale,  z_offset, 1.0f },
+         { 0.5f, 0.0f, 0.0f, 1.0f }},
+        {{  0.5f * scale, -0.5f * scale,  z_offset, 1.0f },
+         { 0.0f, 0.5f, 0.0f, 1.0f }},
+        {{  0.5f * scale,  0.5f * scale,  z_offset, 1.0f },
+         { 0.0f, 0.0f, 0.5f, 1.0f }},
+        {{ -0.5f * scale,  0.5f * scale,  z_offset, 1.0f },
+         { 0.5f, 0.5f, 0.0f, 1.0f }}
+    };
+
+    _faces = new Face[_face_count] {
+        { 0, 1, 2 },
+        { 2, 3, 0 }
+    };
+}
+
+MeshFlatColor::MeshFlatColor(const Primitives primitive,
+                             const float scale,
+                             const float plane_offset) :
     _buffer { VertexBuffer::create({
-        { "POSITION", VBElement::Type::vec4f },
-        { "COLOR",    VBElement::Type::vec4f },
+        { "position", VBElement::Type::vec4f },
+        { "color",    VBElement::Type::vec4f },
     })},
     _vertices { nullptr },
     _faces    { nullptr },
@@ -115,9 +135,15 @@ MeshFlatColor::MeshFlatColor(const Primitives primitive, const float scale) :
             break;
 
         case Primitives::XZPlane:
-            _build_xz_plane(scale);
             _vertex_count = PLANE_VERTS;
             _face_count = PLANE_FACES;
+            _build_xzplane(scale, plane_offset);
+            break;
+
+        case Primitives::XYPlane:
+            _vertex_count = PLANE_VERTS;
+            _face_count = PLANE_FACES;
+            _build_xyplane(scale, plane_offset);
             break;
     }
 

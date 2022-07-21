@@ -143,7 +143,15 @@ void Engine::render_thread() {
         _render_context->set_swap_interval(1);
     }
 
-    _shader = new ShaderFlatColor;
+    _shader = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
+
+    Entity::ID floor = _ecs->new_entity();
+    _ecs->assign<TransformComp>(floor);
+
+    auto floor_render    = _ecs->assign<RenderComp>(floor);
+    floor_render->shader = _shader;
+    floor_render->mesh   = new MeshFlatColor(Mesh::Primitives::XZPlane,
+                                             500.0f, -13.0f);
 
     _render_thread_running.store(true);
     _render_thread_ready.notify_one();
@@ -155,7 +163,16 @@ void Engine::render_thread() {
             _add_cube();
         }
     }
-    
+
+    // TODO: this reeeeeally belongs somewhere else. As does the creation of
+    //       new meshes. Presumably, these operations should live in the
+    //       renderer itself, and simple handles should be returned upon
+    //       creation.
+    for(const auto id : ECSView<RenderComp>(*_ecs)) {
+        auto render = _ecs->get<RenderComp>(id);
+        delete render->mesh;
+    }
+
     _render_context->shutdown();
 
     delete _shader;
@@ -185,16 +202,20 @@ Engine::Engine() :
     _ecs->assign<MoveComp>(camera);
 
     auto camera_tc = _ecs->assign<TransformComp>(camera);
-    camera_tc->position = { 0.0f, 0.0f, 2.0f };
+    camera_tc->position  = { 0.0f, 0.0f, 2.0f };
 
     auto camera_cc = _ecs->assign<CameraComp>(camera);
+    camera_cc->view_matrix = glm::lookAt(
+        camera_tc->position,
+        camera_cc->forward,
+        camera_cc->up
+    );
     camera_cc->proj_matrix = glm::perspective(
         math::pi_over_four,
         static_cast<float>(RenderConfig::window_x_res) /
         static_cast<float>(RenderConfig::window_y_res),
         RenderConfig::near_clip, RenderConfig::far_clip
     );
-    camera_cc->lookahead = { 0.0f, 0.0f, -2.0f };
 
     CameraBag::set_active(camera);
 }

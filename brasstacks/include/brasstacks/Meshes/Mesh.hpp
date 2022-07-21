@@ -5,6 +5,8 @@
 
 namespace btx {
 
+class VertexBuffer;
+
 constexpr std::size_t CUBE_VERTS = 24;
 constexpr std::size_t CUBE_FACES = 12;
 constexpr std::size_t PLANE_VERTS = 4;
@@ -26,7 +28,7 @@ public:
     virtual std::size_t index_count() const = 0;
 
     Mesh()  = default;
-    ~Mesh() = default;
+    virtual ~Mesh() = default;
 
     Mesh(const Mesh &&) = delete;
     Mesh(Mesh &)        = delete;

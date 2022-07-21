@@ -24,6 +24,7 @@ add_library(
     "src/Meshes/VertexBuffer.cpp"
     "src/Meshes/VertexLayout.cpp"
     "src/Meshes/MeshFlatColor.cpp"
+    "src/Meshes/MeshFlatTexture.cpp"
     "src/Shaders/Shader.cpp"
     "src/Shaders/ShaderFlatColor.cpp"
     "src/Cameras/CameraBag.cpp"

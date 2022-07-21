@@ -534,8 +534,13 @@ void Win32ConfigWindow::_populate_api_list() {
 
 void Win32ConfigWindow::_set_defaults() {
     _select_gpu(0); // hopefully the default GPU
-    _select_res(0); // lowest resolution and refresh rate
     _select_api(0); // OpenGL
+
+    // half plus one, anyone?
+    ::LRESULT close_enough_for_ska = static_cast<::LRESULT>(
+        std::ceil(_display_settings.size() / 2.0f)
+    );
+    _select_res(close_enough_for_ska);
 
     // disable the "future" features
     ::EnableWindow(_gpu_list, false);

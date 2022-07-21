@@ -6,16 +6,15 @@
 namespace btx {
 
 struct CameraComp {
-    glm::mat4 view_matrix { 1.0f };
-    glm::mat4 proj_matrix { 1.0f };
-    glm::vec3 lookahead   { 0.0f };
+    glm::mat4 view_matrix = mat4_ident;
+    glm::mat4 proj_matrix = mat4_ident;
+
+    glm::vec3 up      = up_vector;
+    glm::vec3 right   = right_vector;
+    glm::vec3 forward = forward_vector;
 
     float pitch { 0.0f };
     float yaw   { 0.0f };
-
-    glm::vec3 pitch_axis { 1.0f, 0.0f, 0.0f };
-    glm::vec3 yaw_axis   { 0.0f, 1.0f, 0.0f };
-    glm::vec3 roll_axis  { 0.0f, 0.0f, 1.0f };
 };
 
 } // namespace btx
