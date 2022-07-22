@@ -222,16 +222,25 @@ void Engine::render_thread() {
     auto &spot  = phong->light_params.spot_light;
 
     dir.direction       = glm::normalize(glm::vec4(0.0f, -1.0f, 1.0f, 0.0f));
-    dir.props.diffuse   = { 0.5f, 0.5f, 0.5f, 1.0f };
+    dir.props.diffuse   = { 0.25f, 0.25f, 0.25f, 1.0f };
     dir.props.ambient   = dir.props.diffuse * 0.1f;
     dir.props.ambient.w = 1.0f;
     dir.props.specular  = dir.props.diffuse;
 
-    point.position        = { 0.0f, -5.0f, 0.0f, 1.0f };
-    point.props.diffuse   = { 0.05f, 0.25f, 0.15f, 1.0f };
+    point.position        = { 25.0f, 0.0f, -45.0f, 1.0f };
+    point.props.diffuse   = { 0.0f, 0.0f, 1.0f, 1.0f };
     point.props.ambient   = point.props.diffuse * 0.1f;
     point.props.ambient.w = 1.0f;
     point.props.specular  = point.props.diffuse;
+    point.props.attenuation = 0.25f;
+
+    spot.position        = { 0.0f, -12.0f, -25.0f, 1.0f };
+    spot.heading         = { 0.0f, 0.0f, -1.0f, 0.0f };
+    spot.props.diffuse   = { 0.0f, 1.0f, 0.0f, 1.0f };
+    spot.props.ambient   = spot.props.diffuse * 0.1f;
+    spot.props.ambient.w = 1.0f;
+    spot.props.specular  = spot.props.diffuse;
+    spot.props.attenuation = 0.1f;
 
 
 
