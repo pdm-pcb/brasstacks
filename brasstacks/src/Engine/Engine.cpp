@@ -63,6 +63,8 @@ void Engine::on_event(Event &event) {
                 case KB_A: a = false; break;
                 case KB_S: s = false; break;
                 case KB_D: d = false; break;
+
+                case KB_SPACE: add_cube = false;
             }
             break;
         }
@@ -83,7 +85,7 @@ void Engine::on_event(Event &event) {
     }
 }
 
-void Engine::_add_cube(ShaderFlatColor *shader) {
+void Engine::_add_cube(ShaderLitTexture *shader) {
     Entity::ID new_cube = _ecs->new_entity();
     _ecs->assign<cCube>(new_cube);
 
@@ -91,26 +93,41 @@ void Engine::_add_cube(ShaderFlatColor *shader) {
     cube_transform->position = {
         _rng(_twister),
         _rng(_twister),
-        -25.0f
+        -10.0f
     };
-
-    auto cube_render    = _ecs->assign<cRender>(new_cube);
-    cube_render->shader = shader;
-    cube_render->mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
+    cube_transform->scale = { 2.0f, 2.0f, 2.0f };
 
     _ecs->assign<cWorldMat>(new_cube);
 
-    ++_cube_count;
-    if(_cube_count % 10 == 0) {
-        add_cube = false;
-        BTX_ENGINE_TRACE(
-            "Adding cube {}: {:.02f},{:.02f},{:.02f}",
-            _cube_count,
-            cube_transform->position.x,
-            cube_transform->position.y,
-            cube_transform->position.z
+    auto cube_render    = _ecs->assign<cRender>(new_cube);
+    cube_render->shader = shader;
+    cube_render->mesh   = new MeshLitTexture(Mesh::Primitives::Cube);
+
+    if(_cube_count % 2 == 0) {
+        static_cast<MeshLitTexture *>(cube_render->mesh)->set_texture(
+            "../../assets/textures/Wood_Floor_011_basecolor.jpg",
+            "../../assets/textures/Wood_Floor_011_normal.jpg",
+            false, true,
+            Texture2D::MinFilter::linear_mipmap_nearest,
+            Texture2D::MagFilter::linear,
+            Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
         );
     }
+    else {
+        static_cast<MeshLitTexture *>(cube_render->mesh)->set_texture(
+            "../../assets/textures/Wood_025_basecolor.jpg",
+            "../../assets/textures/Wood_025_normal.jpg",
+            false, true,
+            Texture2D::MinFilter::linear_mipmap_nearest,
+            Texture2D::MagFilter::linear,
+            Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+        );
+    }
+
+    _ecs->assign<cPhongMaterial>(new_cube);
+
+    ++_cube_count;
+    add_cube = false;
 }
 
 void Engine::update_thread() {
@@ -153,44 +170,13 @@ void Engine::render_thread() {
         _render_context->set_swap_interval(1);
     }
 
-    // auto shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
-    // auto shader_ft = new ShaderFlatTexture;
+    auto shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
+    auto shader_ft = new ShaderFlatTexture;
     auto shader_lt = new ShaderLitTexture;
 
     Entity::ID floor = _ecs->new_entity();
     _ecs->assign<cTransform>(floor);
-
-
-
-    // _ecs->assign<cWorldMat>(floor);
-    // auto floor_render    = _ecs->assign<cRender>(floor);
-    // floor_render->shader = shader_fc;
-    // floor_render->mesh   = new MeshFlatColor(
-    //     Mesh::Primitives::XZPlane,
-    //     500.0f,
-    //     -13.0f
-    // );
-
-
-
-
-    // _ecs->assign<cWorldMat>(floor);
-    // auto floor_render    = _ecs->assign<cRender>(floor);
-    // floor_render->shader = shader_ft;
-    // floor_render->mesh   = new MeshFlatTexture(
-    //     Mesh::Primitives::XZPlane,
-    //     10.0f, 10.0f,
-    //     500.0f,
-    //     -13.0f
-    // );
-    // static_cast<MeshFlatTexture *>(floor_render->mesh)->set_texture(
-    //     "../../assets/textures/rocky_surface_diffuse.jpg",
-    //     false, true,
-    //     Texture2D::MinFilter::linear_mipmap_nearest,
-    //     Texture2D::MagFilter::linear,
-    //     Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
-    // );
-
+    _ecs->assign<cWorldMat>(floor);
 
 
 
@@ -210,37 +196,35 @@ void Engine::render_thread() {
         Texture2D::MagFilter::linear,
         Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
     );
+    
+    _ecs->assign<cPhongMaterial>(floor);
 
-    auto phong = _ecs->assign<cPhongNormalMap>(floor);
-    phong->world_and_material.ambient  = { 0.05f, 0.05f, 0.05f, 1.0f };
-    phong->world_and_material.diffuse  = { 0.75f, 0.75f, 0.75f, 1.0f };
-    phong->world_and_material.specular = { 0.85f, 0.85f, 0.85f, 1.0f };
-    phong->world_and_material.shine    = 1.0f;
+    auto phong = _ecs->assign<cPhongParams>(floor);
+    shader_lt->store_per_frame_id(floor);
+    auto *dir   = &phong->params.directional_light;
+    auto *point = &phong->params.point_light;
+    auto *spot  = &phong->params.spot_light;
 
-    auto &dir   = phong->light_params.directional_light;
-    auto &point = phong->light_params.point_light;
-    auto &spot  = phong->light_params.spot_light;
+    dir->direction       = glm::normalize(glm::vec4(0.0f, -2.0f, -1.0f, 0.0f));
+    dir->props.diffuse   = { 0.5f, 0.5f, 0.5f, 1.0f };
+    dir->props.ambient   = dir->props.diffuse * 0.1f;
+    dir->props.ambient.w = 1.0f;
+    dir->props.specular  = dir->props.diffuse;
 
-    dir.direction       = glm::normalize(glm::vec4(0.0f, -1.0f, 1.0f, 0.0f));
-    dir.props.diffuse   = { 0.25f, 0.25f, 0.25f, 1.0f };
-    dir.props.ambient   = dir.props.diffuse * 0.1f;
-    dir.props.ambient.w = 1.0f;
-    dir.props.specular  = dir.props.diffuse;
+    point->position        = { 25.0f, 0.0f, -45.0f, 1.0f };
+    point->props.diffuse   = { 0.0f, 0.0f, 1.0f, 1.0f };
+    point->props.ambient   = point->props.diffuse * 0.1f;
+    point->props.ambient.w = 1.0f;
+    point->props.specular  = point->props.diffuse;
+    point->props.attenuation = 0.25f;
 
-    point.position        = { 25.0f, 0.0f, -45.0f, 1.0f };
-    point.props.diffuse   = { 0.0f, 0.0f, 1.0f, 1.0f };
-    point.props.ambient   = point.props.diffuse * 0.1f;
-    point.props.ambient.w = 1.0f;
-    point.props.specular  = point.props.diffuse;
-    point.props.attenuation = 0.25f;
-
-    spot.position        = { 0.0f, -12.0f, -25.0f, 1.0f };
-    spot.heading         = { 0.0f, 0.0f, -1.0f, 0.0f };
-    spot.props.diffuse   = { 0.0f, 1.0f, 0.0f, 1.0f };
-    spot.props.ambient   = spot.props.diffuse * 0.1f;
-    spot.props.ambient.w = 1.0f;
-    spot.props.specular  = spot.props.diffuse;
-    spot.props.attenuation = 0.1f;
+    spot->position        = { 0.0f, -12.0f, -25.0f, 1.0f };
+    spot->heading         = { 0.0f, 0.0f, -1.0f, 0.0f };
+    spot->props.diffuse   = { 0.0f, 1.0f, 0.0f, 1.0f };
+    spot->props.ambient   = spot->props.diffuse * 0.1f;
+    spot->props.ambient.w = 1.0f;
+    spot->props.specular  = spot->props.diffuse;
+    spot->props.attenuation = 0.1f;
 
 
 
@@ -252,7 +236,7 @@ void Engine::render_thread() {
         _render_context->run();
 
         if(add_cube) {
-            // _add_cube(shader_fc);
+            _add_cube(shader_lt);
         }
     }
 
@@ -267,8 +251,8 @@ void Engine::render_thread() {
 
     _render_context->shutdown();
 
-    // delete shader_fc;
-    // delete shader_ft;
+    delete shader_fc;
+    delete shader_ft;
     delete shader_lt;
 }
 
@@ -279,7 +263,7 @@ Engine::Engine() :
     _ecs        { new ECS },
     _cube_count { 0 },
     _twister    { _rd() },
-    _rng        { -10.0f, 10.0f }
+    _rng        { -5.0f, 5.0f }
 
 {
     TargetWindow::current()->subscribe_to(this, EventType::WindowClosed);

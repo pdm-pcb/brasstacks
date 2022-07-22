@@ -23,10 +23,10 @@ public:
     };
 
     struct WorldAndMaterial {
-        glm::mat4 world_mat { 0.0f };
-        glm::vec4 ambient   { 0.0f };
-        glm::vec4 diffuse   { 0.0f };
-        glm::vec4 specular  { 0.0f };
+        glm::mat4 world_mat { 1.0f };
+        glm::vec4 ambient   { 0.25f, 0.25f, 0.25f, 1.0f };
+        glm::vec4 diffuse   { 0.75f, 0.75f, 0.75f, 1.0f };
+        glm::vec4 specular  { 0.95f, 0.95f, 0.95f, 1.0f };
         float     shine     { 1.0f };
     };
 
@@ -72,7 +72,8 @@ public:
     virtual void update_camera(const glm::mat4 &view,
                                const glm::mat4 &projection) const = 0;
 
-    virtual void update_render_data(const Entity::ID id) const = 0;
+    virtual void update_per_frame() const = 0;
+    virtual void update_per_object(const Entity::ID id) const = 0;
 
     virtual ~Shader() = default;
 

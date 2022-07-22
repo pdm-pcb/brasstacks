@@ -34,9 +34,10 @@ void GLContextWGL::run() {
                 camera->view_matrix,
                 camera->proj_matrix
             );
+            shader->update_per_frame();
 
             for(auto id : RenderQueue::get_queue(index)) {
-                shader->update_render_data(id);
+                shader->update_per_object(id);
                 
                 auto render_c = ecs->get<cRender>(id);
                 render_c->mesh->bind_vertex_buffer();

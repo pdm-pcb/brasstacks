@@ -25,7 +25,7 @@ void CubeSystem::update(ECS *ecs, const float frame_delta) {
         auto transform = ecs->get<cTransform>(id);
         transform->rotation = x * y * z;
 
-        if(transform->scale.x > 0.05f) {
+        if(transform->scale.x > 0.5f) {
             transform->scale -= glm::vec3(0.001f);
         }
 
@@ -33,8 +33,8 @@ void CubeSystem::update(ECS *ecs, const float frame_delta) {
         auto R = glm::mat4(transform->rotation);
         auto S = glm::scale(transform->scale);
 
-        auto cwm = ecs->get<cWorldMat>(id);
-        cwm->world_mat = T * R * S;
+        auto *world = ecs->get<cWorldMat>(id);
+        world->world_mat = T * R * S;
     }
 }
 

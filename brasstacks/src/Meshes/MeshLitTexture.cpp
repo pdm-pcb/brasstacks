@@ -212,10 +212,10 @@ void MeshLitTexture::_calc_tbn() {
 }
 
 MeshLitTexture::MeshLitTexture(const Primitives primitive,
-                                 const float u_repeat,
-                                 const float v_repeat,
-                                 const float scale,
-                                 const float plane_offset) :
+                               const float u_repeat,
+                               const float v_repeat,
+                               const float scale,
+                               const float plane_offset) :
     _buffer { VertexBuffer::create({
         { "position", VBElement::Type::vec4f, true },
         { "normal",   VBElement::Type::vec4f, true },

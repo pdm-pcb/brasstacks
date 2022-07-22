@@ -10,13 +10,30 @@ void ShaderLitTexture::update_camera(const glm::mat4 &view,
     _shader->update_camera(view, projection);
 }
 
-void ShaderLitTexture::update_render_data(const Entity::ID id) const {
-    auto phong = ECS::get_active()->get<cPhongNormalMap>(id);
-    _shader->set_world_and_material(phong->world_and_material);
-    _shader->set_light_params(phong->light_params);
+void ShaderLitTexture::update_per_frame() const {
+    ECS *ecs = ECS::get_active();
+    auto lights = ecs->get<cPhongParams>(_per_frame_id);
+
+    _shader->set_light_params(lights->params);
 }
 
-ShaderLitTexture::ShaderLitTexture() {
+void ShaderLitTexture::update_per_object(const Entity::ID id) const {
+    ECS *ecs = ECS::get_active();
+    auto world    = ecs->get<cWorldMat>(id);
+    auto material = ecs->get<cPhongMaterial>(id);
+
+    _shader->set_world_and_material({
+        world->world_mat,
+        material->ambient,
+        material->diffuse,
+        material->specular,
+        material->shine
+    });
+}
+
+ShaderLitTexture::ShaderLitTexture() :
+    _per_frame_id { static_cast<Entity::ID>(-1) }
+{
 #ifdef PDR_DIRECTX11
     _shader = new DX11ShaderLitTexture();
 #else

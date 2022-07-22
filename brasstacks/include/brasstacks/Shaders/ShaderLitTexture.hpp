@@ -21,7 +21,10 @@ public:
     void update_camera(const glm::mat4 &view,
                        const glm::mat4 &projection) const override;
 
-    void update_render_data(const Entity::ID id) const override;
+    void update_per_frame() const override;
+    void update_per_object(const Entity::ID id) const override;
+
+    void store_per_frame_id(const Entity::ID id) { _per_frame_id = id; }
 
     ShaderLitTexture();
     ~ShaderLitTexture();
@@ -33,12 +36,13 @@ public:
     ShaderLitTexture & operator=(ShaderLitTexture &&)      = delete;
 
 private:
-
 #ifdef BTX_OPENGL
     GLShaderLitTexture   *_shader;
 #elif defined(BTX_DIRECTX11)
     DX11ShaderLitTexture *_shader;
 #endif
+
+    Entity::ID _per_frame_id;
 };
 
 } // namespace btx

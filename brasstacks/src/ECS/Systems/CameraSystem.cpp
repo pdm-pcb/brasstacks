@@ -54,9 +54,9 @@ void CameraSystem::update(ECS *ecs, const InputState &input,
             camera->up
         );
 
-        for(const auto render_id : ECSView<cPhongNormalMap>(*ecs)) {
-            auto phong = ecs->get<cPhongNormalMap>(render_id);
-            phong->light_params.camera_pos = { transform->position, 1.0f };
+        for(const auto render_id : ECSView<cPhongParams>(*ecs)) {
+            auto phong = ecs->get<cPhongParams>(render_id);
+            phong->params.camera_pos = { transform->position, 1.0f };
         }
     }
 }

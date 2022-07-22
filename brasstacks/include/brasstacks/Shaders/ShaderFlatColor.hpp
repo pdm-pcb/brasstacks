@@ -21,7 +21,8 @@ public:
     void update_camera(const glm::mat4 &view,
                        const glm::mat4 &projection) const override;
 
-    void update_render_data(const Entity::ID id) const override;
+    void update_per_frame() const override { }
+    void update_per_object(const Entity::ID id) const override;
 
     ShaderFlatColor();
     ~ShaderFlatColor();

@@ -11,6 +11,10 @@ struct cTransform {
     glm::vec3 scale    { 1.0f, 1.0f, 1.0f };
 };
 
+struct cWorldMat {
+    glm::mat4 world_mat { 1.0f };
+};
+
 } // namespace btx
 
 #endif // BRASSTACKS_ECS_COMPONENTS_CTRANSFORM_HPP

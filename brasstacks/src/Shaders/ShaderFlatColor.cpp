@@ -10,7 +10,7 @@ void ShaderFlatColor::update_camera(const glm::mat4 &view,
     _shader->update_camera(view, projection);
 }
 
-void ShaderFlatColor::update_render_data(const Entity::ID id) const {
+void ShaderFlatColor::update_per_object(const Entity::ID id) const {
     _shader->set_world(
         ECS::get_active()->get<cWorldMat>(id)->world_mat
     );

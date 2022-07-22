@@ -53,7 +53,7 @@ private:
     std::mt19937       _twister;
     std::uniform_real_distribution<float> _rng;
 
-    void _add_cube(ShaderFlatColor *shader);
+    void _add_cube(ShaderLitTexture *shader);
 };
 
 } // namespace btx
