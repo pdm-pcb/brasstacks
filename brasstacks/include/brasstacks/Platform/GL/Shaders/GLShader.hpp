@@ -1,22 +1,21 @@
 #ifndef BRASSTACKS_PLATFORM_GL_SHADERS_GLSHADER_HPP
 #define BRASSTACKS_PLATFORM_GL_SHADERS_GLSHADER_HPP
 
+#include "brasstacks/Shaders/Shader.hpp"
+
+#include <cstdint>
+#include <array>
+
 namespace btx {
 
 class GLShader {
 public:
-    enum class Type {
-        Vertex,
-        Fragment,
-        Geometry
-    };
-
     void bind();
     static void unbind();
 
     void update_camera(const glm::mat4 &view, const glm::mat4 &proj);
 
-    void add_program(const char *path, const Type type);
+    void add_program(const char *path, const Shader::Type type);
     void link_program();
 
     GLShader();

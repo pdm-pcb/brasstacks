@@ -25,9 +25,11 @@ add_library(
     "src/Meshes/VertexLayout.cpp"
     "src/Meshes/MeshFlatColor.cpp"
     "src/Meshes/MeshFlatTexture.cpp"
+    "src/Meshes/MeshLitTexture.cpp"
     "src/Shaders/Shader.cpp"
     "src/Shaders/ShaderFlatColor.cpp"
     "src/Shaders/ShaderFlatTexture.cpp"
+    "src/Shaders/ShaderLitTexture.cpp"
     "src/Textures/Texture2D.cpp"
     "src/Cameras/CameraBag.cpp"
     "src/ECS/Entity.cpp"
@@ -72,10 +74,11 @@ if("${BTX_RENDER_API}" MATCHES "GL")
         brasstacks PUBLIC
         "src/Platform/GL/GLVertexBuffer.cpp"
         "src/Platform/GL/GLDebugger.cpp"
+        "src/Platform/GL/Textures/GLTexture2D.cpp"
         "src/Platform/GL/Shaders/GLShader.cpp"
         "src/Platform/GL/Shaders/GLShaderFlatColor.cpp"
         "src/Platform/GL/Shaders/GLShaderFlatTexture.cpp"
-        "src/Platform/GL/Textures/GLTexture2D.cpp"
+        "src/Platform/GL/Shaders/GLShaderLitTexture.cpp"
     )
 
 	if(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")

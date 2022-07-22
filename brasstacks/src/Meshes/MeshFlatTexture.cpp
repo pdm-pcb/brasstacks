@@ -98,7 +98,7 @@ void MeshFlatTexture::_build_xyplane(const float scale, const float z_offset,
         {{  0.5f * scale,  0.5f * scale,  z_offset, 1.0f },
          { 1.0f * u_repeat, 1.0f * v_repeat }},
         {{ -0.5f * scale,  0.5f * scale,  z_offset, 1.0f },
-         { 0.0f * u_repeat, 1.0f * v_repeat }}
+         { 0.0f * u_repeat, 1.0f * v_repeat }},
     };
 
     _faces = new Face[_face_count] {

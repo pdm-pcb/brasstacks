@@ -16,10 +16,12 @@
 #include "brasstacks/Cameras/CameraBag.hpp"
 
 
+
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
-#include "brasstacks/Shaders/ShaderFlatTexture.hpp"
 #include "brasstacks/Meshes/MeshFlatColor.hpp"
-#include "brasstacks/Meshes/MeshFlatTexture.hpp"
+
+#include "brasstacks/Shaders/ShaderLitTexture.hpp"
+#include "brasstacks/Meshes/MeshLitTexture.hpp"
 
 namespace btx {
 
@@ -146,22 +148,24 @@ void Engine::render_thread() {
     }
 
     _shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
-    _shader_ft = new ShaderFlatTexture;
+    _shader_lt = new ShaderLitTexture;
 
     Entity::ID floor = _ecs->new_entity();
     _ecs->assign<TransformComp>(floor);
 
     auto floor_render    = _ecs->assign<RenderComp>(floor);
-    floor_render->shader = _shader_ft;
-    floor_render->mesh   = new MeshFlatTexture(
+    floor_render->shader = _shader_lt;
+    floor_render->mesh   = new MeshLitTexture(
         Mesh::Primitives::XZPlane,
         10.0f, 10.0f,
         500.0f,
         -13.0f
     );
 
-    static_cast<MeshFlatTexture *>(floor_render->mesh)->set_texture(
-        "../../assets/textures/rocky_surface_diffuse.jpg", false, true,
+    static_cast<MeshLitTexture *>(floor_render->mesh)->set_texture(
+        "../../assets/textures/rocky_surface_diffuse.jpg",
+        "../../assets/textures/rocky_surface_normal.jpg",
+        false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
         Texture2D::MagFilter::linear,
         Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
@@ -190,7 +194,7 @@ void Engine::render_thread() {
     _render_context->shutdown();
 
     delete _shader_fc;
-    delete _shader_ft;
+    delete _shader_lt;
 }
 
 Engine::Engine() :
@@ -199,7 +203,7 @@ Engine::Engine() :
     _render_context { RenderContext::create() },
     _ecs        { new ECS },
     _shader_fc  { nullptr },
-    _shader_ft  { nullptr },
+    _shader_lt  { nullptr },
     _cube_count { 0 },
     _twister    { _rd() },
     _rng        { -10.0f, 10.0f }

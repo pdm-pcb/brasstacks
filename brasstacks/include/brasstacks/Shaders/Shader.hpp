@@ -7,13 +7,67 @@
 
 namespace btx {
 
+constexpr std::size_t MAX_POINT_LIGHTS { 128u };
+constexpr std::size_t MAX_SPOT_LIGHTS  { 128u };
+
 struct RenderComp;
 
 class Shader {
 public:
+    enum class Type {
+        Vertex,
+        Fragment,
+        Geometry
+    };
+
     struct CameraBufferData {
         glm::mat4 view;
         glm::mat4 projection;
+    };
+
+    struct WorldAndMaterial {
+        glm::mat4 world;
+        glm::vec4 ambient;
+        glm::vec4 diffuse;
+        glm::vec4 specular;
+        float     shine;
+    };
+
+    struct LightProperties {
+        glm::vec4 ambient;
+        glm::vec4 diffuse;
+        glm::vec4 specular;
+        float shine;
+        float attenuation;
+    };
+
+    struct DirectionalLight {       
+        glm::vec4 direction;
+        LightProperties props;
+    };
+                                    
+    struct PointLight {
+        glm::vec4 position;
+        LightProperties props;
+    };
+
+    struct SpotLight {
+        glm::vec4 position;
+        glm::vec4 heading;
+        LightProperties props;
+        float inner_cone;
+        float outer_cone;
+    };
+
+    struct LightParameters {
+        DirectionalLight directional_light;
+        std::array<PointLight, MAX_POINT_LIGHTS> point_light;
+        std::array<SpotLight,  MAX_SPOT_LIGHTS>  spot_light;
+
+        glm::vec4 camera_pos;
+
+        uint32_t  point_count;
+        uint32_t  spot_count;
     };
 
     static char * load_source(const char *path);

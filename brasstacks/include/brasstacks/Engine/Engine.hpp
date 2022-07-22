@@ -8,7 +8,6 @@
 #include <condition_variable>
 #include <random>
 
-#include "brasstacks/Meshes/MeshFlatColor.hpp"
 #include "brasstacks/ECS/ECS.hpp"
 
 namespace btx {
@@ -16,7 +15,7 @@ namespace btx {
 class RenderContext;
 
 class ShaderFlatColor;
-class ShaderFlatTexture;
+class ShaderLitTexture;
 class PerspectiveCamera;
 
 class Engine : public EventListener {
@@ -47,8 +46,8 @@ private:
     ECS *_ecs;
 
 
-    ShaderFlatColor   *_shader_fc;
-    ShaderFlatTexture *_shader_ft;
+    ShaderFlatColor  *_shader_fc;
+    ShaderLitTexture *_shader_lt;
     std::size_t        _cube_count;
     std::random_device _rd;
     std::mt19937       _twister;

@@ -26,11 +26,11 @@ void GLShader::update_camera(const glm::mat4 &view,
     );
 }
 
-void GLShader::add_program(const char *path, const Type type) {
+void GLShader::add_program(const char *path, const Shader::Type type) {
     char *source = Shader::load_source(path);
 
     switch(type) {
-        case Type::Vertex:
+        case Shader::Type::Vertex:
         {
             _vert = glCreateShader(GL_VERTEX_SHADER);
             glShaderSource(_vert, 1, &source, nullptr);
@@ -47,7 +47,7 @@ void GLShader::add_program(const char *path, const Type type) {
             break;
         }
 
-        case Type::Fragment:
+        case Shader::Type::Fragment:
         {
             _frag = glCreateShader(GL_FRAGMENT_SHADER);
             glShaderSource(_frag, 1, &source, nullptr);
@@ -64,7 +64,7 @@ void GLShader::add_program(const char *path, const Type type) {
             break;
         }
 
-        case Type::Geometry:
+        case Shader::Type::Geometry:
         {
             _geo = glCreateShader(GL_GEOMETRY_SHADER);
             glShaderSource(_geo, 1, &source, nullptr);
