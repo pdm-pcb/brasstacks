@@ -227,6 +227,12 @@ void Engine::render_thread() {
     dir.props.ambient.w = 1.0f;
     dir.props.specular  = dir.props.diffuse;
 
+    point.position        = { 0.0f, -5.0f, 0.0f, 1.0f };
+    point.props.diffuse   = { 0.05f, 0.25f, 0.15f, 1.0f };
+    point.props.ambient   = point.props.diffuse * 0.1f;
+    point.props.ambient.w = 1.0f;
+    point.props.specular  = point.props.diffuse;
+
 
 
 

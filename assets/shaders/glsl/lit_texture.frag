@@ -160,7 +160,7 @@ void main() {
     point.w = 1.0;
     spot.w  = 1.0;
 
-    vec4 light_intensity = directional + point + spot;
+    vec4 light_intensity = directional; // + point + spot;
     vec4 texel = texture(diffuse_map, ps_in.texcoords);
 
 	final_color = texel * light_intensity;
