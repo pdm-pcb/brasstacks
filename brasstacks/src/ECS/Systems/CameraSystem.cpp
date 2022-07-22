@@ -10,10 +10,7 @@ namespace btx {
 void CameraSystem::update(ECS *ecs, const InputState &input,
                           const float frame_delta)
 {
-    for(const auto id : ECSView<CameraComp,
-                                TransformComp,
-                                MoveComp>(*ecs))
-    {
+    for(const auto id : ECSView<CameraComp, TransformComp, MoveComp>(*ecs)) {
         auto camera = ecs->get<CameraComp>(id);
     
         auto movement  = ecs->get<MoveComp>(id);

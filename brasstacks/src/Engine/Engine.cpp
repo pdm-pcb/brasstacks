@@ -17,7 +17,9 @@
 
 
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
+#include "brasstacks/Shaders/ShaderFlatTexture.hpp"
 #include "brasstacks/Meshes/MeshFlatColor.hpp"
+#include "brasstacks/Meshes/MeshFlatTexture.hpp"
 
 namespace btx {
 
@@ -90,7 +92,7 @@ void Engine::_add_cube() {
     };
 
     auto cube_render    = _ecs->assign<RenderComp>(new_cube);
-    cube_render->shader = _shader;
+    cube_render->shader = _shader_fc;
     cube_render->mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
 
     ++_cube_count;
@@ -143,15 +145,23 @@ void Engine::render_thread() {
         _render_context->set_swap_interval(1);
     }
 
-    _shader = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
+    _shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
+    _shader_ft = new ShaderFlatTexture;
 
     Entity::ID floor = _ecs->new_entity();
     _ecs->assign<TransformComp>(floor);
 
     auto floor_render    = _ecs->assign<RenderComp>(floor);
-    floor_render->shader = _shader;
-    floor_render->mesh   = new MeshFlatColor(Mesh::Primitives::XZPlane,
-                                             500.0f, -13.0f);
+    floor_render->shader = _shader_ft;
+    floor_render->mesh   = new MeshFlatTexture(
+        Mesh::Primitives::XZPlane,
+        "../../assets/textures/rocky_surface_diffuse.jpg",
+        false,
+        10.0f, 10.0f,
+        true,
+        500.0f,
+        -13.0f
+    );
 
     _render_thread_running.store(true);
     _render_thread_ready.notify_one();
@@ -175,15 +185,17 @@ void Engine::render_thread() {
 
     _render_context->shutdown();
 
-    delete _shader;
+    delete _shader_fc;
+    delete _shader_ft;
 }
 
 Engine::Engine() :
     _render_thread_running { false },
     _update_thread_running { false },
     _render_context { RenderContext::create() },
-    _ecs    { new ECS },
-    _shader { nullptr },
+    _ecs        { new ECS },
+    _shader_fc  { nullptr },
+    _shader_ft  { nullptr },
     _cube_count { 0 },
     _twister    { _rd() },
     _rng        { -10.0f, 10.0f }

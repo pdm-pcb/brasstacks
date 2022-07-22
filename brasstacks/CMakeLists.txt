@@ -27,6 +27,8 @@ add_library(
     "src/Meshes/MeshFlatTexture.cpp"
     "src/Shaders/Shader.cpp"
     "src/Shaders/ShaderFlatColor.cpp"
+    "src/Shaders/ShaderFlatTexture.cpp"
+    "src/Textures/Texture2D.cpp"
     "src/Cameras/CameraBag.cpp"
     "src/ECS/Entity.cpp"
     "src/ECS/Component.cpp"
@@ -40,17 +42,19 @@ add_library(
 target_include_directories(
 	brasstacks PUBLIC
 	"include/"
-)
-
-target_precompile_headers(
-    brasstacks PUBLIC
-    "include/brasstacks/System/pch.hpp"
+    "${thirdparty_INCLUDE}"
 )
 
 target_link_libraries(
 	brasstacks PUBLIC
 	"spdlog"
     "glm"
+    "stb"
+)
+
+target_precompile_headers(
+    brasstacks PUBLIC
+    "include/brasstacks/System/pch.hpp"
 )
 
 if("${BTX_RENDER_API}" MATCHES "GL")
@@ -61,12 +65,7 @@ if("${BTX_RENDER_API}" MATCHES "GL")
 
     target_link_libraries(
         brasstacks PUBLIC
-        "libglad"
-    )
-
-    target_include_directories(
-        brasstacks PUBLIC
-        "${GLAD_DIR}/include"
+        "glad"
     )
 
     target_sources (
@@ -75,6 +74,8 @@ if("${BTX_RENDER_API}" MATCHES "GL")
         "src/Platform/GL/GLDebugger.cpp"
         "src/Platform/GL/Shaders/GLShader.cpp"
         "src/Platform/GL/Shaders/GLShaderFlatColor.cpp"
+        "src/Platform/GL/Shaders/GLShaderFlatTexture.cpp"
+        "src/Platform/GL/Textures/GLTexture2D.cpp"
     )
 
 	if(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
