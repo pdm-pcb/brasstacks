@@ -212,7 +212,7 @@ void Engine::render_thread() {
     );
 
     auto phong = _ecs->assign<cPhongNormalMap>(floor);
-    phong->world_and_material.ambient  = { 1.05f, 1.05f, 1.05f, 1.0f };
+    phong->world_and_material.ambient  = { 0.05f, 0.05f, 0.05f, 1.0f };
     phong->world_and_material.diffuse  = { 0.75f, 0.75f, 0.75f, 1.0f };
     phong->world_and_material.specular = { 0.85f, 0.85f, 0.85f, 1.0f };
     phong->world_and_material.shine    = 1.0f;

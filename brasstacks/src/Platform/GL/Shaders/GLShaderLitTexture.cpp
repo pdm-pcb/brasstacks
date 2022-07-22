@@ -51,11 +51,8 @@ GLShaderLitTexture::GLShaderLitTexture() :
     _world_binding { 3 },
     _light_binding { 4 }
 {
-    BTX_ENGINE_INFO("GLShaderLitTexture vertex shader");
     add_program("../../assets/shaders/glsl/lit_texture.vert",
                 Shader::Type::Vertex);
-
-    BTX_ENGINE_INFO("GLShaderLitTexture pixel shader");
     add_program("../../assets/shaders/glsl/lit_texture.frag",
                 Shader::Type::Pixel);
     link_programs();
