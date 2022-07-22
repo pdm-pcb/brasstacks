@@ -7,8 +7,7 @@ namespace btx {
 
 void GLTexture2D::bind(const uint32_t slot) {
     _slot = slot;
-	glActiveTexture(GL_TEXTURE0 + _slot);
-	glBindTexture(GL_TEXTURE_2D, _handle);
+    glBindTextureUnit(_slot, _handle);
 }
 
 void GLTexture2D::unbind() const {
@@ -18,7 +17,7 @@ void GLTexture2D::unbind() const {
 
 GLTexture2D::GLTexture2D(const char *filepath, const bool inverted,
                          const bool gen_mipmaps) :
-	_handle { 0 },
+	_handle { GL_INVALID_ENUM },
     _slot   { 0 }
 {
 	static_assert(GL_TEXTURE1 - GL_TEXTURE0 == 1);
@@ -43,34 +42,41 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool inverted,
         assert(false);
 	}
 
-	glGenTextures(1, &_handle);
-	bind();
+    glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    assert(_handle != GL_INVALID_ENUM);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    GLenum format = GL_NONE;
+    GLenum format = GL_INVALID_ENUM;
+    GLenum internal_format = GL_INVALID_ENUM;
     if(bytes_per_pixel == 3) {
-        format = GL_RGB;
+        format = GL_RGB8;
+        internal_format = GL_RGB;
     }
     else if(bytes_per_pixel == 4) {
-        format = GL_RGBA;
+        format = GL_RGBA8;
+        internal_format = GL_RGBA;
+    }
+    else {
+        assert(false);
     }
 
-	glTexImage2D(
-        GL_TEXTURE_2D, 0,
-        format,
-        static_cast<GLsizei>(width),
-        static_cast<GLsizei>(height),
-        0, format,
-        GL_UNSIGNED_BYTE, buffer
+    glTextureStorage2D(_handle, 1, format, width, height);
+    glTextureSubImage2D(
+        _handle,
+        0, 0, 0,
+        width, height,
+        internal_format,
+        GL_UNSIGNED_BYTE,
+        buffer
     );
 
     if(gen_mipmaps) {
-	    glGenerateMipmap(GL_TEXTURE_2D);
+	    glGenerateTextureMipmap(_handle);
     }
 	unbind();
 

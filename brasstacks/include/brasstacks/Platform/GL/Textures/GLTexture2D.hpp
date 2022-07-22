@@ -23,8 +23,8 @@ public:
     GLTexture2D & operator=(GLTexture2D &)        = delete;
 
 private:
-	uint32_t _handle;
-	GLenum   _slot;
+	GLenum _handle;
+	GLenum _slot;
 };
 
 } // namespace btx
