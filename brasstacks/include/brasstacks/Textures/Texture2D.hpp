@@ -20,10 +20,8 @@ public:
     };
 
     enum class Wrap {
-        clamp_to_edge,
-        clamp_to_border,
-        mirror_repeat,
-        repeat,
+        clamp_to_edge, clamp_to_border,
+        mirror_repeat, repeat,
         mirror_clamp_to_edge,
     };
 
