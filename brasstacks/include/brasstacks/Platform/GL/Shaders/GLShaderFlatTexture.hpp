@@ -21,7 +21,7 @@ public:
 private:
     GLuint _world_uniform;
 
-    void _find_uniforms();
+    void _find_uniform();
 };
 
 } // namespacec btx

@@ -20,10 +20,10 @@ GLShaderFlatColor::GLShaderFlatColor() :
     add_program("../../assets/shaders/glsl/flat_color.vert",
                 Shader::Type::Vertex);
     add_program("../../assets/shaders/glsl/flat_color.frag",
-                Shader::Type::Fragment);
-    link_program();
+                Shader::Type::Pixel);
+    link_programs();
 
-    create_cam_ubo();
+    create_cam_ubo(handle());
     _find_uniforms();
 }
 

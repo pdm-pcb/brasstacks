@@ -1,6 +1,6 @@
 #version 460 core
 
-layout(std140, binding = 0) uniform CameraMatrixBuffer {
+layout(std140) uniform CameraMatrixBuffer {
     mat4 view_matrix;
     mat4 proj_matrix;
 };

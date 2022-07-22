@@ -2,73 +2,66 @@
 #define BRASSTACKS_SHADERS_SHADER_HPP
 
 #include "brasstacks/System/glm.hpp"
+#include "brasstacks/ECS/Entity.hpp"
 
 #include <cstdint>
 #include <array>
 
 namespace btx {
 
-constexpr std::size_t MAX_POINT_LIGHTS { 128u };
-constexpr std::size_t MAX_SPOT_LIGHTS  { 128u };
-
-struct RenderComp;
-
 class Shader {
 public:
     enum class Type {
         Vertex,
-        Fragment,
+        Pixel,
         Geometry
     };
 
     struct CameraBufferData {
-        glm::mat4 view;
-        glm::mat4 projection;
+        glm::mat4 view       { 1.0f };
+        glm::mat4 projection { 1.0f };
     };
 
     struct WorldAndMaterial {
-        glm::mat4 world;
-        glm::vec4 ambient;
-        glm::vec4 diffuse;
-        glm::vec4 specular;
-        float     shine;
+        glm::mat4 world_mat { 0.0f };
+        glm::vec4 ambient   { 0.0f };
+        glm::vec4 diffuse   { 0.0f };
+        glm::vec4 specular  { 0.0f };
+        float     shine     { 0.0f };
     };
 
     struct LightProperties {
-        glm::vec4 ambient;
-        glm::vec4 diffuse;
-        glm::vec4 specular;
-        float shine;
-        float attenuation;
+        glm::vec4 ambient  { 0.0f };
+        glm::vec4 diffuse  { 0.0f };
+        glm::vec4 specular { 0.0f };
+        float shine        { 0.0f };
+        float attenuation  { 0.0f };
     };
 
     struct DirectionalLight {       
-        glm::vec4 direction;
+        glm::vec4 direction { 0.0f };
         LightProperties props;
     };
                                     
     struct PointLight {
-        glm::vec4 position;
+        glm::vec4 position { 0.0f };
         LightProperties props;
     };
 
     struct SpotLight {
-        glm::vec4 position;
-        glm::vec4 heading;
+        glm::vec4 position { 0.0f };
+        glm::vec4 heading  { forward_vector, 0.0f };
         LightProperties props;
-        float inner_cone;
-        float outer_cone;
+        float inner_cone { std::cos(glm::radians(6.0f))  };
+        float outer_cone { std::cos(glm::radians(12.0f)) };
     };
 
     struct LightParameters {
         DirectionalLight directional_light;
-        std::array<PointLight, MAX_POINT_LIGHTS> point_light;
-        std::array<SpotLight,  MAX_SPOT_LIGHTS>  spot_light;
+        PointLight point_light;
+        SpotLight spot_light;
 
-        glm::vec4 camera_pos;
-
-        uint32_t  point_count;
-        uint32_t  spot_count;
+        glm::vec4 camera_pos { origin };
     };
 
     static char * load_source(const char *path);
@@ -79,7 +72,7 @@ public:
     virtual void update_camera(const glm::mat4 &view,
                                const glm::mat4 &projection) const = 0;
 
-    virtual void update_render_data(const RenderComp &render_c) const = 0;
+    virtual void update_render_data(const Entity::ID id) const = 0;
 
     virtual ~Shader() = default;
 

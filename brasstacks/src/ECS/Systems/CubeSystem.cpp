@@ -17,12 +17,12 @@ const glm::vec3 CubeSystem::_unit_z(0.0f, 0.0f, 1.0f);
 void CubeSystem::update(ECS *ecs, const float frame_delta) {
     _rot_factor += 0.2f * frame_delta;
 
-    for(const auto id : ECSView<CubeComp, TransformComp, RenderComp>(*ecs)) {
+    for(const auto id : ECSView<cCube, cTransform, cRender>(*ecs)) {
         auto x = glm::angleAxis(0.5f * _rot_factor, _unit_x);
         auto y = glm::angleAxis(1.0f * _rot_factor, _unit_y);
         auto z = glm::angleAxis(2.0f * _rot_factor, _unit_z);
 
-        auto transform = ecs->get<TransformComp>(id);
+        auto transform = ecs->get<cTransform>(id);
         transform->rotation = x * y * z;
 
         if(transform->scale.x > 0.05f) {
@@ -33,8 +33,8 @@ void CubeSystem::update(ECS *ecs, const float frame_delta) {
         auto R = glm::mat4(transform->rotation);
         auto S = glm::scale(transform->scale);
 
-        auto render = ecs->get<RenderComp>(id);
-        render->world_mat = T * R * S;
+        auto cwm = ecs->get<cWorldMat>(id);
+        cwm->world_mat = T * R * S;
     }
 }
 

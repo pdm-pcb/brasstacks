@@ -1,11 +1,11 @@
-#ifndef BRASSTACKS_ECS_COMPONENTS_CAMERACOMP_HPP
-#define BRASSTACKS_ECS_COMPONENTS_CAMERACOMP_HPP
+#ifndef BRASSTACKS_ECS_COMPONENTS_CCAMERA_HPP
+#define BRASSTACKS_ECS_COMPONENTS_CCAMERA_HPP
 
 #include "brasstacks/System/glm.hpp"
 
 namespace btx {
 
-struct CameraComp {
+struct cCamera {
     glm::mat4 view_matrix = mat4_ident;
     glm::mat4 proj_matrix = mat4_ident;
 
@@ -19,4 +19,4 @@ struct CameraComp {
 
 } // namespace btx
 
-#endif // BRASSTACKS_ECS_COMPONENTS_CAMERACOMP_HPP
+#endif // BRASSTACKS_ECS_COMPONENTS_CCAMERA_HPP

@@ -32,7 +32,9 @@ void GLShaderLitTexture::_create_ubos() {
     );
     
     GLuint index = glGetUniformBlockIndex(handle(), "WorldAndMaterial");
+    assert(index != GL_INVALID_INDEX);
     glBindBufferBase(GL_UNIFORM_BUFFER, index, _world_material_ubo);
+    BTX_ENGINE_TRACE("WorldAndMaterial index {}", index);
 
     glCreateBuffers(1, &_light_param_ubo);
     glNamedBufferStorage(
@@ -43,20 +45,29 @@ void GLShaderLitTexture::_create_ubos() {
     );
     
     index = glGetUniformBlockIndex(handle(), "LightParameters");
+    assert(index != GL_INVALID_INDEX);
     glBindBufferBase(GL_UNIFORM_BUFFER, index, _light_param_ubo);
+    BTX_ENGINE_TRACE("LightParameters index {}", index);
+
+    assert(_world_material_ubo != GL_NONE);
+    assert(_light_param_ubo != GL_NONE);
 }
 
 GLShaderLitTexture::GLShaderLitTexture() :
     GLShader(),
-    _world_material_ubo { GL_NONE }
+    _world_material_ubo { GL_NONE },
+    _light_param_ubo    { GL_NONE }
 {
+    BTX_ENGINE_INFO("GLShaderLitTexture vertex shader");
     add_program("../../assets/shaders/glsl/lit_texture.vert",
                 Shader::Type::Vertex);
-    add_program("../../assets/shaders/glsl/lit_texture.frag",
-                Shader::Type::Fragment);
-    link_program();
 
-    create_cam_ubo();
+    BTX_ENGINE_INFO("GLShaderLitTexture pixel shader");
+    add_program("../../assets/shaders/glsl/lit_texture.frag",
+                Shader::Type::Pixel);
+    link_programs();
+
+    create_cam_ubo(handle());
     _create_ubos();
 }
 

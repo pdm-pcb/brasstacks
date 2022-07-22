@@ -41,21 +41,16 @@ struct SpotLight {
     float outer_cone;
 };
 
-#define MAX_POINT 128
-#define MAX_SPOT  128
-
-layout(std140, binding = 1) uniform WorldAndMaterial {
+layout(std140) uniform WorldAndMaterial {
     mat4  world_matrix;
     Material material;
 };
 
-layout(std140, binding = 2) uniform LightParameters {
+layout(std140) uniform LightParameters {
     DirectionalLight directional;
-    PointLight       point[MAX_POINT];
-    SpotLight        spot[MAX_SPOT];
+    PointLight       point;
+    SpotLight        spot;
     vec4             camera_pos;
-    int              point_count;
-    int              spot_count;
 };
 
 layout(location = 0) in VS_OUT {
@@ -123,28 +118,23 @@ vec4 directional_calc(vec3 normal) {
     return vec4(ambient + diffuse + specular);
 }
 
-vec4 point_calc(vec3 normal, int index) {
-    return phong_model(normal,
-                       point[index].position, point[index].ambient,
-                       point[index].diffuse, point[index].specular,
-                       point[index].attenuation);
+vec4 point_calc(vec3 normal) {
+    return phong_model(normal, point.position, point.ambient, point.diffuse,
+                       point.specular, point.attenuation);
 }
 
-vec4 spot_calc(vec3 normal, int index) {
-    vec4 light_to_surface = normalize(ps_in.world_pos - spot[index].position);
-    float pixel_angle = dot(light_to_surface, spot[index].heading);
+vec4 spot_calc(vec3 normal) {
+    vec4 light_to_surface = normalize(ps_in.world_pos - spot.position);
+    float pixel_angle = dot(light_to_surface, spot.heading);
 
-    if(pixel_angle > spot[index].outer_cone) {
-        vec4 light_intensity = phong_model(normal,
-                                           spot[index].position,
-                                           spot[index].ambient,
-                                           spot[index].diffuse,
-                                           spot[index].specular,
-                                           spot[index].attenuation);
+    if(pixel_angle > spot.outer_cone) {
+        vec4 light_intensity = phong_model(normal, spot.position, spot.ambient,
+                                           spot.diffuse, spot.specular,
+                                           spot.attenuation);
 
         float theta   = pixel_angle;
-        float epsilon = spot[index].inner_cone - spot[index].outer_cone;
-        float fade    = clamp((theta - spot[index].outer_cone) / epsilon, 0.0, 1.0); 
+        float epsilon = spot.inner_cone - spot.outer_cone;
+        float fade    = clamp((theta - spot.outer_cone) / epsilon, 0.0, 1.0); 
 
         return light_intensity * fade;
     }
@@ -164,16 +154,8 @@ void main() {
 
     // combination!
     vec4 directional = directional_calc(normal);
-    vec4 point = vec4(0.0);
-    vec4 spot  = vec4(0.0);
-
-    int light;
-    for(light = 0; light < point_count; light++) {
-        point += point_calc(normal, light);
-    }
-    for(light = 0; light < spot_count; light++) {
-        spot += spot_calc(normal, light);
-    }
+    vec4 point = point_calc(normal);
+    vec4 spot  = spot_calc(normal);
 
     point.w = 1.0;
     spot.w  = 1.0;
@@ -181,5 +163,5 @@ void main() {
     vec4 light_intensity = directional + point + spot;
     vec4 texel = texture(diffuse_map, ps_in.texcoords);
 
-	final_color = texel; // * light_intensity;
+	final_color = texel * light_intensity;
 }

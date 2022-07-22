@@ -13,7 +13,7 @@ public:
     void bind();
     static void unbind();
 
-    void update_camera(const glm::mat4 &view, const glm::mat4 &proj);
+    static void update_camera(const glm::mat4 &view, const glm::mat4 &proj);
 
     GLShader();
     virtual ~GLShader();
@@ -25,9 +25,9 @@ public:
     GLShader & operator=(GLShader &&other)      = delete;
 
 protected:
-    void create_cam_ubo();
+    static void create_cam_ubo(GLuint handle);
     void add_program(const char *path, const Shader::Type type);
-    void link_program();
+    void link_programs();
 
     GLuint handle() const { return _handle; }
 
@@ -37,7 +37,7 @@ private:
     GLuint _frag;
     GLuint _geo;
 
-    GLuint _cam_ubo;
+    static GLuint _cam_ubo;
 
     void _print_shader_log() const; 
 };

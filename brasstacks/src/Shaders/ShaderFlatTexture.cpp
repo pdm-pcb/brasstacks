@@ -1,17 +1,19 @@
 #include "brasstacks/System/pch.hpp"
 #include "brasstacks/Shaders/ShaderFlatTexture.hpp"
 
-#include "brasstacks/ECS/Components/RenderComp.hpp"
+#include "brasstacks/ECS/Components/cRender.hpp"
 
 namespace btx {
 
 void ShaderFlatTexture::update_camera(const glm::mat4 &view,
-                                    const glm::mat4 &projection) const {
+                                      const glm::mat4 &projection) const {
     _shader->update_camera(view, projection);
 }
 
-void ShaderFlatTexture::update_render_data(const RenderComp &render_c) const {
-    _shader->set_world(render_c.world_mat);
+void ShaderFlatTexture::update_render_data(const Entity::ID id) const {
+    _shader->set_world(
+        ECS::get_active()->get<cWorldMat>(id)->world_mat
+    );
 }
 
 ShaderFlatTexture::ShaderFlatTexture() {

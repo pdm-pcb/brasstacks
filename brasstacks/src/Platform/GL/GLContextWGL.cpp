@@ -27,7 +27,7 @@ void GLContextWGL::run() {
     Clock::frame_tick();
         
         for(auto &[shader, index] : RenderQueue::get_indices()) {
-            auto camera = ecs->get<CameraComp>(CameraBag::get_active());
+            auto camera = ecs->get<cCamera>(CameraBag::get_active());
 
             shader->bind();
             shader->update_camera(
@@ -36,9 +36,9 @@ void GLContextWGL::run() {
             );
 
             for(auto id : RenderQueue::get_queue(index)) {
-                auto render_c = ecs->get<RenderComp>(id);
-
-                shader->update_render_data(*render_c);
+                shader->update_render_data(id);
+                
+                auto render_c = ecs->get<cRender>(id);
                 render_c->mesh->bind_vertex_buffer();
 
                 ::glDrawElements(

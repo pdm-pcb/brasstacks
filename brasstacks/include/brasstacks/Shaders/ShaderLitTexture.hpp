@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_SHADERS_SHADERFLATTEXTURE_HPP
-#define BRASSTACKS_SHADERS_SHADERFLATTEXTURE_HPP
+#ifndef BRASSTACKS_SHADERS_SHADERLITTEXTURE_HPP
+#define BRASSTACKS_SHADERS_SHADERLITTEXTURE_HPP
 
 #include "brasstacks/Shaders/Shader.hpp"
 
@@ -21,7 +21,7 @@ public:
     void update_camera(const glm::mat4 &view,
                        const glm::mat4 &projection) const override;
 
-    void update_render_data(const RenderComp &render_c) const override;
+    void update_render_data(const Entity::ID id) const override;
 
     ShaderLitTexture();
     ~ShaderLitTexture();
@@ -43,4 +43,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_SHADERS_SHADERFLATTEXTURE_HPP
+#endif // BRASSTACKS_SHADERS_SHADERLITTEXTURE_HPP

@@ -18,6 +18,7 @@ const auto mat4_ident     = glm::mat4 { 1.0f };
 const auto up_vector      = glm::vec3 { 0.0f, 1.0f,  0.0f };
 const auto right_vector   = glm::vec3 { 1.0f, 0.0f,  0.0f };
 const auto forward_vector = glm::vec3 { 0.0f, 0.0f, -1.0f };
+const auto origin         = glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f };
 
 } // namespace btx
 

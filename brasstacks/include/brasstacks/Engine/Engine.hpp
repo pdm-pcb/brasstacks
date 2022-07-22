@@ -15,8 +15,8 @@ namespace btx {
 class RenderContext;
 
 class ShaderFlatColor;
+class ShaderFlatTexture;
 class ShaderLitTexture;
-class PerspectiveCamera;
 
 class Engine : public EventListener {
 public:
@@ -46,14 +46,14 @@ private:
     ECS *_ecs;
 
 
-    ShaderFlatColor  *_shader_fc;
-    ShaderLitTexture *_shader_lt;
+
+
     std::size_t        _cube_count;
     std::random_device _rd;
     std::mt19937       _twister;
     std::uniform_real_distribution<float> _rng;
 
-    void _add_cube();
+    void _add_cube(ShaderFlatColor *shader);
 };
 
 } // namespace btx

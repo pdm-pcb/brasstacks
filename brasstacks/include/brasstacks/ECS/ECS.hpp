@@ -5,11 +5,11 @@
 #include "brasstacks/ECS/Component.hpp"
 #include "brasstacks/ECS/ComponentPool.hpp"
 
-#include "brasstacks/ECS/Components/TransformComp.hpp"
-#include "brasstacks/ECS/Components/MoveComp.hpp"
-#include "brasstacks/ECS/Components/CameraComp.hpp"
-#include "brasstacks/ECS/Components/CubeComp.hpp"
-#include "brasstacks/ECS/Components/RenderComp.hpp"
+#include "brasstacks/ECS/Components/cTransform.hpp"
+#include "brasstacks/ECS/Components/cMove.hpp"
+#include "brasstacks/ECS/Components/cCamera.hpp"
+#include "brasstacks/ECS/Components/cCube.hpp"
+#include "brasstacks/ECS/Components/cRender.hpp"
 
 // TODO: come back and make more sense of this, specifically ID recycling and
 //       implementing sparse/packed sets. Hell, maybe draw it out, since I'm
@@ -58,11 +58,13 @@ public:
         auto index = Entity::get_index(id);
 
         if(_entities[index].id != id) {
+            assert(false);
             return nullptr;
         }
 
         auto component_id = Component::get_id<T>();
         if(!_entities[index].mask.test(component_id)) {
+            assert(false);
             return nullptr;
         }
 

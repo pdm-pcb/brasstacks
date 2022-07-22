@@ -10,10 +10,10 @@ namespace btx {
 void CameraSystem::update(ECS *ecs, const InputState &input,
                           const float frame_delta)
 {
-    for(const auto id : ECSView<CameraComp, TransformComp, MoveComp>(*ecs)) {
-        auto camera = ecs->get<CameraComp>(id);
+    for(const auto id : ECSView<cCamera, cTransform, cMove>(*ecs)) {
+        auto camera = ecs->get<cCamera>(id);
     
-        auto movement  = ecs->get<MoveComp>(id);
+        auto movement  = ecs->get<cMove>(id);
         movement->speed   = 0.0f;
         movement->direction = { 0.0f, 0.0f, 0.0f };
 
@@ -35,7 +35,7 @@ void CameraSystem::update(ECS *ecs, const InputState &input,
             movement->direction += -camera->right;
         }
 
-        auto transform = ecs->get<TransformComp>(id);
+        auto transform = ecs->get<cTransform>(id);
     
         transform->position += movement->direction * movement->speed;
         transform->rotation = glm::quat({ camera->pitch, -camera->yaw, 0.0f });
@@ -53,6 +53,11 @@ void CameraSystem::update(ECS *ecs, const InputState &input,
             transform->position + camera->forward,
             camera->up
         );
+
+        for(const auto render_id : ECSView<cPhongNormalMap>(*ecs)) {
+            auto phong = ecs->get<cPhongNormalMap>(render_id);
+            phong->light_params.camera_pos = { transform->position, 1.0f };
+        }
     }
 }
 

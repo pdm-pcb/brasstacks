@@ -7,12 +7,12 @@ struct Material {
     float shine;
 };
 
-layout(std140, binding = 0) uniform CameraMatrixBuffer {
+layout(std140) uniform CameraMatrixBuffer {
     mat4 view_matrix;
     mat4 proj_matrix;
 };
 
-layout(std140, binding = 1) uniform WorldAndMaterial {
+layout(std140) uniform WorldAndMaterial {
     mat4 world_matrix;
     Material material;
 };

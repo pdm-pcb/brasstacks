@@ -19,7 +19,8 @@
 
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
 #include "brasstacks/Meshes/MeshFlatColor.hpp"
-
+#include "brasstacks/Shaders/ShaderFlatTexture.hpp"
+#include "brasstacks/Meshes/MeshFlatTexture.hpp"
 #include "brasstacks/Shaders/ShaderLitTexture.hpp"
 #include "brasstacks/Meshes/MeshLitTexture.hpp"
 
@@ -71,7 +72,7 @@ void Engine::on_event(Event &event) {
             auto [ x_offset, y_offset ] =
                 reinterpret_cast<MouseMovedEvent *>(&event)->offset();
 
-            auto camera = _ecs->get<CameraComp>(CameraBag::get_active());
+            auto camera = _ecs->get<cCamera>(CameraBag::get_active());
             camera->pitch -= 0.00125f * y_offset;
             camera->yaw   += 0.00125f * x_offset;
 
@@ -82,20 +83,22 @@ void Engine::on_event(Event &event) {
     }
 }
 
-void Engine::_add_cube() {
+void Engine::_add_cube(ShaderFlatColor *shader) {
     Entity::ID new_cube = _ecs->new_entity();
-    _ecs->assign<CubeComp>(new_cube);
+    _ecs->assign<cCube>(new_cube);
 
-    auto cube_transform = _ecs->assign<TransformComp>(new_cube);
+    auto cube_transform = _ecs->assign<cTransform>(new_cube);
     cube_transform->position = {
         _rng(_twister),
         _rng(_twister),
         -25.0f
     };
 
-    auto cube_render    = _ecs->assign<RenderComp>(new_cube);
-    cube_render->shader = _shader_fc;
+    auto cube_render    = _ecs->assign<cRender>(new_cube);
+    cube_render->shader = shader;
     cube_render->mesh   = new MeshFlatColor(Mesh::Primitives::Cube);
+
+    _ecs->assign<cWorldMat>(new_cube);
 
     ++_cube_count;
     if(_cube_count % 10 == 0) {
@@ -127,11 +130,14 @@ void Engine::update_thread() {
             CameraSystem::update(_ecs, { w, a, s, d }, Clock::frame_delta());
             CubeSystem::update(_ecs, Clock::frame_delta());
 
-            for(const auto id : ECSView<RenderComp>(*_ecs)) {
-                auto render = _ecs->get<RenderComp>(id);
-                RenderQueue::submit(dynamic_cast<Shader *>(render->shader), id);
+            uint32_t submission_count = 0;
+
+            for(const auto id : ECSView<cRender>(*_ecs)) {
+                auto render = _ecs->get<cRender>(id);
+                RenderQueue::submit(render->shader, id);
+                ++submission_count;
             }
-        
+
         RenderQueue::end_scene();
         Clock::update_tock();
     }
@@ -147,21 +153,55 @@ void Engine::render_thread() {
         _render_context->set_swap_interval(1);
     }
 
-    _shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
-    _shader_lt = new ShaderLitTexture;
+    auto shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
+    auto shader_ft = new ShaderFlatTexture;
+    auto shader_lt = new ShaderLitTexture;
 
     Entity::ID floor = _ecs->new_entity();
-    _ecs->assign<TransformComp>(floor);
+    _ecs->assign<cTransform>(floor);
 
-    auto floor_render    = _ecs->assign<RenderComp>(floor);
-    floor_render->shader = _shader_lt;
+
+
+    // _ecs->assign<cWorldMat>(floor);
+    // auto floor_render    = _ecs->assign<cRender>(floor);
+    // floor_render->shader = shader_fc;
+    // floor_render->mesh   = new MeshFlatColor(
+    //     Mesh::Primitives::XZPlane,
+    //     500.0f,
+    //     -13.0f
+    // );
+
+
+
+
+    // _ecs->assign<cWorldMat>(floor);
+    // auto floor_render    = _ecs->assign<cRender>(floor);
+    // floor_render->shader = shader_ft;
+    // floor_render->mesh   = new MeshFlatTexture(
+    //     Mesh::Primitives::XZPlane,
+    //     10.0f, 10.0f,
+    //     500.0f,
+    //     -13.0f
+    // );
+    // static_cast<MeshFlatTexture *>(floor_render->mesh)->set_texture(
+    //     "../../assets/textures/rocky_surface_diffuse.jpg",
+    //     false, true,
+    //     Texture2D::MinFilter::linear_mipmap_nearest,
+    //     Texture2D::MagFilter::linear,
+    //     Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    // );
+
+
+
+
+    auto floor_render    = _ecs->assign<cRender>(floor);
+    floor_render->shader = shader_lt;
     floor_render->mesh   = new MeshLitTexture(
         Mesh::Primitives::XZPlane,
         10.0f, 10.0f,
         500.0f,
         -13.0f
     );
-
     static_cast<MeshLitTexture *>(floor_render->mesh)->set_texture(
         "../../assets/textures/rocky_surface_diffuse.jpg",
         "../../assets/textures/rocky_surface_normal.jpg",
@@ -171,6 +211,25 @@ void Engine::render_thread() {
         Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
     );
 
+    auto phong = _ecs->assign<cPhongNormalMap>(floor);
+    phong->world_and_material.ambient  = { 1.05f, 1.05f, 1.05f, 1.0f };
+    phong->world_and_material.diffuse  = { 0.75f, 0.75f, 0.75f, 1.0f };
+    phong->world_and_material.specular = { 0.85f, 0.85f, 0.85f, 1.0f };
+    phong->world_and_material.shine    = 1.0f;
+
+    auto dir   = phong->light_params.directional_light;
+    auto point = phong->light_params.point_light;
+    auto spot  = phong->light_params.spot_light;
+
+    dir.direction       = glm::normalize(glm::vec4(0.0f, -1.0f, 1.0f, 0.0f));
+    dir.props.diffuse   = { 0.5f, 0.5f, 0.5f, 1.0f };
+    dir.props.ambient   = dir.props.diffuse * 0.1f;
+    dir.props.ambient.w = 1.0f;
+    dir.props.specular  = dir.props.diffuse;
+
+
+
+
     _render_thread_running.store(true);
     _render_thread_ready.notify_one();
 
@@ -178,7 +237,7 @@ void Engine::render_thread() {
         _render_context->run();
 
         if(add_cube) {
-            _add_cube();
+            _add_cube(shader_fc);
         }
     }
 
@@ -186,15 +245,16 @@ void Engine::render_thread() {
     //       new meshes. Presumably, these operations should live in the
     //       renderer itself, and simple handles should be returned upon
     //       creation.
-    for(const auto id : ECSView<RenderComp>(*_ecs)) {
-        auto render = _ecs->get<RenderComp>(id);
+    for(const auto id : ECSView<cRender>(*_ecs)) {
+        auto render = _ecs->get<cRender>(id);
         delete render->mesh;
     }
 
     _render_context->shutdown();
 
-    delete _shader_fc;
-    delete _shader_lt;
+    delete shader_fc;
+    delete shader_ft;
+    delete shader_lt;
 }
 
 Engine::Engine() :
@@ -202,8 +262,6 @@ Engine::Engine() :
     _update_thread_running { false },
     _render_context { RenderContext::create() },
     _ecs        { new ECS },
-    _shader_fc  { nullptr },
-    _shader_lt  { nullptr },
     _cube_count { 0 },
     _twister    { _rd() },
     _rng        { -10.0f, 10.0f }
@@ -219,12 +277,12 @@ Engine::Engine() :
     ECS::set_active(_ecs);
 
     Entity::ID camera = _ecs->new_entity();
-    _ecs->assign<MoveComp>(camera);
+    _ecs->assign<cMove>(camera);
 
-    auto camera_tc = _ecs->assign<TransformComp>(camera);
+    auto camera_tc = _ecs->assign<cTransform>(camera);
     camera_tc->position  = { 0.0f, 0.0f, 2.0f };
 
-    auto camera_cc = _ecs->assign<CameraComp>(camera);
+    auto camera_cc = _ecs->assign<cCamera>(camera);
     camera_cc->view_matrix = glm::lookAt(
         camera_tc->position,
         camera_cc->forward,

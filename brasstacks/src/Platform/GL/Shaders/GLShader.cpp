@@ -6,6 +6,8 @@
 
 namespace btx {
 
+GLuint GLShader::_cam_ubo = GL_NONE;
+
 void GLShader::bind() {
     glUseProgram(_handle);
 }
@@ -19,11 +21,32 @@ void GLShader::update_camera(const glm::mat4 &view,
     Shader::CameraBufferData data { view, projection };
 
     glNamedBufferSubData(
-        _cam_ubo,
-        0,
+        _cam_ubo, 0,
         sizeof(Shader::CameraBufferData),
         &data
     );
+}
+
+void GLShader::create_cam_ubo(GLuint handle) {
+    static bool instantiated = false;
+    if(instantiated) {
+        return;
+    }
+    instantiated = true;
+
+    glCreateBuffers(1, &_cam_ubo);
+    assert(_cam_ubo != GL_NONE);
+    glNamedBufferStorage(
+        _cam_ubo,
+        sizeof(Shader::CameraBufferData),
+        nullptr,
+        GL_DYNAMIC_STORAGE_BIT
+    );
+    
+    GLuint index = glGetUniformBlockIndex(handle, "CameraMatrixBuffer");
+    assert(index != GL_INVALID_INDEX);
+    glBindBufferBase(GL_UNIFORM_BUFFER, index, _cam_ubo);
+    BTX_ENGINE_TRACE("CameraMatrixBuffer index {}", index);
 }
 
 void GLShader::add_program(const char *path, const Shader::Type type) {
@@ -47,7 +70,7 @@ void GLShader::add_program(const char *path, const Shader::Type type) {
             break;
         }
 
-        case Shader::Type::Fragment:
+        case Shader::Type::Pixel:
         {
             _frag = glCreateShader(GL_FRAGMENT_SHADER);
             glShaderSource(_frag, 1, &source, nullptr);
@@ -88,7 +111,7 @@ void GLShader::add_program(const char *path, const Shader::Type type) {
     delete[] source;
 }
 
-void GLShader::link_program() {
+void GLShader::link_programs() {
     if(_vert == GL_NONE || _frag == GL_NONE) {
         BTX_ENGINE_WARN("Cannot link shaders without vertex and pixel stages.");
     }
@@ -139,27 +162,14 @@ void GLShader::_print_shader_log() const {
     }
 }
 
-void GLShader::create_cam_ubo() {
-    glCreateBuffers(1, &_cam_ubo);
-    glNamedBufferStorage(
-        _cam_ubo,
-        sizeof(Shader::CameraBufferData),
-        nullptr,
-        GL_DYNAMIC_STORAGE_BIT
-    );
-    
-    GLuint index = glGetUniformBlockIndex(_handle, "CameraMatrixBuffer");
-    glBindBufferBase(GL_UNIFORM_BUFFER, index, _cam_ubo);
-}
-
 GLShader::GLShader() :
     _handle  { GL_NONE },
     _vert    { GL_NONE },
     _frag    { GL_NONE },
-    _geo     { GL_NONE },
-    _cam_ubo { GL_NONE }
+    _geo     { GL_NONE }
 {
     _handle = glCreateProgram();
+    assert(_handle != GL_NONE);
 }
 
 GLShader::~GLShader() {
