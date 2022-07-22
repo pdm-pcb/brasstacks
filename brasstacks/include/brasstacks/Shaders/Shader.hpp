@@ -38,17 +38,17 @@ public:
         float attenuation  { 0.0f };
     };
 
-    struct DirectionalLight {       
+    struct alignas(16) DirectionalLight {       
         glm::vec4 direction { 0.0f };
         LightProperties props;
     };
                                     
-    struct PointLight {
+    struct alignas(16) PointLight {
         glm::vec4 position { 0.0f };
         LightProperties props;
     };
 
-    struct SpotLight {
+    struct alignas(16) SpotLight {
         glm::vec4 position { 0.0f };
         glm::vec4 heading  { forward_vector, 0.0f };
         LightProperties props;

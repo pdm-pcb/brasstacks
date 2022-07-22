@@ -217,9 +217,9 @@ void Engine::render_thread() {
     phong->world_and_material.specular = { 0.85f, 0.85f, 0.85f, 1.0f };
     phong->world_and_material.shine    = 1.0f;
 
-    auto dir   = phong->light_params.directional_light;
-    auto point = phong->light_params.point_light;
-    auto spot  = phong->light_params.spot_light;
+    auto &dir   = phong->light_params.directional_light;
+    auto &point = phong->light_params.point_light;
+    auto &spot  = phong->light_params.spot_light;
 
     dir.direction       = glm::normalize(glm::vec4(0.0f, -1.0f, 1.0f, 0.0f));
     dir.props.diffuse   = { 0.5f, 0.5f, 0.5f, 1.0f };
