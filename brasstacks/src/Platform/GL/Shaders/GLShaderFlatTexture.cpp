@@ -14,11 +14,16 @@ void GLShaderFlatTexture::_find_uniforms() {
 }
 
 GLShaderFlatTexture::GLShaderFlatTexture() :
+    GLShader(),
     _world_uniform { GL_NONE }
 {
-    add_program("../../assets/shaders/glsl/flat_texture.vert", Type::Vertex);
-    add_program("../../assets/shaders/glsl/flat_texture.frag", Type::Fragment);
+    add_program("../../assets/shaders/glsl/flat_texture.vert",
+                Shader::Type::Vertex);
+    add_program("../../assets/shaders/glsl/flat_texture.frag",
+                Shader::Type::Fragment);
+
     link_program();
+
     create_cam_ubo();
     _find_uniforms();
 }

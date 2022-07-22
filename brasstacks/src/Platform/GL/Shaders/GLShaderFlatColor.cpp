@@ -14,11 +14,15 @@ void GLShaderFlatColor::_find_uniforms() {
 }
 
 GLShaderFlatColor::GLShaderFlatColor() :
+    GLShader(),
     _world_uniform { GL_NONE }
 {
-    add_program("../../assets/shaders/glsl/flat_color.vert", Type::Vertex);
-    add_program("../../assets/shaders/glsl/flat_color.frag", Type::Fragment);
+    add_program("../../assets/shaders/glsl/flat_color.vert",
+                Shader::Type::Vertex);
+    add_program("../../assets/shaders/glsl/flat_color.frag",
+                Shader::Type::Fragment);
     link_program();
+
     create_cam_ubo();
     _find_uniforms();
 }

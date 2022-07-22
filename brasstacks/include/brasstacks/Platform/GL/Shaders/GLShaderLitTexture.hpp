@@ -24,7 +24,6 @@ private:
     GLuint _light_param_ubo;
 
     void _create_ubos();
-    void _find_uniforms();
 };
 
 } // namespacec btx

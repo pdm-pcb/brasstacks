@@ -15,9 +15,6 @@ public:
 
     void update_camera(const glm::mat4 &view, const glm::mat4 &proj);
 
-    void add_program(const char *path, const Shader::Type type);
-    void link_program();
-
     GLShader();
     virtual ~GLShader();
 
@@ -28,8 +25,11 @@ public:
     GLShader & operator=(GLShader &&other)      = delete;
 
 protected:
-    GLuint handle() const { return _handle; }
     void create_cam_ubo();
+    void add_program(const char *path, const Shader::Type type);
+    void link_program();
+
+    GLuint handle() const { return _handle; }
 
 private:
     GLuint _handle;

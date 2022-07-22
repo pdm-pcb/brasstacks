@@ -12,7 +12,7 @@ layout(std140, binding = 0) uniform CameraMatrixBuffer {
     mat4 proj_matrix;
 };
 
-layout(std140, binding = 1) uniform WorldMaterial {
+layout(std140, binding = 1) uniform WorldAndMaterial {
     mat4 world_matrix;
     Material material;
 };

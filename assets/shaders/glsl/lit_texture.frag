@@ -44,12 +44,12 @@ struct SpotLight {
 #define MAX_POINT 128
 #define MAX_SPOT  128
 
-layout(std140, binding = 1) uniform WorldMaterial {
+layout(std140, binding = 1) uniform WorldAndMaterial {
     mat4  world_matrix;
     Material material;
 };
 
-layout(std140, binding = 2) uniform LightParams {
+layout(std140, binding = 2) uniform LightParameters {
     DirectionalLight directional;
     PointLight       point[MAX_POINT];
     SpotLight        spot[MAX_SPOT];
@@ -181,5 +181,5 @@ void main() {
     vec4 light_intensity = directional + point + spot;
     vec4 texel = texture(diffuse_map, ps_in.texcoords);
 
-	final_color = texel * light_intensity;
+	final_color = texel; // * light_intensity;
 }

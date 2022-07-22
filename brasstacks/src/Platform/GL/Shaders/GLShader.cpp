@@ -163,6 +163,7 @@ GLShader::GLShader() :
 }
 
 GLShader::~GLShader() {
+    glDeleteBuffers(1, &_cam_ubo);
     glDeleteProgram(_handle);
 }
 

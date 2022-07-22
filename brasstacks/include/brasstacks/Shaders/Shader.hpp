@@ -4,6 +4,7 @@
 #include "brasstacks/System/glm.hpp"
 
 #include <cstdint>
+#include <array>
 
 namespace btx {
 
