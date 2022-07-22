@@ -10,8 +10,10 @@ public:
 	void bind(const uint32_t slot = 0) override;
 	void unbind() const override;
 
-    GLTexture2D(const char *filepath, const bool inverted,
-                const bool gen_mipmaps);
+    GLTexture2D(const char *filepath, const bool flip_vertical,
+                const bool gen_mipmaps,
+                const MinFilter min_filter, const MagFilter mag_filter,
+                const Wrap wrap_s, const Wrap wrap_t);
     ~GLTexture2D();
 
     GLTexture2D() = delete;

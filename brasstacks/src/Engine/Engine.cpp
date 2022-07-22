@@ -155,12 +155,16 @@ void Engine::render_thread() {
     floor_render->shader = _shader_ft;
     floor_render->mesh   = new MeshFlatTexture(
         Mesh::Primitives::XZPlane,
-        "../../assets/textures/rocky_surface_diffuse.jpg",
-        false,
         10.0f, 10.0f,
-        true,
         500.0f,
         -13.0f
+    );
+
+    static_cast<MeshFlatTexture *>(floor_render->mesh)->set_texture(
+        "../../assets/textures/rocky_surface_diffuse.jpg", false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
     );
 
     _render_thread_running.store(true);

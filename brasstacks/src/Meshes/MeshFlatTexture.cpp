@@ -11,6 +11,16 @@ void MeshFlatTexture::bind_vertex_buffer() const {
     _diffuse->bind();
 }
 
+void MeshFlatTexture::set_texture(const char *diffuse_filepath,
+                                  bool flip_vertical, bool gen_mipmaps,
+                                  const Texture2D::MinFilter min_filter,
+                                  const Texture2D::MagFilter mag_filter,
+                                  const Texture2D::Wrap wrap_s,
+                                  const Texture2D::Wrap wrap_t) {
+    _diffuse = Texture2D::create(diffuse_filepath, flip_vertical, gen_mipmaps,
+                                 min_filter, mag_filter, wrap_s, wrap_t);
+}
+
 void MeshFlatTexture::_build_cube(const float scale) {
     _vertices = new Vertex[_vertex_count] {
         // front face
@@ -98,11 +108,8 @@ void MeshFlatTexture::_build_xyplane(const float scale, const float z_offset,
 }
 
 MeshFlatTexture::MeshFlatTexture(const Primitives primitive,
-                                 const char *diffuse_filepath,
-                                 const bool invert_texture,
                                  const float u_repeat,
                                  const float v_repeat,
-                                 const bool gen_mipmaps,
                                  const float scale,
                                  const float plane_offset) :
     _buffer { VertexBuffer::create({
@@ -111,6 +118,7 @@ MeshFlatTexture::MeshFlatTexture(const Primitives primitive,
     })},
     _vertices { nullptr },
     _faces    { nullptr },
+    _diffuse  { nullptr },
     _vertex_count { 0 },
     _face_count   { 0 }
 {
@@ -136,8 +144,6 @@ MeshFlatTexture::MeshFlatTexture(const Primitives primitive,
 
     _buffer->set_buffer(_vertices, _vertex_count * sizeof(Vertex));
     _buffer->set_indices(_faces, _face_count);
-
-    _diffuse = Texture2D::create(diffuse_filepath, invert_texture, gen_mipmaps);
 }
 
 MeshFlatTexture::~MeshFlatTexture() {

@@ -2,10 +2,11 @@
 #define BRASSTACKS_MESHES_MESHFLATTEXTURE_HPP
 
 #include "brasstacks/Meshes/Mesh.hpp"
+#include "brasstacks/Textures/Texture2D.hpp"
+
+#include <bitset>
 
 namespace btx {
-
-class Texture2D;
 
 class MeshFlatTexture : public Mesh {
 public:
@@ -15,14 +16,19 @@ public:
     } Vertex;
 
     void bind_vertex_buffer() const override;
+
     std::size_t index_count() const override { return _face_count * 3; }
 
+    void set_texture(const char *diffuse_filepath,
+                     bool flip_vertical, bool gen_mipmaps,
+                     const Texture2D::MinFilter min_filter,
+                     const Texture2D::MagFilter mag_filter,
+                     const Texture2D::Wrap wrap_s,
+                     const Texture2D::Wrap wrap_t);
+
     MeshFlatTexture(const Primitives primitive,
-                    const char *diffuse_filepath,
-                    const bool invert_texture,
                     const float u_repeat,
                     const float v_repeat,
-                    const bool gen_mipmaps,
                     const float scale = 1.0f,
                     const float plane_offset = 0.0f);
     ~MeshFlatTexture();

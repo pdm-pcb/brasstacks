@@ -12,6 +12,6 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
     add_compile_definitions("DEBUG")
 endif()
 
-add_subdirectory(thirdparty)
 add_subdirectory(brasstacks)
 add_subdirectory(demo)
+add_subdirectory(thirdparty)

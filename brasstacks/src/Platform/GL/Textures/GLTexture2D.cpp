@@ -15,16 +15,18 @@ void GLTexture2D::unbind() const {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-GLTexture2D::GLTexture2D(const char *filepath, const bool inverted,
-                         const bool gen_mipmaps) :
+GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
+                         const bool gen_mipmaps,
+                         const MinFilter min_filter,
+                         const MagFilter mag_filter,
+                         const Wrap wrap_s, const Wrap wrap_t) :
 	_handle { GL_INVALID_ENUM },
     _slot   { 0 }
 {
 	static_assert(GL_TEXTURE1 - GL_TEXTURE0 == 1);
 
     int width, height, bytes_per_pixel;
-
-	stbi_set_flip_vertically_on_load(static_cast<int>(inverted));
+	stbi_set_flip_vertically_on_load(static_cast<int>(flip_vertical));
 	uint8_t *buffer = stbi_load(
         filepath,
         &width,
@@ -43,13 +45,61 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool inverted,
 	}
 
     glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
-
     assert(_handle != GL_INVALID_ENUM);
 
-	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTextureParameteri(_handle, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    GLint param = 0;
+    switch(min_filter) {
+        case MinFilter::nearest:
+            param = GL_NEAREST;
+            break;
+        case MinFilter::linear:
+            param = GL_LINEAR;
+            break;
+        case MinFilter::neatest_mipmap_nearest:
+            param = GL_NEAREST_MIPMAP_NEAREST;
+            break;
+        case MinFilter::linear_mipmap_nearest:
+            param = GL_LINEAR_MIPMAP_NEAREST;
+            break;
+        case MinFilter::nearest_mipmap_linear:
+            param = GL_NEAREST_MIPMAP_LINEAR;
+            break;
+        case MinFilter::linear_mipmap_lienar:
+            param = GL_LINEAR_MIPMAP_LINEAR;
+            break;
+        default: assert(false);
+    }
+	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, param);
+
+
+    switch(mag_filter) {
+        case MagFilter::nearest:
+            param = GL_NEAREST;
+            break;
+        case MagFilter::linear:
+            param = GL_LINEAR;
+            break;
+        default: assert(false);
+    }
+	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, param);
+
+    switch(wrap_s) {
+        case Wrap::clamp_to_edge:        param = GL_CLAMP_TO_EDGE; break;
+        case Wrap::clamp_to_border:      param = GL_CLAMP_TO_BORDER; break;
+        case Wrap::mirror_repeat:        param = GL_MIRRORED_REPEAT; break;
+        case Wrap::repeat:               param = GL_REPEAT; break;
+        case Wrap::mirror_clamp_to_edge: param = GL_MIRROR_CLAMP_TO_EDGE; break;
+    }
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_S, param);
+
+    switch(wrap_t) {
+        case Wrap::clamp_to_edge:        param = GL_CLAMP_TO_EDGE; break;
+        case Wrap::clamp_to_border:      param = GL_CLAMP_TO_BORDER; break;
+        case Wrap::mirror_repeat:        param = GL_MIRRORED_REPEAT; break;
+        case Wrap::repeat:               param = GL_REPEAT; break;
+        case Wrap::mirror_clamp_to_edge: param = GL_MIRROR_CLAMP_TO_EDGE; break;
+    }
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, param);
 
     GLenum format = GL_INVALID_ENUM;
     GLenum internal_format = GL_INVALID_ENUM;

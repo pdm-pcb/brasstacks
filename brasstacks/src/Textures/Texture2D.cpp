@@ -9,12 +9,17 @@
 
 namespace btx {
 
-Texture2D * Texture2D::create(const char *filepath, const bool inverted,
-                              const bool gen_mipmaps) {
+Texture2D * Texture2D::create(const char *filepath, const bool flip_vertical,
+                              const bool gen_mipmaps,
+                              const MinFilter min_filter,
+                              const MagFilter mag_filter,
+                              const Wrap wrap_s, const Wrap wrap_t) {
 #ifdef PDR_DIRECTX11
-    return new DX11Texture2D(filepath, inverted, gen_mipmaps);
+    return new DX11Texture2D(filepath, flip_vertical, gen_mipmaps, min_filter,
+                             mag_filter, wrap_s, wrap_t);
 #else
-    return new GLTexture2D(filepath, inverted, gen_mipmaps);
+    return new GLTexture2D(filepath, flip_vertical, gen_mipmaps, min_filter,
+                           mag_filter, wrap_s, wrap_t);
 #endif
 }
 
