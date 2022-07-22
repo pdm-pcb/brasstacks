@@ -25,10 +25,6 @@ void CubeSystem::update(ECS *ecs, const float frame_delta) {
         auto transform = ecs->get<cTransform>(id);
         transform->rotation = x * y * z;
 
-        if(transform->scale.x > 0.5f) {
-            transform->scale -= glm::vec3(0.001f);
-        }
-
         auto T = glm::translate(glm::mat4(1.0f), transform->position);
         auto R = glm::mat4(transform->rotation);
         auto S = glm::scale(transform->scale);
