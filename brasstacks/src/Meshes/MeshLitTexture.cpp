@@ -250,6 +250,8 @@ MeshLitTexture::MeshLitTexture(const Primitives primitive,
             break;
     }
 
+    _calc_tbn();
+
     _buffer->set_buffer(_vertices, _vertex_count * sizeof(Vertex));
     _buffer->set_indices(_faces, _face_count);
 }
