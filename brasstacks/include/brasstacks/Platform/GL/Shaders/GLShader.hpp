@@ -25,7 +25,7 @@ public:
     GLShader & operator=(GLShader &&other)      = delete;
 
 protected:
-    static void create_cam_ubo(GLuint handle);
+    static void create_cam_ubo();
     void add_program(const char *path, const Shader::Type type);
     void link_programs();
 

@@ -23,6 +23,9 @@ private:
     GLuint _world_material_ubo;
     GLuint _light_param_ubo;
 
+    GLuint _world_binding;
+    GLuint _light_binding;
+
     void _create_ubos();
 };
 

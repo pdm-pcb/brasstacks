@@ -27,7 +27,7 @@ void GLShader::update_camera(const glm::mat4 &view,
     );
 }
 
-void GLShader::create_cam_ubo(GLuint handle) {
+void GLShader::create_cam_ubo() {
     static bool instantiated = false;
     if(instantiated) {
         return;
@@ -42,11 +42,7 @@ void GLShader::create_cam_ubo(GLuint handle) {
         nullptr,
         GL_DYNAMIC_STORAGE_BIT
     );
-    
-    GLuint index = glGetUniformBlockIndex(handle, "CameraMatrixBuffer");
-    assert(index != GL_INVALID_INDEX);
-    glBindBufferBase(GL_UNIFORM_BUFFER, index, _cam_ubo);
-    BTX_ENGINE_TRACE("CameraMatrixBuffer index {}", index);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, _cam_ubo);
 }
 
 void GLShader::add_program(const char *path, const Shader::Type type) {

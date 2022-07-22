@@ -23,7 +23,7 @@ GLShaderFlatColor::GLShaderFlatColor() :
                 Shader::Type::Pixel);
     link_programs();
 
-    create_cam_ubo(handle());
+    create_cam_ubo();
     _find_uniforms();
 }
 

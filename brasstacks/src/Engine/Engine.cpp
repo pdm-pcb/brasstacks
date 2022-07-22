@@ -153,8 +153,8 @@ void Engine::render_thread() {
         _render_context->set_swap_interval(1);
     }
 
-    auto shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
-    auto shader_ft = new ShaderFlatTexture;
+    // auto shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
+    // auto shader_ft = new ShaderFlatTexture;
     auto shader_lt = new ShaderLitTexture;
 
     Entity::ID floor = _ecs->new_entity();
@@ -237,7 +237,7 @@ void Engine::render_thread() {
         _render_context->run();
 
         if(add_cube) {
-            _add_cube(shader_fc);
+            // _add_cube(shader_fc);
         }
     }
 
@@ -252,8 +252,8 @@ void Engine::render_thread() {
 
     _render_context->shutdown();
 
-    delete shader_fc;
-    delete shader_ft;
+    // delete shader_fc;
+    // delete shader_ft;
     delete shader_lt;
 }
 

@@ -41,12 +41,12 @@ struct SpotLight {
     float outer_cone;
 };
 
-layout(std140) uniform WorldAndMaterial {
+layout(std140, binding = 1) uniform WorldAndMaterial {
     mat4  world_matrix;
     Material material;
 };
 
-layout(std140) uniform LightParameters {
+layout(std140, binding = 2) uniform LightParameters {
     DirectionalLight directional;
     PointLight       point;
     SpotLight        spot;

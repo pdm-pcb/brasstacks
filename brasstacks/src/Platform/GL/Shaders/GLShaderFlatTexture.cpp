@@ -24,7 +24,7 @@ GLShaderFlatTexture::GLShaderFlatTexture() :
 
     link_programs();
 
-    create_cam_ubo(handle());
+    create_cam_ubo();
     _find_uniform();
 }
 
