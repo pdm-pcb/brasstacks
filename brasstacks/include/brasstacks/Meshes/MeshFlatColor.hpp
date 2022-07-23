@@ -17,8 +17,10 @@ public:
     std::size_t index_count() const override { return _face_count * 3; }
 
     explicit MeshFlatColor(const Primitives primitive,
+                           const glm::vec3 &color,
                            const float scale = 1.0f,
                            const float plane_offset = 0.0f);
+
     ~MeshFlatColor();
 
     MeshFlatColor() = delete;
@@ -36,9 +38,11 @@ private:
     std::size_t _vertex_count;
     std::size_t _face_count;
 
-    void _build_cube(const float scale);
-    void _build_xzplane(const float scale, const float y_offset);
-    void _build_xyplane(const float scale, const float z_offset);
+    void _build_cube(const glm::vec3 &color, const float scale);
+    void _build_xzplane(const glm::vec3 &color,
+                        const float scale, const float y_offset);
+    void _build_xyplane(const glm::vec3 &color,
+                        const float scale, const float z_offset);
 };
 
 } // namespace btx

@@ -14,6 +14,7 @@ class MeshLibrary final {
 public:
     static void load(Mesh::Type type, const char *key,
                      const Mesh::Primitives primitive,
+                     const glm::vec3 &color = { 1.0f, 1.0f, 1.0f },
                      const float u_repeat = 1.0f,
                      const float v_repeat = 1.0f,
                      const float scale = 1.0f,

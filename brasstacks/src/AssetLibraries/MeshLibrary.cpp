@@ -7,6 +7,7 @@ std::unordered_map<std::string, Mesh *> MeshLibrary::_meshes;
 
 void MeshLibrary::load(Mesh::Type type, const char *key,
                        const Mesh::Primitives primitive,
+                       const glm::vec3 &color,
                        const float u_repeat, const float v_repeat,
                        const float scale, const float plane_offset)
 {
@@ -20,7 +21,12 @@ void MeshLibrary::load(Mesh::Type type, const char *key,
     
     switch(type) {
         case Mesh::Type::FlatColor:
-            mesh = new MeshFlatColor(primitive, scale, plane_offset);
+            mesh = new MeshFlatColor(
+                primitive,
+                color,
+                scale,
+                plane_offset
+            );
             break;
 
         case Mesh::Type::FlatTexture:
@@ -58,8 +64,34 @@ Mesh * MeshLibrary::checkout(const char *key) {
 }
 
 void MeshLibrary::init() {
-    MeshLibrary::load(Mesh::Type::LitTexture, "lit_texture_cube",
+    MeshLibrary::load(Mesh::Type::LitTexture,
+                      "lit_texture_cube",
                       Mesh::Primitives::Cube);
+
+    MeshLibrary::load(Mesh::Type::FlatColor,
+                      "flat_color_cube_white",
+                      Mesh::Primitives::Cube);
+
+    MeshLibrary::load(
+        Mesh::Type::FlatColor,
+        "flat_color_cube_red",
+        Mesh::Primitives::Cube,
+        { 1.0f, 0.0f, 0.0f }
+    );
+
+    MeshLibrary::load(
+        Mesh::Type::FlatColor,
+        "flat_color_cube_green",
+        Mesh::Primitives::Cube,
+        { 0.0f, 1.0f, 0.0f }
+    );
+
+    MeshLibrary::load(
+        Mesh::Type::FlatColor,
+        "flat_color_cube_blue",
+        Mesh::Primitives::Cube,
+        { 0.0f, 0.0f, 1.0f }
+    );
 }
 
 void MeshLibrary::shutdown() {

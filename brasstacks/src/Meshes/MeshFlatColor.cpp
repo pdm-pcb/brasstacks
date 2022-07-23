@@ -9,67 +9,43 @@ void MeshFlatColor::bind_vertex_buffer() const {
     _buffer->bind();
 }
 
-void MeshFlatColor::_build_cube(const float scale) {
+void MeshFlatColor::_build_cube(const glm::vec3 &color, const float scale) {
     _vertices = new Vertex[_vertex_count] {
         // front face
-        {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.1f, 0.2f, 0.65f, 1.0f }},
-        {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.1f, 0.2f, 0.65f, 1.0f }},
-        {{  0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.1f, 0.2f, 0.65f, 1.0f }},
-        {{ -0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.1f, 0.2f, 0.65f, 1.0f }},
+        {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
 
         // back face
-        {{ -0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.65f, 0.1f, 0.2f, 1.0f }},
-        {{  0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.65f, 0.1f, 0.2f, 1.0f }},
-        {{  0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.65f, 0.1f, 0.2f, 1.0f }},
-        {{ -0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.65f, 0.1f, 0.2f, 1.0f }},
+        {{ -0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
 
         // left face
-        {{ -0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.2f, 0.65f, 0.1f, 1.0f }},
-        {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.2f, 0.65f, 0.1f, 1.0f }},
-        {{ -0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.2f, 0.65f, 0.1f, 1.0f }},
-        {{ -0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.2f, 0.65f, 0.1f, 1.0f }},
+        {{ -0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
 
         // right face
-        {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.65f, 0.3f, 0.4f, 1.0f }},
-        {{  0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.65f, 0.3f, 0.4f, 1.0f }},
-        {{  0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.65f, 0.3f, 0.4f, 1.0f }},
-        {{  0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.65f, 0.3f, 0.4f, 1.0f }},
+        {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
 
         // bottom face
-        {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.4f, 0.65f, 0.3f, 1.0f }},
-        {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.4f, 0.65f, 0.3f, 1.0f }},
-        {{ -0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.4f, 0.65f, 0.3f, 1.0f }},
-        {{  0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.4f, 0.65f, 0.3f, 1.0f }},
+        {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
 
         // top face
-        {{ -0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.3f, 0.4f, 0.65f, 1.0f }},
-        {{  0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
-         { 0.3f, 0.4f, 0.65f, 1.0f }},
-        {{  0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.3f, 0.4f, 0.65f, 1.0f }},
-        {{ -0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
-         { 0.3f, 0.4f, 0.65f, 1.0f }},
+        {{ -0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f }, { color, 1.0f }},
     };
 
     _faces = new Mesh::Face[_face_count] {
@@ -79,7 +55,8 @@ void MeshFlatColor::_build_cube(const float scale) {
     };
 }
 
-void MeshFlatColor::_build_xzplane(const float scale, const float y_offset) {
+void MeshFlatColor::_build_xzplane(const glm::vec3 &color, const float scale,
+                                   const float y_offset) {
     _vertices = new Vertex[_vertex_count] {
         {{ -0.5f * scale,  y_offset,  0.5f * scale, 1.0f },
          { 0.5f, 0.0f, 0.0f, 1.0f }},
@@ -97,7 +74,8 @@ void MeshFlatColor::_build_xzplane(const float scale, const float y_offset) {
     };
 }
 
-void MeshFlatColor::_build_xyplane(const float scale, const float z_offset) {
+void MeshFlatColor::_build_xyplane(const glm::vec3 &color, const float scale,
+                                   const float z_offset) {
     _vertices = new Vertex[_vertex_count] {
         {{ -0.5f * scale, -0.5f * scale,  z_offset, 1.0f },
          { 0.5f, 0.0f, 0.0f, 1.0f }},
@@ -116,6 +94,7 @@ void MeshFlatColor::_build_xyplane(const float scale, const float z_offset) {
 }
 
 MeshFlatColor::MeshFlatColor(const Primitives primitive,
+                             const glm::vec3 &color,
                              const float scale,
                              const float plane_offset) :
     _buffer { VertexBuffer::create({
@@ -131,19 +110,19 @@ MeshFlatColor::MeshFlatColor(const Primitives primitive,
         case Primitives::Cube:
             _vertex_count = CUBE_VERTS;
             _face_count = CUBE_FACES;
-            _build_cube(scale);
+            _build_cube(color, scale);
             break;
 
         case Primitives::XZPlane:
             _vertex_count = PLANE_VERTS;
             _face_count = PLANE_FACES;
-            _build_xzplane(scale, plane_offset);
+            _build_xzplane(color, scale, plane_offset);
             break;
 
         case Primitives::XYPlane:
             _vertex_count = PLANE_VERTS;
             _face_count = PLANE_FACES;
-            _build_xyplane(scale, plane_offset);
+            _build_xyplane(color, scale, plane_offset);
             break;
     }
 

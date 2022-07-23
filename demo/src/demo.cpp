@@ -94,6 +94,19 @@ void Demo::add_floor() {
     point->props.specular    = point->props.diffuse;
     point->props.attenuation = 0.25f;
 
+    btx::Entity::ID pointcaster = ecs->new_entity();
+    auto pointcaster_render = ecs->assign<btx::cRender>(pointcaster);
+    pointcaster_render->mesh = btx::MeshLibrary::checkout("flat_color_cube_blue");
+    pointcaster_render->shader = btx::ShaderLibrary::checkout("flat_color");
+    auto pointcaster_tx = ecs->assign<btx::cTransform>(pointcaster);
+    pointcaster_tx->position = point->position;
+    pointcaster_tx->scale = { 0.25f, 0.25f, 0.25f };
+    auto pointcaster_world = ecs->assign<btx::cWorldMat>(pointcaster);
+    pointcaster_world->world_mat =
+        glm::translate(btx::mat4_ident, pointcaster_tx->position) *
+        glm::scale(btx::mat4_ident, { pointcaster_tx->scale });
+
+
     spot->position          = { 25.0f, -2.0f, -35.0f, 1.0f };
     spot->heading           = { glm::normalize(glm::vec3(-spot->position)), 1.0f };
     spot->props.diffuse     = { 0.0f, 1.0f, 0.0f, 1.0f };
@@ -103,14 +116,28 @@ void Demo::add_floor() {
     spot->props.attenuation = 0.05f;
     spot->inner_cone = { std::cos(glm::radians(6.0f))  };
     spot->outer_cone = { std::cos(glm::radians(12.0f)) };
+
+    btx::Entity::ID spotcaster = ecs->new_entity();
+    auto spotcaster_render = ecs->assign<btx::cRender>(spotcaster);
+    spotcaster_render->mesh = btx::MeshLibrary::checkout("flat_color_cube_green");
+    spotcaster_render->shader = btx::ShaderLibrary::checkout("flat_color");
+    auto spotcaster_tx = ecs->assign<btx::cTransform>(spotcaster);
+    spotcaster_tx->position = spot->position;
+    spotcaster_tx->scale = { 0.25f, 0.25f, 0.25f };
+    auto spotcaster_world = ecs->assign<btx::cWorldMat>(spotcaster);
+    spotcaster_world->world_mat =
+        glm::translate(btx::mat4_ident, spotcaster_tx->position) *
+        glm::scale(btx::mat4_ident, spotcaster_tx->scale);
 }
 
 void btx::load_user_resources() {                      
-    MeshLibrary::load(Mesh::Type::LitTexture, "floor",
-                      Mesh::Primitives::XZPlane,
-                      10.0f, 10.0f,
-                      500.0f,
-                      -5.0f
+    MeshLibrary::load(
+        Mesh::Type::LitTexture, "floor",
+        Mesh::Primitives::XZPlane,
+        { 1.0f, 1.0f, 1.0f },
+        10.0f, 10.0f,
+        500.0f,
+        -5.0f
     );
 
     TextureLibrary::load(
