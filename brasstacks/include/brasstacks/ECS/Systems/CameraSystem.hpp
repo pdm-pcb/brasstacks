@@ -14,6 +14,8 @@ public:
         bool s;
         bool d;
         bool shift;
+        bool ctrl;
+        bool space;
     };
 
     static void update(const InputState &input, const float frame_delta);

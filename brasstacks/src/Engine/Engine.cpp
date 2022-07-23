@@ -21,6 +21,8 @@ std::atomic<bool> a = false;
 std::atomic<bool> s = false;
 std::atomic<bool> d = false;
 std::atomic<bool> shift = false;
+std::atomic<bool> ctrl  = false;
+std::atomic<bool> space = false;
 
 void Engine::on_event(Event &event) {
     switch(event.type()) {
@@ -40,6 +42,8 @@ void Engine::on_event(Event &event) {
                 case KB_S:      s     = true; break;
                 case KB_D:      d     = true; break;
                 case KB_LSHIFT: shift = true; break;
+                case KB_LCTRL:  ctrl  = true; break;
+                case KB_SPACE:  space = true; break;
             }
             break;
         }
@@ -53,6 +57,8 @@ void Engine::on_event(Event &event) {
                 case KB_S:      s     = false; break;
                 case KB_D:      d     = false; break;
                 case KB_LSHIFT: shift = false; break;
+                case KB_LCTRL:  ctrl  = false; break;
+                case KB_SPACE:  space = false; break;
             }
             break;
         }
@@ -87,7 +93,10 @@ void Engine::update_thread() {
         RenderQueue::begin_scene();
         Clock::update_tick();
 
-            CameraSystem::update({ w, a, s, d, shift }, Clock::frame_delta());
+            CameraSystem::update(
+                { w, a, s, d, shift, ctrl, space },
+                Clock::frame_delta()
+            );
 
             // user_update_code();
 

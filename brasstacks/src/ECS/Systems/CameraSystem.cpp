@@ -7,8 +7,8 @@
 
 namespace btx {
 
-float CameraSystem::_strafe_speed = 5.0f;
-float CameraSystem::_sprint_speed = 10.0f;
+float CameraSystem::_strafe_speed = 3.0f;
+float CameraSystem::_sprint_speed = 9.0f;
 
 void CameraSystem::update(const InputState &input, const float frame_delta) {
     float effective_speed;
@@ -46,10 +46,19 @@ void CameraSystem::update(const InputState &input, const float frame_delta) {
             movement->direction += -camera->right;
         }
 
+        if(input.space) {
+            movement->speed = effective_speed * frame_delta;
+            movement->direction += camera->up;
+        }
+        else if(input.ctrl) {
+            movement->speed = effective_speed * frame_delta;
+            movement->direction += -camera->up;
+        }
+
         auto transform = ecs->get<cTransform>(id);
     
         transform->position += movement->direction * movement->speed;
-        transform->position.y = 0.0f;
+        // transform->position.y = 0.0f;
         transform->rotation = glm::quat({ camera->pitch, -camera->yaw, 0.0f });
 
         auto T = glm::translate(mat4_ident, transform->position);

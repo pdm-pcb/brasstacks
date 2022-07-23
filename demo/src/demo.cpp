@@ -47,6 +47,8 @@ void Demo::add_cube() {
     cube_render->mesh   = btx::MeshLibrary::checkout("lit_texture_cube");
 
     auto material = ecs->assign<btx::cMaterial>(new_cube);
+    // material->diffuse_map = btx::TextureLibrary::checkout("wood_025_diffuse");
+    // material->normal_map  = btx::TextureLibrary::checkout("wood_025_normal");
     material->diffuse_map = btx::TextureLibrary::checkout("brickwall_diffuse");
     material->normal_map  = btx::TextureLibrary::checkout("brickwall_normal");
 
