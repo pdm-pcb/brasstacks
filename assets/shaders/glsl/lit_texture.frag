@@ -13,7 +13,6 @@ struct DirectionalLight {
     vec4  ambient;
     vec4  diffuse;
     vec4  specular;
-    float shine;
     float attenuation;
 };
 
@@ -23,7 +22,6 @@ struct PointLight {
     vec4  ambient;
     vec4  diffuse;
     vec4  specular;
-    float shine;
     float attenuation;
 };
 
@@ -34,7 +32,6 @@ struct SpotLight {
     vec4  ambient;
     vec4  diffuse;
     vec4  specular;
-    float shine;
     float attenuation;
 
     float inner_cone;
@@ -156,9 +153,6 @@ void main() {
     vec4 directional = directional_calc(normal);
     vec4 point = point_calc(normal);
     vec4 spot  = spot_calc(normal);
-
-    point.w = 1.0;
-    spot.w  = 1.0;
 
     vec4 light_intensity = directional + point + spot;
     vec4 texel = texture(diffuse_map, ps_in.texcoords);

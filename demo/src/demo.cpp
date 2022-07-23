@@ -47,10 +47,8 @@ void Demo::add_cube() {
     cube_render->mesh   = btx::MeshLibrary::checkout("lit_texture_cube");
 
     auto material = ecs->assign<btx::cMaterial>(new_cube);
-    // material->diffuse_map = btx::TextureLibrary::checkout("wood_025_diffuse");
-    // material->normal_map  = btx::TextureLibrary::checkout("wood_025_normal");
-    material->diffuse_map = btx::TextureLibrary::checkout("brickwall_diffuse");
-    material->normal_map  = btx::TextureLibrary::checkout("brickwall_normal");
+    material->diffuse_map = btx::TextureLibrary::checkout("wood_diffuse");
+    material->normal_map  = btx::TextureLibrary::checkout("wood_normal");
 
     ++_cube_count;
     _add_cube = false;
@@ -70,8 +68,8 @@ void Demo::add_floor() {
     material->ambient  = { 0.05f, 0.05f, 0.05f, 1.0f };
     material->diffuse  = { 0.50f, 0.50f, 0.50f, 1.0f };
     material->specular = { 0.75f, 0.75f, 0.75f, 1.0f };
-    material->diffuse_map = btx::TextureLibrary::checkout("rocky_surface_diffuse");
-    material->normal_map  = btx::TextureLibrary::checkout("rocky_surface_normal");
+    material->diffuse_map = btx::TextureLibrary::checkout("tile_diffuse");
+    material->normal_map  = btx::TextureLibrary::checkout("tile_normal");
 
     static_cast<btx::ShaderLitTexture *>
         (floor_render->shader)->store_per_frame_id(floor);
@@ -88,7 +86,7 @@ void Demo::add_floor() {
     dir->props.specular  = dir->props.diffuse;
 
     point->position          = { 0.0f, -3.0f, 0.0f, 1.0f };
-    point->props.diffuse     = { 0.0f,  0.0f, 1.0f, 1.0f };
+    point->props.diffuse     = { 0.5f,  0.5f, 0.5f, 1.0f };
     point->props.ambient     = point->props.diffuse * 0.1f;
     point->props.ambient.w   = 1.0f;
     point->props.specular    = point->props.diffuse;
@@ -96,7 +94,7 @@ void Demo::add_floor() {
 
     btx::Entity::ID pointcaster = ecs->new_entity();
     auto pointcaster_render = ecs->assign<btx::cRender>(pointcaster);
-    pointcaster_render->mesh = btx::MeshLibrary::checkout("flat_color_cube_blue");
+    pointcaster_render->mesh = btx::MeshLibrary::checkout("flat_color_cube_white");
     pointcaster_render->shader = btx::ShaderLibrary::checkout("flat_color");
     auto pointcaster_tx = ecs->assign<btx::cTransform>(pointcaster);
     pointcaster_tx->position = point->position;
@@ -109,7 +107,7 @@ void Demo::add_floor() {
 
     spot->position          = { 25.0f, -2.0f, -35.0f, 1.0f };
     spot->heading           = { glm::normalize(glm::vec3(-spot->position)), 1.0f };
-    spot->props.diffuse     = { 0.0f, 1.0f, 0.0f, 1.0f };
+    spot->props.diffuse     = { 0.5f,  0.5f, 0.5f, 1.0f };
     spot->props.ambient     = spot->props.diffuse * 0.1f;
     spot->props.ambient.w   = 1.0f;
     spot->props.specular    = spot->props.diffuse;
@@ -119,7 +117,7 @@ void Demo::add_floor() {
 
     btx::Entity::ID spotcaster = ecs->new_entity();
     auto spotcaster_render = ecs->assign<btx::cRender>(spotcaster);
-    spotcaster_render->mesh = btx::MeshLibrary::checkout("flat_color_cube_green");
+    spotcaster_render->mesh = btx::MeshLibrary::checkout("flat_color_cube_white");
     spotcaster_render->shader = btx::ShaderLibrary::checkout("flat_color");
     auto spotcaster_tx = ecs->assign<btx::cTransform>(spotcaster);
     spotcaster_tx->position = spot->position;
@@ -135,14 +133,17 @@ void btx::load_user_resources() {
         Mesh::Type::LitTexture, "floor",
         Mesh::Primitives::XZPlane,
         { 1.0f, 1.0f, 1.0f },
-        10.0f, 10.0f,
+        50.0f, 50.0f,
         500.0f,
         -5.0f
     );
 
+    //
+    // tile pavement texture
+    //
     TextureLibrary::load(
-        "../../assets/textures/rocky_surface_diffuse.jpg",
-        "rocky_surface_diffuse",
+        "../../assets/textures/Pavement_Brick_002d.jpg",
+        "tile_diffuse",
         false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
         Texture2D::MagFilter::linear,
@@ -150,8 +151,8 @@ void btx::load_user_resources() {
     );
 
     TextureLibrary::load(
-        "../../assets/textures/rocky_surface_normal.jpg",
-        "rocky_surface_normal",
+        "../../assets/textures/Pavement_Brick_002n.jpg",
+        "tile_normal",
         false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
         Texture2D::MagFilter::linear,
@@ -159,8 +160,20 @@ void btx::load_user_resources() {
     );
 
     TextureLibrary::load(
-        "../../assets/textures/bricks_0017_diffuse.jpg",
-        "brickwall_diffuse",
+        "../../assets/textures/Pavement_Brick_002s.jpg",
+        "tile_specular",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    //
+    // asphalt texture
+    //
+    TextureLibrary::load(
+        "../../assets/textures/Asphalt_001d.jpg",
+        "asphalt_diffuse",
         false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
         Texture2D::MagFilter::linear,
@@ -168,8 +181,8 @@ void btx::load_user_resources() {
     );
 
     TextureLibrary::load(
-        "../../assets/textures/bricks_0017_normal_dx.png",
-        "brickwall_normal",
+        "../../assets/textures/Asphalt_001n.jpg",
+        "asphalt_normal",
         false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
         Texture2D::MagFilter::linear,
@@ -177,8 +190,20 @@ void btx::load_user_resources() {
     );
 
     TextureLibrary::load(
-        "../../assets/textures/Wood_025_basecolor.jpg",
-        "wood_025_diffuse",
+        "../../assets/textures/Asphalt_001s.jpg",
+        "asphalt_specular",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    //
+    // concrete texture
+    //
+    TextureLibrary::load(
+        "../../assets/textures/Concrete_001d.png",
+        "concrete_diffuse",
         false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
         Texture2D::MagFilter::linear,
@@ -186,8 +211,107 @@ void btx::load_user_resources() {
     );
 
     TextureLibrary::load(
-        "../../assets/textures/Wood_025_normal.jpg",
-        "wood_025_normal",
+        "../../assets/textures/Concrete_001n.png",
+        "concrete_normal",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/Concrete_001s.png",
+        "concrete_specular",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    //
+    // stone wall texture
+    //
+    TextureLibrary::load(
+        "../../assets/textures/Stone_Wall_002d.jpg",
+        "stone_diffuse",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/Stone_Wall_002n.jpg",
+        "stone_normal",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/Stone_Wall_002s.jpg",
+        "stone_specular",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    //
+    // brick wall texture
+    //
+    TextureLibrary::load(
+        "../../assets/textures/Brick_wall_002d.jpg",
+        "brick_diffuse",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/Brick_wall_002n.jpg",
+        "brick_normal",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/Brick_wall_002s.jpg",
+        "brick_specular",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    //
+    // wood texture
+    //
+    TextureLibrary::load(
+        "../../assets/textures/Wood_White_Cedar_001d.jpg",
+        "wood_diffuse",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/Wood_White_Cedar_001n.jpg",
+        "wood_normal",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/Wood_White_Cedar_001s.jpg",
+        "wood_specular",
         false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
         Texture2D::MagFilter::linear,

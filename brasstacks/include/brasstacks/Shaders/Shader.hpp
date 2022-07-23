@@ -34,7 +34,6 @@ public:
         glm::vec4 ambient  { 0.0f };
         glm::vec4 diffuse  { 0.0f };
         glm::vec4 specular { 0.0f };
-        float shine        { 1.0f };
         float attenuation  { 1.0f };
     };
 

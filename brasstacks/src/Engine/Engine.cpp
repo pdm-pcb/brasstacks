@@ -98,7 +98,7 @@ void Engine::update_thread() {
                 Clock::frame_delta()
             );
 
-            // user_update_code();
+            user_update_code();
 
             for(const auto id : ECSView<cRender>(*_ecs)) {
                 auto render = _ecs->get<cRender>(id);

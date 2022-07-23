@@ -187,31 +187,6 @@ void MeshLitTexture::_calc_tbn() {
         _vertices[b_idx].normal += glm::vec4(normal, 0.0f);
         _vertices[c_idx].normal += glm::vec4(normal, 0.0f);
     }
-
-    for(uint32_t vertex = 0; vertex < _vertex_count; vertex++)
-    {
-        glm::vec3 normal    = _vertices[vertex].normal;
-        glm::vec3 tangent   = _vertices[vertex].tangent;
-        glm::vec3 bitangent = _vertices[vertex].bitangent;
-
-        float d = glm::dot(normal, tangent);
-        tangent.x -= normal.x * d;
-        tangent.y -= normal.y * d;
-        tangent.z -= normal.z * d;
-
-        tangent = glm::normalize(tangent);
-
-        glm::vec3 normXtan = glm::cross(normal, tangent);
-        if(glm::dot(normXtan, bitangent) < 0.0f) {
-            tangent *= -1;
-        }
-
-        bitangent = normXtan;
-
-        _vertices[vertex].normal    = glm::vec4(normal, 0.0f);
-        _vertices[vertex].tangent   = glm::vec4(tangent, 0.0f);
-        _vertices[vertex].bitangent = glm::vec4(bitangent, 0.0f);
-    }
  
     for(uint32_t v_idx = 0; v_idx < _vertex_count; v_idx++) {
         _vertices[v_idx].normal    = glm::normalize(_vertices[v_idx].normal);

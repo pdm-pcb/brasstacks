@@ -35,6 +35,8 @@ void main()
 {
     vs_out.world_pos = world_matrix * in_position;
     vs_out.texcoords = in_texcoords;
+
+    // no non-uniform scaling, please
     vs_out.normal    = normalize(world_matrix * in_normal).xyz;
     vs_out.tangent   = normalize(world_matrix * in_tangent).xyz;
     vs_out.bitangent = normalize(world_matrix * in_bitangent).xyz;
