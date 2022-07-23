@@ -132,7 +132,7 @@ void btx::load_user_resources() {
     );
 
     TextureLibrary::load(
-        "../../assets/textures/brickwall_diffuse.jpg",
+        "../../assets/textures/bricks_0017_diffuse.jpg",
         "brickwall_diffuse",
         false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
@@ -141,7 +141,7 @@ void btx::load_user_resources() {
     );
 
     TextureLibrary::load(
-        "../../assets/textures/brickwall_normal.jpg",
+        "../../assets/textures/bricks_0017_normal_dx.png",
         "brickwall_normal",
         false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
