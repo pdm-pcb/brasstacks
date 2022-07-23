@@ -89,7 +89,7 @@ void Engine::update_thread() {
 
             CameraSystem::update({ w, a, s, d, shift }, Clock::frame_delta());
 
-            user_update_code();
+            // user_update_code();
 
             for(const auto id : ECSView<cRender>(*_ecs)) {
                 auto render = _ecs->get<cRender>(id);

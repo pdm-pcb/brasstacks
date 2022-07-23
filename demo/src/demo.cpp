@@ -8,8 +8,8 @@ public:
     static void add_cube();
     static void add_floor();
 
-    Demo() { BTX_TRACE("User constructor"); }
-    ~Demo() { BTX_TRACE("User destructor"); }
+    Demo()  { BTX_TRACE("User constructor"); }
+    ~Demo() { BTX_TRACE("User destructor");  }
 
 private:
     static std::size_t _cube_count;
@@ -37,7 +37,7 @@ void Demo::add_cube() {
     ecs->assign<btx::cCube>(new_cube);
 
     auto cube_transform = ecs->assign<btx::cTransform>(new_cube);
-    cube_transform->position = { 0.0f, 0.0f, -10.0f };
+    cube_transform->position = { 0.0f, 0.0f, -15.0f };
     cube_transform->scale = { 5.0f, 5.0f, 5.0f };
 
     ecs->assign<btx::cWorldMat>(new_cube);
@@ -47,8 +47,8 @@ void Demo::add_cube() {
     cube_render->mesh   = btx::MeshLibrary::checkout("lit_texture_cube");
 
     auto material = ecs->assign<btx::cMaterial>(new_cube);
-    material->diffuse_map = btx::TextureLibrary::checkout("wood_025_diffuse");
-    material->normal_map  = btx::TextureLibrary::checkout("wood_025_normal");
+    material->diffuse_map = btx::TextureLibrary::checkout("brickwall_diffuse");
+    material->normal_map  = btx::TextureLibrary::checkout("brickwall_normal");
 
     ++_cube_count;
     _add_cube = false;
@@ -85,20 +85,22 @@ void Demo::add_floor() {
     dir->props.ambient.w = 1.0f;
     dir->props.specular  = dir->props.diffuse;
 
-    point->position        = { 0.0f, 0.0f, 0.0f, 1.0f };
-    point->props.diffuse   = { 0.0f, 0.0f, 1.0f, 1.0f };
-    point->props.ambient   = point->props.diffuse * 0.1f;
-    point->props.ambient.w = 1.0f;
-    point->props.specular  = point->props.diffuse;
+    point->position          = { 0.0f, -3.0f, 0.0f, 1.0f };
+    point->props.diffuse     = { 0.0f,  0.0f, 1.0f, 1.0f };
+    point->props.ambient     = point->props.diffuse * 0.1f;
+    point->props.ambient.w   = 1.0f;
+    point->props.specular    = point->props.diffuse;
     point->props.attenuation = 0.25f;
 
-    spot->position        = { 0.0f, -12.0f, -25.0f, 1.0f };
-    spot->heading         = { 0.0f, 0.0f, -1.0f, 0.0f };
-    spot->props.diffuse   = { 0.0f, 1.0f, 0.0f, 1.0f };
-    spot->props.ambient   = spot->props.diffuse * 0.1f;
-    spot->props.ambient.w = 1.0f;
-    spot->props.specular  = spot->props.diffuse;
-    spot->props.attenuation = 0.1f;
+    spot->position          = { 25.0f, -2.0f, -35.0f, 1.0f };
+    spot->heading           = { glm::normalize(glm::vec3(-spot->position)), 1.0f };
+    spot->props.diffuse     = { 0.0f, 1.0f, 0.0f, 1.0f };
+    spot->props.ambient     = spot->props.diffuse * 0.1f;
+    spot->props.ambient.w   = 1.0f;
+    spot->props.specular    = spot->props.diffuse;
+    spot->props.attenuation = 0.05f;
+    spot->inner_cone = { std::cos(glm::radians(6.0f))  };
+    spot->outer_cone = { std::cos(glm::radians(12.0f)) };
 }
 
 void btx::load_user_resources() {                      
@@ -121,6 +123,24 @@ void btx::load_user_resources() {
     TextureLibrary::load(
         "../../assets/textures/rocky_surface_normal.jpg",
         "rocky_surface_normal",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/brickwall_diffuse.jpg",
+        "brickwall_diffuse",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/brickwall_normal.jpg",
+        "brickwall_normal",
         false, true,
         Texture2D::MinFilter::linear_mipmap_nearest,
         Texture2D::MagFilter::linear,

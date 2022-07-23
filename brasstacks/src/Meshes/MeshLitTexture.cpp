@@ -13,46 +13,46 @@ void MeshLitTexture::bind_vertex_buffer() const {
 void MeshLitTexture::_build_cube(const float scale) {
     _vertices = new Vertex[_vertex_count] {
         // front face
-        {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
+        {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f }, // lower left
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }},
-        {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
+        {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f }, // lower right
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }},
-        {{  0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
+        {{  0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f }, // upper right
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }},
-        {{ -0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
+        {{ -0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f }, // upper left
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }},
 
         // back face
         {{ -0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }},
         {{  0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }},
         {{  0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }},
         {{ -0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }},
 
         // left face
         {{ -0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }},
         {{ -0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }},
         {{ -0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }},
         {{ -0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }},
 
         // right face
         {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
@@ -60,13 +60,13 @@ void MeshLitTexture::_build_cube(const float scale) {
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }},
         {{  0.5f * scale, -0.5f * scale, -0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }},
         {{  0.5f * scale,  0.5f * scale, -0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }},
         {{  0.5f * scale,  0.5f * scale,  0.5f * scale, 1.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }},
+            { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }},
 
         // bottom face
         {{  0.5f * scale, -0.5f * scale,  0.5f * scale, 1.0f },
