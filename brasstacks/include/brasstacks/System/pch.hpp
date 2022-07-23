@@ -53,6 +53,10 @@
     #endif
 #endif // OS Checks
 
+#include "brasstacks/Application/Application.hpp"
+#include "brasstacks/Application/TargetWindow.hpp"
+#include "brasstacks/Engine/Engine.hpp"
+#include "brasstacks/Engine/RenderConfig.hpp"
 #include "brasstacks/Utility/Logger.hpp"
 #include "brasstacks/Utility/EnumRange.hpp"
 #include "brasstacks/Utility/math.hpp"
@@ -67,6 +71,10 @@
 #include "brasstacks/System/Clock.hpp"
 #include "brasstacks/System/Input/KeyCodes.hpp"
 #include "brasstacks/System/glm.hpp"
+#include "brasstacks/AssetLibraries/MeshLibrary.hpp"
+#include "brasstacks/AssetLibraries/TextureLibrary.hpp"
+#include "brasstacks/AssetLibraries/ShaderLibrary.hpp"
+#include "brasstacks/Cameras/CameraBag.hpp"
 
 #include <cstdio>
 #include <cstdint>

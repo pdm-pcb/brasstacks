@@ -1,11 +1,12 @@
 add_executable(
     demo
 	"src/demo.cpp"
+    "src/CubeSystem.cpp"
 )
 
 target_include_directories(
 	demo PUBLIC
-	"${CMAKE_CURRENT_SOURCE_DIR}"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 target_link_libraries(

@@ -22,6 +22,7 @@ public:
 
     static Texture2D * checkout(const char *key);
 
+    static void init();
     static void shutdown();
     static void remove(const char *key);
 

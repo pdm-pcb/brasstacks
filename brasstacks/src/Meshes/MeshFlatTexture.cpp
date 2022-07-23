@@ -11,16 +11,6 @@ void MeshFlatTexture::bind_vertex_buffer() const {
     _diffuse->bind();
 }
 
-void MeshFlatTexture::set_texture(const char *diffuse_filepath,
-                                  bool flip_vertical, bool gen_mipmaps,
-                                  const Texture2D::MinFilter min_filter,
-                                  const Texture2D::MagFilter mag_filter,
-                                  const Texture2D::Wrap wrap_s,
-                                  const Texture2D::Wrap wrap_t) {
-    _diffuse = Texture2D::create(diffuse_filepath, flip_vertical, gen_mipmaps,
-                                 min_filter, mag_filter, wrap_s, wrap_t);
-}
-
 void MeshFlatTexture::_build_cube(const float scale) {
     _vertices = new Vertex[_vertex_count] {
         // front face

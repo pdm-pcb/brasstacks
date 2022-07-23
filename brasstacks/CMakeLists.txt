@@ -41,7 +41,6 @@ add_library(
     "src/ECS/ECS.cpp"
     "src/ECS/ECSIter.cpp"
     "src/ECS/Systems/CameraSystem.cpp"
-    "src/ECS/Systems/CubeSystem.cpp"
 )
 
 target_include_directories(

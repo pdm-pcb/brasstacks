@@ -12,19 +12,7 @@
 
 #include "brasstacks/ECS/ECSView.hpp"
 #include "brasstacks/ECS/Systems/CameraSystem.hpp"
-#include "brasstacks/ECS/Systems/CubeSystem.hpp"
 #include "brasstacks/Cameras/CameraBag.hpp"
-
-#include "brasstacks/AssetLibraries/TextureLibrary.hpp"
-
-
-
-#include "brasstacks/Shaders/ShaderFlatColor.hpp"
-#include "brasstacks/Meshes/MeshFlatColor.hpp"
-#include "brasstacks/Shaders/ShaderFlatTexture.hpp"
-#include "brasstacks/Meshes/MeshFlatTexture.hpp"
-#include "brasstacks/Shaders/ShaderLitTexture.hpp"
-#include "brasstacks/Meshes/MeshLitTexture.hpp"
 
 namespace btx {
 
@@ -32,7 +20,7 @@ std::atomic<bool> w = false;
 std::atomic<bool> a = false;
 std::atomic<bool> s = false;
 std::atomic<bool> d = false;
-std::atomic<bool> add_cube = false;
+std::atomic<bool> shift = false;
 
 void Engine::on_event(Event &event) {
     switch(event.type()) {
@@ -47,10 +35,11 @@ void Engine::on_event(Event &event) {
         {
             auto *key_event = reinterpret_cast<KeyPressedEvent *>(&event);
             switch(key_event->key()) {
-                case KB_W: w = true; break;
-                case KB_A: a = true; break;
-                case KB_S: s = true; break;
-                case KB_D: d = true; break;
+                case KB_W:      w     = true; break;
+                case KB_A:      a     = true; break;
+                case KB_S:      s     = true; break;
+                case KB_D:      d     = true; break;
+                case KB_LSHIFT: shift = true; break;
             }
             break;
         }
@@ -59,10 +48,11 @@ void Engine::on_event(Event &event) {
         {
             auto *key_event = reinterpret_cast<KeyReleasedEvent *>(&event);
             switch(key_event->key()) {
-                case KB_W: w = false; break;
-                case KB_A: a = false; break;
-                case KB_S: s = false; break;
-                case KB_D: d = false; break;
+                case KB_W:      w     = false; break;
+                case KB_A:      a     = false; break;
+                case KB_S:      s     = false; break;
+                case KB_D:      d     = false; break;
+                case KB_LSHIFT: shift = false; break;
             }
             break;
         }
@@ -83,28 +73,6 @@ void Engine::on_event(Event &event) {
     }
 }
 
-void Engine::_add_cube(ShaderLitTexture *shader) {
-    Entity::ID new_cube = _ecs->new_entity();
-    _ecs->assign<cCube>(new_cube);
-
-    auto cube_transform = _ecs->assign<cTransform>(new_cube);
-    cube_transform->position = { 0.0f, 0.0f, -10.0f };
-    cube_transform->scale = { 5.0f, 5.0f, 5.0f };
-
-    _ecs->assign<cWorldMat>(new_cube);
-
-    auto cube_render    = _ecs->assign<cRender>(new_cube);
-    cube_render->shader = shader;
-    cube_render->mesh   = new MeshLitTexture(Mesh::Primitives::Cube);
-
-    auto material = _ecs->assign<cMaterial>(new_cube);
-    material->diffuse_map = TextureLibrary::checkout("wood_025_diffuse");
-    material->normal_map  = TextureLibrary::checkout("wood_025_normal");
-
-    ++_cube_count;
-    add_cube = false;
-}
-
 void Engine::update_thread() {
     {
         std::unique_lock<std::mutex> lock(_thread_startup);
@@ -119,15 +87,13 @@ void Engine::update_thread() {
         RenderQueue::begin_scene();
         Clock::update_tick();
 
-            CameraSystem::update(_ecs, { w, a, s, d }, Clock::frame_delta());
-            CubeSystem::update(_ecs, Clock::frame_delta());
+            CameraSystem::update({ w, a, s, d, shift }, Clock::frame_delta());
 
-            uint32_t submission_count = 0;
+            user_update_code();
 
             for(const auto id : ECSView<cRender>(*_ecs)) {
                 auto render = _ecs->get<cRender>(id);
                 RenderQueue::submit(render->shader, id);
-                ++submission_count;
             }
 
         RenderQueue::end_scene();
@@ -140,102 +106,16 @@ void Engine::render_thread() {
 
     _render_context->init();
     _render_context->set_clear_color(0.11f, 0.11f, 0.11f, 1.0f);
-
+    
     if(RenderConfig::vsync_on) {
         _render_context->set_swap_interval(1);
     }
 
-    TextureLibrary::load(
-        "../../assets/textures/rocky_surface_diffuse.jpg",
-        "rocky_surface_diffuse",
-        false, true,
-        Texture2D::MinFilter::linear_mipmap_nearest,
-        Texture2D::MagFilter::linear,
-        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
-    );
+    MeshLibrary::init();
+    TextureLibrary::init();
+    ShaderLibrary::init();
 
-    TextureLibrary::load(
-        "../../assets/textures/rocky_surface_normal.jpg",
-        "rocky_surface_normal",
-        false, true,
-        Texture2D::MinFilter::linear_mipmap_nearest,
-        Texture2D::MagFilter::linear,
-        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
-    );
-
-    TextureLibrary::load(
-        "../../assets/textures/Wood_025_basecolor.jpg",
-        "wood_025_diffuse",
-        false, true,
-        Texture2D::MinFilter::linear_mipmap_nearest,
-        Texture2D::MagFilter::linear,
-        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
-    );
-
-    TextureLibrary::load(
-        "../../assets/textures/Wood_025_normal.jpg",
-        "wood_025_normal",
-        false, true,
-        Texture2D::MinFilter::linear_mipmap_nearest,
-        Texture2D::MagFilter::linear,
-        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
-    );
-
-    auto shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
-    auto shader_ft = new ShaderFlatTexture;
-    auto shader_lt = new ShaderLitTexture;
-
-    Entity::ID floor = _ecs->new_entity();
-    _ecs->assign<cTransform>(floor);
-    _ecs->assign<cWorldMat>(floor);
-
-    auto floor_render    = _ecs->assign<cRender>(floor);
-    floor_render->shader = shader_lt;
-    floor_render->mesh   = new MeshLitTexture(
-        Mesh::Primitives::XZPlane,
-        10.0f, 10.0f,
-        500.0f,
-        -13.0f
-    );
-
-    auto material = _ecs->assign<cMaterial>(floor);
-    material->ambient  = { 0.05f, 0.05f, 0.05f, 1.0f };
-    material->diffuse  = { 0.50f, 0.50f, 0.50f, 1.0f };
-    material->specular = { 0.75f, 0.75f, 0.75f, 1.0f };
-    material->diffuse_map = TextureLibrary::checkout("rocky_surface_diffuse");
-    material->normal_map  = TextureLibrary::checkout("rocky_surface_normal");
-
-    auto phong = _ecs->assign<cPhongParams>(floor);
-    shader_lt->store_per_frame_id(floor);
-    auto *dir   = &phong->params.directional_light;
-    auto *point = &phong->params.point_light;
-    auto *spot  = &phong->params.spot_light;
-
-    dir->direction       = glm::normalize(glm::vec4(0.0f, -2.0f, -1.0f, 0.0f));
-    dir->props.diffuse   = { 0.5f, 0.5f, 0.5f, 1.0f };
-    dir->props.ambient   = dir->props.diffuse * 0.1f;
-    dir->props.ambient.w = 1.0f;
-    dir->props.specular  = dir->props.diffuse;
-
-    point->position        = { 0.0f, 0.0f, 0.0f, 1.0f };
-    point->props.diffuse   = { 0.0f, 0.0f, 1.0f, 1.0f };
-    point->props.ambient   = point->props.diffuse * 0.1f;
-    point->props.ambient.w = 1.0f;
-    point->props.specular  = point->props.diffuse;
-    point->props.attenuation = 0.25f;
-
-    spot->position        = { 0.0f, -12.0f, -25.0f, 1.0f };
-    spot->heading         = { 0.0f, 0.0f, -1.0f, 0.0f };
-    spot->props.diffuse   = { 0.0f, 1.0f, 0.0f, 1.0f };
-    spot->props.ambient   = spot->props.diffuse * 0.1f;
-    spot->props.ambient.w = 1.0f;
-    spot->props.specular  = spot->props.diffuse;
-    spot->props.attenuation = 0.1f;
-
-    _add_cube(shader_lt);
-
-
-
+    load_user_resources();
 
     _render_thread_running.store(true);
     _render_thread_ready.notify_one();
@@ -244,33 +124,18 @@ void Engine::render_thread() {
         _render_context->run();
     }
 
-    // TODO: this reeeeeally belongs somewhere else. As does the creation of
-    //       new meshes. Presumably, these operations should live in the
-    //       renderer itself, and simple handles should be returned upon
-    //       creation.
-    for(const auto id : ECSView<cRender>(*_ecs)) {
-        auto render = _ecs->get<cRender>(id);
-        delete render->mesh;
-    }
-
+    MeshLibrary::shutdown();
     TextureLibrary::shutdown();
-
+    ShaderLibrary::shutdown();
 
     _render_context->shutdown();
-
-    delete shader_fc;
-    delete shader_ft;
-    delete shader_lt;
 }
 
 Engine::Engine() :
     _render_thread_running { false },
     _update_thread_running { false },
     _render_context { RenderContext::create() },
-    _ecs        { new ECS },
-    _cube_count { 0 },
-    _twister    { _rd() },
-    _rng        { -5.0f, 5.0f }
+    _ecs { new ECS }
 
 {
     TargetWindow::current()->subscribe_to(this, EventType::WindowClosed);

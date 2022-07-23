@@ -6,8 +6,6 @@
 
 namespace btx {
 
-class ECS;
-
 class CameraSystem final {
 public:
     struct InputState {
@@ -15,12 +13,16 @@ public:
         bool a;
         bool s;
         bool d;
+        bool shift;
     };
 
-    static void update(ECS *ecs, const InputState &input,
-                       const float frame_delta);
+    static void update(const InputState &input, const float frame_delta);
 
     CameraSystem() = delete;
+
+private:
+    static float _strafe_speed;
+    static float _sprint_speed;
 };
 
 } // namespace btx

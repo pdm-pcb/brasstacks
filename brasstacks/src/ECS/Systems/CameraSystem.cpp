@@ -7,9 +7,20 @@
 
 namespace btx {
 
-void CameraSystem::update(ECS *ecs, const InputState &input,
-                          const float frame_delta)
-{
+float CameraSystem::_strafe_speed = 5.0f;
+float CameraSystem::_sprint_speed = 10.0f;
+
+void CameraSystem::update(const InputState &input, const float frame_delta) {
+    float effective_speed;
+    if(input.shift) {
+        effective_speed = _sprint_speed;
+    }
+    else {
+        effective_speed = _strafe_speed;
+    }
+
+    ECS *ecs = btx::ECS::get_active();
+
     for(const auto id : ECSView<cCamera, cTransform, cMove>(*ecs)) {
         auto camera = ecs->get<cCamera>(id);
     
@@ -18,26 +29,27 @@ void CameraSystem::update(ECS *ecs, const InputState &input,
         movement->direction = { 0.0f, 0.0f, 0.0f };
 
         if(input.w) {
-            movement->speed = 5.0f * frame_delta;
+            movement->speed = effective_speed * frame_delta;
             movement->direction += camera->forward;
         }
         else if(input.s) {
-            movement->speed = 5.0f * frame_delta;
+            movement->speed = effective_speed * frame_delta;
             movement->direction += -camera->forward;
         }
     
         if(input.d) {
-            movement->speed = 5.0f * frame_delta;
+            movement->speed = effective_speed * frame_delta;
             movement->direction += camera->right;
         }
         else if(input.a) {
-            movement->speed = 5.0f * frame_delta;
+            movement->speed = effective_speed * frame_delta;
             movement->direction += -camera->right;
         }
 
         auto transform = ecs->get<cTransform>(id);
     
         transform->position += movement->direction * movement->speed;
+        transform->position.y = 0.0f;
         transform->rotation = glm::quat({ camera->pitch, -camera->yaw, 0.0f });
 
         auto T = glm::translate(mat4_ident, transform->position);

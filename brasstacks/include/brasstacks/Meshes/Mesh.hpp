@@ -24,6 +24,10 @@ public:
         Cube, Sphere, Skybox, XZPlane, XYPlane
     };
 
+    enum class Type {
+        FlatColor, FlatTexture, LitTexture
+    };
+
     virtual void bind_vertex_buffer() const = 0;
     virtual std::size_t index_count() const = 0;
 

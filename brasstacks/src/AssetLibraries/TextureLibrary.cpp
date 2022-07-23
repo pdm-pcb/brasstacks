@@ -14,7 +14,7 @@ void TextureLibrary::load(const char *path, const char *key,
                           const Texture2D::Wrap wrap_t)
 {
     if(_textures.find(key) != _textures.end()) {
-        BTX_ENGINE_WARN("Texture already exists");
+        BTX_ENGINE_WARN("Texture '{}' already exists", key);
         assert(false);
         return;
     }
@@ -30,12 +30,16 @@ void TextureLibrary::load(const char *path, const char *key,
 Texture2D * TextureLibrary::checkout(const char *key) {
     auto texture = _textures.find(key);
     if(texture == _textures.end()) {
-        BTX_ENGINE_WARN("Cannot find texture");
+        BTX_ENGINE_WARN("Cannot find texture '{}'", key);
         assert(false);
         return nullptr;
     }
 
     return texture->second;
+}
+
+void TextureLibrary::init() {
+    // TODO: something useful here
 }
 
 void TextureLibrary::shutdown() {

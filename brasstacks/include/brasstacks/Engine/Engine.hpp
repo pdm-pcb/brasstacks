@@ -14,10 +14,6 @@ namespace btx {
 
 class RenderContext;
 
-class ShaderFlatColor;
-class ShaderFlatTexture;
-class ShaderLitTexture;
-
 class Engine : public EventListener {
 public:
     void on_event(Event &event) override;
@@ -44,17 +40,11 @@ private:
 
     RenderContext *_render_context;
     ECS *_ecs;
-
-
-
-
-    std::size_t        _cube_count;
-    std::random_device _rd;
-    std::mt19937       _twister;
-    std::uniform_real_distribution<float> _rng;
-
-    void _add_cube(ShaderLitTexture *shader);
 };
+
+void load_user_resources();
+void user_update_code();
+void user_render_code();
 
 } // namespace btx
 

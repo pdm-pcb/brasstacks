@@ -19,13 +19,6 @@ public:
 
     std::size_t index_count() const override { return _face_count * 3; }
 
-    void set_texture(const char *diffuse_filepath,
-                     bool flip_vertical, bool gen_mipmaps,
-                     const Texture2D::MinFilter min_filter,
-                     const Texture2D::MagFilter mag_filter,
-                     const Texture2D::Wrap wrap_s,
-                     const Texture2D::Wrap wrap_t);
-
     MeshFlatTexture(const Primitives primitive,
                     const float u_repeat     = 1.0f,
                     const float v_repeat     = 1.0f,
