@@ -15,6 +15,8 @@
 #include "brasstacks/ECS/Systems/CubeSystem.hpp"
 #include "brasstacks/Cameras/CameraBag.hpp"
 
+#include "brasstacks/AssetLibraries/TextureLibrary.hpp"
+
 
 
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
@@ -95,16 +97,9 @@ void Engine::_add_cube(ShaderLitTexture *shader) {
     cube_render->shader = shader;
     cube_render->mesh   = new MeshLitTexture(Mesh::Primitives::Cube);
 
-        static_cast<MeshLitTexture *>(cube_render->mesh)->set_texture(
-            "../../assets/textures/Wood_025_basecolor.jpg",
-            "../../assets/textures/Wood_025_normal.jpg",
-            false, true,
-            Texture2D::MinFilter::linear_mipmap_nearest,
-            Texture2D::MagFilter::linear,
-            Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
-        );
-
-    _ecs->assign<cPhongMaterial>(new_cube);
+    auto material = _ecs->assign<cMaterial>(new_cube);
+    material->diffuse_map = TextureLibrary::checkout("wood_025_diffuse");
+    material->normal_map  = TextureLibrary::checkout("wood_025_normal");
 
     ++_cube_count;
     add_cube = false;
@@ -150,6 +145,42 @@ void Engine::render_thread() {
         _render_context->set_swap_interval(1);
     }
 
+    TextureLibrary::load(
+        "../../assets/textures/rocky_surface_diffuse.jpg",
+        "rocky_surface_diffuse",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/rocky_surface_normal.jpg",
+        "rocky_surface_normal",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/Wood_025_basecolor.jpg",
+        "wood_025_diffuse",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
+    TextureLibrary::load(
+        "../../assets/textures/Wood_025_normal.jpg",
+        "wood_025_normal",
+        false, true,
+        Texture2D::MinFilter::linear_mipmap_nearest,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
+    );
+
     auto shader_fc = new ShaderFlatColor;  // TODO: this belongs elsewhere, too.
     auto shader_ft = new ShaderFlatTexture;
     auto shader_lt = new ShaderLitTexture;
@@ -166,19 +197,13 @@ void Engine::render_thread() {
         500.0f,
         -13.0f
     );
-    static_cast<MeshLitTexture *>(floor_render->mesh)->set_texture(
-        "../../assets/textures/rocky_surface_diffuse.jpg",
-        "../../assets/textures/rocky_surface_normal.jpg",
-        false, true,
-        Texture2D::MinFilter::linear_mipmap_nearest,
-        Texture2D::MagFilter::linear,
-        Texture2D::Wrap::repeat, Texture2D::Wrap::repeat
-    );
 
-    auto material = _ecs->assign<cPhongMaterial>(floor);
+    auto material = _ecs->assign<cMaterial>(floor);
     material->ambient  = { 0.05f, 0.05f, 0.05f, 1.0f };
-    material->diffuse  = { 0.5f, 0.5f, 0.5f, 1.0f };
+    material->diffuse  = { 0.50f, 0.50f, 0.50f, 1.0f };
     material->specular = { 0.75f, 0.75f, 0.75f, 1.0f };
+    material->diffuse_map = TextureLibrary::checkout("rocky_surface_diffuse");
+    material->normal_map  = TextureLibrary::checkout("rocky_surface_normal");
 
     auto phong = _ecs->assign<cPhongParams>(floor);
     shader_lt->store_per_frame_id(floor);
@@ -211,6 +236,7 @@ void Engine::render_thread() {
 
 
 
+
     _render_thread_running.store(true);
     _render_thread_ready.notify_one();
 
@@ -226,6 +252,9 @@ void Engine::render_thread() {
         auto render = _ecs->get<cRender>(id);
         delete render->mesh;
     }
+
+    TextureLibrary::shutdown();
+
 
     _render_context->shutdown();
 

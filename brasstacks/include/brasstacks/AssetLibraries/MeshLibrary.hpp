@@ -1,0 +1,12 @@
+#ifndef BRASSTACKS_ASSETLIBRARIES_MESHLIBRARY_HPP
+#define BRASSTACKS_ASSETLIBRARIES_MESHLIBRARY_HPP
+
+namespace btx {
+
+class MeshLibrary {
+
+};
+
+} // namespace btx
+
+#endif // BRASSTACKS_ASSETLIBRARIES_MESHLIBRARY_HPP

@@ -8,17 +8,21 @@ namespace btx {
 
 class Shader;
 class Mesh;
+class Texture2D;
 
 struct cRender {
-    Shader   *shader { nullptr };
-    Mesh     *mesh   { nullptr };
+    Shader    *shader  { nullptr };
+    Mesh      *mesh    { nullptr };
 };
 
-struct cPhongMaterial {
-    glm::vec4 ambient   = { 0.25f, 0.25f, 0.25f, 1.0f };
-    glm::vec4 diffuse   = { 0.75f, 0.75f, 0.75f, 1.0f };
-    glm::vec4 specular  = { 0.95f, 0.95f, 0.95f, 1.0f };
+struct cMaterial {
+    glm::vec4 ambient  =   { 0.25f, 0.25f, 0.25f, 1.0f };
+    glm::vec4 diffuse  =   { 0.75f, 0.75f, 0.75f, 1.0f };
+    glm::vec4 specular =   { 0.95f, 0.95f, 0.95f, 1.0f };
     float shine = 1.0f;
+
+    Texture2D *diffuse_map { nullptr };
+    Texture2D *normal_map  { nullptr };
 };
 
 struct cPhongParams {

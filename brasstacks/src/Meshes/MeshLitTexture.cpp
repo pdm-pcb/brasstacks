@@ -2,28 +2,12 @@
 #include "brasstacks/Meshes/MeshLitTexture.hpp"
 
 #include "brasstacks/Meshes/VertexBuffer.hpp"
-#include "brasstacks/Textures/Texture2D.hpp"
+#include "brasstacks/AssetLibraries/TextureLibrary.hpp"
 
 namespace btx {
 
 void MeshLitTexture::bind_vertex_buffer() const {
     _buffer->bind();
-    _diffuse->bind(0u);
-    _normal->bind(1u);
-}
-
-void MeshLitTexture::set_texture(const char *diffuse_filepath,
-                                 const char *normal_filepath,
-                                 bool flip_vertical, bool gen_mipmaps,
-                                 const Texture2D::MinFilter min_filter,
-                                 const Texture2D::MagFilter mag_filter,
-                                 const Texture2D::Wrap wrap_s,
-                                 const Texture2D::Wrap wrap_t)
-{
-    _diffuse = Texture2D::create(diffuse_filepath, flip_vertical, gen_mipmaps,
-                                 min_filter, mag_filter, wrap_s, wrap_t);
-    _normal = Texture2D::create(normal_filepath, flip_vertical, gen_mipmaps,
-                                min_filter, mag_filter, wrap_s, wrap_t);
 }
 
 void MeshLitTexture::_build_cube(const float scale) {
@@ -285,8 +269,6 @@ MeshLitTexture::~MeshLitTexture() {
     delete _buffer;
     delete _vertices;
     delete _faces;
-    delete _diffuse;
-    delete _normal;
 }
 
 } // namespace btx

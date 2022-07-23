@@ -2,6 +2,7 @@
 #include "brasstacks/Shaders/ShaderLitTexture.hpp"
 
 #include "brasstacks/ECS/Components/cRender.hpp"
+#include "brasstacks/Textures/Texture2D.hpp"
 
 namespace btx {
 
@@ -20,7 +21,7 @@ void ShaderLitTexture::update_per_frame() const {
 void ShaderLitTexture::update_per_object(const Entity::ID id) const {
     ECS *ecs = ECS::get_active();
     auto world    = ecs->get<cWorldMat>(id);
-    auto material = ecs->get<cPhongMaterial>(id);
+    auto material = ecs->get<cMaterial>(id);
 
     _shader->set_world_and_material({
         world->world_mat,
@@ -29,6 +30,9 @@ void ShaderLitTexture::update_per_object(const Entity::ID id) const {
         material->specular,
         material->shine
     });
+
+    material->diffuse_map->bind(0);
+    material->normal_map->bind(1);
 }
 
 ShaderLitTexture::ShaderLitTexture() :
