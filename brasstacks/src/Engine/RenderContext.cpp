@@ -15,6 +15,8 @@
 
 namespace btx {
 
+RenderContext * RenderContext::_active = nullptr;
+
 RenderContext * RenderContext::create() {
     if(TargetWindow::current() == nullptr) {
         BTX_ENGINE_ERROR("No target render window");

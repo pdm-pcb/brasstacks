@@ -3,8 +3,9 @@
 
 #include "brasstacks/Textures/Texture2D.hpp"
 
-#include "unordered_map"
-#include "string"
+#include <unordered_map>
+#include <string>
+#include <mutex>
 
 namespace btx {
 
@@ -37,6 +38,7 @@ public:
 
 private:
     static std::unordered_map<std::string, Texture2D *> _textures;
+    static std::mutex _map_mutex;
 };
 
 } // namespace btx

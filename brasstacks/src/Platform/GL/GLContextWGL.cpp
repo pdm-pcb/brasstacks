@@ -7,13 +7,7 @@
 
 #include "brasstacks/ECS/ECS.hpp"
 #include "brasstacks/ECS/ECSView.hpp"
-
-
-
-#include "brasstacks/Meshes/MeshFlatColor.hpp"
-#include "brasstacks/Shaders/ShaderFlatColor.hpp"
 #include "brasstacks/Cameras/CameraBag.hpp"
-#include "brasstacks/Engine/RenderConfig.hpp"
 #include "brasstacks/Engine/RenderQueue.hpp"
 
 namespace btx {
@@ -127,11 +121,7 @@ void GLContextWGL::init() {
         );
     }
 
-    result = ::wglMakeCurrent(_device, _context);
-
-	if(result == FALSE) {
-		::MessageBox(nullptr, "wglMakeCurrent failed", "Error", MB_OK);
-	}
+    make_current();
 
     ::glEnable(GL_DEPTH_TEST);
     ::glEnable(GL_CULL_FACE);
@@ -223,6 +213,24 @@ void GLContextWGL::_driver_hooks() {
     ::DestroyWindow(window);
 }
 
+void GLContextWGL::make_current() {
+    _context_mutex.lock();
+    ::BOOL result = ::wglMakeCurrent(_device, _context);
+
+	if(result == FALSE) {
+		::MessageBox(nullptr, "wglMakeCurrent acquire failed", "Error", MB_OK);
+	}
+}
+
+void GLContextWGL::release_context() {
+    ::BOOL result = ::wglMakeCurrent(nullptr, nullptr);
+    _context_mutex.unlock();
+
+	if(result == FALSE) {
+		::MessageBox(nullptr, "wglMakeCurrent release failed", "Error", MB_OK);
+	}
+}
+
 void GLContextWGL::_update_window_title() {
     _window_title = fmt::format(
         "R:{:.3f}ms U:{:.3f}ms",
@@ -233,6 +241,7 @@ void GLContextWGL::_update_window_title() {
 }
 
 void GLContextWGL::shutdown() {
+    release_context();
     BTX_ENGINE_TRACE("Shutting down WGL");
 	::wglMakeCurrent(_device, nullptr);
 	::wglDeleteContext(_context);

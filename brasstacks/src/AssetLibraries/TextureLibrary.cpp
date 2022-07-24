@@ -24,6 +24,7 @@ void TextureLibrary::load(const char *path, const char *key,
         min_filter, mag_filter, wrap_s, wrap_t
     );
 
+    std::unique_lock<std::mutex>(_map_mutex);
     _textures.insert({ key, texture });
 }
 

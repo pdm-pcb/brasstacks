@@ -1,6 +1,9 @@
 #include "brasstacks/System/pch.hpp"
 #include "brasstacks/Platform/GL/Textures/GLTexture2D.hpp"
 
+#include "brasstacks/Engine/RenderContext.hpp"
+#include "brasstacks/Platform/GL/GLContextWGL.hpp"
+
 #include <stb/stb_image.h>
 
 namespace btx {
@@ -38,6 +41,9 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
 						stbi_failure_reason());
         assert(false);
 	}
+
+    auto *context = dynamic_cast<GLContextWGL *>(RenderContext::active());
+    context->make_current();
 
     glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
     assert(_handle != GL_NONE);
@@ -128,6 +134,8 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
 		stbi_image_free(buffer);
 		buffer = nullptr;
 	}
+    
+    context->release_context();
 	BTX_ENGINE_TRACE("Loaded texture {}", filepath);
 }
 

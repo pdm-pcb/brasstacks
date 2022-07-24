@@ -12,7 +12,7 @@ void GLVertexBuffer::set_buffer(void *buffer, std::uint32_t size) {
     
     if(_vbo == GL_NONE) {
         BTX_ENGINE_ERROR("glCreateBuffers() failed for VBO");
-        return;
+        assert(false);
     }
 
     glNamedBufferStorage(
@@ -34,7 +34,7 @@ void GLVertexBuffer::set_indices(const Mesh::Face *faces,
     
     if(_ibo == GL_NONE) {
         BTX_ENGINE_ERROR("glCreateBuffers() failed for IBO");
-        return;
+        assert(false);
     }
 
     glNamedBufferStorage(
@@ -129,6 +129,7 @@ GLVertexBuffer::GLVertexBuffer(const VertexLayout::ElementList &elements) :
 
     if(_vao == GL_NONE) {
         BTX_ENGINE_ERROR("glCreateVertexArrays() failed");
+        assert(false);
     }
 
     _set_layout();
@@ -145,6 +146,7 @@ GLVertexBuffer::GLVertexBuffer(VertexLayout *layout) :
 
     if(_vao == GL_NONE) {
         BTX_ENGINE_ERROR("glCreateVertexArrays() failed");
+        assert(false);
     }
 
     _set_layout();

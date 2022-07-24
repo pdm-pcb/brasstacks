@@ -3,8 +3,8 @@
 
 #include "brasstacks/Engine/RenderContext.hpp"
 
-#include <atomic>
 #include <string>
+#include <mutex>
 
 namespace btx {
 
@@ -19,6 +19,9 @@ public:
 
     void set_swap_interval(std::uint8_t interval) override;
     void set_clear_color(float r, float g, float b, float a) override;
+
+    void make_current();
+    void release_context();
 
     explicit GLContextWGL(const TargetWindow *window);
     ~GLContextWGL();
@@ -39,6 +42,8 @@ private:
     GLDebugger *_debugger;
 
     std::string _window_title;
+
+    std::mutex _context_mutex;
 
     void _driver_hooks();
     void _update_window_title();

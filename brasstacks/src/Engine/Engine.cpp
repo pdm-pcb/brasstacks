@@ -5,12 +5,11 @@
 #include "brasstacks/Engine/RenderContext.hpp"
 #include "brasstacks/Engine/RenderConfig.hpp"
 #include "brasstacks/Engine/RenderQueue.hpp"
+#include "brasstacks/Engine/LayerStack.hpp"
 
 #include "brasstacks/System/Input/KeyCodes.hpp"
 #include "brasstacks/Events/Event.hpp"
 #include "brasstacks/Events/KeyboardEvent.hpp"
-
-#include "brasstacks/Engine/LayerStack.hpp"
 
 #include "brasstacks/ECS/ECSView.hpp"
 
@@ -36,7 +35,7 @@ void Engine::on_event(Event &event) {
 void Engine::update_thread() {
 
     LayerStack::init();
-    wait_for_render_thread();
+    _wait_for_render_thread();
 
     auto *user_layer = create_layer();
     LayerStack::push_layer(user_layer);
@@ -90,7 +89,7 @@ void Engine::render_thread() {
     _render_context->shutdown();
 }
 
-void Engine::wait_for_render_thread() {
+void Engine::_wait_for_render_thread() {
     std::unique_lock<std::mutex> lock(_thread_startup);
     _render_thread_ready.wait(
         lock,
@@ -113,6 +112,7 @@ Engine::Engine() :
     TargetWindow::current()->subscribe_to(this, EventType::MouseButtonReleased);
 
     ECS::set_active(_ecs);
+    RenderContext::set_active(_render_context);
 }
 
 Engine::~Engine() {

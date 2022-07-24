@@ -22,8 +22,6 @@ public:
     void update_thread();
     void render_thread();
 
-    void wait_for_render_thread();
-
     Engine();
     ~Engine();
 
@@ -43,6 +41,8 @@ private:
 
     RenderContext *_render_context;
     ECS *_ecs;
+
+    void _wait_for_render_thread();
 };
 
 void load_resources();

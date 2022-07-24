@@ -2,6 +2,7 @@
 #define BRASSTACKS_ENGINE_RENDERCONTEXT_HPP
 
 #include <cstdint>
+#include <mutex>
 
 namespace btx {
 
@@ -18,7 +19,13 @@ public:
 
     static RenderContext * create();
 
+    static void set_active(RenderContext *context) { _active = context; }
+    static RenderContext * active() { return _active; }
+
     virtual ~RenderContext() = default;
+
+private:
+    static RenderContext *_active;
 };
 
 } // namespace btx

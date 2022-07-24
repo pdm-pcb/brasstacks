@@ -18,6 +18,6 @@ void add_cube() {
     cube_render->mesh   = btx::MeshLibrary::checkout("lit_texture_cube");
 
     auto material = ecs->assign<btx::cMaterial>(new_cube);
-    material->diffuse_map = btx::TextureLibrary::checkout("asphalt_diffuse");
-    material->normal_map  = btx::TextureLibrary::checkout("asphalt_normal");
+    material->diffuse_map = btx::TextureLibrary::checkout("stone_diffuse");
+    material->normal_map  = btx::TextureLibrary::checkout("stone_normal");
 }
