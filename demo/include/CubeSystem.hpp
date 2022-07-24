@@ -4,7 +4,7 @@
 
 class CubeSystem {
 public:
-    static void update(const float frame_delta);
+    static void update(const float deltaT);
 
 private:
     static float _rot_factor;

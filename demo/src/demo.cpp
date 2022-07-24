@@ -31,9 +31,9 @@ class GameplayLayer : public btx::Layer {
     void update() override {
         CameraSystem::update(
             { w, a, s, d, shift, ctrl, space },
-            btx::Clock::frame_delta()
+            btx::Clock::update_delta()
         );
-        CubeSystem::update(btx::Clock::frame_delta());
+        CubeSystem::update(btx::Clock::update_delta());
     }
 
     void on_event(btx::Event &event) override {

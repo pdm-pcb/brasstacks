@@ -22,20 +22,19 @@ std::mutex RenderQueue::_front_mutex;
 std::mutex RenderQueue::_back_mutex;
 
 std::condition_variable RenderQueue::_back_ready;
-bool RenderQueue::_back_empty = true;
-
-bool RenderQueue::_running = false;
+std::atomic<bool> RenderQueue::_back_empty = true;
+std::atomic<bool> RenderQueue::_running = false;
 
 void RenderQueue::begin_scene() {
     {
         std::unique_lock<std::mutex> lock(_back_mutex);
-        _back_ready.wait(lock, []{ return _back_empty || !_running; });
+        _back_ready.wait(lock, []{ return _back_empty.load() || !_running.load(); });
     }
     _back_mutex.lock();
 }
 
 void RenderQueue::end_scene() {
-    _back_empty = false;
+    _back_empty.store(false);
     _back_mutex.unlock();
     _back_ready.notify_one();
 }
@@ -43,13 +42,14 @@ void RenderQueue::end_scene() {
 void RenderQueue::begin_draw() {
     {
         std::unique_lock<std::mutex> lock(_back_mutex);
-        _back_ready.wait(lock, []{ return !_back_empty || !_running; });
+        _back_ready.wait(lock, []{ return !_back_empty.load() || !_running.load(); });
     }
     _back_mutex.lock();
     _front_mutex.lock();
 
     _swap_queues();
-    
+
+    _back_empty.store(true);
     _back_mutex.unlock();
     _back_ready.notify_one();
 }
@@ -128,8 +128,6 @@ void RenderQueue::_swap_queues() {
 
     _shaders_back = shaders_temp;
     _meshes_back  = meshes_temp;
-
-    _back_empty  = true;
 }
 
 } // namespace btx

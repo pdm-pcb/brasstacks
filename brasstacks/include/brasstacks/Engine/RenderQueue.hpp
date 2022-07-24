@@ -60,9 +60,8 @@ private:
     static std::mutex _back_mutex;
 
     static std::condition_variable _back_ready;
-    static bool _back_empty;
-
-    static bool _running;
+    static std::atomic<bool> _back_empty;
+    static std::atomic<bool> _running;
 
     static void _clear_front();
     static void _clear_back();

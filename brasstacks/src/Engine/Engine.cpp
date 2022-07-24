@@ -42,9 +42,11 @@ void Engine::update_thread() {
 
     _update_thread_running.store(true);
     while(_update_thread_running) {
+        Clock::update_delta_tick();
         RenderQueue::begin_scene();
         Clock::update_tick();
-
+    
+            Clock::update();
             LayerStack::update_layers();
 
             for(const auto id : ECSView<cRender>(*_ecs)) {

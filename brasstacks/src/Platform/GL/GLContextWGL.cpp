@@ -44,10 +44,10 @@ void GLContextWGL::run() {
             }
         }
 
-    RenderQueue::end_draw();
     Clock::frame_tock();
-
     ::SwapBuffers(_device);
+    
+    RenderQueue::end_draw();
     Clock::frame_delta_tock();
 
     _update_window_title();
@@ -232,7 +232,7 @@ void GLContextWGL::release_context() {
 
 void GLContextWGL::_update_window_title() {
     _window_title = fmt::format(
-        "R:{:.3f}ms U:{:.3f}ms",
+        "R:{:.3f} U:{:.3f}",
         Clock::frame_time(),
         Clock::update_time()
     );

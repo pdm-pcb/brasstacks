@@ -9,12 +9,11 @@ const glm::vec3 CubeSystem::_unit_x(1.0f, 0.0f, 0.0f);
 const glm::vec3 CubeSystem::_unit_y(0.0f, 1.0f, 0.0f);
 const glm::vec3 CubeSystem::_unit_z(0.0f, 0.0f, 1.0f);
 
-void CubeSystem::update(const float frame_delta) {
-    _rot_factor += 0.2f * frame_delta;
+void CubeSystem::update(const float deltaT) {
+    _rot_factor += 0.2f * deltaT;
 
     btx::ECS *ecs = btx::ECS::get_active();
-    for(const auto id : btx::ECSView<cCube,
-                                     btx::cTransform,
+    for(const auto id : btx::ECSView<cCube, btx::cTransform,
                                      btx::cRender>(*ecs))
     {
         auto x = glm::angleAxis(0.5f * _rot_factor, _unit_x);
