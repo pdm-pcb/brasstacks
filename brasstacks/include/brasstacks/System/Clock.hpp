@@ -15,7 +15,6 @@ public:
     static void frame_tock();
     static void frame_delta_tock();
     static void update_tick();
-    static void update_delta_tick();
     static void update_tock();
 
     static void update();
@@ -25,9 +24,6 @@ public:
     static float frame_time()   { return _frame_time.load();   }
     static float frame_delta()  { return _frame_delta.load();  }
     static float update_time()  { return _update_time.load();  }
-    static float update_delta() { return _update_delta.load(); }
-
-    static float tick() { update(); return _true_runtime; }
 
     Clock()  = delete;
     ~Clock() = delete;
@@ -42,14 +38,12 @@ private:
     static HRC::time_point _start_time;
     static HRC::time_point _frame_tick;
     static HRC::time_point _update_tick;
-    static HRC::time_point _update_delta_tick;
 
     static std::atomic<float> _true_runtime;
     static std::atomic<float> _game_runtime;
     static std::atomic<float> _frame_time;
     static std::atomic<float> _frame_delta;
     static std::atomic<float> _update_time;
-    static std::atomic<float> _update_delta;
 };
 
 } // namespace btx

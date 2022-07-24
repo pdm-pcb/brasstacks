@@ -5,8 +5,8 @@
 void add_cube() {
     btx::ECS *ecs = btx::ECS::get_active();
 
-    for(std::size_t col = 0; col < 1; ++col) {
-        for(std::size_t row = 0; row < 1; ++row) {
+    for(std::size_t col = 0; col < 5; ++col) {
+        for(std::size_t row = 0; row < 5; ++row) {
             btx::Entity::ID new_cube = ecs->new_entity();
             ecs->assign<cCube>(new_cube);
 
@@ -21,8 +21,27 @@ void add_cube() {
             cube_render->mesh   = btx::MeshLibrary::checkout("lit_texture_cube");
 
             auto material = ecs->assign<btx::cMaterial>(new_cube);
-            material->diffuse_map = btx::TextureLibrary::checkout("stone_diffuse");
-            material->normal_map  = btx::TextureLibrary::checkout("stone_normal");
+            if(col % 2 == 0) {
+                if(row % 2 == 0) {
+                    material->diffuse_map = btx::TextureLibrary::checkout("stone_diffuse");
+                    material->normal_map  = btx::TextureLibrary::checkout("stone_normal");
+                }
+                else {
+                    material->diffuse_map = btx::TextureLibrary::checkout("concrete_diffuse");
+                    material->normal_map  = btx::TextureLibrary::checkout("concrete_normal");
+                }
+            }
+            else {
+                if(row % 2 == 0) {
+                    material->diffuse_map = btx::TextureLibrary::checkout("wood_diffuse");
+                    material->normal_map  = btx::TextureLibrary::checkout("wood_normal");
+                }
+                else {
+                    material->diffuse_map = btx::TextureLibrary::checkout("brick_diffuse");
+                    material->normal_map  = btx::TextureLibrary::checkout("brick_normal");
+                }
+            }
+
         }
     }
 }

@@ -4,6 +4,7 @@
 namespace btx {
 
 std::unordered_map<std::string, Texture2D *> TextureLibrary::_textures;
+std::mutex TextureLibrary::_map_mutex;
 
 void TextureLibrary::load(const char *path, const char *key,
                           const bool flip_vertical,
@@ -24,7 +25,7 @@ void TextureLibrary::load(const char *path, const char *key,
         min_filter, mag_filter, wrap_s, wrap_t
     );
 
-    std::unique_lock<std::mutex>(_map_mutex);
+    std::unique_lock<std::mutex> lock(_map_mutex);
     _textures.insert({ key, texture });
 }
 

@@ -7,7 +7,7 @@ void GLVertexBuffer::bind() {
     glBindVertexArray(_vao);
 }
 
-void GLVertexBuffer::set_buffer(void *buffer, std::uint32_t size) {
+void GLVertexBuffer::set_buffer(void *buffer, std::size_t size) {
     glCreateBuffers(1, &_vbo);
     
     if(_vbo == GL_NONE) {
@@ -17,7 +17,7 @@ void GLVertexBuffer::set_buffer(void *buffer, std::uint32_t size) {
 
     glNamedBufferStorage(
         _vbo,
-        size,
+        static_cast<GLsizeiptr>(size),
         buffer,
         GL_DYNAMIC_STORAGE_BIT
     );

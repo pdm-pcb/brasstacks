@@ -14,7 +14,7 @@ void Application::on_event(Event &event) {
     }
 }
 
-void Application::configure(const char *conf_filename) {
+void Application::configure([[maybe_unused]] const char *conf_filename) {
     ConfigWindow *conf_window = ConfigWindow::create();
 
     conf_window->subscribe_to(this, EventType::WindowClosed);

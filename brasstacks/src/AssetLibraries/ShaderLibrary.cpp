@@ -5,8 +5,8 @@ namespace btx {
 
 std::unordered_map<std::string, Shader *> ShaderLibrary::_shaders;
 
-void ShaderLibrary::load(const char *vertex_filepath,
-                         const char *pixel_filepath,
+void ShaderLibrary::load([[maybe_unused]] const char *vertex_filepath,
+                         [[maybe_unused]] const char *pixel_filepath,
                          const char *key) {
     if(_shaders.find(key) != _shaders.end()) {
         BTX_ENGINE_WARN("Shader '{}' already exists", key);

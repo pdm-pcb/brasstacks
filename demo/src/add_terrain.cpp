@@ -26,7 +26,7 @@ void add_terrain() {
     auto *spot  = &phong->params.spot_light;
 
     dir->direction       = glm::normalize(glm::vec4(0.0f, -2.0f, -1.0f, 0.0f));
-    dir->props.diffuse   = { 0.5f, 0.5f, 0.5f, 1.0f };
+    dir->props.diffuse   = { 0.25f, 0.25f, 0.25f, 1.0f };
     dir->props.ambient   = dir->props.diffuse * 0.1f;
     dir->props.ambient.w = 1.0f;
     dir->props.specular  = dir->props.diffuse;

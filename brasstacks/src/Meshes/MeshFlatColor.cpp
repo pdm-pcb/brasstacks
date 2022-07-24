@@ -58,14 +58,10 @@ void MeshFlatColor::_build_cube(const glm::vec3 &color, const float scale) {
 void MeshFlatColor::_build_xzplane(const glm::vec3 &color, const float scale,
                                    const float y_offset) {
     _vertices = new Vertex[_vertex_count] {
-        {{ -0.5f * scale,  y_offset,  0.5f * scale, 1.0f },
-         { 0.5f, 0.0f, 0.0f, 1.0f }},
-        {{  0.5f * scale,  y_offset,  0.5f * scale, 1.0f },
-         { 0.0f, 0.5f, 0.0f, 1.0f }},
-        {{  0.5f * scale,  y_offset, -0.5f * scale, 1.0f },
-         { 0.0f, 0.0f, 0.5f, 1.0f }},
-        {{ -0.5f * scale,  y_offset, -0.5f * scale, 1.0f },
-         { 0.5f, 0.5f, 0.0f, 1.0f }},
+        {{ -0.5f * scale,  y_offset,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale,  y_offset,  0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale,  y_offset, -0.5f * scale, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale,  y_offset, -0.5f * scale, 1.0f }, { color, 1.0f }},
     };
 
     _faces = new Mesh::Face[_face_count] {
@@ -77,14 +73,10 @@ void MeshFlatColor::_build_xzplane(const glm::vec3 &color, const float scale,
 void MeshFlatColor::_build_xyplane(const glm::vec3 &color, const float scale,
                                    const float z_offset) {
     _vertices = new Vertex[_vertex_count] {
-        {{ -0.5f * scale, -0.5f * scale,  z_offset, 1.0f },
-         { 0.5f, 0.0f, 0.0f, 1.0f }},
-        {{  0.5f * scale, -0.5f * scale,  z_offset, 1.0f },
-         { 0.0f, 0.5f, 0.0f, 1.0f }},
-        {{  0.5f * scale,  0.5f * scale,  z_offset, 1.0f },
-         { 0.0f, 0.0f, 0.5f, 1.0f }},
-        {{ -0.5f * scale,  0.5f * scale,  z_offset, 1.0f },
-         { 0.5f, 0.5f, 0.0f, 1.0f }}
+        {{ -0.5f * scale, -0.5f * scale,  z_offset, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale, -0.5f * scale,  z_offset, 1.0f }, { color, 1.0f }},
+        {{  0.5f * scale,  0.5f * scale,  z_offset, 1.0f }, { color, 1.0f }},
+        {{ -0.5f * scale,  0.5f * scale,  z_offset, 1.0f }, { color, 1.0f }},
     };
 
     _faces = new Face[_face_count] {
