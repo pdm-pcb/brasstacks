@@ -5,78 +5,131 @@
 
 namespace btx {
 
-std::vector<RenderQueue::ShaderIndex> RenderQueue::_shaders;
-std::vector<RenderQueue::Queue>       RenderQueue::_meshes;
+using Shaders = std::vector<RenderQueue::ShaderIndex>;
+using Meshes  = std::vector<RenderQueue::Queue>;
 
-std::mutex RenderQueue::_queue_lock;
-std::mutex RenderQueue::_submission_lock;
+Shaders RenderQueue::_shaders_a;
+Meshes  RenderQueue::_meshes_a;
+Shaders RenderQueue::_shaders_b;
+Meshes  RenderQueue::_meshes_b;
 
-std::condition_variable RenderQueue::_queue_ready;
-bool RenderQueue::_queue_empty = true;
+Shaders *RenderQueue::_shaders_front = &RenderQueue::_shaders_a;
+Meshes  *RenderQueue::_meshes_front  = &RenderQueue::_meshes_a;
+Shaders *RenderQueue::_shaders_back  = &RenderQueue::_shaders_b;
+Meshes  *RenderQueue::_meshes_back   = &RenderQueue::_meshes_b;
+
+std::mutex RenderQueue::_front_mutex;
+std::mutex RenderQueue::_back_mutex;
+
+std::condition_variable RenderQueue::_back_ready;
+bool RenderQueue::_back_empty = true;
+
+bool RenderQueue::_running = false;
 
 void RenderQueue::begin_scene() {
     {
-        std::unique_lock<std::mutex> lock(_submission_lock);
-        _queue_ready.wait(lock, []{ return _queue_empty; });
+        std::unique_lock<std::mutex> lock(_back_mutex);
+        _back_ready.wait(lock, []{ return _back_empty || !_running; });
     }
-    
-    _queue_lock.lock();
-    _queue_empty = false;
+    _back_mutex.lock();
 }
 
 void RenderQueue::end_scene() {
-    _queue_lock.unlock();
+    _back_empty = false;
+    _back_mutex.unlock();
+    _back_ready.notify_one();
 }
 
 void RenderQueue::begin_draw() {
-    _queue_lock.lock();
+    {
+        std::unique_lock<std::mutex> lock(_back_mutex);
+        _back_ready.wait(lock, []{ return !_back_empty || !_running; });
+    }
+    _back_mutex.lock();
+    _front_mutex.lock();
+
+    _swap_queues();
+    
+    _back_mutex.unlock();
+    _back_ready.notify_one();
 }
 
 void RenderQueue::end_draw() {
-    _clear_queue();
-    _queue_lock.unlock();
-    _queue_ready.notify_one();
+    _clear_front();
+    _front_mutex.unlock();
 }
 
 void RenderQueue::submit(const Shader *shader, const Entity::ID id) {
     assert(shader != nullptr);
 
     auto iter = std::find_if(
-        _shaders.begin(), _shaders.end(),
+        (*_shaders_back).begin(), (*_shaders_back).end(),
         [&shader](const ShaderIndex &kv_pair) {
             return kv_pair.first == shader;
         }
     );
 
-    if(iter == _shaders.end()) {
-        _meshes.emplace_back(Queue());
-        _meshes.back().reserve(RENDERQUEUE_PREALLOC);
-        _meshes.back().emplace_back(id);
-        _shaders.emplace_back(std::make_pair(shader, _meshes.size() - 1));
+    if(iter == (*_shaders_back).end()) {
+        (*_meshes_back).emplace_back(Queue());
+        (*_meshes_back).back().reserve(RENDERQUEUE_PREALLOC);
+        (*_meshes_back).back().emplace_back(id);
+        (*_shaders_back).emplace_back(
+            std::make_pair(shader, (*_meshes_back).size() - 1)
+        );
     }
     else {
-        _meshes[iter->second].emplace_back(id);
+        (*_meshes_back)[iter->second].emplace_back(id);
     }
 }
 
-RenderQueue::Queue RenderQueue::get_queue(std::size_t index) {
-    return _meshes[index];
+RenderQueue::Queue & RenderQueue::get_queue(std::size_t index) {
+    return (*_meshes_front)[index];
 }
 
 void RenderQueue::init() {
-    _shaders.reserve(RENDERQUEUE_PREALLOC);
-    _meshes.reserve(RENDERQUEUE_PREALLOC);
+    _shaders_a.reserve(RENDERQUEUE_PREALLOC);
+    _meshes_a.reserve(RENDERQUEUE_PREALLOC);
+    _shaders_b.reserve(RENDERQUEUE_PREALLOC);
+    _meshes_b.reserve(RENDERQUEUE_PREALLOC);
+
+    _running = true;
 }
 
 void RenderQueue::shutdown() {
-    _clear_queue();
-    _queue_ready.notify_all();
+    _running = false;
+    _back_ready.notify_all();
+
+    _front_mutex.lock();
+    _back_mutex.lock();
+
+    _clear_front();
+    _clear_back();
+
+    _front_mutex.unlock();
+    _back_mutex.unlock();
 }
 
-void RenderQueue::_clear_queue() {
-    _shaders.clear();
-    _meshes.clear();
-    _queue_empty = true;
+void RenderQueue::_clear_front() {
+    (*_shaders_front).clear();
+    (*_meshes_front).clear();
+}
+
+void RenderQueue::_clear_back() {
+    (*_shaders_back).clear();
+    (*_meshes_back).clear();
+}
+
+void RenderQueue::_swap_queues() {
+    auto shaders_temp = _shaders_front;
+    auto meshes_temp  = _meshes_front;
+
+    _shaders_front = _shaders_back;
+    _meshes_front  = _meshes_back;
+
+    _shaders_back = shaders_temp;
+    _meshes_back  = meshes_temp;
+
+    _back_empty  = true;
 }
 
 } // namespace btx

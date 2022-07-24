@@ -20,7 +20,7 @@ void GLContextWGL::run() {
     RenderQueue::begin_draw();
     Clock::frame_tick();
         
-        for(auto &[shader, index] : RenderQueue::get_indices()) {
+        for(auto [shader, index] : RenderQueue::get_indices()) {
             auto camera = ecs->get<cCamera>(CameraBag::get_active());
 
             shader->bind();
@@ -39,8 +39,7 @@ void GLContextWGL::run() {
                 ::glDrawElements(
                     GL_TRIANGLES,
                     static_cast<GLsizei>(render_c->mesh->index_count()),
-                    GL_UNSIGNED_INT,
-                    0
+                    GL_UNSIGNED_INT, 0
                 );
             }
         }
