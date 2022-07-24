@@ -13,13 +13,16 @@
 namespace btx {
 
 class RenderContext;
+class Layer;
 
-class Engine : public EventListener {
+class Engine final : public EventListener {
 public:
     void on_event(Event &event) override;
 
     void update_thread();
     void render_thread();
+
+    void wait_for_render_thread();
 
     Engine();
     ~Engine();
@@ -42,9 +45,8 @@ private:
     ECS *_ecs;
 };
 
-void load_user_resources();
-void user_update_code();
-void user_render_code();
+void load_resources();
+Layer * create_layer();
 
 } // namespace btx
 

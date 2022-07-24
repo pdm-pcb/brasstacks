@@ -8,6 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(
     brasstacks STATIC
+    "src/System/main.cpp"
     "src/Utility/Logger.cpp"
     "src/System/Clock.cpp"
 	"src/Application/Application.cpp"
@@ -17,6 +18,7 @@ add_library(
     "src/Engine/RenderConfig.cpp"
     "src/Engine/RenderContext.cpp"
     "src/Engine/RenderQueue.cpp"
+    "src/Engine/LayerStack.cpp"
     "src/Events/WindowEvent.cpp"
     "src/Events/KeyboardEvent.cpp"
     "src/Events/MouseEvent.cpp"
@@ -40,7 +42,6 @@ add_library(
     "src/ECS/ComponentPool.cpp"
     "src/ECS/ECS.cpp"
     "src/ECS/ECSIter.cpp"
-    "src/ECS/Systems/CameraSystem.cpp"
 )
 
 target_include_directories(

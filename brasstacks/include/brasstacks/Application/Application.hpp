@@ -7,7 +7,9 @@
 
 namespace btx {
 	
-class Application : public EventListener {
+class Layer;
+
+class Application final : public EventListener {
 public:
     void on_event(Event &event) override;
 
@@ -25,8 +27,6 @@ public:
 private:
     std::atomic<bool> _running;
 };
-
-Application * create_application();
 
 } // namespace btx
 

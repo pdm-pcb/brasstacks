@@ -10,19 +10,13 @@
 #include "brasstacks/Events/Event.hpp"
 #include "brasstacks/Events/KeyboardEvent.hpp"
 
+#include "brasstacks/Engine/LayerStack.hpp"
+
 #include "brasstacks/ECS/ECSView.hpp"
-#include "brasstacks/ECS/Systems/CameraSystem.hpp"
-#include "brasstacks/Cameras/CameraBag.hpp"
 
 namespace btx {
 
-std::atomic<bool> w = false;
-std::atomic<bool> a = false;
-std::atomic<bool> s = false;
-std::atomic<bool> d = false;
-std::atomic<bool> shift = false;
-std::atomic<bool> ctrl  = false;
-std::atomic<bool> space = false;
+extern Layer * create_layer();
 
 void Engine::on_event(Event &event) {
     switch(event.type()) {
@@ -33,72 +27,26 @@ void Engine::on_event(Event &event) {
             _update_thread_running.store(false);
             break;
 
-        case EventType::KeyPressed:
-        {
-            auto *key_event = reinterpret_cast<KeyPressedEvent *>(&event);
-            switch(key_event->key()) {
-                case KB_W:      w     = true; break;
-                case KB_A:      a     = true; break;
-                case KB_S:      s     = true; break;
-                case KB_D:      d     = true; break;
-                case KB_LSHIFT: shift = true; break;
-                case KB_LCTRL:  ctrl  = true; break;
-                case KB_SPACE:  space = true; break;
-            }
-            break;
-        }
-
-        case EventType::KeyReleased:
-        {
-            auto *key_event = reinterpret_cast<KeyReleasedEvent *>(&event);
-            switch(key_event->key()) {
-                case KB_W:      w     = false; break;
-                case KB_A:      a     = false; break;
-                case KB_S:      s     = false; break;
-                case KB_D:      d     = false; break;
-                case KB_LSHIFT: shift = false; break;
-                case KB_LCTRL:  ctrl  = false; break;
-                case KB_SPACE:  space = false; break;
-            }
-            break;
-        }
-
-        case EventType::MouseMoved:
-        {
-            auto [ x_offset, y_offset ] =
-                reinterpret_cast<MouseMovedEvent *>(&event)->offset();
-
-            auto camera = _ecs->get<cCamera>(CameraBag::get_active());
-            camera->pitch -= 0.00125f * y_offset;
-            camera->yaw   += 0.00125f * x_offset;
-
-            break;
-        }
-
         default: break;
     }
+
+    LayerStack::on_event(event);
 }
 
 void Engine::update_thread() {
-    {
-        std::unique_lock<std::mutex> lock(_thread_startup);
-        _render_thread_ready.wait(
-            lock,
-            [this]{ return _render_thread_running.load(); }
-        );
-    }
+
+    LayerStack::init();
+    wait_for_render_thread();
+
+    auto *user_layer = create_layer();
+    LayerStack::push_layer(user_layer);
 
     _update_thread_running.store(true);
     while(_update_thread_running) {
         RenderQueue::begin_scene();
         Clock::update_tick();
 
-            CameraSystem::update(
-                { w, a, s, d, shift, ctrl, space },
-                Clock::frame_delta()
-            );
-
-            user_update_code();
+            LayerStack::update_layers();
 
             for(const auto id : ECSView<cRender>(*_ecs)) {
                 auto render = _ecs->get<cRender>(id);
@@ -108,6 +56,8 @@ void Engine::update_thread() {
         RenderQueue::end_scene();
         Clock::update_tock();
     }
+
+    LayerStack::shutdown();
 }
 
 void Engine::render_thread() {
@@ -124,10 +74,10 @@ void Engine::render_thread() {
     TextureLibrary::init();
     ShaderLibrary::init();
 
-    load_user_resources();
+    load_resources();
 
     _render_thread_running.store(true);
-    _render_thread_ready.notify_one();
+    _render_thread_ready.notify_all();
 
     while(_render_thread_running) {
         _render_context->run();
@@ -138,6 +88,14 @@ void Engine::render_thread() {
     ShaderLibrary::shutdown();
 
     _render_context->shutdown();
+}
+
+void Engine::wait_for_render_thread() {
+    std::unique_lock<std::mutex> lock(_thread_startup);
+    _render_thread_ready.wait(
+        lock,
+        [this]{ return _render_thread_running.load(); }
+    );
 }
 
 Engine::Engine() :
@@ -155,27 +113,6 @@ Engine::Engine() :
     TargetWindow::current()->subscribe_to(this, EventType::MouseButtonReleased);
 
     ECS::set_active(_ecs);
-
-    Entity::ID camera = _ecs->new_entity();
-    _ecs->assign<cMove>(camera);
-
-    auto camera_tc = _ecs->assign<cTransform>(camera);
-    camera_tc->position  = { 0.0f, 0.0f, 2.0f };
-
-    auto camera_cc = _ecs->assign<cCamera>(camera);
-    camera_cc->view_matrix = glm::lookAt(
-        camera_tc->position,
-        camera_cc->forward,
-        camera_cc->up
-    );
-    camera_cc->proj_matrix = glm::perspective(
-        math::pi_over_four,
-        static_cast<float>(RenderConfig::window_x_res) /
-        static_cast<float>(RenderConfig::window_y_res),
-        RenderConfig::near_clip, RenderConfig::far_clip
-    );
-
-    CameraBag::set_active(camera);
 }
 
 Engine::~Engine() {

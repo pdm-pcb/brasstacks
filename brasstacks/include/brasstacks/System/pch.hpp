@@ -57,6 +57,8 @@
 #include "brasstacks/Application/TargetWindow.hpp"
 #include "brasstacks/Engine/Engine.hpp"
 #include "brasstacks/Engine/RenderConfig.hpp"
+#include "brasstacks/Engine/Layer.hpp"
+#include "brasstacks/Engine/LayerStack.hpp"
 #include "brasstacks/Utility/Logger.hpp"
 #include "brasstacks/Utility/EnumRange.hpp"
 #include "brasstacks/Utility/math.hpp"
@@ -90,7 +92,6 @@
 #include <algorithm>
 #include <bitset>
 #include <array>
-#include <queue>
 #include <unordered_map>
 
 #endif // BRASSTACKS_UTILITY_PCH_HPP

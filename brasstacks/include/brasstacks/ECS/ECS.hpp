@@ -5,10 +5,9 @@
 #include "brasstacks/ECS/Component.hpp"
 #include "brasstacks/ECS/ComponentPool.hpp"
 
+#include "brasstacks/ECS/Components/cCamera.hpp"
 #include "brasstacks/ECS/Components/cTransform.hpp"
 #include "brasstacks/ECS/Components/cMove.hpp"
-#include "brasstacks/ECS/Components/cCamera.hpp"
-#include "brasstacks/ECS/Components/cCube.hpp"
 #include "brasstacks/ECS/Components/cRender.hpp"
 
 // TODO: come back and make more sense of this, specifically ID recycling and

@@ -1,7 +1,12 @@
 add_executable(
     demo
 	"src/demo.cpp"
+    "src/load_resources.cpp"
+    "src/add_terrain.cpp"
+    "src/add_cube.cpp"
+    "src/add_camera.cpp"
     "src/CubeSystem.cpp"
+    "src/CameraSystem.cpp"
 )
 
 target_include_directories(

@@ -8,7 +8,6 @@ namespace btx {
 class GLTexture2D : public Texture2D {
 public:
 	void bind(const uint32_t slot = 0) override;
-	void unbind() const override;
 
     GLTexture2D(const char *filepath, const bool flip_vertical,
                 const bool gen_mipmaps,
@@ -25,8 +24,8 @@ public:
     GLTexture2D & operator=(GLTexture2D &)        = delete;
 
 private:
-	GLenum _handle;
-	GLenum _slot;
+	GLuint _handle;
+	GLuint _slot;
 };
 
 } // namespace btx

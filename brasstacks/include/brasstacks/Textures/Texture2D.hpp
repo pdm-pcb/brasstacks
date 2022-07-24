@@ -26,7 +26,6 @@ public:
     };
 
 	virtual void bind(const uint32_t slot = 0) = 0;
-	virtual void unbind() const = 0;
 
     static Texture2D * create(const char *filepath, const bool flip_vertical,
                               const bool gen_mipmaps,

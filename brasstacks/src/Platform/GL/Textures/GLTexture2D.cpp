@@ -10,17 +10,12 @@ void GLTexture2D::bind(const uint32_t slot) {
     glBindTextureUnit(_slot, _handle);
 }
 
-void GLTexture2D::unbind() const {
-	glActiveTexture(GL_TEXTURE0 + _slot);
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
 GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
                          const bool gen_mipmaps,
                          const MinFilter min_filter,
                          const MagFilter mag_filter,
                          const Wrap wrap_s, const Wrap wrap_t) :
-	_handle { GL_INVALID_ENUM },
+	_handle { GL_NONE },
     _slot   { 0 }
 {
 	static_assert(GL_TEXTURE1 - GL_TEXTURE0 == 1);
@@ -45,7 +40,7 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
 	}
 
     glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
-    assert(_handle != GL_INVALID_ENUM);
+    assert(_handle != GL_NONE);
 
     GLint param = 0;
     switch(min_filter) {
@@ -84,19 +79,19 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
 	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, param);
 
     switch(wrap_s) {
-        case Wrap::clamp_to_edge:        param = GL_CLAMP_TO_EDGE; break;
-        case Wrap::clamp_to_border:      param = GL_CLAMP_TO_BORDER; break;
-        case Wrap::mirror_repeat:        param = GL_MIRRORED_REPEAT; break;
-        case Wrap::repeat:               param = GL_REPEAT; break;
+        case Wrap::clamp_to_edge:        param = GL_CLAMP_TO_EDGE;        break;
+        case Wrap::clamp_to_border:      param = GL_CLAMP_TO_BORDER;      break;
+        case Wrap::mirror_repeat:        param = GL_MIRRORED_REPEAT;      break;
+        case Wrap::repeat:               param = GL_REPEAT;               break;
         case Wrap::mirror_clamp_to_edge: param = GL_MIRROR_CLAMP_TO_EDGE; break;
     }
 	glTextureParameteri(_handle, GL_TEXTURE_WRAP_S, param);
 
     switch(wrap_t) {
-        case Wrap::clamp_to_edge:        param = GL_CLAMP_TO_EDGE; break;
-        case Wrap::clamp_to_border:      param = GL_CLAMP_TO_BORDER; break;
-        case Wrap::mirror_repeat:        param = GL_MIRRORED_REPEAT; break;
-        case Wrap::repeat:               param = GL_REPEAT; break;
+        case Wrap::clamp_to_edge:        param = GL_CLAMP_TO_EDGE;        break;
+        case Wrap::clamp_to_border:      param = GL_CLAMP_TO_BORDER;      break;
+        case Wrap::mirror_repeat:        param = GL_MIRRORED_REPEAT;      break;
+        case Wrap::repeat:               param = GL_REPEAT;               break;
         case Wrap::mirror_clamp_to_edge: param = GL_MIRROR_CLAMP_TO_EDGE; break;
     }
 	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, param);
@@ -128,7 +123,6 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
     if(gen_mipmaps) {
 	    glGenerateTextureMipmap(_handle);
     }
-	unbind();
 
 	if(buffer != nullptr) {
 		stbi_image_free(buffer);

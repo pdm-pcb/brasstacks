@@ -4,10 +4,6 @@
 #include "brasstacks/Application/Application.hpp"
 #include "brasstacks/Utility/Logger.hpp"
 
-#include <cstdio>
-
-extern btx::Application * btx::create_application();
-
 int main(int argc, char **argv) {
     btx::Logger::init();
 
@@ -15,7 +11,7 @@ int main(int argc, char **argv) {
         BTX_ENGINE_TRACE("CLI Argument {}: {}", i+1, argv[i]);
     }
 
-    btx::Application *application = btx::create_application();
+    auto *application = new btx::Application;
 
     if(argc == 1) {
         application->configure(argv[1]);
