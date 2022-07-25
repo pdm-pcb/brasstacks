@@ -5,7 +5,7 @@
 #include "CubeSystem.hpp"
 
 void add_terrain();
-void add_cube();
+void add_cubes(const float offset, const std::size_t cubes);
 void add_camera();
 
 std::atomic<bool> w = false;
@@ -21,7 +21,8 @@ class GameplayLayer : public btx::Layer {
         BTX_TRACE("Gameplay Layer attached.");
         add_camera();
         add_terrain();
-        add_cube();
+        add_cubes(10.0f, 5);
+        add_cubes(-10.0f, 5);
     }
 
     void on_detach() override {

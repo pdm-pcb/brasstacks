@@ -156,6 +156,8 @@ GLVertexBuffer::~GLVertexBuffer() {
     glDeleteVertexArrays(1, &_vao);
     glDeleteBuffers(1, &_vbo);
     glDeleteBuffers(1, &_ibo);
+
+    delete _layout;
 }
 
 } // namespace btx

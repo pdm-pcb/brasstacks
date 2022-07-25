@@ -14,6 +14,7 @@ constexpr std::size_t RENDERQUEUE_PREALLOC = 100;
 namespace btx {
 
 class Shader;
+class Profiler;
 
 class RenderQueue final {
 public:

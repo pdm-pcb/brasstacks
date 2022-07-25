@@ -31,8 +31,8 @@ void add_terrain() {
     dir->props.ambient.w = 1.0f;
     dir->props.specular  = dir->props.diffuse;
 
-    point->position          = { 0.0f, -3.0f, 0.0f, 1.0f };
-    point->props.diffuse     = { 0.5f,  0.5f, 0.5f, 1.0f };
+    point->position          = { 0.0f, -3.0f, -4.0f, 1.0f };
+    point->props.diffuse     = { 0.5f, 0.5f, 0.5f, 1.0f };
     point->props.ambient     = point->props.diffuse * 0.1f;
     point->props.ambient.w   = 1.0f;
     point->props.specular    = point->props.diffuse;
@@ -50,10 +50,9 @@ void add_terrain() {
         glm::translate(btx::mat4_ident, pointcaster_tx->position) *
         glm::scale(btx::mat4_ident, { pointcaster_tx->scale });
 
-
-    spot->position          = { 25.0f, -2.0f, -35.0f, 1.0f };
-    spot->heading           = { glm::normalize(glm::vec3(-spot->position)), 1.0f };
-    spot->props.diffuse     = { 0.5f,  0.5f, 0.5f, 1.0f };
+    spot->position          = { 0.0f, 10.0f, -35.0f, 1.0f };
+    spot->heading           = { 0.0f, -1.0f, 0.0f, 1.0f };
+    spot->props.diffuse     = { 0.25f, 0.25f, 0.75f, 1.0f };
     spot->props.ambient     = spot->props.diffuse * 0.1f;
     spot->props.ambient.w   = 1.0f;
     spot->props.specular    = spot->props.diffuse;
@@ -63,7 +62,7 @@ void add_terrain() {
 
     btx::Entity::ID spotcaster = ecs->new_entity();
     auto spotcaster_render = ecs->assign<btx::cRender>(spotcaster);
-    spotcaster_render->mesh = btx::MeshLibrary::checkout("flat_color_cube_white");
+    spotcaster_render->mesh = btx::MeshLibrary::checkout("flat_color_cube_blue");
     spotcaster_render->shader = btx::ShaderLibrary::checkout("flat_color");
     auto spotcaster_tx = ecs->assign<btx::cTransform>(spotcaster);
     spotcaster_tx->position = spot->position;

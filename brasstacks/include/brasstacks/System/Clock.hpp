@@ -7,10 +7,9 @@
 namespace btx {
 
 class Clock final {
-    friend class TimeACI;
+public:
     using HRC = std::chrono::high_resolution_clock;
 
-public:
     static void frame_tick();
     static void frame_tock();
     static void frame_delta_tock();
@@ -24,6 +23,9 @@ public:
     static float frame_time()   { return _frame_time.load();   }
     static float frame_delta()  { return _frame_delta.load();  }
     static float update_time()  { return _update_time.load();  }
+
+    static HRC::time_point now() { return HRC::now(); }
+    static void precise_sleep(double sleep_seconds);
 
     Clock()  = delete;
     ~Clock() = delete;

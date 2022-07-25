@@ -11,6 +11,8 @@ namespace btx {
 class TargetWindow;
 class GLDebugger;
 
+class Profiler;
+
 class GLContextWGL : public RenderContext {
 public:
     void init()     override;
@@ -44,6 +46,10 @@ private:
     std::string _window_title;
 
     std::mutex _context_mutex;
+
+
+    Profiler *_draw_perf;
+    Profiler *_bufswap_perf;
 
     void _driver_hooks();
     void _update_window_title();

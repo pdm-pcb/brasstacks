@@ -351,8 +351,6 @@ void Win32ConfigWindow::_populate_ui() {
         nullptr, nullptr
     );
 
-    ::CheckDlgButton(_window, IDC_VSYNC, BST_CHECKED);
-
     _fullscreen = ::CreateWindow(
         "button", "Full Screen",
         WS_CHILD | WS_VISIBLE | BS_CHECKBOX,
@@ -535,6 +533,9 @@ void Win32ConfigWindow::_populate_api_list() {
 void Win32ConfigWindow::_set_defaults() {
     _select_gpu(0); // hopefully the default GPU
     _select_api(0); // OpenGL
+
+    // don't roast your GPU
+    ::CheckDlgButton(_window, IDC_VSYNC, BST_CHECKED);
 
     // half plus one, anyone?
     ::LRESULT close_enough_for_ska = static_cast<::LRESULT>(

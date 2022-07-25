@@ -126,17 +126,16 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
         buffer
     );
 
-    if(gen_mipmaps) {
-	    glGenerateTextureMipmap(_handle);
-    }
-
 	if(buffer != nullptr) {
 		stbi_image_free(buffer);
 		buffer = nullptr;
 	}
+
+    if(gen_mipmaps) {
+	    glGenerateTextureMipmap(_handle);
+    }
     
     context->release_context();
-	BTX_ENGINE_TRACE("Loaded texture {}", filepath);
 }
 
 GLTexture2D::~GLTexture2D() {

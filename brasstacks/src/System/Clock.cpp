@@ -49,4 +49,31 @@ void Clock::update() {
     _game_runtime.store(_true_runtime.load(std::memory_order_relaxed));
 }
 
+void Clock::precise_sleep(double sleep_seconds) {
+    static double estimate = 5e-3;
+    static double mean = 5e-3;
+    static double m2 = 0;
+    static int64_t count = 1;
+
+    while (sleep_seconds > estimate) {
+        auto start = HRC::now();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        auto end = HRC::now();
+
+        double observed = (end - start).count() / 1e9;
+        sleep_seconds -= observed;
+
+        ++count;
+        double delta = observed - mean;
+        mean += delta / count;
+        m2   += delta * (observed - mean);
+        double stddev = sqrt(m2 / (count - 1));
+        estimate = mean + stddev;
+    }
+
+    // spin lock
+    auto start = HRC::now();
+    while ((HRC::now() - start).count() / 1e9 < sleep_seconds);
+}
+
 } // namespace btx

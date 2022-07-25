@@ -85,7 +85,7 @@ public:
     }
 
     ECS() = default;
-    ~ECS() = default;
+    ~ECS();
 
     ECS(const ECS &&) = delete;
     ECS(ECS &)        = delete;

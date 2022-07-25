@@ -12,6 +12,15 @@ static constexpr float pi_over_four = pi / 4.0f;
 static constexpr float pi_over_4    = pi_over_four;
 static constexpr float pi_over_180  = pi / 180.0f;
 
+static constexpr float one_over_sixty  = 1 / 60.0f;
+static constexpr float one_over_thirty = 1 / 30.0f;
+
+static constexpr double one_over_sixty_ms  = 1 / 60.0 * 1000;
+static constexpr double one_over_thirty_ms = 1 / 30.0 * 1000;
+
+static constexpr double one_over_sixty_us  = 1 / 60.0 * 1'000'000;
+static constexpr double one_over_thirty_us = 1 / 30.0 * 1'000'000;
+
 } // namespace math
 } // namespace btx
 

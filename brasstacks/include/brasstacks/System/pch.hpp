@@ -1,6 +1,23 @@
 #ifndef BRASSTACKS_UTILITY_PCH_HPP
 #define BRASSTACKS_UTILITY_PCH_HPP
 
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
+#include <cstdlib>
+#include <thread>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
+#include <vector>
+#include <utility>
+#include <algorithm>
+#include <bitset>
+#include <array>
+#include <unordered_map>
+#include <fstream>
+
 // OS checks
 #ifdef __linux__
     #include <X11/Xlib.h>
@@ -71,27 +88,12 @@
 #include "brasstacks/ECS/ECS.hpp"
 #include "brasstacks/ECS/ECSView.hpp"
 #include "brasstacks/System/Clock.hpp"
+#include "brasstacks/System/Profiler.hpp"
 #include "brasstacks/System/Input/KeyCodes.hpp"
 #include "brasstacks/System/glm.hpp"
 #include "brasstacks/AssetLibraries/MeshLibrary.hpp"
 #include "brasstacks/AssetLibraries/TextureLibrary.hpp"
 #include "brasstacks/AssetLibraries/ShaderLibrary.hpp"
 #include "brasstacks/Cameras/CameraBag.hpp"
-
-#include <cstdio>
-#include <cstdint>
-#include <cstring>
-#include <cstdlib>
-#include <thread>
-#include <atomic>
-#include <mutex>
-#include <condition_variable>
-#include <chrono>
-#include <vector>
-#include <utility>
-#include <algorithm>
-#include <bitset>
-#include <array>
-#include <unordered_map>
 
 #endif // BRASSTACKS_UTILITY_PCH_HPP

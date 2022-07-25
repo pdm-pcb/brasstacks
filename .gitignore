@@ -11,3 +11,8 @@ debug/
 release/
 
 imgui.ini
+
+.clang-tidy
+logparser.py
+memparser.py
+valgrind.sh

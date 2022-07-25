@@ -49,4 +49,10 @@ std::size_t ECS::entity_count() {
     return _entities.size();
 }
 
+ECS::~ECS() {
+    for(auto pool : _component_pools) {
+        delete pool;
+    }
+}
+
 } // namespace btx

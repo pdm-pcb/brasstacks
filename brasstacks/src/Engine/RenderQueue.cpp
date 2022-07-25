@@ -72,13 +72,13 @@ void RenderQueue::submit(const Shader *shader, const Entity::ID id) {
     if(iter == (*_shaders_back).end()) {
         (*_meshes_back).emplace_back(Queue());
         (*_meshes_back).back().reserve(RENDERQUEUE_PREALLOC);
-        (*_meshes_back).back().emplace_back(id);
+        (*_meshes_back).back().push_back(id);
         (*_shaders_back).emplace_back(
             std::make_pair(shader, (*_meshes_back).size() - 1)
         );
     }
     else {
-        (*_meshes_back)[iter->second].emplace_back(id);
+        (*_meshes_back)[iter->second].push_back(id);
     }
 }
 
@@ -110,24 +110,26 @@ void RenderQueue::shutdown() {
 }
 
 void RenderQueue::_clear_front() {
-    (*_shaders_front).clear();
-    (*_meshes_front).clear();
+    for(std::size_t mesh_index = 0;
+        mesh_index < (*_meshes_front).size();
+        mesh_index++)
+    {
+        (*_meshes_front)[mesh_index].clear();
+    }
 }
 
 void RenderQueue::_clear_back() {
-    (*_shaders_back).clear();
-    (*_meshes_back).clear();
+    for(std::size_t mesh_index = 0;
+        mesh_index < (*_meshes_back).size();
+        mesh_index++)
+    {
+        (*_meshes_back)[mesh_index].clear();
+    }
 }
 
 void RenderQueue::_swap_queues() {
-    auto shaders_temp = _shaders_front;
-    auto meshes_temp  = _meshes_front;
-
-    _shaders_front = _shaders_back;
-    _meshes_front  = _meshes_back;
-
-    _shaders_back = shaders_temp;
-    _meshes_back  = meshes_temp;
+    std::swap(_shaders_front, _shaders_back);
+    std::swap(_meshes_front, _meshes_back);
 }
 
 } // namespace btx

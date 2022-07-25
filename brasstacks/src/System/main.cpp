@@ -1,11 +1,12 @@
 #ifndef BRASSTACKS_APPLICATION_ENTRYPOINT_HPP
 #define BRASSTACKS_APPLICATION_ENTRYPOINT_HPP
 
-#include "brasstacks/Application/Application.hpp"
-#include "brasstacks/Utility/Logger.hpp"
+#include "brasstacks/Utility/memtracker.hpp"
+#include "brasstacks/System/pch.hpp"
 
 int main(int argc, char **argv) {
     btx::Logger::init();
+    btx::Profiler::init();
 
     for(int i = 0; i < argc; i++) {
         BTX_ENGINE_TRACE("CLI Argument {}: {}", i+1, argv[i]);
@@ -23,6 +24,8 @@ int main(int argc, char **argv) {
     application->run();
 
     delete application;
+
+    btx::Profiler::shutdown();
 
     return 0;
 }

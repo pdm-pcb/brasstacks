@@ -1,8 +1,6 @@
 #include "brasstacks/System/pch.hpp"
 #include "brasstacks/Shaders/Shader.hpp"
 
-#include <fstream>
-
 namespace btx {
 
 char *Shader::load_source(const char *filepath) {

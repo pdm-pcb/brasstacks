@@ -2,16 +2,16 @@
 
 #include "cCube.hpp"
 
-void add_cube() {
+void add_cubes(const float offset, const std::size_t cubes) {
     btx::ECS *ecs = btx::ECS::get_active();
 
-    for(std::size_t col = 0; col < 5; ++col) {
-        for(std::size_t row = 0; row < 5; ++row) {
+    for(std::size_t col = 0; col < cubes; ++col) {
+        for(std::size_t row = 0; row < cubes; ++row) {
             btx::Entity::ID new_cube = ecs->new_entity();
             ecs->assign<cCube>(new_cube);
 
             auto cube_transform = ecs->assign<btx::cTransform>(new_cube);
-            cube_transform->position = { 10.0f * col, 0.0f, -10.0f * row -10.0f };
+            cube_transform->position = { offset * col, 0.0f, -10.0f * row - 15.0f };
             cube_transform->scale = { 5.0f, 5.0f, 5.0f };
 
             ecs->assign<btx::cWorldMat>(new_cube);

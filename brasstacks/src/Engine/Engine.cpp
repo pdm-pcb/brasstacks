@@ -18,24 +18,26 @@ namespace btx {
 extern Layer * create_layer();
 
 void Engine::on_event(Event &event) {
+    LayerStack::on_event(event);
+
     switch(event.type()) {
         case EventType::WindowClosed:
             BTX_ENGINE_TRACE("Engine received WindowClosed");
-            RenderQueue::shutdown();
             _render_thread_running.store(false);
             _update_thread_running.store(false);
+            RenderQueue::shutdown();
             break;
 
         default: break;
     }
-
-    LayerStack::on_event(event);
 }
 
 void Engine::update_thread() {
-
     LayerStack::init();
     _wait_for_render_thread();
+
+auto update_perf = Profiler::spawn("update");
+auto submit_perf = Profiler::spawn("submit");
 
     auto *user_layer = create_layer();
     LayerStack::push_layer(user_layer);
@@ -43,24 +45,30 @@ void Engine::update_thread() {
     _update_thread_running.store(true);
     while(_update_thread_running) {
         RenderQueue::begin_scene();
+
         Clock::update_tick();
-    
+update_perf->start();
             Clock::update();
             LayerStack::update_layers();
-
+update_perf->stop(0.0f);
+submit_perf->start();
             for(const auto id : ECSView<cRender>(*_ecs)) {
                 auto render = _ecs->get<cRender>(id);
                 RenderQueue::submit(render->shader, id);
             }
-
+submit_perf->stop(0.0f);
         RenderQueue::end_scene();
         Clock::update_tock();
     }
 
     LayerStack::shutdown();
+
+delete update_perf;
+delete submit_perf;
 }
 
 void Engine::render_thread() {
+auto render_perf = Profiler::spawn("render");
     RenderQueue::init();
 
     _render_context->init();
@@ -80,7 +88,9 @@ void Engine::render_thread() {
     _render_thread_ready.notify_all();
 
     while(_render_thread_running) {
+render_perf->start();
         _render_context->run();
+render_perf->stop(math::one_over_sixty_us);
     }
 
     MeshLibrary::shutdown();
@@ -88,6 +98,8 @@ void Engine::render_thread() {
     ShaderLibrary::shutdown();
 
     _render_context->shutdown();
+
+delete render_perf;
 }
 
 void Engine::_wait_for_render_thread() {
@@ -105,6 +117,8 @@ Engine::Engine() :
     _ecs { new ECS }
 
 {
+    BTX_ENGINE_TRACE("Engine constructor");
+
     TargetWindow::current()->subscribe_to(this, EventType::WindowClosed);
     TargetWindow::current()->subscribe_to(this, EventType::KeyPressed);
     TargetWindow::current()->subscribe_to(this, EventType::KeyReleased);
@@ -117,6 +131,8 @@ Engine::Engine() :
 }
 
 Engine::~Engine() {
+    BTX_ENGINE_TRACE("Engine destructor");
+
     TargetWindow::current()->unsubscribe(this, EventType::WindowClosed);
     TargetWindow::current()->unsubscribe(this, EventType::KeyPressed);
     TargetWindow::current()->unsubscribe(this, EventType::KeyReleased);

@@ -9,6 +9,7 @@ void * ComponentPool::get(Entity::Index index) {
 
 ComponentPool::ComponentPool(std::size_t component_size) {
     _component_size = component_size;
+    BTX_ENGINE_TRACE("Allocating {} bytes per component", _component_size);
     _data = new char[_component_size * MAX_ENTITIES];
 }
 

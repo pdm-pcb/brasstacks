@@ -11,6 +11,7 @@ add_library(
     "src/System/main.cpp"
     "src/Utility/Logger.cpp"
     "src/System/Clock.cpp"
+    "src/System/Profiler.cpp"
 	"src/Application/Application.cpp"
     "src/Application/ConfigWindow.cpp"
     "src/Application/TargetWindow.cpp"

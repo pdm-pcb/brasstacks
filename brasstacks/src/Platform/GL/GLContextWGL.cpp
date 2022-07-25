@@ -12,14 +12,19 @@
 
 namespace btx {
 
+
+
 void GLContextWGL::run() {
+    std::uint32_t entity_count = 0;
+
     ECS *ecs = ECS::get_active();
 
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     RenderQueue::begin_draw();
     Clock::frame_tick();
-        
+
+_draw_perf->start();        
         for(auto [shader, index] : RenderQueue::get_indices()) {
             auto camera = ecs->get<cCamera>(CameraBag::get_active());
 
@@ -41,16 +46,21 @@ void GLContextWGL::run() {
                     static_cast<GLsizei>(render_c->mesh->index_count()),
                     GL_UNSIGNED_INT, 0
                 );
+                ++entity_count;
             }
         }
 
-    Clock::frame_tock();
-    ::SwapBuffers(_device);
-    
     RenderQueue::end_draw();
+    Clock::frame_tock();
+
+_draw_perf->stop(0.0f);
+_bufswap_perf->start();
+    ::SwapBuffers(_device);
+_bufswap_perf->stop(0.0f);
+
     Clock::frame_delta_tock();
 
-    _update_window_title();
+    // _update_window_title();
 }
 
 void GLContextWGL::init() {
@@ -261,15 +271,19 @@ void GLContextWGL::set_clear_color(float r, float g, float b, float a) {
 }
 
 GLContextWGL::GLContextWGL(const TargetWindow *window) :
-    _window   { static_cast<::HWND>(window->get_native()) },
-    _device   { nullptr },
-    _context  { nullptr },
-    _debugger { nullptr },
+    _window       { static_cast<::HWND>(window->get_native()) },
+    _device       { nullptr },
+    _context      { nullptr },
+    _debugger     { nullptr },
+    _draw_perf  { Profiler::spawn("gpu commands") },
+    _bufswap_perf  { Profiler::spawn("buffer swap") },
     _window_title { "Brasstacks Engine " }
 { }
 
 GLContextWGL::~GLContextWGL() {
     delete _debugger;
+    delete _draw_perf;
+    delete _bufswap_perf;
 }
 
 } // namespace btx
