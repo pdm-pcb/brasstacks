@@ -5,23 +5,17 @@
 
 namespace btx {
 
-void GLShaderScreenLog::set_text_color(const glm::vec4 &text_color) const {
-    glUniform4f(
-        _text_color,
-        text_color.x,
-        text_color.y,
-        text_color.z,
-        text_color.w
-    );
+void GLShaderScreenLog::set_world(const glm::mat4 &world) const {
+    glUniformMatrix4fv(_world_uniform, 1, GL_FALSE, &world[0][0]);
 }
 
 void GLShaderScreenLog::_find_uniform() {
-    _text_color = glGetUniformLocation(handle(), "text_color");
+    _world_uniform = glGetUniformLocation(handle(), "world_matrix");
 }
 
 GLShaderScreenLog::GLShaderScreenLog() :
     GLShader(),
-    _text_color { GL_NONE }
+    _world_uniform { GL_NONE }
 {
     add_program("../../assets/shaders/glsl/screen_log.vert",
                 Shader::Type::Vertex);

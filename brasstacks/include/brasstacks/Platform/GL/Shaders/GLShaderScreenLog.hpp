@@ -7,7 +7,7 @@ namespace btx {
 
 class GLShaderScreenLog : public GLShader {
 public:
-    void set_text_color(const glm::vec4 &text_color) const;
+    void set_world(const glm::mat4 &world) const;
 
     GLShaderScreenLog();
     ~GLShaderScreenLog() = default;
@@ -19,7 +19,7 @@ public:
     GLShaderScreenLog & operator=(GLShaderScreenLog &)        = delete;
 
 private:
-    GLuint _text_color;
+    GLuint _world_uniform;
 
     void _find_uniform();
 };

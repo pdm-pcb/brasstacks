@@ -97,6 +97,13 @@ void MeshLibrary::init() {
         Mesh::Primitives::Cube,
         { 0.0f, 0.0f, 1.0f }
     );
+
+    MeshLibrary::load(
+        Mesh::Type::FlatColor,
+        "black_quad",
+        Mesh::Primitives::XYPlane,
+        { 0.0f, 0.0f, 0.0f }
+    );
 }
 
 void MeshLibrary::shutdown() {

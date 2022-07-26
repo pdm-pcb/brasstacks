@@ -48,7 +48,7 @@ _draw_perf->start();
             }
         }
 
-        ScreenLog::write_line("Hello, world.", 0.0f, 0.0f, 1.0f);
+        // ScreenLog::write_line("Hello, world.", 0.0f, 0.0f, 1.0f);
 
     RenderQueue::end_draw();
     Clock::frame_tock();

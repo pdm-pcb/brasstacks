@@ -22,12 +22,10 @@ Shader        *ScreenLog::_shader = nullptr;
 void ScreenLog::write_line(std::string text, float x, float y, float scale) {
     _shader->bind();
     _shader->update_camera(
-        glm::mat4(1.0f),
+        mat4_ident,
         glm::ortho(
-            -RenderConfig::aspect_ratio,
-            RenderConfig::aspect_ratio
-            -1.0f, 1.0f
-            -1.0f, 1.0f
+            0.0f, static_cast<float>(RenderConfig::window_x_res),
+            0.0f, static_cast<float>(RenderConfig::window_y_res)
         )
     );
 
@@ -48,7 +46,7 @@ void ScreenLog::write_line(std::string text, float x, float y, float scale) {
         _mesh->set_texture(ch.handle);
         _mesh->bind_texture();
 
-        float vertices[6][4] = {
+        float vertices[4][4] = {
             { xpos,     ypos + h,   0.0f, 0.0f },
             { xpos + w, ypos + h,   1.0f, 0.0f },
             { xpos + w, ypos,       1.0f, 1.0f },
