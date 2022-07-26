@@ -29,7 +29,7 @@ _draw_perf->start();
             shader->bind();
             shader->update_camera(
                 camera->view_matrix,
-                camera->proj_matrix
+                camera->persp_proj
             );
             shader->update_per_frame();
 
@@ -48,7 +48,10 @@ _draw_perf->start();
             }
         }
 
-        // ScreenLog::write_line("Hello, world.", 0.0f, 0.0f, 1.0f);
+        ScreenLog::write_line(
+            "Hello, World!\0",
+            5.0f, RenderConfig::window_y_res - 27.0f, 1.0f
+        );
 
     RenderQueue::end_draw();
     Clock::frame_tock();

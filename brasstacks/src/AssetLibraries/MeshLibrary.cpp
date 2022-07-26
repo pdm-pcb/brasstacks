@@ -69,6 +69,7 @@ Mesh * MeshLibrary::checkout(const char *key) {
 
 void MeshLibrary::init() {
     MeshLibrary::load(Mesh::Type::ScreenLog, "screen_log");
+
     MeshLibrary::load(Mesh::Type::LitTexture,
                       "lit_texture_cube",
                       Mesh::Primitives::Cube);

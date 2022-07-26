@@ -10,8 +10,10 @@ namespace btx {
 class VertexBuffer {
 public:
     virtual void bind() = 0;
+    virtual void update_buffer(const void *data, const std::size_t size,
+                               const std::size_t offset = 0) = 0;
 
-    virtual void set_buffer(const void *buffer, std::size_t size) = 0;
+    virtual void set_buffer(const void *buffer, const std::size_t size) = 0;
     virtual void set_indices(const Mesh::Face *faces,
                              const std::size_t face_count) = 0;
 

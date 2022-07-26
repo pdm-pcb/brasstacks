@@ -8,6 +8,8 @@ namespace btx {
 class GLVertexBuffer : public VertexBuffer {
 public:
     void bind() override;
+    void update_buffer(const void *data, const std::size_t size,
+                       const std::size_t offset = 0) override;
 
     void set_buffer(const void *buffer, std::size_t size) override;
     void set_indices(const Mesh::Face *faces,

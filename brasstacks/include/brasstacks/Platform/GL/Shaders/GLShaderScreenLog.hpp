@@ -7,7 +7,7 @@ namespace btx {
 
 class GLShaderScreenLog : public GLShader {
 public:
-    void set_world(const glm::mat4 &world) const;
+    void set_projmat(const glm::mat4 &projmat) const;
 
     GLShaderScreenLog();
     ~GLShaderScreenLog() = default;
@@ -19,7 +19,7 @@ public:
     GLShaderScreenLog & operator=(GLShaderScreenLog &)        = delete;
 
 private:
-    GLuint _world_uniform;
+    GLuint _proj_uniform;
 
     void _find_uniform();
 };

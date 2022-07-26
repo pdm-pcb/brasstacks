@@ -3,13 +3,13 @@
 void add_terrain() {
     btx::ECS *ecs = btx::ECS::get_active();
 
-    btx::Entity::ID quad = ecs->new_entity();
-    ecs->assign<btx::cTransform>(quad);
-    ecs->assign<btx::cWorldMat>(quad);
+    // btx::Entity::ID quad = ecs->new_entity();
+    // ecs->assign<btx::cTransform>(quad);
+    // ecs->assign<btx::cWorldMat>(quad);
 
-    auto quad_render    = ecs->assign<btx::cRender>(quad);
-    quad_render->shader = btx::ShaderLibrary::checkout("flat_color");
-    quad_render->mesh   = btx::MeshLibrary::checkout("black_quad");
+    // auto quad_render    = ecs->assign<btx::cRender>(quad);
+    // quad_render->shader = btx::ShaderLibrary::checkout("flat_color");
+    // quad_render->mesh   = btx::MeshLibrary::checkout("black_quad");
 
 
     btx::Entity::ID floor = ecs->new_entity();

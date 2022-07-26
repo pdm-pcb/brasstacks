@@ -15,12 +15,24 @@ void add_camera() {
         camera_cc->forward,
         camera_cc->up
     );
-    camera_cc->proj_matrix = glm::perspective(
+    camera_cc->persp_proj = glm::perspective(
         btx::math::pi_over_four,
         static_cast<float>(btx::RenderConfig::window_x_res) /
         static_cast<float>(btx::RenderConfig::window_y_res),
         btx::RenderConfig::near_clip, btx::RenderConfig::far_clip
     );
+    // "pixel-space"(...?) ortho
+    camera_cc->ortho_proj = glm::ortho(
+        0.0f, static_cast<float>(btx::RenderConfig::window_x_res),
+        0.0f, static_cast<float>(btx::RenderConfig::window_y_res)
+    );
+
+    // screen-space ortho
+    // camera_cc->ortho_proj = glm::ortho(
+    //     -btx::RenderConfig::aspect_ratio,
+    //     btx::RenderConfig::aspect_ratio,
+    //     -1.0f, 1.0f, -1.0f, 1000.0f
+    // );
 
     btx::CameraBag::set_active(camera);
 }

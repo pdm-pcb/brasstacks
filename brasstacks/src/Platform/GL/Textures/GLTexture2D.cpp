@@ -20,9 +20,6 @@ void GLTexture2D::set_data(const void *data, const GLint width,
     GLenum internal_format;
     _set_channels(channels, format, internal_format);
 
-    glPixelStorei(GL_PACK_ALIGNMENT, static_cast<GLint>(channels));
-    glPixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(channels));
-
     glTextureStorage2D(_handle, 1, format, width, height);
     glTextureSubImage2D(
         _handle,

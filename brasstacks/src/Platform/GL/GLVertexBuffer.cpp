@@ -7,6 +7,16 @@ void GLVertexBuffer::bind() {
     glBindVertexArray(_vao);
 }
 
+void GLVertexBuffer::update_buffer(const void *data, const std::size_t size,
+                                   const std::size_t offset) {
+    glNamedBufferSubData(
+        _vbo,
+        static_cast<GLintptr>(offset),
+        static_cast<GLsizeiptr>(size),
+        data
+    );
+}
+
 void GLVertexBuffer::set_buffer(const void *buffer, std::size_t size) {
     glCreateBuffers(1, &_vbo);
     

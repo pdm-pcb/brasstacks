@@ -7,7 +7,8 @@ namespace btx {
 
 struct cCamera {
     glm::mat4 view_matrix = mat4_ident;
-    glm::mat4 proj_matrix = mat4_ident;
+    glm::mat4 persp_proj  = mat4_ident;
+    glm::mat4 ortho_proj  = mat4_ident;
 
     glm::vec3 up      = up_vector;
     glm::vec3 right   = right_vector;

@@ -73,6 +73,9 @@ auto render_perf = Profiler::spawn("render");
 
     _render_context->init();
     _render_context->set_clear_color(0.11f, 0.11f, 0.11f, 1.0f);
+
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     
     if(RenderConfig::vsync_on) {
         _render_context->set_swap_interval(1);

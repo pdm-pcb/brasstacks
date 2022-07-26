@@ -16,6 +16,7 @@ constexpr unsigned long int CHARMAP_COUNT = 128 - ASCII_OFFSET;
 
 class Texture2D;
 class MeshScreenLog;
+class MeshFlatTexture;
 class Shader;
 
 class ScreenLog {
@@ -32,7 +33,7 @@ public:
         glm::vec4 position;
     } Vertex;
 
-    static void write_line(std::string text, float x, float y, float scale);
+    static void write_line(const char *text, float x, float y, float scale);
 
     static void init();
     static void shutdown();

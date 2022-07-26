@@ -8,7 +8,15 @@ namespace btx {
 
 void MeshFlatTexture::bind_vertex_buffer() const {
     _buffer->bind();
+}
+
+void MeshFlatTexture::bind_texture() const {
     _diffuse->bind();
+}
+
+void MeshFlatTexture::update_buffer(const void *data, const std::size_t size,
+                                  const std::size_t offset) {
+    _buffer->update_buffer(data, size, offset);
 }
 
 void MeshFlatTexture::_build_cube(const float scale) {

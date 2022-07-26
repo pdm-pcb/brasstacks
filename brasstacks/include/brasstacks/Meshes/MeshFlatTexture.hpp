@@ -13,8 +13,14 @@ public:
     } Vertex;
 
     void bind_vertex_buffer() const override;
+    void bind_texture() const;
+    void update_buffer(const void *data, const std::size_t size,
+                       const std::size_t offset = 0);
 
     std::size_t index_count() const override { return _face_count * 3; }
+
+    void set_texture(Texture2D *texture) { _diffuse = texture; }
+    void set_buffer(const void *data, const std::size_t size);
 
     MeshFlatTexture(const Primitives primitive,
                     const float u_repeat     = 1.0f,
