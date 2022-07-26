@@ -2,9 +2,6 @@
 #define BRASSTACKS_MESHES_MESHFLATTEXTURE_HPP
 
 #include "brasstacks/Meshes/Mesh.hpp"
-#include "brasstacks/Textures/Texture2D.hpp"
-
-#include <bitset>
 
 namespace btx {
 

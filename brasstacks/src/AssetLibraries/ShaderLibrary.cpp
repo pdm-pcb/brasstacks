@@ -32,10 +32,12 @@ void ShaderLibrary::init() {
     auto flat_color   = new ShaderFlatColor();
     auto flat_texture = new ShaderFlatTexture();
     auto lit_texture  = new ShaderLitTexture();
+    auto screen_log   = new ShaderScreenLog();
 
     _shaders.insert({ "flat_color",   flat_color   });
     _shaders.insert({ "flat_texture", flat_texture });
     _shaders.insert({ "lit_texture",  lit_texture  });
+    _shaders.insert({ "screen_log",   screen_log   });
 }
 
 void ShaderLibrary::shutdown() {

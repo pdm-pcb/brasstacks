@@ -4,6 +4,7 @@
 #include "brasstacks/Shaders/ShaderFlatColor.hpp"
 #include "brasstacks/Shaders/ShaderFlatTexture.hpp"
 #include "brasstacks/Shaders/ShaderLitTexture.hpp"
+#include "brasstacks/Shaders/ShaderScreenLog.hpp"
 
 namespace btx {
 

@@ -13,41 +13,34 @@ void GLTexture2D::bind(const uint32_t slot) {
     glBindTextureUnit(_slot, _handle);
 }
 
-GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
-                         const bool gen_mipmaps,
-                         const MinFilter min_filter,
-                         const MagFilter mag_filter,
-                         const Wrap wrap_s, const Wrap wrap_t) :
-	_handle { GL_NONE },
-    _slot   { 0 }
-{
-	static_assert(GL_TEXTURE1 - GL_TEXTURE0 == 1);
+void GLTexture2D::set_data(const void *data, const GLint width,
+                           const GLint height, const std::size_t channels) {
 
-    int width, height, bytes_per_pixel;
-	stbi_set_flip_vertically_on_load(static_cast<int>(flip_vertical));
-	uint8_t *buffer = stbi_load(
-        filepath,
-        &width,
-        &height,
-		&bytes_per_pixel,
-        0
+    GLenum format;
+    GLenum internal_format;
+    _set_channels(channels, format, internal_format);
+
+    glPixelStorei(GL_PACK_ALIGNMENT, static_cast<GLint>(channels));
+    glPixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(channels));
+
+    glTextureStorage2D(_handle, 1, format, width, height);
+    glTextureSubImage2D(
+        _handle,
+        0, 0, 0,
+        width, height,
+        internal_format,
+        GL_UNSIGNED_BYTE,
+        data
     );
 
-	if(buffer == nullptr) {
-		BTX_ENGINE_WARN("Failed to load image {}\n\t"
-                        "Size/Depth: {}x{}@{}\n\t"
-                        "Error: '{}'",
-                        filepath, width, height, bytes_per_pixel,
-						stbi_failure_reason());
-        assert(false);
-	}
+    if(_has_mipmaps) {
+	    glGenerateTextureMipmap(_handle);
+    }
+}
 
-    auto *context = dynamic_cast<GLContextWGL *>(RenderContext::active());
-    context->make_current();
-
-    glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
-    assert(_handle != GL_NONE);
-
+void GLTexture2D::_set_params(const MinFilter min_filter,
+                              const MagFilter mag_filter,
+                              const Wrap wrap_s, const Wrap wrap_t) {
     GLint param = 0;
     switch(min_filter) {
         case MinFilter::nearest:
@@ -71,7 +64,6 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
         default: assert(false);
     }
 	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, param);
-
 
     switch(mag_filter) {
         case MagFilter::nearest:
@@ -101,20 +93,76 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
         case Wrap::mirror_clamp_to_edge: param = GL_MIRROR_CLAMP_TO_EDGE; break;
     }
 	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, param);
+}
 
-    GLenum format = GL_INVALID_ENUM;
-    GLenum internal_format = GL_INVALID_ENUM;
-    if(bytes_per_pixel == 3) {
-        format = GL_RGB8;
-        internal_format = GL_RGB;
+
+void GLTexture2D::_set_channels(const std::size_t channels, GLenum &format,
+                                GLenum &internal_format) {
+    switch(channels) {
+        case 1:
+            format = GL_R8;
+            internal_format = GL_RED;
+            break;
+        case 2:
+            format = GL_RG8;
+            internal_format = GL_RG;
+            break;
+        case 3:
+            format = GL_RGB8;
+            internal_format = GL_RGB;
+            break;
+        case 4:
+            format = GL_RGBA8;
+            internal_format = GL_RGBA;
+            break;
+        default:
+            BTX_ENGINE_WARN("Unknown channel count for new GLTexture2D");
+            format = GL_INVALID_ENUM;
+            internal_format = GL_INVALID_ENUM;
+            assert(false);
     }
-    else if(bytes_per_pixel == 4) {
-        format = GL_RGBA8;
-        internal_format = GL_RGBA;
-    }
-    else {
+}
+
+GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
+                         const bool gen_mipmaps,
+                         const MinFilter min_filter,
+                         const MagFilter mag_filter,
+                         const Wrap wrap_s, const Wrap wrap_t) :
+	_handle      { GL_NONE },
+    _slot        { 0 },
+    _has_mipmaps { gen_mipmaps }
+{
+	static_assert(GL_TEXTURE1 - GL_TEXTURE0 == 1);
+
+    int width, height, channels;
+	stbi_set_flip_vertically_on_load(static_cast<int>(flip_vertical));
+	uint8_t *buffer = stbi_load(
+        filepath,
+        &width,
+        &height,
+		&channels,
+        0
+    );
+
+	if(buffer == nullptr) {
+		BTX_ENGINE_WARN("Failed to load image {}\n\t"
+                        "Size/Channels: {}x{}@{}\n\t"
+                        "Error: '{}'",
+                        filepath, width, height, channels,
+						stbi_failure_reason());
         assert(false);
-    }
+	}
+
+    auto *context = dynamic_cast<GLContextWGL *>(RenderContext::active());
+    context->make_current();
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
+    assert(_handle != GL_NONE);
+    _set_params(min_filter, mag_filter, wrap_s, wrap_t);
+
+    GLenum format;
+    GLenum internal_format;
+    _set_channels(channels, format, internal_format);
 
     glTextureStorage2D(_handle, 1, format, width, height);
     glTextureSubImage2D(
@@ -136,6 +184,21 @@ GLTexture2D::GLTexture2D(const char *filepath, const bool flip_vertical,
     }
     
     context->release_context();
+}
+
+GLTexture2D::GLTexture2D(const bool gen_mipmaps,
+                         const MinFilter min_filter,
+                         const MagFilter mag_filter,
+                         const Wrap wrap_s, const Wrap wrap_t) :
+	_handle      { GL_NONE },
+    _slot        { 0 },
+    _has_mipmaps { gen_mipmaps }
+{
+	static_assert(GL_TEXTURE1 - GL_TEXTURE0 == 1);
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
+    assert(_handle != GL_NONE);
+    _set_params(min_filter, mag_filter, wrap_s, wrap_t);
 }
 
 GLTexture2D::~GLTexture2D() {

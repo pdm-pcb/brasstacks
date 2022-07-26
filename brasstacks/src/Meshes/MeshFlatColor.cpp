@@ -106,14 +106,14 @@ MeshFlatColor::MeshFlatColor(const Primitives primitive,
             break;
 
         case Primitives::XZPlane:
-            _vertex_count = PLANE_VERTS;
-            _face_count = PLANE_FACES;
+            _vertex_count = QUAD_VERTS;
+            _face_count = QUAD_FACES;
             _build_xzplane(color, scale, plane_offset);
             break;
 
         case Primitives::XYPlane:
-            _vertex_count = PLANE_VERTS;
-            _face_count = PLANE_FACES;
+            _vertex_count = QUAD_VERTS;
+            _face_count = QUAD_FACES;
             _build_xyplane(color, scale, plane_offset);
             break;
     }

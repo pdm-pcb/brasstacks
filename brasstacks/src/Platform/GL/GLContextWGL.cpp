@@ -12,8 +12,6 @@
 
 namespace btx {
 
-
-
 void GLContextWGL::run() {
     std::uint32_t entity_count = 0;
 
@@ -49,6 +47,8 @@ _draw_perf->start();
                 ++entity_count;
             }
         }
+
+        ScreenLog::write_line("Hello, world.", 0.0f, 0.0f, 1.0f);
 
     RenderQueue::end_draw();
     Clock::frame_tock();

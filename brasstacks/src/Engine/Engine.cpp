@@ -81,6 +81,7 @@ auto render_perf = Profiler::spawn("render");
     MeshLibrary::init();
     TextureLibrary::init();
     ShaderLibrary::init();
+    ScreenLog::init();
 
     load_resources();
 
@@ -96,6 +97,7 @@ render_perf->stop(math::one_over_sixty_us);
     MeshLibrary::shutdown();
     TextureLibrary::shutdown();
     ShaderLibrary::shutdown();
+    ScreenLog::shutdown();
 
     _render_context->shutdown();
 

@@ -2,7 +2,6 @@
 #define BRASSTACKS_MESHES_MESHFLATCOLOR_HPP
 
 #include "brasstacks/Meshes/Mesh.hpp"
-#include "brasstacks/Meshes/VertexLayout.hpp"
 
 namespace btx {
 

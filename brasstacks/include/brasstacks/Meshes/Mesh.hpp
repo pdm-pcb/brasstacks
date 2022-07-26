@@ -9,8 +9,8 @@ class VertexBuffer;
 
 constexpr std::size_t CUBE_VERTS = 24;
 constexpr std::size_t CUBE_FACES = 12;
-constexpr std::size_t PLANE_VERTS = 4;
-constexpr std::size_t PLANE_FACES = 2;
+constexpr std::size_t QUAD_VERTS = 4;
+constexpr std::size_t QUAD_FACES = 2;
 
 class Mesh {
 public:
@@ -25,7 +25,7 @@ public:
     };
 
     enum class Type {
-        FlatColor, FlatTexture, LitTexture
+        FlatColor, FlatTexture, LitTexture, ScreenLog
     };
 
     virtual void bind_vertex_buffer() const = 0;

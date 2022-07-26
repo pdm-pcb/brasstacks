@@ -81,7 +81,7 @@ void Profiler::start() {
 #endif // BTX_PROFILE
 }
 
-void Profiler::stop(const double threshold_us) {
+void Profiler::stop([[maybe_unused]] const double threshold_us) {
 #ifdef BTX_PROFILE
     auto dur = HRC::now() - _start_time;
     auto durcast = std::chrono::duration_cast<std::chrono::microseconds>(dur).count();

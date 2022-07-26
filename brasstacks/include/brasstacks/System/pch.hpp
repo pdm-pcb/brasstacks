@@ -77,6 +77,7 @@
 #include "brasstacks/Engine/Layer.hpp"
 #include "brasstacks/Engine/LayerStack.hpp"
 #include "brasstacks/Utility/Logger.hpp"
+#include "brasstacks/Utility/ScreenLog.hpp"
 #include "brasstacks/Utility/EnumRange.hpp"
 #include "brasstacks/Utility/math.hpp"
 #include "brasstacks/Events/Event.hpp"

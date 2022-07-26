@@ -1,8 +1,11 @@
 set(CMAKE_EXPORT_COMPILE_COMMANDS OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+set(CMAKE_ARGS "${CMAKE_ARGS} -Wno-dev")
 find_package(spdlog REQUIRED)
 find_package(glm REQUIRED)
+find_package(freetype REQUIRED)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -10,6 +13,7 @@ add_library(
     brasstacks STATIC
     "src/System/main.cpp"
     "src/Utility/Logger.cpp"
+    "src/Utility/ScreenLog.cpp"
     "src/System/Clock.cpp"
     "src/System/Profiler.cpp"
 	"src/Application/Application.cpp"
@@ -30,11 +34,13 @@ add_library(
     "src/Meshes/MeshFlatColor.cpp"
     "src/Meshes/MeshFlatTexture.cpp"
     "src/Meshes/MeshLitTexture.cpp"
+    "src/Meshes/MeshScreenLog.cpp"
     "src/AssetLibraries/ShaderLibrary.cpp"
     "src/Shaders/Shader.cpp"
     "src/Shaders/ShaderFlatColor.cpp"
     "src/Shaders/ShaderFlatTexture.cpp"
     "src/Shaders/ShaderLitTexture.cpp"
+    "src/Shaders/ShaderScreenLog.cpp"
     "src/AssetLibraries/TextureLibrary.cpp"
     "src/Textures/Texture2D.cpp"
     "src/Cameras/CameraBag.cpp"
@@ -51,11 +57,17 @@ target_include_directories(
     "${thirdparty_INCLUDE}"
 )
 
+target_link_directories(
+    brasstacks PUBLIC
+    "${thirdparty_LIB}"
+)
+
 target_link_libraries(
 	brasstacks PUBLIC
 	"spdlog"
     "glm"
     "stb"
+    "freetype"
 )
 
 target_precompile_headers(
@@ -83,6 +95,7 @@ if("${BTX_RENDER_API}" MATCHES "GL")
         "src/Platform/GL/Shaders/GLShaderFlatColor.cpp"
         "src/Platform/GL/Shaders/GLShaderFlatTexture.cpp"
         "src/Platform/GL/Shaders/GLShaderLitTexture.cpp"
+        "src/Platform/GL/Shaders/GLShaderScreenLog.cpp"
     )
 
 	if(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
@@ -170,19 +183,14 @@ set_target_properties(
 	LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/release/lib
 )
 
-get_target_property(
-    brasstacks_flags brasstacks COMPILE_OPTIONS
-)
-
-get_target_property(
-	brasstacks_defs brasstacks COMPILE_DEFINITIONS
-)
-
-get_target_property(
-    brasstacks_inc brasstacks INCLUDE_DIRECTORIES
-)
+get_target_property(brasstacks_flags brasstacks COMPILE_OPTIONS)
+get_target_property(brasstacks_defs  brasstacks COMPILE_DEFINITIONS)
+get_target_property(brasstacks_inc   brasstacks INCLUDE_DIRECTORIES)
+get_target_property(brasstacks_link  brasstacks LINK_DIRECTORIES)
 
 message(STATUS "brasstacks compile flags: ${brasstacks_flags}")
 message(STATUS "brasstacks compile defines: ${brasstacks_defs}")
 message(STATUS "brasstacks include directories: ${brasstacks_inc}")
+message(STATUS "brasstacks link directories: ${brasstacks_link}")
 message(STATUS "cmake compile flags: ${CMAKE_CXX_FLAGS}")
+ 

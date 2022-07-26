@@ -222,14 +222,14 @@ MeshLitTexture::MeshLitTexture(const Primitives primitive,
             break;
 
         case Primitives::XZPlane:
-            _vertex_count = PLANE_VERTS;
-            _face_count = PLANE_FACES;
+            _vertex_count = QUAD_VERTS;
+            _face_count = QUAD_FACES;
             _build_xzplane(scale, plane_offset, u_repeat, v_repeat);
             break;
 
         case Primitives::XYPlane:
-            _vertex_count = PLANE_VERTS;
-            _face_count = PLANE_FACES;
+            _vertex_count = QUAD_VERTS;
+            _face_count = QUAD_FACES;
             _build_xyplane(scale, plane_offset, u_repeat, v_repeat);
             break;
     }

@@ -13,6 +13,7 @@ struct RenderConfig {
     static int16_t window_x_res;
     static int16_t window_y_res;
     static int16_t refresh_rate;
+    static float   aspect_ratio;
 
     static float near_clip;
     static float far_clip;
@@ -22,6 +23,9 @@ struct RenderConfig {
 
     static std::size_t selected_api;
     static std::vector<const char *> supported_apis;
+
+    static void enable_blending();
+    static void disable_blending();
 };
 
 } // namespace btx

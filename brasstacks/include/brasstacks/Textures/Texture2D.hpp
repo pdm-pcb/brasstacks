@@ -26,9 +26,16 @@ public:
     };
 
 	virtual void bind(const uint32_t slot = 0) = 0;
+    virtual void set_data(const void *data, const GLint width,
+                          const GLint height, const std::size_t channels) = 0;
 
     static Texture2D * create(const char *filepath, const bool flip_vertical,
                               const bool gen_mipmaps,
+                              const MinFilter min_filter,
+                              const MagFilter mag_filter,
+                              const Wrap wrap_s, const Wrap wrap_t);
+
+    static Texture2D * create(const bool gen_mipmaps,
                               const MinFilter min_filter,
                               const MagFilter mag_filter,
                               const Wrap wrap_s, const Wrap wrap_t);

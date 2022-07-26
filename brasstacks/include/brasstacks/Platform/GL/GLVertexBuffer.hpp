@@ -9,7 +9,7 @@ class GLVertexBuffer : public VertexBuffer {
 public:
     void bind() override;
 
-    void set_buffer(void *buffer, std::size_t size) override;
+    void set_buffer(const void *buffer, std::size_t size) override;
     void set_indices(const Mesh::Face *faces,
                      const std::size_t face_count)  override;
 

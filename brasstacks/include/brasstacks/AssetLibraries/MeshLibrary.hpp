@@ -4,6 +4,7 @@
 #include "brasstacks/Meshes/MeshFlatColor.hpp"
 #include "brasstacks/Meshes/MeshFlatTexture.hpp"
 #include "brasstacks/Meshes/MeshLitTexture.hpp"
+#include "brasstacks/Meshes/MeshScreenLog.hpp"
 
 #include "unordered_map"
 #include "string"
@@ -13,7 +14,8 @@ namespace btx {
 class MeshLibrary final {
 public:
     static void load(Mesh::Type type, const char *key,
-                     const Mesh::Primitives primitive,
+                     const Mesh::Primitives primitive =
+                        Mesh::Primitives::XYPlane,
                      const glm::vec3 &color = { 1.0f, 1.0f, 1.0f },
                      const float u_repeat = 1.0f,
                      const float v_repeat = 1.0f,
