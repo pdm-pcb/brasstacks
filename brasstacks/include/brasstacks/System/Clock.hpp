@@ -10,19 +10,20 @@ class Clock final {
 public:
     using HRC = std::chrono::high_resolution_clock;
 
-    static void frame_tick();
-    static void frame_tock();
-    static void frame_delta_tock();
+    static void render_tick();
+    static void render_tock();
+    static void frame_time_tock();
     static void update_tick();
     static void update_tock();
 
     static void update();
 
-    static float runtime()      { return _game_runtime.load(); }
-    static float true_runtime() { return _true_runtime.load(); }
-    static float frame_time()   { return _frame_time.load();   }
-    static float frame_delta()  { return _frame_delta.load();  }
-    static float update_time()  { return _update_time.load();  }
+    static float runtime()      { return _game_runtime.load();         }
+    static float true_runtime() { return _true_runtime.load();         }
+    static float render_time()  { return _render_time.load();          }
+    static float frame_time()   { return _frame_time.load();           }
+    static float update_time()  { return _update_time.load();          }
+    static float frame_delta()  { return _frame_time.load() * 0.001f; }
 
     static HRC::time_point now() { return HRC::now(); }
     static void precise_sleep(double sleep_seconds);
@@ -43,9 +44,9 @@ private:
 
     static std::atomic<float> _true_runtime;
     static std::atomic<float> _game_runtime;
-    static std::atomic<float> _frame_time;
-    static std::atomic<float> _frame_delta;
     static std::atomic<float> _update_time;
+    static std::atomic<float> _render_time;
+    static std::atomic<float> _frame_time;
 };
 
 } // namespace btx

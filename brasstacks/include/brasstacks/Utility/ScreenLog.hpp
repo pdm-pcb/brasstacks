@@ -14,6 +14,7 @@ namespace btx {
 
 constexpr std::size_t MIN_CHAR = 0;
 constexpr std::size_t MAX_CHAR = 256;
+constexpr std::size_t FONT_SIZE = 24;
 
 class Texture2D;
 class MeshScreenLog;
@@ -23,8 +24,8 @@ class Shader;
 class ScreenLog {
 public:
     struct GlyphLoc {
-        glm::vec2  top_left;
-        glm::vec2  bottom_right;
+        glm::ivec2  top_left;
+        glm::ivec2  bottom_right;
     };
     using CharMap = std::array<GlyphLoc, MAX_CHAR - MIN_CHAR>;
 
@@ -38,8 +39,8 @@ public:
         Texture2D *handle;
     };
 
-    static void write_line(const char *text, uint32_t x_pos, uint32_t y_pos,
-                           float scale);
+    static void add_line(const char *text);
+    static void update_perf_metrics();
 
     static void init();
     static void shutdown();
@@ -50,6 +51,8 @@ private:
 
     static MeshScreenLog *_mesh;
     static Shader        *_shader;
+
+    static std::array<char, 128> _first_line_buffer;
 
     static void _load(const char *filepath, FT_LibraryRec_ *library,
                       FT_FaceRec_ *face, Atlas &atlas);

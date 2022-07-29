@@ -11,22 +11,22 @@ Clock::HRC::time_point Clock::_update_tick = Clock::_start_time;
 
 std::atomic<float> Clock::_true_runtime = 0.0f;
 std::atomic<float> Clock::_game_runtime = 0.0f;
-std::atomic<float> Clock::_frame_time   = 0.0f;
-std::atomic<float> Clock::_frame_delta  = 0.0f;
 std::atomic<float> Clock::_update_time  = 0.0f;
+std::atomic<float> Clock::_render_time  = 0.0f;
+std::atomic<float> Clock::_frame_time   = 0.0f;
 
-void Clock::frame_tick() {
+void Clock::render_tick() {
     _frame_tick = HRC::now();
 }
 
-void Clock::frame_tock() {
-    _frame_time.store(1e-3f * static_cast<float>(
+void Clock::render_tock() {
+    _render_time.store(1e-3f * static_cast<float>(
         duration_cast<microseconds>(HRC::now() - _frame_tick).count()
     ));
 }
 
-void Clock::frame_delta_tock() {
-    _frame_delta.store(1e-6f * static_cast<float>(
+void Clock::frame_time_tock() {
+    _frame_time.store(1e-3f * static_cast<float>(
         duration_cast<microseconds>(HRC::now() - _frame_tick).count()
     ));
 }

@@ -12,6 +12,8 @@
 
 namespace btx {
 
+char perf_log_buffer[64];
+
 void GLContextWGL::run() {
     std::uint32_t entity_count = 0;
 
@@ -20,7 +22,7 @@ void GLContextWGL::run() {
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     RenderQueue::begin_draw();
-    Clock::frame_tick();
+    Clock::render_tick();
 
 _draw_perf->start();        
         for(auto [shader, index] : RenderQueue::get_indices()) {
@@ -48,21 +50,17 @@ _draw_perf->start();
             }
         }
 
-        ScreenLog::write_line(
-            "V", 10, RenderConfig::window_y_res - 74, 1.0f
-        );
-
     RenderQueue::end_draw();
-    Clock::frame_tock();
+    Clock::render_tock();
+
+    ScreenLog::update_perf_metrics();
 
 _draw_perf->stop(0.0f);
 _bufswap_perf->start();
     ::SwapBuffers(_device);
 _bufswap_perf->stop(0.0f);
 
-    Clock::frame_delta_tock();
-
-    // _update_window_title();
+    Clock::frame_time_tock();
 }
 
 void GLContextWGL::init() {

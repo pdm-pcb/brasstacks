@@ -19,8 +19,9 @@ ScreenLog::Atlas ScreenLog::_sans { };
 MeshScreenLog *ScreenLog::_mesh   = nullptr;
 Shader        *ScreenLog::_shader = nullptr;
 
-void ScreenLog::write_line(const char *text, uint32_t x_pos, uint32_t y_pos,
-                           float scale)
+std::array<char, 128> ScreenLog::_first_line_buffer { '\0' };
+
+void ScreenLog::add_line(const char *text)
 {
     auto camera_id = CameraBag::get_active();
     auto camera    = ECS::get_active()->get<cCamera>(camera_id);
@@ -30,36 +31,54 @@ void ScreenLog::write_line(const char *text, uint32_t x_pos, uint32_t y_pos,
     _mesh->bind_vertex_buffer();
     _mesh->bind_texture();
 
-    float x = static_cast<float>(x_pos);
-    float y = static_cast<float>(y_pos);
+    float x = 5.0f;
+    float y = RenderConfig::window_y_res - FONT_SIZE - 5.0f;
+
+    RenderConfig::enable_blending();
 
     for(std::size_t index = 0; index < strlen(text); index++) {
         char c = text[index];
-        GlyphLoc ch = _mono.map[c];
+        GlyphLoc gl = _mono.map[c];
 
-        float w = static_cast<float>(ch.bottom_right.x - ch.top_left.x) * scale;
-        float h = static_cast<float>(ch.bottom_right.y - ch.top_left.y) * scale;
+        float cw = static_cast<float>(gl.bottom_right.x - gl.top_left.x);
+        float ch = static_cast<float>(gl.bottom_right.y - gl.top_left.y);
+
+        float aw = static_cast<float>(_mono.dimensions.x);
+        float ah = static_cast<float>(_mono.dimensions.y);
+
+        glm::vec2 a_tex = { gl.top_left.x     / aw, gl.top_left.y     / ah };
+        glm::vec2 b_tex = { gl.top_left.x     / aw, gl.bottom_right.y / ah };
+        glm::vec2 c_tex = { gl.bottom_right.x / aw, gl.bottom_right.y / ah };
+        glm::vec2 d_tex = { gl.bottom_right.x / aw, gl.top_left.y     / ah };
 
         float vertices[4][6] = {
-            { x,     y + h, 0.0f, 1.0f, ch.top_left.x,     ch.top_left.y     },
-            { x,     y,     0.0f, 1.0f, ch.top_left.x,     ch.bottom_right.y },
-            { x + w, y,     0.0f, 1.0f, ch.bottom_right.x, ch.bottom_right.y },
-            { x + w, y + h, 0.0f, 1.0f, ch.bottom_right.x, ch.top_left.y     },
+            { x,      y + ch, 0.0f, 1.0f, a_tex.x, a_tex.y},
+            { x,      y,      0.0f, 1.0f, b_tex.x, b_tex.y},
+            { x + cw, y,      0.0f, 1.0f, c_tex.x, c_tex.y},
+            { x + cw, y + ch, 0.0f, 1.0f, d_tex.x, d_tex.y},
         };
         _mesh->update_buffer(vertices, sizeof(vertices));
 
-        // RenderConfig::enable_blending();
 
         ::glDrawElements(
             GL_TRIANGLES,
             static_cast<GLsizei>(_mesh->index_count()),
             GL_UNSIGNED_INT, 0
         );
-
-        // RenderConfig::disable_blending();
-
-        x += w;
+        x += cw;
     }
+
+    RenderConfig::disable_blending();
+}
+
+void ScreenLog::update_perf_metrics() {
+    snprintf(
+        _first_line_buffer.data(), _first_line_buffer.max_size(),
+        "Render: %.03fms | Update: %.03fms | Frame time: %.03fms",
+        Clock::render_time(), Clock::update_time(), Clock::frame_time()
+    );
+
+    add_line(_first_line_buffer.data());
 }
 
 void ScreenLog::init() {
@@ -103,7 +122,7 @@ void ScreenLog::_load(const char *filepath, FT_LibraryRec_ *library,
         assert(false);
     }
 
-    ::FT_Set_Char_Size(face, 0, 12 * 64, 300u, 300u);
+    ::FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);
 
     _get_atlas_dimensions(face, atlas);
     BTX_ENGINE_TRACE("Font atlas {} will be {}x{}", filepath,
@@ -142,8 +161,6 @@ void ScreenLog::_get_atlas_dimensions(FT_FaceRec_ *face, Atlas &atlas) {
         if((glyph->metrics.height >> 6) - glyph->bitmap_top > max_descent) {
             max_descent = (glyph->metrics.height >> 6) - glyph->bitmap_top;
         }
-        
-        BTX_ENGINE_TRACE("{:c}: {}x{}", c, h_adv, v_adv);
     }
 
     row_height = std::max(row_height, max_ascent + max_descent);
