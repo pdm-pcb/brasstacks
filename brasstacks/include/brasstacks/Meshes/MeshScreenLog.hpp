@@ -3,24 +3,32 @@
 
 #include "brasstacks/Meshes/Mesh.hpp"
 
+#include <vector>
+
 namespace btx {
 
 class MeshScreenLog : public Mesh {
 public:
-    typedef struct {
+    struct Vertex {
         glm::vec4 position;
         glm::vec2 texcoord;
-    } Vertex;
+    };
 
-    void bind_vertex_buffer() const override;
-    void bind_texture() const;
-    void update_buffer(const void *data, const std::size_t size,
-                       const std::size_t offset = 0);
+    struct MDICommand {
+        ::GLuint index_count;
+        ::GLuint instance_count;
+        ::GLuint first_index;
+        ::GLuint base_vertex;
+        ::GLuint base_instance;
+    };
 
-    void set_texture(Texture2D *diffuse) { _diffuse = diffuse; }
-    void set_buffer(const void *data, const std::size_t size);
+    void bind_vertex_buffer() const override { }
+    std::size_t index_count() const override { return 0; }
 
-    std::size_t index_count() const override { return _face_count * 3; }
+    void add_instance(Vertex vertices[4]);
+    void create_commands();
+
+    void set_texture(Texture2D *atlas) { _atlas = atlas; }
 
     MeshScreenLog();
     ~MeshScreenLog();
@@ -31,14 +39,14 @@ public:
     MeshScreenLog& operator=(MeshScreenLog&&)      = delete;
 
 private:
+    std::vector<Vertex>     _vertices;
+    std::vector<MDICommand> _commands;
+
     VertexBuffer *_buffer;
-    Texture2D    *_diffuse;
+    Face         *_faces;
+    Texture2D    *_atlas;
 
-    Vertex *_vertices;
-    Face   *_faces;
-
-    std::size_t _vertex_count;
-    std::size_t _face_count;
+    ::GLuint _indirect_buffer;
 };
 
 } // namespace btx

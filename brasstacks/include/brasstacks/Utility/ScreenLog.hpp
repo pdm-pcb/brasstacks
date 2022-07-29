@@ -40,7 +40,7 @@ public:
     };
 
     static void add_line(const char *text);
-    static void update_perf_metrics();
+    static void draw();
 
     static void init();
     static void shutdown();

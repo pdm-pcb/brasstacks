@@ -7,10 +7,12 @@ namespace btx {
 
 class VertexBuffer;
 
-constexpr std::size_t CUBE_VERTS = 24;
-constexpr std::size_t CUBE_FACES = 12;
-constexpr std::size_t QUAD_VERTS = 4;
-constexpr std::size_t QUAD_FACES = 2;
+constexpr std::size_t CUBE_VERTS   = 24;
+constexpr std::size_t CUBE_FACES   = 12;
+constexpr std::size_t CUBE_INDICES = 36;
+constexpr std::size_t QUAD_VERTS   = 4;
+constexpr std::size_t QUAD_FACES   = 2;
+constexpr std::size_t QUAD_INDICES = 6;
 
 class Mesh {
 public:

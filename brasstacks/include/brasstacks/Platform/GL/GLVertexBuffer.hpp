@@ -27,8 +27,8 @@ public:
     GLVertexBuffer & operator=(GLVertexBuffer &)        = delete;
 
 private:
-    GLuint _vao;
-    GLuint _vbo;
+    GLuint _vao;    // TODO: use VAOs as a per-vertex-layout thing, not a 
+    GLuint _vbo;    //       per-mesh thing
     GLuint _ibo;
 
     VertexLayout *_layout;

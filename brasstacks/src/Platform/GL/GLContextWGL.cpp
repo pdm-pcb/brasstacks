@@ -50,10 +50,10 @@ _draw_perf->start();
             }
         }
 
+        ScreenLog::draw();
+
     RenderQueue::end_draw();
     Clock::render_tock();
-
-    ScreenLog::update_perf_metrics();
 
 _draw_perf->stop(0.0f);
 _bufswap_perf->start();

@@ -23,20 +23,8 @@ std::array<char, 128> ScreenLog::_first_line_buffer { '\0' };
 
 void ScreenLog::add_line(const char *text)
 {
-    static auto tick = Clock::now();
-
     float x = 5.0f;
     float y = RenderConfig::window_y_res - FONT_SIZE - 5.0f;
-
-    auto camera_id = CameraBag::get_active();
-    auto camera    = ECS::get_active()->get<cCamera>(camera_id);
-    _shader->bind();
-    _shader->update_camera(camera->view_matrix, camera->ortho_proj);
-
-    _mesh->bind_vertex_buffer();
-    _mesh->bind_texture();
-
-    RenderConfig::enable_blending();
 
     for(std::size_t index = 0; index < strlen(text); index++) {
         char c = text[index];
@@ -53,26 +41,19 @@ void ScreenLog::add_line(const char *text)
         glm::vec2 c_tex = { gl.bottom_right.x / aw, gl.bottom_right.y / ah };
         glm::vec2 d_tex = { gl.bottom_right.x / aw, gl.top_left.y     / ah };
 
-        float vertices[4][6] = {
-            { x,      y + ch, 0.0f, 1.0f, a_tex.x, a_tex.y},
-            { x,      y,      0.0f, 1.0f, b_tex.x, b_tex.y},
-            { x + cw, y,      0.0f, 1.0f, c_tex.x, c_tex.y},
-            { x + cw, y + ch, 0.0f, 1.0f, d_tex.x, d_tex.y},
+        MeshScreenLog::Vertex vertices[4] = {
+            {{ x,      y + ch, 0.0f, 1.0f }, {a_tex.x, a_tex.y}},
+            {{ x,      y,      0.0f, 1.0f }, {b_tex.x, b_tex.y}},
+            {{ x + cw, y,      0.0f, 1.0f }, {c_tex.x, c_tex.y}},
+            {{ x + cw, y + ch, 0.0f, 1.0f }, {d_tex.x, d_tex.y}},
         };
-        _mesh->update_buffer(vertices, sizeof(vertices));
+        _mesh->add_instance(vertices);
 
-        ::glDrawElements(
-            GL_TRIANGLES,
-            static_cast<GLsizei>(_mesh->index_count()),
-            GL_UNSIGNED_INT, 0
-        );
         x += cw;
     }
-
-    RenderConfig::disable_blending();
 }
 
-void ScreenLog::update_perf_metrics() {
+void ScreenLog::draw() {
     snprintf(
         _first_line_buffer.data(), _first_line_buffer.max_size(),
         "Render: %.03fms | Update: %.03fms | Frame time: %.03fms",
@@ -80,6 +61,15 @@ void ScreenLog::update_perf_metrics() {
     );
 
     add_line(_first_line_buffer.data());
+
+    auto camera_id = CameraBag::get_active();
+    auto camera    = ECS::get_active()->get<cCamera>(camera_id);
+    _shader->bind();
+    _shader->update_camera(camera->view_matrix, camera->ortho_proj);
+
+    RenderConfig::enable_blending();
+    _mesh->create_commands();
+    RenderConfig::disable_blending();
 }
 
 void ScreenLog::init() {

@@ -6,49 +6,79 @@
 
 namespace btx {
 
-void MeshScreenLog::bind_vertex_buffer() const {
+void MeshScreenLog::add_instance(Vertex vertices[4]) {
+    _vertices.emplace_back(Vertex(vertices[0]));
+    _vertices.emplace_back(Vertex(vertices[1]));
+    _vertices.emplace_back(Vertex(vertices[2]));
+    _vertices.emplace_back(Vertex(vertices[3]));
+}
+
+void MeshScreenLog::create_commands() {
+    uint32_t total_quads = static_cast<uint32_t>(_vertices.size()) / QUAD_VERTS;
+    uint32_t sizeof_quad = sizeof(Vertex) * QUAD_VERTS;
+
+    for(std::uint32_t instance = 0; instance < total_quads; ++instance) {
+        _commands.emplace_back(MDICommand {
+            .index_count = QUAD_INDICES,
+            .instance_count = 1,
+            .first_index = 0,
+            .base_vertex = static_cast<GLuint>(QUAD_INDICES * instance),
+            .base_instance = instance,
+        });
+    }
+
     _buffer->bind();
-}
 
-void MeshScreenLog::bind_texture() const {
-    _diffuse->bind();
-}
+    glNamedBufferData(
+        _indirect_buffer,
+        sizeof(MDICommand) * _commands.size(),
+        _commands.data(),
+        GL_DYNAMIC_DRAW
+    );
 
-void MeshScreenLog::update_buffer(const void *data, const std::size_t size,
-                                  const std::size_t offset) {
-    _buffer->update_buffer(data, size, offset);
-}
+    _commands.clear();
 
-void MeshScreenLog::set_buffer(const void *data, const std::size_t size) {
-    _buffer->set_buffer(data, size);
+    _buffer->set_buffer(_vertices.data(), sizeof(Vertex) * _vertices.size());
+    _vertices.clear();
+
+    _atlas->bind();
+
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _indirect_buffer);
+    glMultiDrawElementsIndirect(
+        GL_TRIANGLES,    // type
+        GL_UNSIGNED_INT, // indices represented as unsigned ints
+        (GLvoid*)0,      // start with the first draw command
+        total_quads,     // draw n objects
+        0                // no stride, the draw commands are tightly packed
+    );
 }
 
 MeshScreenLog::MeshScreenLog() :
-    _buffer       { nullptr },
-    _diffuse      { nullptr },
-    _vertices     { nullptr },
-    _faces        { nullptr },
-    _vertex_count { QUAD_VERTS },
-    _face_count   { QUAD_FACES }
+    _faces { nullptr },
+    _atlas { nullptr },
+    _indirect_buffer { GL_NONE }
 {
-    _vertices = new Vertex[_vertex_count];
-    _faces    = new Face[_face_count] {
-        { 0, 1, 2},
-        { 0, 2, 3}
-    };
+    _vertices.reserve(1024);
+    _commands.reserve(1024);
 
     _buffer = VertexBuffer::create({
         { "position", VBElement::Type::vec4f },
-        { "texcoord", VBElement::Type::vec2f },
+        { "texcoord", VBElement::Type::vec2f }
     });
 
-    _buffer->set_buffer(nullptr, sizeof(Vertex) * _vertex_count);
-    _buffer->set_indices(_faces, _face_count * 3);
+    _faces = new Face[QUAD_FACES] {
+        { 0, 1, 2 },
+        { 2, 3, 0 }
+    };
+
+    _buffer->set_indices(_faces, QUAD_FACES);
+
+    ::glCreateBuffers(1, &_indirect_buffer);
+    assert(_indirect_buffer != GL_NONE);
 }
 
 MeshScreenLog::~MeshScreenLog() {
     delete _buffer;
-    delete _vertices;
     delete _faces;
 }
 

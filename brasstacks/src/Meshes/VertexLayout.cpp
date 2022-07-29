@@ -11,12 +11,12 @@ VBElement::VBElement(const char *name, const Type type, const bool per_vertex) :
 {
     switch(type) {
         case Type::float32: _size = sizeof(float);         _count = 1; break;
-        case Type::int8:    _size = sizeof(int8_t);        _count = 1; break;
-        case Type::int16:   _size = sizeof(int16_t);       _count = 1; break;
-        case Type::int32:   _size = sizeof(int32_t);       _count = 1; break;
-        case Type::uint8:   _size = sizeof(std::uint8_t);       _count = 1; break;
-        case Type::uint16:  _size = sizeof(std::uint16_t);      _count = 1; break;
-        case Type::uint32:  _size = sizeof(std::uint32_t);      _count = 1; break;
+        case Type::int8:    _size = sizeof(std::int8_t);   _count = 1; break;
+        case Type::int16:   _size = sizeof(std::int16_t);  _count = 1; break;
+        case Type::int32:   _size = sizeof(std::int32_t);  _count = 1; break;
+        case Type::uint8:   _size = sizeof(std::uint8_t);  _count = 1; break;
+        case Type::uint16:  _size = sizeof(std::uint16_t); _count = 1; break;
+        case Type::uint32:  _size = sizeof(std::uint32_t); _count = 1; break;
         case Type::vec2f:   _size = sizeof(float) * 2;     _count = 1; break;
         case Type::vec4f:   _size = sizeof(float) * 4;     _count = 1; break;
         case Type::mat4f:   _size = sizeof(float) * 4 * 4; _count = 4; break;
