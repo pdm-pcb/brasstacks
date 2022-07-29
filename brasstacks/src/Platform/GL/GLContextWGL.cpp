@@ -49,8 +49,7 @@ _draw_perf->start();
         }
 
         ScreenLog::write_line(
-            "Hello, World!\0",
-            5.0f, RenderConfig::window_y_res - 27.0f, 1.0f
+            "V", 10, RenderConfig::window_y_res - 74, 1.0f
         );
 
     RenderQueue::end_draw();

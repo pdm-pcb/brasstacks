@@ -34,6 +34,9 @@ private:
     VertexBuffer *_buffer;
     Texture2D    *_diffuse;
 
+    Vertex *_vertices;
+    Face   *_faces;
+
     std::size_t _vertex_count;
     std::size_t _face_count;
 };

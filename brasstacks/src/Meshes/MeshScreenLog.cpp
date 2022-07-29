@@ -24,19 +24,32 @@ void MeshScreenLog::set_buffer(const void *data, const std::size_t size) {
 }
 
 MeshScreenLog::MeshScreenLog() :
-    _buffer { VertexBuffer::create({
-            { "position", VBElement::Type::vec4f },
-            { "texcoord", VBElement::Type::vec2f },
-    })},
+    _buffer       { nullptr },
     _diffuse      { nullptr },
-    _vertex_count { 6 },
-    _face_count   { 2 }
+    _vertices     { nullptr },
+    _faces        { nullptr },
+    _vertex_count { QUAD_VERTS },
+    _face_count   { QUAD_FACES }
 {
+    _vertices = new Vertex[_vertex_count];
+    _faces    = new Face[_face_count] {
+        { 0, 1, 2},
+        { 0, 2, 3}
+    };
+
+    _buffer = VertexBuffer::create({
+        { "position", VBElement::Type::vec4f },
+        { "texcoord", VBElement::Type::vec2f },
+    });
+
     _buffer->set_buffer(nullptr, sizeof(Vertex) * _vertex_count);
+    _buffer->set_indices(_faces, _face_count * 3);
 }
 
 MeshScreenLog::~MeshScreenLog() {
     delete _buffer;
+    delete _vertices;
+    delete _faces;
 }
 
 } // namespace btx

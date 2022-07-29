@@ -13,51 +13,52 @@
 
 namespace btx {
 
-ScreenLog::CharMap ScreenLog::_mono_map { };
-ScreenLog::CharMap ScreenLog::_sans_map { };
+ScreenLog::Atlas ScreenLog::_mono { };
+ScreenLog::Atlas ScreenLog::_sans { };
 
 MeshScreenLog *ScreenLog::_mesh   = nullptr;
 Shader        *ScreenLog::_shader = nullptr;
 
-void ScreenLog::write_line(const char *text, float x, float y, float scale) {
+void ScreenLog::write_line(const char *text, uint32_t x_pos, uint32_t y_pos,
+                           float scale)
+{
     auto camera_id = CameraBag::get_active();
     auto camera    = ECS::get_active()->get<cCamera>(camera_id);
     _shader->bind();
     _shader->update_camera(camera->view_matrix, camera->ortho_proj);
 
     _mesh->bind_vertex_buffer();
+    _mesh->bind_texture();
 
-    for(std::size_t index = 0; text[index] != '\0'; index++) {
+    float x = static_cast<float>(x_pos);
+    float y = static_cast<float>(y_pos);
+
+    for(std::size_t index = 0; index < strlen(text); index++) {
         char c = text[index];
-        Glyph ch = _mono_map[c - ASCII_OFFSET];
+        GlyphLoc ch = _mono.map[c];
 
-        float xpos = x + ch.bearing.x * scale;
-        float ypos = y - (ch.dimensions.y - ch.dimensions.y) * scale;
+        float w = static_cast<float>(ch.bottom_right.x - ch.top_left.x) * scale;
+        float h = static_cast<float>(ch.bottom_right.y - ch.top_left.y) * scale;
 
-        float w = ch.dimensions.x * scale;
-        float h = ch.dimensions.y * scale;
-
-        _mesh->set_texture(ch.handle);
-        _mesh->bind_texture();
-
-        float vertices[6][6] = {
-            { xpos,     ypos + h, 0.0f, 1.0f, 0.0f, 0.0f }, // 0
-            { xpos,     ypos,     0.0f, 1.0f, 0.0f, 1.0f }, // 1
-            { xpos + w, ypos,     0.0f, 1.0f, 1.0f, 1.0f }, // 2
-            { xpos,     ypos + h, 0.0f, 1.0f, 0.0f, 0.0f }, // 3 0
-            { xpos + w, ypos,     0.0f, 1.0f, 1.0f, 1.0f }, // 4 2
-            { xpos + w, ypos + h, 0.0f, 1.0f, 1.0f, 0.0f }, // 5 3
+        float vertices[4][6] = {
+            { x,     y + h, 0.0f, 1.0f, ch.top_left.x,     ch.top_left.y     },
+            { x,     y,     0.0f, 1.0f, ch.top_left.x,     ch.bottom_right.y },
+            { x + w, y,     0.0f, 1.0f, ch.bottom_right.x, ch.bottom_right.y },
+            { x + w, y + h, 0.0f, 1.0f, ch.bottom_right.x, ch.top_left.y     },
         };
         _mesh->update_buffer(vertices, sizeof(vertices));
 
-        RenderConfig::enable_blending();
+        // RenderConfig::enable_blending();
 
-        ::glDrawArrays(GL_TRIANGLES, 0, 6);
+        ::glDrawElements(
+            GL_TRIANGLES,
+            static_cast<GLsizei>(_mesh->index_count()),
+            GL_UNSIGNED_INT, 0
+        );
 
-        RenderConfig::disable_blending();
-    
-        // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-        x += (ch.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+        // RenderConfig::disable_blending();
+
+        x += w;
     }
 }
 
@@ -72,27 +73,27 @@ void ScreenLog::init() {
         assert(false);
     }
 
-    _load("../../assets/fonts/Hack.ttf",     library, mono, _mono_map);
-    _load("../../assets/fonts/OpenSans.ttf", library, sans, _sans_map);
+    _load("../../assets/fonts/Hack.ttf",     library, mono, _mono);
+    _load("../../assets/fonts/OpenSans.ttf", library, sans, _sans);
 
     ::FT_Done_Face(mono);
     ::FT_Done_Face(sans);
     ::FT_Done_FreeType(library);
 
     _shader = ShaderLibrary::checkout("screen_log");
-    _mesh =
-        dynamic_cast<MeshScreenLog *>(MeshLibrary::checkout("screen_log"));
+    _mesh = dynamic_cast<MeshScreenLog *>(
+        MeshLibrary::checkout("screen_log")
+    );
+    _mesh->set_texture(_mono.handle);
 }
 
 void ScreenLog::shutdown() {
-    for(std::size_t index = 0; index < CHARMAP_COUNT; index++) {
-        delete _mono_map[index].handle;
-        delete _sans_map[index].handle;
-    }
+    delete _mono.handle;
+    delete _sans.handle;
 }
 
 void ScreenLog::_load(const char *filepath, FT_LibraryRec_ *library,
-                      FT_FaceRec_ *face, CharMap &map)
+                      FT_FaceRec_ *face, Atlas &atlas)
 {
     ::FT_Error result = ::FT_Err_Ok;
 
@@ -102,67 +103,127 @@ void ScreenLog::_load(const char *filepath, FT_LibraryRec_ *library,
         assert(false);
     }
 
-    BTX_ENGINE_TRACE("Loaded font {}", filepath);
+    ::FT_Set_Char_Size(face, 0, 12 * 64, 300u, 300u);
 
-    ::FT_Set_Pixel_Sizes(face, 0, 32);
+    _get_atlas_dimensions(face, atlas);
+    BTX_ENGINE_TRACE("Font atlas {} will be {}x{}", filepath,
+                     atlas.dimensions.x, atlas.dimensions.y);
+    _build_atlas(face, atlas);
+}
 
-    for(::FT_ULong index = 0; index < CHARMAP_COUNT; ++index) {
-        result = ::FT_Load_Glyph(
-            face,
-            FT_Get_Char_Index(face, index + ASCII_OFFSET),
-            FT_LOAD_DEFAULT
-        );
-        if(result != ::FT_Err_Ok) {
-            BTX_ENGINE_WARN("Unable to load '{}' from {}",
-                            static_cast<char>(index + ASCII_OFFSET), filepath);
+void ScreenLog::_get_atlas_dimensions(FT_FaceRec_ *face, Atlas &atlas) {
+    int row_length  = 0;
+    int row_height  = 0;
+    int max_ascent  = 0;
+    int max_descent = 0;
+    int max_width   = 0;
+
+    FT_GlyphSlot glyph = face->glyph;
+    for(unsigned int c = MIN_CHAR; c < MAX_CHAR; c++) {
+        if(FT_Load_Char(face, c, FT_LOAD_RENDER)) continue;
+
+        int h_adv = glyph->linearHoriAdvance / 65536;
+        int v_adv = glyph->linearVertAdvance / 65536;
+
+        row_length += h_adv;
+
+        if(h_adv > max_width) {
+            max_width = h_adv;
         }
 
-        result = ::FT_Render_Glyph(
-            face->glyph,
-            ::FT_RENDER_MODE_NORMAL
-        );
-        if(result != ::FT_Err_Ok) {
-            BTX_ENGINE_WARN("Unable to render '{}' from {}",
-                            static_cast<char>(index + ASCII_OFFSET), filepath);
+        if(v_adv > row_height) {
+            row_height = v_adv;
         }
 
-        map[index].handle = Texture2D::create(
-            false,
-            Texture2D::MinFilter::linear,
-            Texture2D::MagFilter::linear,
-            Texture2D::Wrap::clamp_to_edge,
-            Texture2D::Wrap::clamp_to_edge
-        );
-        map[index].dimensions.x = face->glyph->bitmap.width;
-        map[index].dimensions.y = face->glyph->bitmap.rows;
-        map[index].bearing.x    = face->glyph->bitmap_left;
-        map[index].bearing.y    = face->glyph->bitmap_top;
-        map[index].advance      = face->glyph->advance.x;
-
-        if(face->glyph->bitmap.buffer == nullptr) {
-            std::size_t buffer_size = face->glyph->advance.x;
-
-            BTX_ENGINE_WARN(
-                "No bitmap value for character '{}' ({}); "
-                "improvising with buffer of size {}",
-                static_cast<char>(index + ASCII_OFFSET),
-                index + ASCII_OFFSET, buffer_size
-            );
-
-            char *buffer = new char[buffer_size];
-            memset(buffer, 0, buffer_size);
-
-            map[index].handle->set_data(buffer, buffer_size, 1, 1);
-            delete[] buffer;
+        if(glyph->bitmap_top > max_ascent) {
+            max_ascent = glyph->bitmap_top;
         }
-        else {
-            map[index].handle->set_data(face->glyph->bitmap.buffer,
-                                        face->glyph->bitmap.width,
-                                        face->glyph->bitmap.rows, 1);
+
+        if((glyph->metrics.height >> 6) - glyph->bitmap_top > max_descent) {
+            max_descent = (glyph->metrics.height >> 6) - glyph->bitmap_top;
         }
+        
+        BTX_ENGINE_TRACE("{:c}: {}x{}", c, h_adv, v_adv);
     }
-    
-    BTX_ENGINE_TRACE("Parsed {} font bitmaps", CHARMAP_COUNT - 1);
+
+    row_height = std::max(row_height, max_ascent + max_descent);
+
+    int buffer_size = row_length * row_height;
+    float buff_sqrt = std::abs(std::sqrtf(static_cast<float>(buffer_size)));
+
+    int image_width  = static_cast<int>(std::ceil(buff_sqrt / max_width)  * max_width);
+    int image_height = static_cast<int>(std::ceil(buff_sqrt / row_height) * row_height);
+
+    atlas.dimensions = { image_width, image_height };
+    atlas.row_height = row_height;
+    atlas.max_ascent = max_ascent;
+    atlas.max_descent = max_descent;
+}
+
+
+void ScreenLog::_build_atlas(FT_FaceRec_ *face, Atlas &atlas) {
+    int x_offset = 0;
+    int y_offset = 0;
+    FT_GlyphSlot glyph = face->glyph;
+
+    int buffer_size = atlas.dimensions.x * atlas.dimensions.y;
+    unsigned char *buffer = new unsigned char[buffer_size];
+    memset(buffer, '\0', buffer_size);
+
+    for(int c = MIN_CHAR; c < MAX_CHAR; c++) {
+        if(FT_Load_Char(face, c, FT_LOAD_RENDER)) continue;
+
+        int x_bearing = glyph->metrics.horiBearingX / 64;
+        int x_advance = glyph->linearHoriAdvance / 65536;
+
+        if(x_offset + x_advance > atlas.dimensions.x) {
+            x_offset = 0;
+            y_offset += atlas.row_height;
+        }
+
+        if(x_bearing < 0 && x_offset == 0) {
+            x_offset += -x_bearing;
+        }
+
+        x_offset += x_bearing;
+        int y_origin_offset = atlas.max_ascent - glyph->bitmap_top;
+
+        uint32_t glyph_index = 0;
+        uint32_t atlas_index = 0;
+
+        for(uint32_t x = 0; x < glyph->bitmap.width; x++) {
+            for(uint32_t y = 0; y < glyph->bitmap.rows; y++) {
+                glyph_index = x + y * glyph->bitmap.width;
+                atlas_index = (x + x_offset) +
+                              (y + y_offset + y_origin_offset)
+                              * atlas.dimensions.x;
+
+                buffer[atlas_index] = glyph->bitmap.buffer[glyph_index];
+            }
+        }
+
+        x_offset += x_advance - x_bearing;
+
+        atlas.map[c].top_left     = { x_offset - x_advance, y_offset };
+        atlas.map[c].bottom_right = { x_offset, y_offset + atlas.row_height };
+    }
+
+    atlas.handle = Texture2D::create(
+        false,
+        Texture2D::MinFilter::linear,
+        Texture2D::MagFilter::linear,
+        Texture2D::Wrap::clamp_to_edge,
+        Texture2D::Wrap::clamp_to_edge
+    );
+
+    atlas.handle->set_data(
+        buffer,
+        atlas.dimensions.x,
+        atlas.dimensions.y,
+        1
+    );
+
+    delete[] buffer;
 }
 
 } // namespace btx

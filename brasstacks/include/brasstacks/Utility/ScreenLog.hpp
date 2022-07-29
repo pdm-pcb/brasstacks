@@ -6,13 +6,14 @@
 
 #include <array>;
 
-struct FT_FaceRec_;
 struct FT_LibraryRec_;
+struct FT_FaceRec_;
+struct FT_GlyphSlotRec_;
 
 namespace btx {
 
-constexpr unsigned long int ASCII_OFFSET  = 32;
-constexpr unsigned long int CHARMAP_COUNT = 128 - ASCII_OFFSET;
+constexpr std::size_t MIN_CHAR = 0;
+constexpr std::size_t MAX_CHAR = 256;
 
 class Texture2D;
 class MeshScreenLog;
@@ -21,34 +22,40 @@ class Shader;
 
 class ScreenLog {
 public:
-    struct Glyph {
-        Texture2D  *handle;
-        glm::ivec2  dimensions;
-        glm::ivec2  bearing;
-        long int    advance;
+    struct GlyphLoc {
+        glm::vec2  top_left;
+        glm::vec2  bottom_right;
     };
-    using CharMap = std::array<Glyph, CHARMAP_COUNT>;
+    using CharMap = std::array<GlyphLoc, MAX_CHAR - MIN_CHAR>;
 
-    typedef struct {
-        glm::vec4 position;
-    } Vertex;
+    struct Atlas {
+        glm::ivec2 dimensions;
+        uint32_t row_height;
+        uint32_t max_ascent;
+        uint32_t max_descent;
 
-    static void write_line(const char *text, float x, float y, float scale);
+        CharMap map;
+        Texture2D *handle;
+    };
+
+    static void write_line(const char *text, uint32_t x_pos, uint32_t y_pos,
+                           float scale);
 
     static void init();
     static void shutdown();
 
 private:
-    static CharMap _mono_map;
-    static CharMap _sans_map;
+    static Atlas _mono;
+    static Atlas _sans;
 
     static MeshScreenLog *_mesh;
     static Shader        *_shader;
 
-    static void _load(const char *filepath,
-                      FT_LibraryRec_ *library,
-                      FT_FaceRec_ *face,
-                      CharMap &map);
+    static void _load(const char *filepath, FT_LibraryRec_ *library,
+                      FT_FaceRec_ *face, Atlas &atlas);
+
+    static void _get_atlas_dimensions(FT_FaceRec_ *face, Atlas &atlas);
+    static void _build_atlas(FT_FaceRec_ *face, Atlas &atlas);
 };
 
 } // namespace btx
