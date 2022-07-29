@@ -53,8 +53,8 @@ update_perf->start();
 update_perf->stop(0.0f);
 submit_perf->start();
             for(const auto id : ECSView<cRender>(*_ecs)) {
-                auto render = _ecs->get<cRender>(id);
-                RenderQueue::submit(render->shader, id);
+                auto entity = _ecs->get<cRender>(id);
+                RenderQueue::submit(entity->shader, id);
             }
 submit_perf->stop(0.0f);
         RenderQueue::end_scene();

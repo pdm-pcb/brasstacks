@@ -23,6 +23,11 @@ std::array<char, 128> ScreenLog::_first_line_buffer { '\0' };
 
 void ScreenLog::add_line(const char *text)
 {
+    static auto tick = Clock::now();
+
+    float x = 5.0f;
+    float y = RenderConfig::window_y_res - FONT_SIZE - 5.0f;
+
     auto camera_id = CameraBag::get_active();
     auto camera    = ECS::get_active()->get<cCamera>(camera_id);
     _shader->bind();
@@ -30,9 +35,6 @@ void ScreenLog::add_line(const char *text)
 
     _mesh->bind_vertex_buffer();
     _mesh->bind_texture();
-
-    float x = 5.0f;
-    float y = RenderConfig::window_y_res - FONT_SIZE - 5.0f;
 
     RenderConfig::enable_blending();
 
@@ -58,7 +60,6 @@ void ScreenLog::add_line(const char *text)
             { x + cw, y + ch, 0.0f, 1.0f, d_tex.x, d_tex.y},
         };
         _mesh->update_buffer(vertices, sizeof(vertices));
-
 
         ::glDrawElements(
             GL_TRIANGLES,

@@ -47,13 +47,11 @@ public:
 private:
     static std::vector<ShaderIndex> _shaders_a;
     static std::vector<Queue>       _meshes_a;
-
     static std::vector<ShaderIndex> _shaders_b;
     static std::vector<Queue>       _meshes_b;
 
     static std::vector<ShaderIndex> *_shaders_front;
     static std::vector<Queue>       *_meshes_front;
-
     static std::vector<ShaderIndex> *_shaders_back;
     static std::vector<Queue>       *_meshes_back;
 
