@@ -1,22 +1,30 @@
-#include "brasstacks/log/ConsoleLog.hpp"
+#include "brasstacks/tools/ConsoleLog.hpp"
 
 int main() {
-    btx::ConsoleLog::set_level(btx::ConsoleLog::Level::TRACE);
+    btx::ConsoleLog::init();
 
-    btx::ConsoleLog::trace("Trace int '{}'!", 123);
+    BTX_TRACE("Trace int '{}'!", 123);
+    BTX_INFO("Info string literal '{}'!", "lolwut");
 
-    btx::ConsoleLog::info("Info string literal '{}'!", "lolwut");
+    TRACE("Trace int '{}'!", 123);
+    INFO("Info string literal '{}'!", "lolwut");
 
     std::string output("something to say");
-    btx::ConsoleLog::warn("Warn string '{}'!", output);
+    BTX_WARN("Warn string '{}'!", output);
+    WARN("Warn string '{}'!", output);
 
-    btx::ConsoleLog::error("Error float: '{:04f}'!", 3.14159f);
+    BTX_ERROR("Error float: '{:04f}'!", 3.14159f);
+    ERROR("Error float: '{:04f}'!", 3.14159f);
 
     btx::ConsoleLog::set_level(btx::ConsoleLog::Level::WARN);
-    btx::ConsoleLog::info("Now this won't show...");
-    btx::ConsoleLog::warn("...but this will.");
+    BTX_INFO("Now this won't show...");
+    BTX_WARN("...but this will.");
 
-    btx::ConsoleLog::critical("End of the line.");
+    INFO("Now this won't show...");
+    WARN("...but this will.");
+
+    BTX_CRITICAL("End of the line.");
+    CRITICAL("Will never be reached...");
 
     return 0;
 }

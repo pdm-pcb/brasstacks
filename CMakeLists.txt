@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25) # Required for FetchContent SYSTEM
 
 project(
     brasstacks
-    VERSION 0.0.0
+    VERSION 0.0.1
     DESCRIPTION "A Vulkan renderer."
     LANGUAGES CXX
 )
