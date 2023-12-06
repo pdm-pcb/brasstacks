@@ -1,0 +1,34 @@
+file(
+    GLOB_RECURSE TARGET_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+)
+
+file(
+    GLOB_RECURSE TARGET_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+)
+
+set(TARGET_NAME brasstacks_demo)
+
+add_executable(${TARGET_NAME})
+
+target_sources(
+    ${TARGET_NAME} PRIVATE
+	${TARGET_SOURCES}
+	${TARGET_HEADERS}
+)
+
+target_link_libraries(
+    ${TARGET_NAME} PRIVATE
+    brasstacks
+)
+
+set_target_properties(
+	${TARGET_NAME} PROPERTIES
+	CXX_STANDARD 20
+	CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/debug/bin"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/release/bin"
+)

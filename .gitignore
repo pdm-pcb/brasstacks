@@ -1,0 +1,13 @@
+.vs/
+.vscode/settings.json
+
+build/
+debug/
+release/
+
+**/version.hpp
+
+**/*.ilk
+**/*.pdb
+**/*.exe.manifest
+**/*.exe
