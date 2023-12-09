@@ -4,7 +4,7 @@ project(
     brasstacks
     VERSION 0.0.1
     DESCRIPTION "A Vulkan renderer."
-    LANGUAGES CXX
+    LANGUAGES CXX C
 )
 
 find_package(Vulkan 1.3 REQUIRED COMPONENTS glslc)

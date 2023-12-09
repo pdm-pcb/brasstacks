@@ -12,7 +12,7 @@ public:
     // Setup
 	static void init();
 
-    enum class Level : uint8_t {
+    enum class Level : std::uint8_t {
         TRACE,
         INFO,
         WARN,

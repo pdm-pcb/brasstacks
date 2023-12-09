@@ -5,6 +5,8 @@
 
 namespace btx {
 
+struct WindowCloseEvent;
+
 class Application {
 public:
     virtual void init()     = 0;
@@ -12,8 +14,12 @@ public:
 
     void run();
 
-    Application();
+    void on_window_close(WindowCloseEvent const &event);
+
+    explicit Application(std::string_view const app_name);
     virtual ~Application();
+
+    Application() = delete;
 
     Application(Application &&) = delete;
     Application(const Application &) = delete;
@@ -24,6 +30,7 @@ public:
 private:
     bool _running;
 
+    std::array<std::byte, 7> _padding;
 };
 
 } // namespace btx

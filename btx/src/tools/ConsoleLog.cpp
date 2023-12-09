@@ -23,6 +23,10 @@ void ConsoleLog::init() {
         // Default to everything
         _btx_logger->set_level(spdlog::level::trace);
         _app_logger->set_level(spdlog::level::trace);
+
+        BTX_INFO("spdlog v{}.{}.{}", SPDLOG_VER_MAJOR,
+                                     SPDLOG_VER_MINOR,
+                                     SPDLOG_VER_PATCH);
     });
 }
 

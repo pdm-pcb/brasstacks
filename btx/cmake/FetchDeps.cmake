@@ -1,6 +1,7 @@
 function(FetchDeps)
     include(FetchContent)
 
+    # ==========================================================================
     message(STATUS "${PROJECT_NAME} v${PROJECT_VERSION}: Fetching spdlog...")
     FetchContent_Declare(
         spdlog SYSTEM

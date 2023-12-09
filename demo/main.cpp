@@ -9,6 +9,8 @@ public:
     void shutdown() override {
         TRACE("client app shutdown");
     }
+
+    App() : btx::Application("Demo") { }
 };
 
 int main() {
