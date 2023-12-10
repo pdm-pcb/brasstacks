@@ -17,19 +17,20 @@ public:
         int32_t y = 0;
     };
 
-    // Give the OS a moment to speak up
-    static void message_loop();
-
     static void init(std::string_view const app_name);
-    static void shutdown() { }
+    static void shutdown();
 
     // Size, place, and make visible a native window
     static void create_window(Dimensions const &dimensions = { 0u, 0u },
                               Position const &position = { 0, 0 });
+    static void show_window();
 
     // Manage the graphics surface
     static void create_surface();
     static void destroy_surface();
+
+    // Give the OS a moment to speak up
+    static void message_loop();
 
     inline static auto const& surface() { return _surface; }
 
@@ -42,7 +43,7 @@ private:
     static ::HWND   _window;
     static ::HDC    _device;
 
-    static std::unique_ptr<char> _raw_msg;
+    static char *_raw_msg;
 
     // Vulkan specifics
     static vk::SurfaceKHR _surface;
@@ -55,11 +56,10 @@ private:
     static void _size_and_place();
 
     // The way in for Windows
-    static ::LRESULT CALLBACK _wndproc(::HWND window, ::UINT message,
-                                       ::WPARAM wparam, ::LPARAM lparam);
+    static ::LRESULT CALLBACK _wndproc(::HWND hWnd, ::UINT uMsg,
+                                       ::WPARAM wParam, ::LPARAM lParam);
 
-    static void _parse_raw_keyboard(::RAWKEYBOARD const &raw,
-                                    bool const is_release);
+    static void _parse_raw_keyboard(::RAWKEYBOARD const &raw);
     static void _parse_raw_mouse(::RAWMOUSE const &raw);
 };
 

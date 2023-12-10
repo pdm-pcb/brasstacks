@@ -5,7 +5,8 @@
 
 namespace btx {
 
-struct WindowCloseEvent;
+struct KeyPressEvent;
+struct KeyReleaseEvent;
 
 class Application {
 public:
@@ -14,7 +15,7 @@ public:
 
     void run();
 
-    void on_window_close(WindowCloseEvent const &event);
+    void on_key_release(KeyReleaseEvent const &event);
 
     explicit Application(std::string_view const app_name);
     virtual ~Application();

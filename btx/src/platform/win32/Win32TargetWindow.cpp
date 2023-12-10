@@ -2,7 +2,6 @@
 #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
 #include "brasstacks/events/EventBroker.hpp"
-#include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
@@ -14,7 +13,7 @@ namespace btx {
 ::HWND   Win32TargetWindow::_window       = nullptr;
 ::HDC    Win32TargetWindow::_device       = nullptr;
 
-std::unique_ptr<char> Win32TargetWindow::_raw_msg;
+char *Win32TargetWindow::_raw_msg = nullptr;
 
 Win32TargetWindow::Position Win32TargetWindow::_screen_center = { 0, 0 };
 
@@ -97,23 +96,20 @@ void Win32TargetWindow::init(std::string_view const app_name) {
     }
 
     // Allocate a struct for the raw device input messages
-    _raw_msg = std::make_unique<char>(sizeof(::RAWINPUTHEADER));
+    _raw_msg = new char[sizeof(::RAWINPUTHEADER)];
 }
 
 // =============================================================================
-void Win32TargetWindow::message_loop() {
-    ::MSG message;
-    std::memset(&message, 0, sizeof(::MSG));
-
-    // Run through available messages from the OS
-    while(::PeekMessage(&message, _window, 0u, 0u, PM_REMOVE) != 0) {
-        ::DispatchMessage(&message);
-    }
+void Win32TargetWindow::shutdown() {
+    BTX_TRACE("Target window received shutdown command.");
+    ::SendMessage(_window, WM_CLOSE, 0, 0);
+    message_loop();
+    delete[] _raw_msg;
 }
 
 // =============================================================================
 void Win32TargetWindow::create_window(Dimensions const &dimensions,
-                                       Position const &position)
+                                      Position const &position)
 {
     if(_window != nullptr) {
         BTX_CRITICAL("Only one target window at a time is allowed.");
@@ -121,7 +117,7 @@ void Win32TargetWindow::create_window(Dimensions const &dimensions,
     }
 
     // If width and height aren't provided by Application, then just opt for
-    // two-thirds of the available real estate
+    // three-quarters of the available real estate
     if(dimensions.width == 0u || dimensions.height == 0u) {
         auto width_fraction  = static_cast<float>(RenderConfig::screen_width);
         auto height_fraction = static_cast<float>(RenderConfig::screen_height);
@@ -153,18 +149,18 @@ void Win32TargetWindow::create_window(Dimensions const &dimensions,
 
     // Create!
     _window = ::CreateWindowEx(
-        0u,                     // extended style
-        BTX_NAME,               // win32 class name
-        _window_title,          // win32 window title
-        WS_POPUP | WS_VISIBLE,  // No decorations, visible by default
-        CW_USEDEFAULT,          // x location
-        CW_USEDEFAULT,          // y location
-        static_cast<int>(RenderConfig::window_width),   // width
-        static_cast<int>(RenderConfig::window_height),  // height
-        nullptr,    // parent window handle
-        nullptr,    // menu handle
-        nullptr,    // instance handle
-        nullptr     // pointer to lParam; retrieved via WM_CREATE
+        0u,             // No extended style
+        BTX_NAME,       // Win32 class name
+        _window_title,  // Win32 window title
+        WS_POPUP,       // Popup window style means no decorations
+        CW_USEDEFAULT,  // x location
+        CW_USEDEFAULT,  // y location
+        CW_USEDEFAULT,  // Window width
+        CW_USEDEFAULT,  // Window height
+        nullptr,        // Parent window handle
+        nullptr,        // Menu handle
+        nullptr,        // Instance handle
+        nullptr         // Pointer to lParam; retrieved later via WM_CREATE
     );
 
     if(_window == nullptr) {
@@ -177,15 +173,19 @@ void Win32TargetWindow::create_window(Dimensions const &dimensions,
         return;
     }
 
+    BTX_TRACE(
+        "Created Win32 target window: {}x{}",
+        RenderConfig::window_width,
+        RenderConfig::window_height
+    );
+
     _register_input();
     _size_and_place();
+}
 
-    BTX_TRACE(
-        "Created Win32 target window: {}x{} @ {:0.4f}",
-        RenderConfig::window_width,
-        RenderConfig::window_height,
-        RenderConfig::window_aspect
-    );
+// =============================================================================
+void Win32TargetWindow::show_window() {
+    ::ShowWindow(_window, SW_SHOWNORMAL);
 }
 
 // =============================================================================
@@ -222,16 +222,27 @@ void Win32TargetWindow::destroy_surface() {
 }
 
 // =============================================================================
-::LRESULT Win32TargetWindow::_wndproc(::HWND window, ::UINT message,
-                                      ::WPARAM wparam, ::LPARAM lparam)
+void Win32TargetWindow::message_loop() {
+    ::MSG message;
+    std::memset(&message, 0, sizeof(::MSG));
+
+    // Run through available messages from the OS
+    while(::PeekMessage(&message, _window, 0u, 0u, PM_REMOVE) != 0) {
+        ::DispatchMessage(&message);
+    }
+}
+
+// =============================================================================
+::LRESULT Win32TargetWindow::_wndproc(::HWND hWnd, ::UINT uMsg,
+                                      ::WPARAM wParam, ::LPARAM lParam)
 {
-    switch(message) {
-        case WM_INPUT: BTX_WARN("WM_INPUT"); {
+    switch(uMsg) {
+        case WM_INPUT: {
             // First call to GetRawInputData is just to get the size of the
             // message so we can check it later
             ::UINT message_size;
             auto result = ::GetRawInputData(
-                reinterpret_cast<::HRAWINPUT>(lparam),
+                reinterpret_cast<::HRAWINPUT>(lParam),
                 RID_INPUT,
                 nullptr,
                 &message_size,
@@ -245,9 +256,9 @@ void Win32TargetWindow::destroy_surface() {
 
             // Get the actual message
             result = ::GetRawInputData(
-                reinterpret_cast<::HRAWINPUT>(lparam),
+                reinterpret_cast<::HRAWINPUT>(lParam),
                 RID_INPUT,
-                _raw_msg.get(),
+                _raw_msg,
                 &message_size,
                 sizeof(::RAWINPUTHEADER)
             );
@@ -261,24 +272,12 @@ void Win32TargetWindow::destroy_surface() {
             }
 
             // Begin by casting to the type we're going to parse
-            auto const *msg = reinterpret_cast<::RAWINPUT *>(_raw_msg.get());
+            auto const *msg = reinterpret_cast<::RAWINPUT *>(_raw_msg);
             if(msg->header.dwType == RIM_TYPEKEYBOARD) {
-                // a key can either produce a "make" or "break" scancode.
-                // this is used to differentiate between down-presses and
-                // releases
-                // http://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html
-                bool const is_release =
-                    ((msg->data.keyboard.Flags & RI_KEY_BREAK) != 0);
-
-                // Escape quits the whole program
-                if(msg->data.keyboard.VKey == VK_ESCAPE && !is_release) {
-                    ::SendMessage(window, WM_CLOSE, wparam, lparam);
-                }
-                // Discard "fake keys" which are part of an escaped sequence
-                else if(msg->data.keyboard.VKey == 255u) { }
-                // Otherwise, parse away
-                else {
-                    _parse_raw_keyboard(msg->data.keyboard, is_release);
+                // Discard "fake keys" which are part of an escaped sequence,
+                // otherwise process the input
+                if(msg->data.keyboard.VKey != 255u) {
+                    _parse_raw_keyboard(msg->data.keyboard);
                 }
             }
             else if(msg->header.dwType == RIM_TYPEMOUSE) {
@@ -288,111 +287,38 @@ void Win32TargetWindow::destroy_surface() {
             break;
         }
 
-        case WM_CREATE: BTX_WARN("WM_CREATE");
+        case WM_CREATE:
             _restrict_cursor();
             break;
 
         case WM_ACTIVATE:
-            if(wparam == WA_ACTIVE || wparam == WA_CLICKACTIVE) {
-                BTX_WARN("WM_ACTIVATE WA_ACTIVE");
+            if(wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) {
                 _restrict_cursor();
             }
-            else if(wparam == WA_INACTIVE) {
-                BTX_WARN("WM_ACTIVATE WA_INACTIVE");
+            else if(wParam == WA_INACTIVE) {
                 _release_cursor();
             }
             break;
 
-        case WM_CLOSE: BTX_WARN("WM_CLOSE");
-            ::DestroyWindow(_window);
+        // This is the first message received in window close cascade. Note the
+        // early return so there's no call to ::DefWindowProc()
+        case WM_CLOSE:
+            ::DestroyWindow(hWnd);
             ::UnregisterClass(BTX_NAME, nullptr);
             return 0;
 
-        case WM_DESTROY: BTX_WARN("WM_DESTROY");
+        // And this is the second message, but also the last one we have to
+        // handle explicitly.
+        case WM_DESTROY:
             ::PostQuitMessage(0);
             _release_cursor();
-            EventBroker::emit<WindowCloseEvent>();
             return 0;
 
-        case WM_SETFOCUS        : BTX_WARN("WM_SETFOCUS");          break;
-        case WM_KILLFOCUS       : BTX_WARN("WM_KILLFOCUS");         break;
-        case WM_ENABLE          : BTX_WARN("WM_ENABLE");            break;
-        case WM_SETREDRAW       : BTX_WARN("WM_SETREDRAW");         break;
-        case WM_SETTEXT         : BTX_WARN("WM_SETTEXT");           break;
-        case WM_GETTEXT         : BTX_WARN("WM_GETTEXT");           break;
-        case WM_GETTEXTLENGTH   : BTX_WARN("WM_GETTEXTLENGTH");     break;
-        case WM_PAINT           : BTX_WARN("WM_PAINT");             break;
-        case WM_QUERYENDSESSION : BTX_WARN("WM_QUERYENDSESSION");   break;
-        case WM_QUERYOPEN       : BTX_WARN("WM_QUERYOPEN");         break;
-        case WM_ENDSESSION      : BTX_WARN("WM_ENDSESSION");        break;
-        case WM_MOVE            : BTX_WARN("WM_MOVE");              break;
-        case WM_SIZE            : BTX_WARN("WM_SIZE");              break;
-        case WM_NOTIFY: BTX_WARN("WM_NOTIFY"); break;
-        case WM_INPUTLANGCHANGEREQUEST: BTX_WARN("WM_INPUTLANGCHANGEREQUEST"); break;
-        case WM_INPUTLANGCHANGE: BTX_WARN("WM_INPUTLANGCHANGE"); break;
-        case WM_TCARD: BTX_WARN("WM_TCARD"); break;
-        case WM_HELP: BTX_WARN("WM_HELP"); break;
-        case WM_USERCHANGED: BTX_WARN("WM_USERCHANGED"); break;
-        case WM_NOTIFYFORMAT: BTX_WARN("WM_NOTIFYFORMAT"); break;
-        case WM_CONTEXTMENU: BTX_WARN("WM_CONTEXTMENU"); break;
-        case WM_STYLECHANGING: BTX_WARN("WM_STYLECHANGING"); break;
-        case WM_STYLECHANGED: BTX_WARN("WM_STYLECHANGED"); break;
-        case WM_DISPLAYCHANGE: BTX_WARN("WM_DISPLAYCHANGE"); break;
-        case WM_GETICON: BTX_WARN("WM_GETICON"); break;
-        case WM_SETICON: BTX_WARN("WM_SETICON"); break;
-        case WM_PAINTICON: BTX_WARN("WM_PAINTICON"); break;
-        case WM_ICONERASEBKGND: BTX_WARN("WM_ICONERASEBKGND"); break;
-        case WM_NEXTDLGCTL: BTX_WARN("WM_NEXTDLGCTL"); break;
-        case WM_SPOOLERSTATUS: BTX_WARN("WM_SPOOLERSTATUS"); break;
-        case WM_DRAWITEM: BTX_WARN("WM_DRAWITEM"); break;
-        case WM_MEASUREITEM: BTX_WARN("WM_MEASUREITEM"); break;
-        case WM_DELETEITEM: BTX_WARN("WM_DELETEITEM"); break;
-        case WM_VKEYTOITEM: BTX_WARN("WM_VKEYTOITEM"); break;
-        case WM_CHARTOITEM: BTX_WARN("WM_CHARTOITEM"); break;
-        case WM_SETFONT: BTX_WARN("WM_SETFONT"); break;
-        case WM_GETFONT: BTX_WARN("WM_GETFONT"); break;
-        case WM_SETHOTKEY: BTX_WARN("WM_SETHOTKEY"); break;
-        case WM_GETHOTKEY: BTX_WARN("WM_GETHOTKEY"); break;
-        case WM_QUERYDRAGICON: BTX_WARN("WM_QUERYDRAGICON"); break;
-        case WM_COMPAREITEM: BTX_WARN("WM_COMPAREITEM"); break;
-        case WM_GETOBJECT: BTX_WARN("WM_GETOBJECT"); break;
-        case WM_COMPACTING: BTX_WARN("WM_COMPACTING"); break;
-        case WM_COMMNOTIFY: BTX_WARN("WM_COMMNOTIFY"); break;
-        case WM_WINDOWPOSCHANGING: BTX_WARN("WM_WINDOWPOSCHANGING"); break;
-        case WM_WINDOWPOSCHANGED: BTX_WARN("WM_WINDOWPOSCHANGED"); break;
-        case WM_NCCREATE: BTX_WARN("WM_NCCREATE"); break;
-        case WM_NCDESTROY: BTX_WARN("WM_NCDESTROY"); break;
-        case WM_NCCALCSIZE: BTX_WARN("WM_NCCALCSIZE"); break;
-        case WM_NCHITTEST: BTX_WARN("WM_NCHITTEST"); break;
-        case WM_NCPAINT: BTX_WARN("WM_NCPAINT"); break;
-        case WM_NCACTIVATE: BTX_WARN("WM_NCACTIVATE"); break;
-        case WM_GETDLGCODE: BTX_WARN("WM_GETDLGCODE"); break;
-        case WM_NCMOUSEMOVE: BTX_WARN("WM_NCMOUSEMOVE"); break;
-        case WM_NCLBUTTONDOWN: BTX_WARN("WM_NCLBUTTONDOWN"); break;
-        case WM_NCLBUTTONUP: BTX_WARN("WM_NCLBUTTONUP"); break;
-        case WM_NCLBUTTONDBLCLK: BTX_WARN("WM_NCLBUTTONDBLCLK"); break;
-        case WM_NCRBUTTONDOWN: BTX_WARN("WM_NCRBUTTONDOWN"); break;
-        case WM_NCRBUTTONUP: BTX_WARN("WM_NCRBUTTONUP"); break;
-        case WM_NCRBUTTONDBLCLK: BTX_WARN("WM_NCRBUTTONDBLCLK"); break;
-        case WM_NCMBUTTONDOWN: BTX_WARN("WM_NCMBUTTONDOWN"); break;
-        case WM_NCMBUTTONUP: BTX_WARN("WM_NCMBUTTONUP"); break;
-        case WM_NCMBUTTONDBLCLK: BTX_WARN("WM_NCMBUTTONDBLCLK"); break;
-        case WM_IME_SETCONTEXT: BTX_WARN("WM_IME_SETCONTEXT"); break;
-        case WM_IME_NOTIFY: BTX_WARN("WM_IME_NOTIFY"); break;
-        case WM_IME_CONTROL: BTX_WARN("WM_IME_CONTROL"); break;
-        case WM_IME_COMPOSITIONFULL: BTX_WARN("WM_IME_COMPOSITIONFULL"); break;
-        case WM_IME_SELECT: BTX_WARN("WM_IME_SELECT"); break;
-        case WM_IME_CHAR: BTX_WARN("WM_IME_CHAR"); break;
-        case WM_ERASEBKGND: BTX_WARN("WM_ERASEBKGND"); break;
-        case WM_SYSCOLORCHANGE: BTX_WARN("WM_SYSCOLORCHANGE"); break;
-        case WM_SHOWWINDOW: BTX_WARN("WM_SHOWWINDOW"); break;
-        case WM_WININICHANGE: BTX_WARN("WM_WININICHANGE"); break;
-
-        default: BTX_WARN("{:#x}", message); break;
+        default: break;
     }
 
     // Be sure to let Windows handle what hasn't already been handled
-    return ::DefWindowProc(window, message, wparam, lparam);
+    return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
 // =============================================================================
@@ -401,9 +327,7 @@ void Win32TargetWindow::destroy_surface() {
 
 // https://blog.molecular-matters.com/2011/09/05/properly-handling-keyboard-input/
 
-void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw,
-                                            bool const is_release)
-{
+void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw) {
     // We might need to modify the virtual key code
     auto vkey = raw.VKey;
 
@@ -415,8 +339,8 @@ void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw,
     }
 
     // Windows keys
-    else if(vkey == VK_LWIN) { vkey = KB_LEFT_SUPER; }
-    else if(vkey == VK_RWIN) { vkey = KB_RIGHT_SUPER; }
+    else if(vkey == VK_LWIN) { vkey = BTX_KB_LEFT_SUPER; }
+    else if(vkey == VK_RWIN) { vkey = BTX_KB_RIGHT_SUPER; }
 
     // And the remainder
     else {
@@ -428,50 +352,63 @@ void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw,
         if(isE0) {
             switch(vkey) {
                 // right-hand CONTROL and ALT have their e0 bit set
-                case VK_CONTROL: vkey = KB_RIGHT_CTRL; break;
-                case VK_MENU   : vkey = KB_RIGHT_ALT;  break;
+                case VK_CONTROL: vkey = BTX_KB_RIGHT_CTRL; break;
+                case VK_MENU   : vkey = BTX_KB_RIGHT_ALT;  break;
 
                 // NUMPAD ENTER has its e0 bit set
-                case VK_RETURN : vkey = KB_NP_ENTER;   break;
+                case VK_RETURN : vkey = BTX_KB_NP_ENTER;   break;
 
                 default: break;
             }
         }
         else {
             switch(vkey) {
-                case VK_CONTROL: vkey = KB_LEFT_CTRL; break;
-                case VK_MENU   : vkey = KB_LEFT_ALT;  break;
+                case VK_CONTROL: vkey = BTX_KB_LEFT_CTRL; break;
+                case VK_MENU   : vkey = BTX_KB_LEFT_ALT;  break;
 
                 // the standard INSERT, DELETE, HOME, END, PRIOR and
                 // NEXT keys will always have their e0 bit set, but the
                 // corresponding keys on the NUMPAD will not.
-                case VK_INSERT: vkey = KB_NP_0;       break;
-                case VK_DELETE: vkey = KB_NP_DECIMAL; break;
-                case VK_HOME  : vkey = KB_NP_7;       break;
-                case VK_END   : vkey = KB_NP_1;       break;
-                case VK_PRIOR : vkey = KB_NP_9;       break;
-                case VK_NEXT  : vkey = KB_NP_3;       break;
+                case VK_INSERT: vkey = BTX_KB_NP_0;       break;
+                case VK_DELETE: vkey = BTX_KB_NP_DECIMAL; break;
+                case VK_HOME  : vkey = BTX_KB_NP_7;       break;
+                case VK_END   : vkey = BTX_KB_NP_1;       break;
+                case VK_PRIOR : vkey = BTX_KB_NP_9;       break;
+                case VK_NEXT  : vkey = BTX_KB_NP_3;       break;
                 // the standard arrow keys will always have their e0 bit
                 // set, but the corresponding keys on the NUMPAD will
                 // not.
-                case VK_LEFT  : vkey = KB_NP_4; break;
-                case VK_RIGHT : vkey = KB_NP_6; break;
-                case VK_UP    : vkey = KB_NP_8; break;
-                case VK_DOWN  : vkey = KB_NP_2; break;
+                case VK_LEFT  : vkey = BTX_KB_NP_4; break;
+                case VK_RIGHT : vkey = BTX_KB_NP_6; break;
+                case VK_UP    : vkey = BTX_KB_NP_8; break;
+                case VK_DOWN  : vkey = BTX_KB_NP_2; break;
 
                 // NUMPAD 5 doesn't have its e0 bit set
-                case VK_CLEAR : vkey = KB_NP_5; break;
+                case VK_CLEAR : vkey = BTX_KB_NP_5; break;
 
                 default: break;
             }
         }
     }
 
+    // Now that we've got everything sorted, do a lookup for the key code. If
+    // it's not in the map, return early.
+    auto const translated = Win32ToBTXKeys::map.find(vkey);
+    if(translated == Win32ToBTXKeys::map.end()) {
+        BTX_WARN("Unknown win32 vkey: {}", vkey);
+        return;
+    }
+
+    // a key can either produce a "make" or "break" scancode. this is used to
+    // differentiate between down-presses and releases
+    // http://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html
+    bool const is_release = ((raw.Flags & RI_KEY_BREAK) != 0);
+
     if(is_release) {
-        EventBroker::emit<KeyReleaseEvent>(Win32ToBTXKeys::map.at(vkey));
+        EventBroker::emit<KeyReleaseEvent>(translated->second);
     }
     else {
-        EventBroker::emit<KeyPressEvent>(Win32ToBTXKeys::map.at(vkey));
+        EventBroker::emit<KeyPressEvent>(translated->second);
     }
 }
 
@@ -480,36 +417,36 @@ void Win32TargetWindow::_parse_raw_mouse(::RAWMOUSE const &raw) {
     auto const button_data = raw.usButtonData;
     auto const button_flags = raw.usButtonFlags;
 
-    // Testing for the left mouse button
+    // Left mouse button
     if((button_flags & RI_MOUSE_LEFT_BUTTON_DOWN) != 0u) {
-        EventBroker::emit<MouseButtonPressEvent>(MB_LEFT);
+        EventBroker::emit<MouseButtonPressEvent>(BTX_MB_LEFT);
     }
     else if((button_flags & RI_MOUSE_LEFT_BUTTON_UP) != 0u) {
-        EventBroker::emit<MouseButtonReleaseEvent>(MB_LEFT);
+        EventBroker::emit<MouseButtonReleaseEvent>(BTX_MB_LEFT);
     }
 
-    // Testing for the right mouse button
+    // Right mouse button
     if((button_flags & RI_MOUSE_RIGHT_BUTTON_DOWN) != 0u) {
-        EventBroker::emit<MouseButtonPressEvent>(MB_RIGHT);
+        EventBroker::emit<MouseButtonPressEvent>(BTX_MB_RIGHT);
     }
     else if((button_flags & RI_MOUSE_RIGHT_BUTTON_UP) != 0u) {
-        EventBroker::emit<MouseButtonReleaseEvent>(MB_RIGHT);
+        EventBroker::emit<MouseButtonReleaseEvent>(BTX_MB_RIGHT);
     }
 
-    // Testing for the middle mouse button
+    // Middle mouse button
     if((button_flags & RI_MOUSE_MIDDLE_BUTTON_DOWN) != 0u) {
-        EventBroker::emit<MouseButtonPressEvent>(MB_MIDDLE);
+        EventBroker::emit<MouseButtonPressEvent>(BTX_MB_MIDDLE);
     }
     else if((button_flags & RI_MOUSE_MIDDLE_BUTTON_UP) != 0u) {
-        EventBroker::emit<MouseButtonReleaseEvent>(MB_MIDDLE);
+        EventBroker::emit<MouseButtonReleaseEvent>(BTX_MB_MIDDLE);
     }
 
-    // Testing if the mouse moved
+    // Mouse movement
     if(raw.lLastX != 0 || raw.lLastY != 0) {
         EventBroker::emit<MouseMoveEvent>(raw.lLastX, raw.lLastY);
     }
 
-    // Testing for a mouse wheel vertical scroll
+    // Vertical mouse scroll
     if((button_flags & RI_MOUSE_WHEEL) != 0u) {
         EventBroker::emit<MouseScrollEvent>(
             static_cast<int32_t>(button_data),
@@ -517,7 +454,7 @@ void Win32TargetWindow::_parse_raw_mouse(::RAWMOUSE const &raw) {
         );
     }
 
-    // Testing for a mouse wheel horizontal scroll
+    // Horizontal mouse scroll
     if((button_flags & RI_MOUSE_HWHEEL) != 0u) {
         EventBroker::emit<MouseScrollEvent>(
             0,
@@ -581,9 +518,7 @@ void Win32TargetWindow::_restrict_cursor() {
 	::ClipCursor(&client_area);
 
     // Run through all requests to show a cursor until there are none
-    while(::ShowCursor(FALSE) >= 0) {
-
-    }
+    while(::ShowCursor(FALSE) >= 0) { }
 }
 
 // =============================================================================
@@ -592,9 +527,7 @@ void Win32TargetWindow::_release_cursor() {
     ::ClipCursor(nullptr);
 
     // Queue requests until there are some
-    while(::ShowCursor(TRUE) < 0) {
-
-    }
+    while(::ShowCursor(TRUE) < 0) { }
 }
 
 // =============================================================================
@@ -618,7 +551,6 @@ void Win32TargetWindow::_size_and_place() {
         static_cast<int>(RenderConfig::window_height),
         0
     );
-
 
     if(result == FALSE) {
         auto const error = ::GetLastError();

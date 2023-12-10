@@ -13,11 +13,11 @@ public:
 	static void init();
 
     enum class Level : std::uint8_t {
-        TRACE,
-        INFO,
-        WARN,
-        ERROR,
-        CRITICAL
+        LOG_TRACE,
+        LOG_INFO,
+        LOG_WARN,
+        LOG_ERROR,
+        LOG_CRITICAL
     };
 
     static void set_level(Level log_level);
@@ -129,10 +129,10 @@ void ConsoleLog::app_critical(std::format_string<T...> fmt, T&& ...args) {
 #define BTX_ERROR(...)    btx::ConsoleLog::btx_error(__VA_ARGS__)
 #define BTX_CRITICAL(...) btx::ConsoleLog::btx_critical(__VA_ARGS__);
 
-#define TRACE(...)    btx::ConsoleLog::app_trace(__VA_ARGS__)
-#define INFO(...)     btx::ConsoleLog::app_info(__VA_ARGS__)
-#define WARN(...)     btx::ConsoleLog::app_warn(__VA_ARGS__)
-#define ERROR(...)    btx::ConsoleLog::app_error(__VA_ARGS__)
-#define CRITICAL(...) btx::ConsoleLog::app_critical(__VA_ARGS__);
+#define CONSOLE_TRACE(...)    btx::ConsoleLog::app_trace(__VA_ARGS__)
+#define CONSOLE_INFO(...)     btx::ConsoleLog::app_info(__VA_ARGS__)
+#define CONSOLE_WARN(...)     btx::ConsoleLog::app_warn(__VA_ARGS__)
+#define CONSOLE_ERROR(...)    btx::ConsoleLog::app_error(__VA_ARGS__)
+#define CONSOLE_CRITICAL(...) btx::ConsoleLog::app_critical(__VA_ARGS__);
 
 #endif // BRASSTACKS_TOOLS_CONSOLELOG_HPP

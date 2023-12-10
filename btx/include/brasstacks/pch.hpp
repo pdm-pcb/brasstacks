@@ -11,7 +11,6 @@
 // I'll check the return values
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-
 #if defined(BTX_LINUX)
     #include <X11/Xlib.h>
 
@@ -51,14 +50,11 @@
     #include <Windows.h>
     #include <hidusage.h>
 
-    // Despite all of the above, this still gets through
-    #undef ERROR
-
     #define VK_USE_PLATFORM_WIN32_KHR
     #include <vulkan/vulkan.hpp>
 
     #include <vulkan/vulkan_win32.h>
-#endif
+#endif // BTX platform
 
 #include <cstdint>
 #include <cstdlib>

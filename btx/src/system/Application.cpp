@@ -9,6 +9,8 @@ namespace btx {
 
 // =============================================================================
 void Application::run() {
+    TargetWindow::show_window();
+
     this->init();
 
     while(_running) {
@@ -19,11 +21,10 @@ void Application::run() {
 }
 
 // =============================================================================
-void Application::on_window_close(
-    [[maybe_unused]] WindowCloseEvent const &event)
-{
-    BTX_TRACE("Application received WindowClosed");
-    _running = false;
+void Application::on_key_release(KeyReleaseEvent const &event) {
+    if(event.code == BTX_KB_ESCAPE) {
+        _running = false;
+    }
 }
 
 // =============================================================================
@@ -32,12 +33,12 @@ Application::Application(std::string_view const app_name) :
     _padding { }
 {
     ConsoleLog::init();
+    EventBroker::init();
     GraphicsAPI::init();
 
-    EventBroker::init();
-    EventBroker::subscribe<WindowCloseEvent>(
+    EventBroker::subscribe<KeyReleaseEvent>(
         this,
-        &Application::on_window_close
+        &Application::on_key_release
     );
 
     TargetWindow::init(app_name);
@@ -49,6 +50,7 @@ Application::~Application() {
     TargetWindow::destroy_surface();
     TargetWindow::shutdown();
     GraphicsAPI::shutdown();
+    EventBroker::shutdown();
 }
 
 } // namespace btx

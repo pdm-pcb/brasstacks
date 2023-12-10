@@ -3,11 +3,11 @@
 class App final : public btx::Application {
 public:
     void init() override {
-        TRACE("client app init");
+        CONSOLE_TRACE("client app init");
     }
 
     void shutdown() override {
-        TRACE("client app shutdown");
+        CONSOLE_TRACE("client app shutdown");
     }
 
     App() : btx::Application("Demo") { }

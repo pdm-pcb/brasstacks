@@ -17,7 +17,7 @@ void ConsoleLog::init() {
         _app_logger = spdlog::stdout_color_mt("app_logger");
 
         // Print with color, time with milliseconds, and thread ID
-        _btx_logger->set_pattern("%^[%T.%e][%t][BTX]: %v%$");
+        _btx_logger->set_pattern("%^[%T.%e][%t][btx]: %v%$");
         _app_logger->set_pattern("%^[%T.%e][%t]: %v%$");
 
         // Default to everything
@@ -37,23 +37,23 @@ void ConsoleLog::set_level(Level log_level) {
 
     // Set the severity to print
     switch(log_level) {
-        case Level::TRACE:
+        case Level::LOG_TRACE:
             _btx_logger->set_level(spdlog::level::trace);
             _app_logger->set_level(spdlog::level::trace);
             break;
-        case Level::INFO:
+        case Level::LOG_INFO:
             _btx_logger->set_level(spdlog::level::info);
             _app_logger->set_level(spdlog::level::info);
             break;
-        case Level::WARN:
+        case Level::LOG_WARN:
             _btx_logger->set_level(spdlog::level::warn);
             _app_logger->set_level(spdlog::level::warn);
             break;
-        case Level::ERROR:
+        case Level::LOG_ERROR:
             _btx_logger->set_level(spdlog::level::err);
             _app_logger->set_level(spdlog::level::err);
             break;
-        case Level::CRITICAL:
+        case Level::LOG_CRITICAL:
             _btx_logger->set_level(spdlog::level::critical);
             _app_logger->set_level(spdlog::level::critical);
             break;
