@@ -24,6 +24,7 @@ public:
     static void create_window(Dimensions const &dimensions = { 0u, 0u },
                               Position const &position = { 0, 0 });
     static void show_window();
+    static void destroy_window();
 
     // Manage the graphics surface
     static void create_surface();

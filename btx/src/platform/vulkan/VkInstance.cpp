@@ -1,7 +1,7 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/system/GraphicsAPI.hpp"
+#include "brasstacks/platform/vulkan/VkInstance.hpp"
 
-#include "brasstacks/tools/VKDebugger.hpp"
+#include "brasstacks/platform/vulkan/VkDebugger.hpp"
 
 // This (and more) does away with the explicit loading of each
 // function/extension. See: https://github.com/KhronosGroup/Vulkan-Hpp
@@ -12,29 +12,38 @@ namespace btx {
 // The version of Vulkan being targeted
 static std::uint32_t constexpr VK_TARGET_VERSION = VK_API_VERSION_1_3;
 
-// Static member variables for GraphicsAPI
-vk::DynamicLoader               GraphicsAPI::_loader   { };
-vk::Instance                    GraphicsAPI::_instance { };
-vk::ApplicationInfo             GraphicsAPI::_app_info { };
-std::vector<char const *>       GraphicsAPI::_enabled_layers;
-std::vector<char const *>       GraphicsAPI::_enabled_extensions;
-GraphicsAPI::ValidationFeatures GraphicsAPI::_validation_features;
-vk::ValidationFeaturesEXT       GraphicsAPI::_validation_extensions { };
-vk::InstanceCreateInfo          GraphicsAPI::_instance_create_info  { };
+vk::DynamicLoader VkInstance::_loader;
+vk::Instance      VkInstance::_instance;
+
+vk::ApplicationInfo       VkInstance::_app_info;
+std::vector<char const *> VkInstance::_enabled_layers;
+std::vector<char const *> VkInstance::_enabled_extensions;
+
+VkInstance::ValidationFeatures VkInstance::_validation_features;
+
+vk::ValidationFeaturesEXT VkInstance::_validation_extensions;
+
+vk::InstanceCreateInfo VkInstance::_instance_create_info;
 
 // =============================================================================
-void GraphicsAPI::init() {
+void VkInstance::init() {
     _init_dynamic_loader(); // The first step for using the dynamic loader
     _init_app_info();       // Provide hints about this program to the driver
     _init_layers();         // There are many layers. Validation is our favorite
     _init_extensions();     // Extensions are often implementation defined
 
-    auto const extensions = vk::enumerateInstanceExtensionProperties();
-    BTX_TRACE("Found {} instance extensions.", extensions.value.size());
+    auto const ext_result = vk::enumerateInstanceExtensionProperties();
+    if(ext_result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to enumerate instance extensions.");
+        return;
+    }
+
+    auto const &extensions = ext_result.value;
+    BTX_TRACE("Found {} instance extensions.", extensions.size());
 
     // Run through the extensions the driver offers and make sure we've got
     // what we need
-    if(!_check_extensions(extensions.value)) {
+    if(!_check_extensions(extensions)) {
         return;
     }
 
@@ -79,21 +88,21 @@ void GraphicsAPI::init() {
     );
 
 #ifdef BTX_DEBUG
-    VKDebugger::init(_instance);
+    VkDebugger::init(_instance);
 #endif // BTX_DEBUG
 }
 
 // =============================================================================
-void GraphicsAPI::shutdown() {
+void VkInstance::shutdown() {
 #ifdef BTX_DEBUG
-    VKDebugger::shutdown(_instance);
+    VkDebugger::shutdown(_instance);
 #endif // BTX_DEBUG
 
     _instance.destroy();
 }
 
 // =============================================================================
-void GraphicsAPI::_init_dynamic_loader() {
+void VkInstance::_init_dynamic_loader() {
     using inst_proc = PFN_vkGetInstanceProcAddr; // A little brevity
     auto vkGetInstanceProcAddr = _loader.getProcAddress<inst_proc>(
         "vkGetInstanceProcAddr"
@@ -104,7 +113,7 @@ void GraphicsAPI::_init_dynamic_loader() {
 
 // =============================================================================
 // Several static constexpr values loaded in from the central header
-void GraphicsAPI::_init_app_info() {
+void VkInstance::_init_app_info() {
     _app_info.pApplicationName   = nullptr;
     _app_info.applicationVersion = 0u;
     _app_info.pEngineName        = BTX_NAME;
@@ -113,7 +122,7 @@ void GraphicsAPI::_init_app_info() {
 }
 
 // =============================================================================
-void GraphicsAPI::_init_layers() {
+void VkInstance::_init_layers() {
 #ifdef BTX_DEBUG
     // The validation layer helps you know if you've strayed too far from the
     // expected path. It's also extremely opinionated, so each message should
@@ -123,7 +132,7 @@ void GraphicsAPI::_init_layers() {
 }
 
 // =============================================================================
-void GraphicsAPI::_init_extensions() {
+void VkInstance::_init_extensions() {
     _enabled_extensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
     // Surfaces describe the spaces to which you can draw in Vulkan. They're
@@ -173,7 +182,7 @@ void GraphicsAPI::_init_extensions() {
 }
 
 // =============================================================================
-bool GraphicsAPI::_check_extensions(Extensions const &supported_extensions) {
+bool VkInstance::_check_extensions(Extensions const &supported_extensions) {
     for(auto const * const ext_name : _enabled_extensions) {
         bool extension_found = false;
 

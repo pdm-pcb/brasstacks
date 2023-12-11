@@ -1,11 +1,11 @@
-#ifndef BRASSTACKS_TOOLS_VKDEBUGGER_HPP
-#define BRASSTACKS_TOOLS_VKDEBUGGER_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_VKDEBUGGER_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_VKDEBUGGER_HPP
 
 #include "brasstacks/pch.hpp"
 
 namespace btx {
 
-class VKDebugger final {
+class VkDebugger final {
 public:
     static VKAPI_ATTR vk::Bool32 VKAPI_CALL messenger(
         VkDebugUtilsMessageSeverityFlagBitsEXT      severity,
@@ -17,7 +17,7 @@ public:
     static void init(vk::Instance &instance);
     static void shutdown(vk::Instance &instance);
 
-    VKDebugger() = delete;
+    VkDebugger() = delete;
 
 private:
     static vk::DebugUtilsMessengerEXT _debug_messenger;
@@ -25,4 +25,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_TOOLS_VKDEBUGGER_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_VKDEBUGGER_HPP

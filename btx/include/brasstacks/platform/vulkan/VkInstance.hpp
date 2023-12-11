@@ -1,25 +1,25 @@
-#ifndef BRASSTACKS_SYSTEM_GRAPHICSAPI_HPP
-#define BRASSTACKS_SYSTEM_GRAPHICSAPI_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_VKINSTANCE_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_VKINSTANCE_HPP
 
 #include "brasstacks/pch.hpp"
 
 namespace btx {
 
-class GraphicsAPI final {
+class VkInstance final {
 public:
     static void init();
     static void shutdown();
 
     inline static auto const& native() { return _instance; }
 
-    GraphicsAPI() = delete;
-    ~GraphicsAPI() = delete;
+    VkInstance() = default;
+    ~VkInstance() = default;
 
-    GraphicsAPI(GraphicsAPI &&other) = delete;
-    GraphicsAPI(const GraphicsAPI &other) = delete;
+    VkInstance(VkInstance &&other) = delete;
+    VkInstance(const VkInstance &other) = delete;
 
-    GraphicsAPI& operator=(GraphicsAPI &&other) = delete;
-    GraphicsAPI& operator=(const GraphicsAPI &other) = delete;
+    VkInstance& operator=(VkInstance &&other) = delete;
+    VkInstance& operator=(const VkInstance &other) = delete;
 
 private:
     static vk::DynamicLoader _loader;
@@ -47,4 +47,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_SYSTEM_GRAPHICSAPI_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_VKINSTANCE_HPP

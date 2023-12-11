@@ -5,7 +5,6 @@
 
 namespace btx {
 
-struct KeyPressEvent;
 struct KeyReleaseEvent;
 
 class Application {
@@ -30,8 +29,6 @@ public:
 
 private:
     bool _running;
-
-    std::array<std::byte, 7> _padding;
 };
 
 } // namespace btx

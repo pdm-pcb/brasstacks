@@ -5,7 +5,7 @@
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
-#include "brasstacks/system/GraphicsAPI.hpp"
+#include "brasstacks/platform/vulkan/VkInstance.hpp"
 
 namespace btx {
 
@@ -101,9 +101,7 @@ void Win32TargetWindow::init(std::string_view const app_name) {
 
 // =============================================================================
 void Win32TargetWindow::shutdown() {
-    BTX_TRACE("Target window received shutdown command.");
-    ::SendMessage(_window, WM_CLOSE, 0, 0);
-    message_loop();
+    // Clean up our one allocation
     delete[] _raw_msg;
 }
 
@@ -166,7 +164,7 @@ void Win32TargetWindow::create_window(Dimensions const &dimensions,
     if(_window == nullptr) {
         auto const error = ::GetLastError();
         BTX_CRITICAL(
-            "Failed to create win32 window. Error {}: '{}'",
+            "Failed to create win32 target window. Error {}: '{}'",
             error,
             std::system_category().message(static_cast<int>(error))
         );
@@ -174,7 +172,7 @@ void Win32TargetWindow::create_window(Dimensions const &dimensions,
     }
 
     BTX_TRACE(
-        "Created Win32 target window: {}x{}",
+        "Created win32 target window: {}x{}",
         RenderConfig::window_width,
         RenderConfig::window_height
     );
@@ -189,6 +187,13 @@ void Win32TargetWindow::show_window() {
 }
 
 // =============================================================================
+void Win32TargetWindow::destroy_window() {
+    BTX_TRACE("Destroying win32 target window.");
+    ::SendMessage(_window, WM_CLOSE, 0, 0);
+    message_loop();
+}
+
+// =============================================================================
 void Win32TargetWindow::create_surface() {
     // The details Vulkan cares about
     vk::Win32SurfaceCreateInfoKHR const surface_info {
@@ -197,7 +202,7 @@ void Win32TargetWindow::create_surface() {
     };
 
     // Create, check, assign
-    auto result = GraphicsAPI::native().createWin32SurfaceKHR(surface_info);
+    auto result = VkInstance::native().createWin32SurfaceKHR(surface_info);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL(
             "Unable to create Win32 KHR surface: '{}'",
@@ -218,7 +223,7 @@ void Win32TargetWindow::destroy_surface() {
         "Destroying Vulkan surface {:#x}",
         reinterpret_cast<uint64_t>(::VkSurfaceKHR(_surface))
     );
-    GraphicsAPI::native().destroy(_surface);
+    VkInstance::native().destroy(_surface);
 }
 
 // =============================================================================

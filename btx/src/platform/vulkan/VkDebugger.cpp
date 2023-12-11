@@ -1,14 +1,14 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/tools/VKDebugger.hpp"
+#include "brasstacks/platform/vulkan/VkDebugger.hpp"
 
-#include "brasstacks/system/GraphicsAPI.hpp"
+#include "brasstacks/platform/vulkan/VkInstance.hpp"
 
 namespace btx {
 
-vk::DebugUtilsMessengerEXT VKDebugger::_debug_messenger { };
+vk::DebugUtilsMessengerEXT VkDebugger::_debug_messenger { };
 
 // =============================================================================
-VKAPI_ATTR vk::Bool32 VKAPI_CALL VKDebugger::messenger(
+VKAPI_ATTR vk::Bool32 VKAPI_CALL VkDebugger::messenger(
         VkDebugUtilsMessageSeverityFlagBitsEXT severity,
         [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT types,
         const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
@@ -42,7 +42,7 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL VKDebugger::messenger(
 }
 
 // =============================================================================
-void VKDebugger::init(vk::Instance &instance) {
+void VkDebugger::init(vk::Instance &instance) {
     // Populate the create info struct with the severity levels we're
     // interested in, the types we're interested in, and offer a callback
     // pointer to the API
@@ -63,7 +63,7 @@ void VKDebugger::init(vk::Instance &instance) {
             vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
             vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding
         ),
-        .pfnUserCallback = VKDebugger::messenger
+        .pfnUserCallback = VkDebugger::messenger
     };
 
     // Give it a shot
@@ -82,7 +82,7 @@ void VKDebugger::init(vk::Instance &instance) {
     }
     else {
         BTX_TRACE(
-            "Created VKDebugger messenger {:#x}",
+            "Created VkDebugger messenger {:#x}",
             reinterpret_cast<std::uint64_t>(
                 VkDebugUtilsMessengerEXT(_debug_messenger)
             )
@@ -91,9 +91,9 @@ void VKDebugger::init(vk::Instance &instance) {
 }
 
 // =============================================================================
-void VKDebugger::shutdown(vk::Instance &instance) {
+void VkDebugger::shutdown(vk::Instance &instance) {
     BTX_TRACE(
-        "Destroying VKDebugger messenger {:#x}",
+        "Destroying VkDebugger messenger {:#x}",
             reinterpret_cast<std::uint64_t>(
                 VkDebugUtilsMessengerEXT(_debug_messenger)
             )
