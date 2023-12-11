@@ -1,6 +1,6 @@
-#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/vulkan/devices/VkPhysicalDevice.hpp"
 
+#include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/platform/vulkan/VkInstance.hpp"
 #include "brasstacks/system/window/TargetWindow.hpp"
 

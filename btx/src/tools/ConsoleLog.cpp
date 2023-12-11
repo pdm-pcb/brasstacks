@@ -1,4 +1,3 @@
-#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/tools/ConsoleLog.hpp"
 
 #include <spdlog/sinks/stdout_color_sinks.h>

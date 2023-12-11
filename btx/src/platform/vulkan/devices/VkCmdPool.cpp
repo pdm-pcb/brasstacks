@@ -1,4 +1,3 @@
-#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/vulkan/devices/VkCmdPool.hpp"
 
 #include "brasstacks/platform/vulkan/devices/VkLogicalDevice.hpp"

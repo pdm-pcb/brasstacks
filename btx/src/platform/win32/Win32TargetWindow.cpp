@@ -1,6 +1,6 @@
-#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
+#include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/events/EventBroker.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"

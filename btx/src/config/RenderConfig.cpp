@@ -1,4 +1,3 @@
-#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {

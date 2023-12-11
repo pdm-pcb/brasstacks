@@ -1,4 +1,4 @@
-#include "brasstacks/brasstacks.hpp"
+#include "brasstacks/system/Application.hpp"
 
 class App final : public btx::Application {
 public:

@@ -1,4 +1,3 @@
-#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/vulkan/devices/VkCmdQueue.hpp"
 
 #include "brasstacks/platform/vulkan/devices/VkLogicalDevice.hpp"

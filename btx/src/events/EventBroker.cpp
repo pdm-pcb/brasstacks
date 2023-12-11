@@ -1,4 +1,3 @@
-#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/events/EventBroker.hpp"
 
 namespace btx {

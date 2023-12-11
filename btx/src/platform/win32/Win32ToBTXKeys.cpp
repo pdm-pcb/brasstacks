@@ -1,4 +1,3 @@
-#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
 
 namespace btx {

@@ -69,5 +69,6 @@
 #include <array>
 
 #include "brasstacks/version.hpp"
+#include "brasstacks/tools/ConsoleLog.hpp"
 
 #endif // BRASSTACKS_PCH_HPP

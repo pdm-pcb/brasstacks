@@ -1,4 +1,3 @@
-#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/vulkan/VkDebugger.hpp"
 
 #include "brasstacks/platform/vulkan/VkInstance.hpp"
