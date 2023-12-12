@@ -5,44 +5,39 @@
 
 namespace btx {
 
-class VkInstance final {
+class vkInstance final {
 public:
-    static void init();
-    static void shutdown();
+    inline auto const& native() const { return _handle; }
 
-    inline static auto const& native() { return _instance; }
+    explicit vkInstance();
+    ~vkInstance();
 
-    VkInstance() = default;
-    ~VkInstance() = default;
+    vkInstance(vkInstance &&other) = delete;
+    vkInstance(const vkInstance &other) = delete;
 
-    VkInstance(VkInstance &&other) = delete;
-    VkInstance(const VkInstance &other) = delete;
-
-    VkInstance& operator=(VkInstance &&other) = delete;
-    VkInstance& operator=(const VkInstance &other) = delete;
+    vkInstance& operator=(vkInstance &&other) = delete;
+    vkInstance& operator=(const vkInstance &other) = delete;
 
 private:
-    static vk::DynamicLoader _loader;
-    static vk::Instance      _instance;
-
-    static vk::ApplicationInfo       _app_info;
-    static std::vector<char const *> _enabled_layers;
-    static std::vector<char const *> _enabled_extensions;
+    vk::DynamicLoader         _loader;
+    uint32_t const            _target_api_version;
+    vk::ApplicationInfo       _app_info;
+    std::vector<char const *> _enabled_layers;
+    std::vector<char const *> _enabled_extensions;
 
     using ValidationFeatures = std::vector<vk::ValidationFeatureEnableEXT>;
-    static ValidationFeatures _validation_features;
+    ValidationFeatures _validation_features;
+    vk::ValidationFeaturesEXT _validation_extensions;
 
-    static vk::ValidationFeaturesEXT _validation_extensions;
+    vk::Instance _handle;
 
-    static vk::InstanceCreateInfo _instance_create_info;
-
-    static void _init_dynamic_loader();
-    static void _init_app_info();
-    static void _init_layers();
-    static void _init_extensions();
+    void _init_dynamic_loader();
+    void _init_app_info();
+    void _init_layers();
+    void _init_extensions();
 
     using Extensions = std::vector<vk::ExtensionProperties>;
-    static bool _check_extensions(Extensions const &supported_extensions);
+    bool _check_extensions(Extensions const &supported_extensions);
 };
 
 } // namespace btx

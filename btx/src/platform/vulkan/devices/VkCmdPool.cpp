@@ -1,60 +1,62 @@
-#include "brasstacks/platform/vulkan/devices/VkCmdPool.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
-#include "brasstacks/platform/vulkan/devices/VkLogicalDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/VkCmdQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdQueue.hpp"
 
 namespace btx {
 
 // =============================================================================
-void VkCmdPool::create(const vk::CommandPoolCreateFlags flags) {
+void vkCmdPool::create(const vk::CommandPoolCreateFlags flags) {
     const vk::CommandPoolCreateInfo pool_info {
         .flags = flags,
-        .queueFamilyIndex = VkLogicalDevice::cmd_queue().index()
+        .queueFamilyIndex = _device.cmd_queue().index()
     };
 
-    auto const result = VkLogicalDevice::native().createCommandPool(
+    auto const result = _device.native().createCommandPool(
         &pool_info,
         nullptr,
-        &_pool
+        &_handle
     );
 
     if(result != vk::Result::eSuccess) {
-        CONSOLE_CRITICAL(
+        BTX_CRITICAL(
             "Failed to create command pool: '{}'",
-            to_string(result)
+            vk::to_string(result)
         );
     }
     else {
-        CONSOLE_TRACE(
+        BTX_TRACE(
             "Created command pool {:#x}.",
-            reinterpret_cast<uint64_t>(VkCommandPool(_pool))
+            reinterpret_cast<uint64_t>(VkCommandPool(_handle))
         );
     }
 }
 
 // =============================================================================
-void VkCmdPool::destroy() {
-    CONSOLE_TRACE(
+void vkCmdPool::destroy() {
+    BTX_TRACE(
         "Destroying command pool {:#x}.",
-        reinterpret_cast<uint64_t>(VkCommandPool(_pool))
+        reinterpret_cast<uint64_t>(VkCommandPool(_handle))
     );
-    VkLogicalDevice::native().destroyCommandPool(_pool);
+    _device.native().destroyCommandPool(_handle);
 }
 
 // =============================================================================
-void VkCmdPool::reset(const vk::CommandPoolResetFlags flags) const {
-    VkLogicalDevice::native().resetCommandPool(_pool, flags);
+void vkCmdPool::reset(const vk::CommandPoolResetFlags flags) const {
+    _device.native().resetCommandPool(_handle, flags);
 }
 
 // =============================================================================
-VkCmdPool::VkCmdPool() :
-    _pool { }
+vkCmdPool::vkCmdPool(vkLogicalDevice const &device) :
+    _handle { },
+    _device { device }
 { }
 
-VkCmdPool::VkCmdPool(VkCmdPool &&other) noexcept :
-    _pool { other._pool }
+vkCmdPool::vkCmdPool(vkCmdPool &&other) noexcept :
+    _handle { other._handle },
+    _device { other._device }
 {
-    other._pool = nullptr;
+    other._handle = nullptr;
 }
 
 } // namespace btx

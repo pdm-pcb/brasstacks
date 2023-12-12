@@ -7,6 +7,11 @@ namespace btx {
 
 struct KeyReleaseEvent;
 
+class vkInstance;
+class vkPhysicalDevice;
+class vkLogicalDevice;
+class vkSwapchain;
+
 class Application {
 public:
     virtual void init()     = 0;
@@ -24,11 +29,16 @@ public:
     Application(Application &&) = delete;
     Application(const Application &) = delete;
 
-    Application& operator=(Application &&) = delete;
-    Application& operator=(const Application &) = delete;
+    Application & operator=(Application &&) = delete;
+    Application & operator=(const Application &) = delete;
 
 private:
     bool _running;
+
+    vkInstance       *_graphics_api;
+    vkPhysicalDevice *_adapter;
+    vkLogicalDevice  *_device;
+    vkSwapchain      *_swapchain;
 };
 
 } // namespace btx

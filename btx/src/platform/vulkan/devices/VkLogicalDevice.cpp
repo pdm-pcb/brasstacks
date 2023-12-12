@@ -1,18 +1,35 @@
-#include "brasstacks/platform/vulkan/devices/VkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
 
-#include "brasstacks/platform/vulkan/devices/VkPhysicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 
 namespace btx {
 
-VkCmdQueue VkLogicalDevice::_cmd_queue      { };
-VkCmdPool  VkLogicalDevice::_transient_pool { };
-vk::Device VkLogicalDevice::_logical_device { };
+// =============================================================================
+void vkLogicalDevice::submit(vk::SubmitInfo const &submit_info) const {
+    auto const result = _cmd_queue.native().submit(submit_info);
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to submit to command queue.");
+    }
+}
 
 // =============================================================================
-void VkLogicalDevice::create(std::vector<char const *> const &layer_names) {
+void vkLogicalDevice::wait_idle() const {
+    auto const result = _handle.waitIdle();
+    if(result != vk::Result::eSuccess) {
+        BTX_WARN("Failed to wait for logical device idle.");
+    }
+}
+
+// =============================================================================
+vkLogicalDevice::vkLogicalDevice(vkPhysicalDevice const &adapter,
+                                 Layers const &layers) :
+    _cmd_queue { *this },
+    _transient_pool { *this },
+    _adapter { adapter }
+{
     // The first step in device creation is to tell the queue what index it
     // will be using.
-    _cmd_queue.fill_create_info(VkPhysicalDevice::queue_index());
+    _cmd_queue.fill_create_info(_adapter.queue_index());
 
     // Then ask the queue for the populated structure
     vk::DeviceQueueCreateInfo queue_info[] {
@@ -20,32 +37,32 @@ void VkLogicalDevice::create(std::vector<char const *> const &layer_names) {
     };
 
     // The logical device wants to know what the physical device has to offer
-    auto const &extensions = VkPhysicalDevice::extensions();
-    auto const * features   = &(VkPhysicalDevice::features());
+    auto const &extensions = _adapter.extensions();
+    auto const * features   = &(_adapter.features());
 
     // That should be everything we need
     const vk::DeviceCreateInfo device_info {
         .queueCreateInfoCount    = static_cast<uint32_t>(std::size(queue_info)),
         .pQueueCreateInfos       = queue_info,
-        .enabledLayerCount       = static_cast<uint32_t>(layer_names.size()),
-        .ppEnabledLayerNames     = layer_names.data(),
+        .enabledLayerCount       = static_cast<uint32_t>(layers.size()),
+        .ppEnabledLayerNames     = layers.data(),
         .enabledExtensionCount   = static_cast<uint32_t>(extensions.size()),
         .ppEnabledExtensionNames = extensions.data(),
         .pEnabledFeatures        = features,
     };
 
     // Attempt creation
-    auto const result = VkPhysicalDevice::native().createDevice(
+    auto const result = _adapter.native().createDevice(
         &device_info,
         nullptr,
-        &_logical_device
+        &_handle
     );
 
     // Make sure it worked
     if(result != vk::Result::eSuccess) {
         BTX_CRITICAL(
             "Unable to create logical device: '{}'",
-            to_string(result)
+            vk::to_string(result)
         );
     }
     else {
@@ -60,37 +77,20 @@ void VkLogicalDevice::create(std::vector<char const *> const &layer_names) {
     _cmd_queue.request_queue();
 
     // This is the final step in providing the dynamic loader with information
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(_logical_device);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
     // Create the dedicated command pool for one-use command buffers
     _transient_pool.create(vk::CommandPoolCreateFlagBits::eTransient);
 }
 
-// =============================================================================
-void VkLogicalDevice::destroy() {
+vkLogicalDevice::~vkLogicalDevice() {
+    _transient_pool.destroy();
+
     BTX_TRACE(
         "Destroying logical device {:#x}",
         reinterpret_cast<uint64_t>(VkDevice(native()))
     );
-
-    _transient_pool.destroy();
-    _logical_device.destroy();
-}
-
-// =============================================================================
-void VkLogicalDevice::submit_to_cmd_queue(vk::SubmitInfo const &submit_info) {
-    auto const result = _cmd_queue.native().submit(submit_info);
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to submit to command queue.");
-    }
-}
-
-// =============================================================================
-void VkLogicalDevice::wait_idle() {
-    auto const result = _logical_device.waitIdle();
-    if(result != vk::Result::eSuccess) {
-        BTX_WARN("Failed to wait for logical device idle.");
-    }
+    _handle.destroy();
 }
 
 } // namespace btx

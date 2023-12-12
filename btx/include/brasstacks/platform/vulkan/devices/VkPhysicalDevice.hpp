@@ -5,68 +5,84 @@
 
 namespace btx {
 
-class VkPhysicalDevice final {
+class vkInstance;
+
+class vkPhysicalDevice final {
 public:
     enum class Features {
         SAMPLER_ANISOTROPY,
         FILL_MODE_NONSOLID,
     };
 
-    static void query_devices(
-        std::vector<std::string_view> const & required_extensions,
-        std::vector<Features> const & required_features
-    );
-    static void select_device();
+    using ExtensionList = std::vector<std::string_view>;
+    using FeatureList = std::vector<Features>;
 
-    inline static auto queue_index()          { return _queue_index;        }
-    inline static auto const & native()       { return _physical_device;    }
-    inline static auto const & memory_props() { return _memory_properties;  }
-    inline static auto const & features()     { return _enabled_features;   }
-    inline static auto const & extensions()   { return _enabled_extensions; }
+    inline auto queue_index()          const { return _queue_index;        }
+    inline auto const & native()       const { return _handle;             }
+    inline auto const & memory_props() const { return _memory_properties;  }
+    inline auto const & features()     const { return _enabled_features;   }
+    inline auto const & extensions()   const { return _enabled_extensions; }
 
-    VkPhysicalDevice() = delete;
+    vkPhysicalDevice(vkInstance const &instance,
+                     ExtensionList const &required_extensions,
+                     FeatureList const &required_features,
+                     bool const order_by_perf = false);
+    ~vkPhysicalDevice() = default;
+
+    vkPhysicalDevice() = delete;
+
+    vkPhysicalDevice(vkPhysicalDevice &&) = delete;
+    vkPhysicalDevice(const vkPhysicalDevice &) = delete;
+
+    vkPhysicalDevice & operator=(vkPhysicalDevice &&) = delete;
+    vkPhysicalDevice & operator=(const vkPhysicalDevice &) = delete;
 
 private:
     struct DeviceProps {
         std::string name;
-        size_t      vram_bytes = 0;
-        uint8_t     max_samples = 0u;
-        float       max_aniso = 0.0f;
+        size_t  vram_bytes = 0;
+        uint8_t max_samples = 0u;
+        float   max_aniso = 0.0f;
         std::string driver_version;
         std::string vkapi_version;
         vk::PhysicalDevice device = nullptr;
         vk::PhysicalDeviceType type = vk::PhysicalDeviceType::eOther;
         vk::PhysicalDeviceMemoryProperties memory { };
     };
+
     using DeviceList = std::vector<DeviceProps>;
-    static DeviceList _available_devices;
+    DeviceList _available_devices;
 
-    static vk::PhysicalDevice _physical_device;
+    vk::PhysicalDevice _handle;
 
-    static uint32_t _queue_index;
+    uint32_t _queue_index;
 
-    static vk::PhysicalDeviceMemoryProperties _memory_properties;
-    static vk::PhysicalDeviceFeatures         _enabled_features;
-    static std::vector<char const *>          _enabled_extensions;
+    vk::PhysicalDeviceMemoryProperties _memory_properties;
+    vk::PhysicalDeviceFeatures         _enabled_features;
+    std::vector<char const *>          _enabled_extensions;
 
-    static bool _check_features(
+    vkInstance const &_instance;
+
+    void _select_device();
+
+    bool _check_features(
         vk::PhysicalDeviceFeatures const &supported_features,
-        std::vector<Features> const &required_features
+        FeatureList const &required_features
     );
 
-    static bool _check_extensions(
+    bool _check_extensions(
         std::vector<vk::ExtensionProperties> const &supported_extensions,
-        std::vector<std::string_view> const &required_extensions
+        ExtensionList const &required_extensions
     );
 
-    static void _store_physical_device(
+    void _store_device(
         const vk::PhysicalDevice &device,
         const vk::PhysicalDeviceProperties &properties,
         const vk::PhysicalDeviceMemoryProperties &memory,
         const vk::PhysicalDeviceDriverProperties &drivers
     );
 
-    static void _print_family_flags(uint32_t const family,
+    void _print_family_flags(uint32_t const family,
                                     const vk::QueueFlags flags);
 };
 

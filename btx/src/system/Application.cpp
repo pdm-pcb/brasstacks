@@ -4,9 +4,11 @@
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/system/window/TargetWindow.hpp"
 
-#include "brasstacks/platform/vulkan/VkInstance.hpp"
-#include "brasstacks/platform/vulkan/devices/VkPhysicalDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/VkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/vkInstance.hpp"
+#include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
+
+#include "brasstacks/platform/vulkan/vkSwapchain.hpp"
 
 namespace btx {
 
@@ -35,44 +37,55 @@ Application::Application(std::string_view const app_name) :
     _running { true }
 {
     ConsoleLog::init();
-    EventBroker::init();
 
+    EventBroker::init();
     EventBroker::subscribe<KeyReleaseEvent>(
         this,
         &Application::on_key_release
     );
 
-    VkInstance::init();
-
     TargetWindow::init(app_name);
     TargetWindow::create_window();
-    TargetWindow::create_surface();
 
-    VkPhysicalDevice::query_devices(
+    _graphics_api = new vkInstance();
+
+    TargetWindow::create_surface(*_graphics_api);
+
+    _adapter = new vkPhysicalDevice(
+        *_graphics_api,
         {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME
         },
         {
-            VkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
-            VkPhysicalDevice::Features::FILL_MODE_NONSOLID,
+            vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
+            vkPhysicalDevice::Features::FILL_MODE_NONSOLID,
         }
     );
-    VkPhysicalDevice::select_device();
 
-    VkLogicalDevice::create({
-        #ifdef BTX_DEBUG
+    _device = new vkLogicalDevice(
+        *_adapter,
+        {
+            #ifdef BTX_DEBUG
             "VK_LAYER_KHRONOS_validation",
-        #endif // BTX_DEBUG
-    });
+            #endif // BTX_DEBUG
+        }
+    );
+
+    _swapchain = new vkSwapchain(*_adapter, *_device);
 }
 
 Application::~Application() {
-    VkLogicalDevice::destroy();
-    TargetWindow::destroy_surface();
+    delete _swapchain;
+    delete _device;
+
+    TargetWindow::destroy_surface(*_graphics_api);
     TargetWindow::destroy_window();
     TargetWindow::shutdown();
-    VkInstance::shutdown();
+
+    delete _adapter;
+    delete _graphics_api;
+
     EventBroker::shutdown();
 }
 

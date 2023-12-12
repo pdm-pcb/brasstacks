@@ -3,7 +3,11 @@
 
 #include "brasstacks/pch.hpp"
 
+#include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
+
 namespace btx {
+
+class vkInstance;
 
 class Win32TargetWindow final {
 public:
@@ -27,8 +31,8 @@ public:
     static void destroy_window();
 
     // Manage the graphics surface
-    static void create_surface();
-    static void destroy_surface();
+    static void create_surface(const vkInstance &instance);
+    static void destroy_surface(const vkInstance &instance);
 
     // Give the OS a moment to speak up
     static void message_loop();
@@ -49,6 +53,7 @@ private:
     // Vulkan specifics
     static vk::SurfaceKHR _surface;
 
+    static Win32ToBTXKeys const _keymap;
     static Position _screen_center;
 
     static void _register_input();

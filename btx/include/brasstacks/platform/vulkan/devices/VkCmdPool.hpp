@@ -5,26 +5,32 @@
 
 namespace btx {
 
-class VkCmdPool final {
+class vkLogicalDevice;
+
+class vkCmdPool final {
 public:
     void reset(const vk::CommandPoolResetFlags flags = { }) const;
 
     void create(const vk::CommandPoolCreateFlags flags = { });
     void destroy();
 
-    inline auto const& native() const { return _pool; }
+    inline auto const& native() const { return _handle; }
 
-    VkCmdPool();
-    ~VkCmdPool() = default;
+    explicit vkCmdPool(vkLogicalDevice const &device);
+    ~vkCmdPool() = default;
 
-    VkCmdPool(VkCmdPool &&other) noexcept;
-    VkCmdPool(const VkCmdPool &) = delete;
+    vkCmdPool() = delete;
 
-    VkCmdPool & operator=(VkCmdPool &&) = delete;
-    VkCmdPool & operator=(const VkCmdPool &) = delete;
+    vkCmdPool(vkCmdPool &&other) noexcept;
+    vkCmdPool(const vkCmdPool &) = delete;
+
+    vkCmdPool & operator=(vkCmdPool &&) = delete;
+    vkCmdPool & operator=(const vkCmdPool &) = delete;
 
 private:
-    vk::CommandPool _pool;
+    vk::CommandPool _handle;
+
+    vkLogicalDevice const &_device;
 };
 
 } // namespace btx

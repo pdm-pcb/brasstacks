@@ -1,28 +1,20 @@
-#include "brasstacks/platform/vulkan/devices/VkPhysicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 
+#include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/vulkan/VkInstance.hpp"
 #include "brasstacks/system/window/TargetWindow.hpp"
 
 namespace btx {
 
-VkPhysicalDevice::DeviceList VkPhysicalDevice::_available_devices;
-
-vk::PhysicalDevice VkPhysicalDevice::_physical_device { };
-
-uint32_t VkPhysicalDevice::_queue_index = std::numeric_limits<uint32_t>::max();
-
-vk::PhysicalDeviceMemoryProperties VkPhysicalDevice::_memory_properties { };
-vk::PhysicalDeviceFeatures         VkPhysicalDevice::_enabled_features { };
-std::vector<char const *>          VkPhysicalDevice::_enabled_extensions;
-
 // =============================================================================
-void VkPhysicalDevice::query_devices(
-        std::vector<std::string_view> const &required_extensions,
-        std::vector<Features> const &required_features)
+vkPhysicalDevice::vkPhysicalDevice(vkInstance const &instance,
+                                   ExtensionList const &required_extensions,
+                                   FeatureList const &required_features,
+                                   bool const order_by_perf) :
+    _instance {instance }
 {
     // Query and populate the list of physical devices
-    auto const dev_result = VkInstance::native().enumeratePhysicalDevices();
+    auto const dev_result = _instance.native().enumeratePhysicalDevices();
     if(dev_result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to enumerate physical devices.");
         return;
@@ -69,7 +61,7 @@ void VkPhysicalDevice::query_devices(
         device.getProperties2(&physical_props2);
 
         // Hold onto the info we've gathered
-        _store_physical_device(
+        _store_device(
             device,
             device.getProperties(),
             memory,
@@ -87,7 +79,7 @@ void VkPhysicalDevice::query_devices(
             "\tDriver Version: {}\n"
             "\tVulkan Version: {}\n",
             properties.name,
-            to_string(properties.type),
+            vk::to_string(properties.type),
             properties.vram_bytes / 1000 / 1000,
             properties.max_samples,
             properties.max_aniso,
@@ -96,33 +88,37 @@ void VkPhysicalDevice::query_devices(
         );
     }
 
-    // Reverse sort the devices based on amount of VRAM, favoring dGPUs
-    std::sort(_available_devices.begin(), _available_devices.end(),
-        [&](const DeviceProps &dev_a, const DeviceProps &dev_b) {
-            if(dev_a.type == vk::PhysicalDeviceType::eDiscreteGpu &&
-               dev_b.type != vk::PhysicalDeviceType::eDiscreteGpu)
-            {
-                return true;
-            }
+    if(order_by_perf) {
+        // Reverse sort the devices based on amount of VRAM, favoring dGPUs
+        std::sort(_available_devices.begin(), _available_devices.end(),
+            [&](const DeviceProps &dev_a, const DeviceProps &dev_b) {
+                if(dev_a.type == vk::PhysicalDeviceType::eDiscreteGpu &&
+                dev_b.type != vk::PhysicalDeviceType::eDiscreteGpu)
+                {
+                    return true;
+                }
 
-            if((dev_a.type == vk::PhysicalDeviceType::eDiscreteGpu &&
-                dev_b.type == vk::PhysicalDeviceType::eDiscreteGpu) ||
-               (dev_a.type == vk::PhysicalDeviceType::eIntegratedGpu &&
-                dev_b.type == vk::PhysicalDeviceType::eIntegratedGpu))
-            {
-                return dev_a.vram_bytes > dev_b.vram_bytes;
-            }
+                if((dev_a.type == vk::PhysicalDeviceType::eDiscreteGpu &&
+                    dev_b.type == vk::PhysicalDeviceType::eDiscreteGpu) ||
+                (dev_a.type == vk::PhysicalDeviceType::eIntegratedGpu &&
+                    dev_b.type == vk::PhysicalDeviceType::eIntegratedGpu))
+                {
+                    return dev_a.vram_bytes > dev_b.vram_bytes;
+                }
 
-            return false;
-        }
-    );
+                return false;
+            }
+        );
+    }
+
+    _select_device();
 }
 
 // =============================================================================
 // In order to render, we need to ensure the graphics card support receiving
 // two types of commands: graphics and present. The latter requires an existing
 // surface to query, so here we go.
-void VkPhysicalDevice::select_device() {
+void vkPhysicalDevice::_select_device() {
     auto const& surface = TargetWindow::surface();
 
     // Set up our hopefully to-be-rectified failure conditions
@@ -195,7 +191,7 @@ void VkPhysicalDevice::select_device() {
             present_queue_index        = present_support[device_index].second;
 
             auto const& dev_store      = _available_devices[device_index];
-            _physical_device           = dev_store.device;
+            _handle                    = dev_store.device;
             _memory_properties         = dev_store.memory;
             RenderConfig::max_msaa_samples = dev_store.max_samples;
             RenderConfig::anisotropy   = dev_store.max_aniso;
@@ -208,7 +204,7 @@ void VkPhysicalDevice::select_device() {
     }
 
     // This would be most unfortunate
-    if(!_physical_device) {
+    if(_handle == nullptr) {
         BTX_CRITICAL("Could not find a device with support for a graphics "
                          "and present command queues.");
     }
@@ -222,9 +218,9 @@ void VkPhysicalDevice::select_device() {
 }
 
 // =============================================================================
-bool VkPhysicalDevice::_check_features(
+bool vkPhysicalDevice::_check_features(
         vk::PhysicalDeviceFeatures const &supported_features,
-        std::vector<Features> const &required_features
+        FeatureList const &required_features
     )
 {
     for(auto const &feature : required_features) {
@@ -254,9 +250,9 @@ bool VkPhysicalDevice::_check_features(
 }
 
 // =============================================================================
-bool VkPhysicalDevice::_check_extensions(
+bool vkPhysicalDevice::_check_extensions(
         std::vector<vk::ExtensionProperties> const &supported_extensions,
-        std::vector<std::string_view> const &required_extensions
+        ExtensionList const &required_extensions
     )
 {
     _enabled_extensions.reserve(required_extensions.size());
@@ -285,7 +281,7 @@ bool VkPhysicalDevice::_check_extensions(
 }
 
 // =============================================================================
-void VkPhysicalDevice::_store_physical_device(
+void vkPhysicalDevice::_store_device(
     const vk::PhysicalDevice &device,
     const vk::PhysicalDeviceProperties &properties,
     const vk::PhysicalDeviceMemoryProperties &memory,
@@ -346,7 +342,7 @@ void VkPhysicalDevice::_store_physical_device(
 }
 
 // =============================================================================
-void VkPhysicalDevice::_print_family_flags(
+void vkPhysicalDevice::_print_family_flags(
     [[maybe_unused]] uint32_t const family,
     [[maybe_unused]] const vk::QueueFlags flags
 )

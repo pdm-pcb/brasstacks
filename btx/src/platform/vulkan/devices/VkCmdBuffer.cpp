@@ -1,51 +1,52 @@
-#include "brasstacks/platform/vulkan/devices/VkCmdBuffer.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
-#include "brasstacks/platform/vulkan/devices/VkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
 
 namespace btx {
 
 // =============================================================================
-void VkCmdBuffer::begin_one_time_submit() const {
+void vkCmdBuffer::begin_one_time_submit() const {
     vk::CommandBufferBeginInfo const begin_info {
         .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
     };
 
-    auto const result = _buffer.begin(begin_info);
+    auto const result = _handle.begin(begin_info);
     if(result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to begin recording to one-shot command buffer.");
     }
 }
 
 // =============================================================================
-void VkCmdBuffer::end_recording() const {
-    auto const result = _buffer.end();
+void vkCmdBuffer::end_recording() const {
+    auto const result = _handle.end();
     if(result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to end command buffer recording.");
     }
 }
 
 // =============================================================================
-void VkCmdBuffer::begin_render_pass(vk::RenderPassBeginInfo const &info) const {
-    _buffer.beginRenderPass(info, vk::SubpassContents::eInline);
+void vkCmdBuffer::begin_render_pass(vk::RenderPassBeginInfo const &info) const {
+    _handle.beginRenderPass(info, vk::SubpassContents::eInline);
 }
 
 // =============================================================================
-void VkCmdBuffer::end_render_pass() const {
-    _buffer.endRenderPass();
+void vkCmdBuffer::end_render_pass() const {
+    _handle.endRenderPass();
 }
 
 // =============================================================================
-void VkCmdBuffer::submit_and_wait_on_device() const {
+void vkCmdBuffer::submit_and_wait_on_device() const {
     vk::SubmitInfo const submit_info {
         .commandBufferCount = 1u,
-        .pCommandBuffers = &_buffer
+        .pCommandBuffers = &_handle
     };
-    VkLogicalDevice::submit_to_cmd_queue(submit_info);
-    VkLogicalDevice::wait_idle();
+
+    _device.submit(submit_info);
+    _device.wait_idle();
 }
 
 // =============================================================================
-void VkCmdBuffer::allocate(const vk::CommandPool pool, const bool primary) {
+void vkCmdBuffer::allocate(const vk::CommandPool pool, const bool primary) {
     _pool = pool;
 
     const vk::CommandBufferAllocateInfo buffer_info {
@@ -59,20 +60,20 @@ void VkCmdBuffer::allocate(const vk::CommandPool pool, const bool primary) {
         .commandBufferCount = 1u,
     };
 
-    auto const result = VkLogicalDevice::native().allocateCommandBuffers(
+    auto const result = _device.native().allocateCommandBuffers(
         &buffer_info,
-        &_buffer
+        &_handle
     );
 
     if(result != vk::Result::eSuccess) {
-        CONSOLE_CRITICAL(
+        BTX_CRITICAL(
             "Failed to llocated command buffer from pool {:#x}: '{}'",
             reinterpret_cast<uint64_t>(VkCommandPool(buffer_info.commandPool)),
-            to_string(result)
+            vk::to_string(result)
         );
     }
     else {
-        CONSOLE_TRACE(
+        BTX_TRACE(
             "Allocated command buffer from pool {:#x}",
             reinterpret_cast<uint64_t>(VkCommandPool(buffer_info.commandPool))
         );
@@ -80,22 +81,24 @@ void VkCmdBuffer::allocate(const vk::CommandPool pool, const bool primary) {
 }
 
 // =============================================================================
-void VkCmdBuffer::free() {
-    VkLogicalDevice::native().freeCommandBuffers(_pool, { _buffer });
+void vkCmdBuffer::free() {
+    _device.native().freeCommandBuffers(_pool, { _handle });
 }
 
 // =============================================================================
-VkCmdBuffer::VkCmdBuffer() :
-    _pool   { },
-    _buffer { }
+vkCmdBuffer::vkCmdBuffer(vkLogicalDevice const &device) :
+    _pool { },
+    _handle { },
+    _device { device }
 { }
 
-VkCmdBuffer::VkCmdBuffer(VkCmdBuffer &&other) noexcept :
-    _pool   { other._pool   },
-    _buffer { other._buffer }
+vkCmdBuffer::vkCmdBuffer(vkCmdBuffer &&other) noexcept :
+    _pool { other._pool   },
+    _handle { other._handle },
+    _device { other._device }
 {
     other._pool   = nullptr;
-    other._buffer = nullptr;
+    other._handle = nullptr;
 }
 
 } // namespace btx

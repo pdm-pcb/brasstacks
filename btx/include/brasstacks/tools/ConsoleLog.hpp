@@ -60,8 +60,8 @@ public:
     ConsoleLog() = delete;
 
 private:
-    static std::shared_ptr<spdlog::logger> _btx_logger;
-    static std::shared_ptr<spdlog::logger> _app_logger;
+    static spdlog::logger *_btx_logger;
+    static spdlog::logger *_app_logger;
 };
 
 // =============================================================================
@@ -89,7 +89,7 @@ void ConsoleLog::btx_error(std::format_string<T...> fmt, T&& ...args) {
 template<typename ...T>
 void ConsoleLog::btx_critical(std::format_string<T...> fmt, T&& ...args) {
     _btx_logger->critical(fmt, std::forward<T>(args)...);
-    std::abort();
+    assert(false);
 }
 
 // =============================================================================
@@ -117,7 +117,7 @@ void ConsoleLog::app_error(std::format_string<T...> fmt, T&& ...args) {
 template<typename ...T>
 void ConsoleLog::app_critical(std::format_string<T...> fmt, T&& ...args) {
     _app_logger->critical(fmt, std::forward<T>(args)...);
-    std::abort();
+    assert(false);
 }
 
 } // namespace btx
@@ -127,12 +127,12 @@ void ConsoleLog::app_critical(std::format_string<T...> fmt, T&& ...args) {
 #define BTX_INFO(...)     btx::ConsoleLog::btx_info(__VA_ARGS__)
 #define BTX_WARN(...)     btx::ConsoleLog::btx_warn(__VA_ARGS__)
 #define BTX_ERROR(...)    btx::ConsoleLog::btx_error(__VA_ARGS__)
-#define BTX_CRITICAL(...) btx::ConsoleLog::btx_critical(__VA_ARGS__);
+#define BTX_CRITICAL(...) btx::ConsoleLog::btx_critical(__VA_ARGS__)
 
 #define CONSOLE_TRACE(...)    btx::ConsoleLog::app_trace(__VA_ARGS__)
 #define CONSOLE_INFO(...)     btx::ConsoleLog::app_info(__VA_ARGS__)
 #define CONSOLE_WARN(...)     btx::ConsoleLog::app_warn(__VA_ARGS__)
 #define CONSOLE_ERROR(...)    btx::ConsoleLog::app_error(__VA_ARGS__)
-#define CONSOLE_CRITICAL(...) btx::ConsoleLog::app_critical(__VA_ARGS__);
+#define CONSOLE_CRITICAL(...) btx::ConsoleLog::app_critical(__VA_ARGS__)
 
 #endif // BRASSTACKS_TOOLS_CONSOLELOG_HPP

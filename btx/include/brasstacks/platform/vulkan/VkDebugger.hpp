@@ -5,7 +5,7 @@
 
 namespace btx {
 
-class VkDebugger final {
+class vkDebugger final {
 public:
     static VKAPI_ATTR vk::Bool32 VKAPI_CALL messenger(
         VkDebugUtilsMessageSeverityFlagBitsEXT      severity,
@@ -17,7 +17,7 @@ public:
     static void init(vk::Instance &instance);
     static void shutdown(vk::Instance &instance);
 
-    VkDebugger() = delete;
+    vkDebugger() = delete;
 
 private:
     static vk::DebugUtilsMessengerEXT _debug_messenger;

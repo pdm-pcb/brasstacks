@@ -4,16 +4,16 @@
 
 namespace btx {
 
-std::shared_ptr<spdlog::logger> ConsoleLog::_btx_logger = nullptr;
-std::shared_ptr<spdlog::logger> ConsoleLog::_app_logger = nullptr;
+spdlog::logger *ConsoleLog::_btx_logger = nullptr;
+spdlog::logger *ConsoleLog::_app_logger = nullptr;
 
 // =============================================================================
 void ConsoleLog::init() {
     static std::once_flag initialized;
     std::call_once(initialized, [] {
         // Grab a threadsafe logger that supports colorized output
-        _btx_logger = spdlog::stdout_color_mt("btx_logger");
-        _app_logger = spdlog::stdout_color_mt("app_logger");
+        _btx_logger = spdlog::stdout_color_mt("btx_logger").get();
+        _app_logger = spdlog::stdout_color_mt("app_logger").get();
 
         // Print with color, time with milliseconds, and thread ID
         _btx_logger->set_pattern("%^[%T.%e][%t][btx]: %v%$");

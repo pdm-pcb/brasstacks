@@ -4,8 +4,7 @@
 #include "brasstacks/events/EventBroker.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
-#include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
-#include "brasstacks/platform/vulkan/VkInstance.hpp"
+#include "brasstacks/platform/vulkan/vkInstance.hpp"
 
 namespace btx {
 
@@ -15,9 +14,10 @@ namespace btx {
 
 char *Win32TargetWindow::_raw_msg = nullptr;
 
-Win32TargetWindow::Position Win32TargetWindow::_screen_center = { 0, 0 };
-
 vk::SurfaceKHR Win32TargetWindow::_surface = { };
+
+Win32ToBTXKeys const        Win32TargetWindow::_keymap;
+Win32TargetWindow::Position Win32TargetWindow::_screen_center = { 0, 0 };
 
 // =============================================================================
 void Win32TargetWindow::init(std::string_view const app_name) {
@@ -190,11 +190,11 @@ void Win32TargetWindow::show_window() {
 void Win32TargetWindow::destroy_window() {
     BTX_TRACE("Destroying win32 target window.");
     ::SendMessage(_window, WM_CLOSE, 0, 0);
-    message_loop();
+    Win32TargetWindow::message_loop();
 }
 
 // =============================================================================
-void Win32TargetWindow::create_surface() {
+void Win32TargetWindow::create_surface(const vkInstance &instance) {
     // The details Vulkan cares about
     vk::Win32SurfaceCreateInfoKHR const surface_info {
         .hinstance = nullptr,
@@ -202,11 +202,11 @@ void Win32TargetWindow::create_surface() {
     };
 
     // Create, check, assign
-    auto result = VkInstance::native().createWin32SurfaceKHR(surface_info);
+    auto result = instance.native().createWin32SurfaceKHR(surface_info);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL(
             "Unable to create Win32 KHR surface: '{}'",
-            to_string(result.result)
+            vk::to_string(result.result)
         );
     }
     _surface = result.value;
@@ -218,17 +218,17 @@ void Win32TargetWindow::create_surface() {
 }
 
 // =============================================================================
-void Win32TargetWindow::destroy_surface() {
+void Win32TargetWindow::destroy_surface(const vkInstance &instance) {
     BTX_TRACE(
         "Destroying Vulkan surface {:#x}",
         reinterpret_cast<uint64_t>(::VkSurfaceKHR(_surface))
     );
-    VkInstance::native().destroy(_surface);
+    instance.native().destroy(_surface);
 }
 
 // =============================================================================
 void Win32TargetWindow::message_loop() {
-    ::MSG message;
+    static ::MSG message;
     std::memset(&message, 0, sizeof(::MSG));
 
     // Run through available messages from the OS
@@ -396,13 +396,8 @@ void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw) {
         }
     }
 
-    // Now that we've got everything sorted, do a lookup for the key code. If
-    // it's not in the map, return early.
-    auto const translated = Win32ToBTXKeys::map.find(vkey);
-    if(translated == Win32ToBTXKeys::map.end()) {
-        BTX_WARN("Unknown win32 vkey: {}", vkey);
-        return;
-    }
+    // Now that we've got everything sorted, do a lookup for the key code.
+    auto const translated = _keymap.translate(vkey);
 
     // a key can either produce a "make" or "break" scancode. this is used to
     // differentiate between down-presses and releases
@@ -410,10 +405,10 @@ void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw) {
     bool const is_release = ((raw.Flags & RI_KEY_BREAK) != 0);
 
     if(is_release) {
-        EventBroker::emit<KeyReleaseEvent>(translated->second);
+        EventBroker::emit<KeyReleaseEvent>(translated);
     }
     else {
-        EventBroker::emit<KeyPressEvent>(translated->second);
+        EventBroker::emit<KeyPressEvent>(translated);
     }
 }
 
@@ -478,7 +473,7 @@ void Win32TargetWindow::_register_input() {
         return;
     }
 
-    ::RAWINPUTDEVICE devices[2];
+    std::array<::RAWINPUTDEVICE, 2> devices;
 
     devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
     devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD;
@@ -492,8 +487,11 @@ void Win32TargetWindow::_register_input() {
     devices[1].dwFlags     = RIDEV_NOLEGACY; // Same as above, but for mouse
     devices[1].hwndTarget  = _window;
 
-    auto const result =
-        ::RegisterRawInputDevices(devices, 2, sizeof(::RAWINPUTDEVICE));
+    auto const result = ::RegisterRawInputDevices(
+        devices.data(),
+        devices.size(),
+        sizeof(::RAWINPUTDEVICE)
+    );
 
     if(result == FALSE) {
         auto const error = ::GetLastError();

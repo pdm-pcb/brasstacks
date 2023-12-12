@@ -5,31 +5,38 @@
 
 namespace btx {
 
-class VkCmdQueue final {
+class vkLogicalDevice;
+
+class vkCmdQueue final {
 public:
     void fill_create_info(uint32_t const index, float const priority = 1.0f);
     void request_queue();
 
-    inline auto const& native()      const { return _queue;       }
+    inline auto const& native()      const { return _handle;      }
     inline auto const& index()       const { return _index;       }
     inline auto const& priority()    const { return _priority;    }
     inline auto const& create_info() const { return _create_info; }
 
-    VkCmdQueue();
-    ~VkCmdQueue() = default;
+    explicit vkCmdQueue(vkLogicalDevice const &device);
+    ~vkCmdQueue() = default;
 
-    VkCmdQueue(VkCmdQueue &&) = delete;
-    VkCmdQueue(const VkCmdQueue &) = delete;
+    vkCmdQueue() = delete;
 
-    VkCmdQueue& operator=(VkCmdQueue &&) = delete;
-    VkCmdQueue& operator=(const VkCmdQueue &) = delete;
+    vkCmdQueue(vkCmdQueue &&) = delete;
+    vkCmdQueue(const vkCmdQueue &) = delete;
+
+    vkCmdQueue& operator=(vkCmdQueue &&) = delete;
+    vkCmdQueue& operator=(const vkCmdQueue &) = delete;
 
 private:
     uint32_t _index;
     float    _priority;
-    vk::DeviceQueueCreateInfo _create_info;
 
-    vk::Queue _queue;
+    vk::DeviceQueueCreateInfo _create_info;
+    vk::Queue _handle;
+
+    vkLogicalDevice const &_device;
+
 };
 
 } // namespace btx

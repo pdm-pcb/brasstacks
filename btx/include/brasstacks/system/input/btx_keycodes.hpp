@@ -137,9 +137,9 @@ static constexpr Keycode BTX_MW_RIGHT         = 0x0007;
 static constexpr Keycode BTX_MB_FORWARD       = 0x0008;
 static constexpr Keycode BTX_MB_BACK          = 0x0009;
 
-struct BTXKeyStrings final {
-    static std::unordered_map<Keycode, std::string> const map;
-};
+// struct BTXKeyStrings final {
+//     static std::unordered_map<Keycode, std::string> const map;
+// };
 
 } // namespace btx
 

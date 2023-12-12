@@ -3,29 +3,42 @@
 
 #include "brasstacks/pch.hpp"
 
-#include "brasstacks/platform/vulkan/devices/VkCmdQueue.hpp"
-#include "brasstacks/platform/vulkan/devices/VkCmdPool.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
 namespace btx {
 
-class VkLogicalDevice final {
+class vkPhysicalDevice;
+
+class vkLogicalDevice final {
 public:
-    static void create(std::vector<char const *> const &layer_names = { });
-    static void destroy();
+    void submit(vk::SubmitInfo const &submit_info) const;
+    void wait_idle() const;
 
-    static void submit_to_cmd_queue(vk::SubmitInfo const &submit_info);
-    static void wait_idle();
+    inline auto const& native()    const { return _handle; }
+    inline auto const& cmd_queue() const { return _cmd_queue; }
 
-    inline static auto const& native()    { return _logical_device; }
-    inline static auto const& cmd_queue() { return _cmd_queue;      }
-    inline static auto& transient_pool()  { return _transient_pool; }
+    inline auto& transient_pool()  { return _transient_pool; }
 
-    VkLogicalDevice() = delete;
+    using Layers = std::vector<char const *>;
+    vkLogicalDevice(vkPhysicalDevice const &adapter,
+                    Layers const &layers = { });
+    ~vkLogicalDevice();
+
+    vkLogicalDevice() = delete;
+
+    vkLogicalDevice(vkLogicalDevice &&) = delete;
+    vkLogicalDevice(const vkLogicalDevice &) = delete;
+
+    vkLogicalDevice & operator=(vkLogicalDevice &&) = delete;
+    vkLogicalDevice & operator=(const vkLogicalDevice &) = delete;
 
 private:
-    static VkCmdQueue _cmd_queue;
-    static VkCmdPool  _transient_pool;
-    static vk::Device _logical_device;
+    vkCmdQueue _cmd_queue;
+    vkCmdPool  _transient_pool;
+    vk::Device _handle;
+
+    vkPhysicalDevice const &_adapter;
 };
 
 } // namespace btx

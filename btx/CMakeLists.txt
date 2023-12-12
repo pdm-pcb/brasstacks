@@ -76,6 +76,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
             "-Wno-c++98-compat" # ...which means some must then be disabled
             "-Wno-c++98-compat-pedantic"
             "-Wno-newline-eof"
+            "-fsafe-buffer-usage-suggestions"
         )
     endif()
 

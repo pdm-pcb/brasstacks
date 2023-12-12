@@ -1,13 +1,13 @@
-#include "brasstacks/platform/vulkan/VkDebugger.hpp"
+#include "brasstacks/platform/vulkan/vkDebugger.hpp"
 
-#include "brasstacks/platform/vulkan/VkInstance.hpp"
+#include "brasstacks/platform/vulkan/vkInstance.hpp"
 
 namespace btx {
 
-vk::DebugUtilsMessengerEXT VkDebugger::_debug_messenger { };
+vk::DebugUtilsMessengerEXT vkDebugger::_debug_messenger { };
 
 // =============================================================================
-VKAPI_ATTR vk::Bool32 VKAPI_CALL VkDebugger::messenger(
+VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
         VkDebugUtilsMessageSeverityFlagBitsEXT severity,
         [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT types,
         const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
@@ -21,11 +21,6 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL VkDebugger::messenger(
             BTX_INFO("{:s}", callback_data->pMessage);
             break;
         case ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-            if(callback_data->messageIdNumber == 0xb3d4346b ||
-               callback_data->messageIdNumber == 0xdc18ad6b)
-            {
-                break;
-            }
             BTX_WARN("{:s}", callback_data->pMessage);
             break;
         case ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
@@ -41,7 +36,7 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL VkDebugger::messenger(
 }
 
 // =============================================================================
-void VkDebugger::init(vk::Instance &instance) {
+void vkDebugger::init(vk::Instance &instance) {
     // Populate the create info struct with the severity levels we're
     // interested in, the types we're interested in, and offer a callback
     // pointer to the API
@@ -62,7 +57,7 @@ void VkDebugger::init(vk::Instance &instance) {
             vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
             vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding
         ),
-        .pfnUserCallback = VkDebugger::messenger
+        .pfnUserCallback = vkDebugger::messenger
     };
 
     // Give it a shot
@@ -76,12 +71,12 @@ void VkDebugger::init(vk::Instance &instance) {
     if(result != vk::Result::eSuccess) {
         BTX_CRITICAL(
             "Unable to create debug messenger: '{}'",
-            to_string(result)
+            vk::to_string(result)
         );
     }
     else {
         BTX_TRACE(
-            "Created VkDebugger messenger {:#x}",
+            "Created vkDebugger messenger {:#x}",
             reinterpret_cast<std::uint64_t>(
                 VkDebugUtilsMessengerEXT(_debug_messenger)
             )
@@ -90,9 +85,9 @@ void VkDebugger::init(vk::Instance &instance) {
 }
 
 // =============================================================================
-void VkDebugger::shutdown(vk::Instance &instance) {
+void vkDebugger::shutdown(vk::Instance &instance) {
     BTX_TRACE(
-        "Destroying VkDebugger messenger {:#x}",
+        "Destroying vkDebugger messenger {:#x}",
             reinterpret_cast<std::uint64_t>(
                 VkDebugUtilsMessengerEXT(_debug_messenger)
             )

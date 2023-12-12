@@ -5,7 +5,9 @@
 
 namespace btx {
 
-class VkCmdBuffer final {
+class vkLogicalDevice;
+
+class vkCmdBuffer final {
 public:
     void begin_one_time_submit() const;
     void end_recording() const;
@@ -18,20 +20,24 @@ public:
     void allocate(const vk::CommandPool pool, const bool primary = true);
     void free();
 
-    inline auto const& native() const { return _buffer; }
+    inline auto const& native() const { return _handle; }
 
-    VkCmdBuffer();
-    ~VkCmdBuffer() = default;
+    explicit vkCmdBuffer(vkLogicalDevice const &device);
+    ~vkCmdBuffer() = default;
 
-    VkCmdBuffer(VkCmdBuffer &&other) noexcept;
-    VkCmdBuffer(const VkCmdBuffer &) = delete;
+    vkCmdBuffer() = delete;
 
-    VkCmdBuffer & operator=(VkCmdBuffer &&) = delete;
-    VkCmdBuffer & operator=(const VkCmdBuffer &) = delete;
+    vkCmdBuffer(vkCmdBuffer &&other) noexcept;
+    vkCmdBuffer(const vkCmdBuffer &) = delete;
+
+    vkCmdBuffer & operator=(vkCmdBuffer &&) = delete;
+    vkCmdBuffer & operator=(const vkCmdBuffer &) = delete;
 
 private:
     vk::CommandPool   _pool;
-    vk::CommandBuffer _buffer;
+    vk::CommandBuffer _handle;
+
+    vkLogicalDevice const &_device;
 };
 
 } // namespace btx

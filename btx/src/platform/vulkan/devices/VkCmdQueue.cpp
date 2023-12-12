@@ -1,11 +1,11 @@
-#include "brasstacks/platform/vulkan/devices/VkCmdQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdQueue.hpp"
 
-#include "brasstacks/platform/vulkan/devices/VkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
 
 namespace btx {
 
 // =============================================================================
-void VkCmdQueue::fill_create_info(uint32_t const index, float const priority) {
+void vkCmdQueue::fill_create_info(uint32_t const index, float const priority) {
     _index    = index;
     _priority = priority;
 
@@ -17,17 +17,18 @@ void VkCmdQueue::fill_create_info(uint32_t const index, float const priority) {
 }
 
 // =============================================================================
-void VkCmdQueue::request_queue() {
-    _queue = VkLogicalDevice::native().getQueue(_index, 0u);
-    if(!_queue) {
-        CONSOLE_CRITICAL("Could not get device queue");
+void vkCmdQueue::request_queue() {
+    _handle = _device.native().getQueue(_index, 0u);
+    if(!_handle) {
+        BTX_CRITICAL("Could not get device queue.");
     }
 }
 
-VkCmdQueue::VkCmdQueue() :
+vkCmdQueue::vkCmdQueue(vkLogicalDevice const &device) :
     _index    { std::numeric_limits<uint32_t>::max() },
     _priority { std::numeric_limits<float>::max() },
-    _queue    { }
+    _handle   { nullptr },
+    _device   { device }
 { }
 
 } // namespace btx
