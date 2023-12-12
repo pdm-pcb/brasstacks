@@ -6,7 +6,7 @@
 namespace btx {
 
 class vkPhysicalDevice;
-class vkLogicalDevice;
+class vkDevice;
 class vkImageObject;
 
 class vkSwapchain final {
@@ -15,8 +15,9 @@ public:
     inline auto const& images()       { return _images;       }
     inline auto        image_format() { return _image_format; }
 
-    explicit vkSwapchain(vkPhysicalDevice const &adapter,
-                         vkLogicalDevice const &device);
+    vkSwapchain(vk::PhysicalDevice const &adapter,
+                    vk::Device const &device,
+                    vk::SurfaceKHR const &surface);
     ~vkSwapchain();
 
     vkSwapchain() = delete;
@@ -36,8 +37,9 @@ private:
     vk::SwapchainKHR _handle;
     std::vector<vkImageObject *> _images;
 
-    vkPhysicalDevice const &_adapter;
-    vkLogicalDevice const &_device;
+    vk::PhysicalDevice const &_adapter;
+    vk::Device         const &_device;
+    vk::SurfaceKHR     const &_surface;
 
     void _query_surface_capabilities();
     void _query_surface_format();

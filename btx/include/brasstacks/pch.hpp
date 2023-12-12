@@ -41,7 +41,6 @@
     #define NOSOUND
     #define NOTEXTMETRIC     // Font info
     #define NOWH             // Windows hooks
-    #define NOWINOFFSETS     // For working with more than one window
     #define NOCOMM
     #define NOHELP
     #define NODEFERWINDOWPOS // More multi-window functionality
@@ -49,6 +48,7 @@
 
     #include <Windows.h>
     #include <hidusage.h>
+    #include <winuser.h>
 
     #define VK_USE_PLATFORM_WIN32_KHR
     #include <vulkan/vulkan.hpp>

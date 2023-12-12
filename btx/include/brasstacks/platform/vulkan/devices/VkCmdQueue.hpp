@@ -5,7 +5,7 @@
 
 namespace btx {
 
-class vkLogicalDevice;
+class vkDevice;
 
 class vkCmdQueue final {
 public:
@@ -17,7 +17,7 @@ public:
     inline auto const& priority()    const { return _priority;    }
     inline auto const& create_info() const { return _create_info; }
 
-    explicit vkCmdQueue(vkLogicalDevice const &device);
+    explicit vkCmdQueue(vkDevice const &device);
     ~vkCmdQueue() = default;
 
     vkCmdQueue() = delete;
@@ -35,7 +35,7 @@ private:
     vk::DeviceQueueCreateInfo _create_info;
     vk::Queue _handle;
 
-    vkLogicalDevice const &_device;
+    vkDevice const &_device;
 
 };
 

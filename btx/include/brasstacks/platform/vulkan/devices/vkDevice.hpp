@@ -10,7 +10,7 @@ namespace btx {
 
 class vkPhysicalDevice;
 
-class vkLogicalDevice final {
+class vkDevice final {
 public:
     void submit(vk::SubmitInfo const &submit_info) const;
     void wait_idle() const;
@@ -21,17 +21,16 @@ public:
     inline auto& transient_pool()  { return _transient_pool; }
 
     using Layers = std::vector<char const *>;
-    vkLogicalDevice(vkPhysicalDevice const &adapter,
-                    Layers const &layers = { });
-    ~vkLogicalDevice();
+    vkDevice(vkPhysicalDevice const &adapter, Layers const &layers = { });
+    ~vkDevice();
 
-    vkLogicalDevice() = delete;
+    vkDevice() = delete;
 
-    vkLogicalDevice(vkLogicalDevice &&) = delete;
-    vkLogicalDevice(const vkLogicalDevice &) = delete;
+    vkDevice(vkDevice &&) = delete;
+    vkDevice(const vkDevice &) = delete;
 
-    vkLogicalDevice & operator=(vkLogicalDevice &&) = delete;
-    vkLogicalDevice & operator=(const vkLogicalDevice &) = delete;
+    vkDevice & operator=(vkDevice &&) = delete;
+    vkDevice & operator=(const vkDevice &) = delete;
 
 private:
     vkCmdQueue _cmd_queue;

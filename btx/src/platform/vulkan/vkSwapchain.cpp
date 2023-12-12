@@ -1,16 +1,17 @@
 #include "brasstacks/platform/vulkan/vkSwapchain.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
-#include "brasstacks/system/window/TargetWindow.hpp"
+#include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageObject.hpp"
 
 namespace btx {
 
 // =============================================================================
-vkSwapchain::vkSwapchain(vkPhysicalDevice const &adapter,
-                         vkLogicalDevice const &device) :
+vkSwapchain::vkSwapchain(vk::PhysicalDevice const &adapter,
+                           vk::Device const &device,
+                           vk::SurfaceKHR const &surface) :
     _render_area  { },
     _image_format { },
     _color_space  { },
@@ -18,7 +19,8 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &adapter,
     _handle       { nullptr },
     _images       { },
     _adapter      { adapter },
-    _device       { device }
+    _device       { device },
+    _surface      { surface }
 {
     _query_surface_capabilities();
     _query_surface_format();
@@ -27,7 +29,7 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &adapter,
     vk::SwapchainCreateInfoKHR create_info { };
     _populate_create_info(create_info);
 
-    auto const result = _device.native().createSwapchainKHR(create_info);
+    auto const result = _device.createSwapchainKHR(create_info);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to create swapchain.");
         return;
@@ -35,7 +37,7 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &adapter,
 
     _handle = result.value;
     BTX_TRACE("Created swapchain {:#x}",
-              reinterpret_cast<uint64_t>(VkSwapchainKHR(_handle)));
+              reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle)));
 
     _get_images();
 }
@@ -47,17 +49,15 @@ vkSwapchain::~vkSwapchain() {
 
     BTX_TRACE(
         "Destroying swapchain {:#x}",
-        reinterpret_cast<uint64_t>(VkSwapchainKHR(_handle))
+        reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle))
     );
 
-    _device.native().destroy(_handle);
+    _device.destroy(_handle);
 }
 
 // =============================================================================
 void vkSwapchain::_query_surface_capabilities() {
-    auto const &gpu       = _adapter.native();
-    auto const &surface   = TargetWindow::surface();
-    auto const cap_result = gpu.getSurfaceCapabilitiesKHR(surface);
+    auto const cap_result = _adapter.getSurfaceCapabilitiesKHR(_surface);
 
     if(cap_result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not get surface capabilities.");
@@ -133,9 +133,7 @@ void vkSwapchain::_query_surface_capabilities() {
 
 // =============================================================================
 void vkSwapchain::_query_surface_format() {
-    auto const& gpu = _adapter.native();
-    auto const& surface = TargetWindow::surface();
-    auto const formats_result = gpu.getSurfaceFormatsKHR(surface);
+    auto const formats_result = _adapter.getSurfaceFormatsKHR(_surface);
 
     if(formats_result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not get surface formats.");
@@ -182,9 +180,7 @@ void vkSwapchain::_query_surface_format() {
 
 // =============================================================================
 void vkSwapchain::_query_surface_present_modes() {
-    auto const& gpu = _adapter.native();
-    auto const& surface = TargetWindow::surface();
-    auto const modes_result = gpu.getSurfacePresentModesKHR(surface);
+    auto const modes_result = _adapter.getSurfacePresentModesKHR(_surface);
 
     if(modes_result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not query surface present modes.");
@@ -220,21 +216,21 @@ void vkSwapchain::_query_surface_present_modes() {
     }
     else if(RenderConfig::vsync_on) {
         BTX_WARN("VSync requested but the available present modes don't "
-                     "support it.");
+                 "support it.");
     }
     else if(has_immediate) {
         _present_mode = vk::PresentModeKHR::eImmediate;
     }
     else {
         BTX_CRITICAL("Neither immediate nor FIFO presentation modes are "
-                         "supported.");
+                     "supported.");
     }
 }
 
 // =============================================================================
 void vkSwapchain::_populate_create_info(vk::SwapchainCreateInfoKHR &create_info) {
     create_info = {
-        .surface         = TargetWindow::surface(),
+        .surface         = _surface,
         .minImageCount   = RenderConfig::swapchain_image_count,
         .imageFormat     = _image_format,
         .imageColorSpace = _color_space,
@@ -294,16 +290,13 @@ void vkSwapchain::_populate_create_info(vk::SwapchainCreateInfoKHR &create_info)
 
 // =============================================================================
 void vkSwapchain::_get_images() {
-    auto const images_result =
-        _device.native().getSwapchainImagesKHR(_handle);
-
+    auto const images_result = _device.getSwapchainImagesKHR(_handle);
     if(images_result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not get swapchain images.");
         return;
     }
 
     auto const &images = images_result.value;
-
     if(images.size() != RenderConfig::swapchain_image_count) {
         BTX_CRITICAL(
             "Swapchain supports {} images; {} configured",

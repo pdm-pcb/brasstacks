@@ -8,10 +8,10 @@ namespace btx {
 class vkDebugger final {
 public:
     static VKAPI_ATTR vk::Bool32 VKAPI_CALL messenger(
-        VkDebugUtilsMessageSeverityFlagBitsEXT      severity,
-        VkDebugUtilsMessageTypeFlagsEXT             types,
-        const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
-        void                                       *user_data
+        ::VkDebugUtilsMessageSeverityFlagBitsEXT      severity,
+        ::VkDebugUtilsMessageTypeFlagsEXT             types,
+        const ::VkDebugUtilsMessengerCallbackDataEXT *callback_data,
+        void                                         *user_data
     );
 
     static void init(vk::Instance &instance);

@@ -1,6 +1,6 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdQueue.hpp"
 
-#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 namespace btx {
 
@@ -24,7 +24,7 @@ void vkCmdQueue::request_queue() {
     }
 }
 
-vkCmdQueue::vkCmdQueue(vkLogicalDevice const &device) :
+vkCmdQueue::vkCmdQueue(vkDevice const &device) :
     _index    { std::numeric_limits<uint32_t>::max() },
     _priority { std::numeric_limits<float>::max() },
     _handle   { nullptr },

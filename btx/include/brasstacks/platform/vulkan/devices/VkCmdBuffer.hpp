@@ -5,7 +5,7 @@
 
 namespace btx {
 
-class vkLogicalDevice;
+class vkDevice;
 
 class vkCmdBuffer final {
 public:
@@ -22,7 +22,7 @@ public:
 
     inline auto const& native() const { return _handle; }
 
-    explicit vkCmdBuffer(vkLogicalDevice const &device);
+    explicit vkCmdBuffer(vkDevice const &device);
     ~vkCmdBuffer() = default;
 
     vkCmdBuffer() = delete;
@@ -37,7 +37,7 @@ private:
     vk::CommandPool   _pool;
     vk::CommandBuffer _handle;
 
-    vkLogicalDevice const &_device;
+    vkDevice const &_device;
 };
 
 } // namespace btx

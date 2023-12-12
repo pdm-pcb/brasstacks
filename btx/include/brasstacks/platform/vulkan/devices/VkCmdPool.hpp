@@ -5,7 +5,7 @@
 
 namespace btx {
 
-class vkLogicalDevice;
+class vkDevice;
 
 class vkCmdPool final {
 public:
@@ -16,7 +16,7 @@ public:
 
     inline auto const& native() const { return _handle; }
 
-    explicit vkCmdPool(vkLogicalDevice const &device);
+    explicit vkCmdPool(vkDevice const &device);
     ~vkCmdPool() = default;
 
     vkCmdPool() = delete;
@@ -30,7 +30,7 @@ public:
 private:
     vk::CommandPool _handle;
 
-    vkLogicalDevice const &_device;
+    vkDevice const &_device;
 };
 
 } // namespace btx

@@ -24,6 +24,7 @@ public:
     inline auto const & extensions()   const { return _enabled_extensions; }
 
     vkPhysicalDevice(vkInstance const &instance,
+                     vk::SurfaceKHR const &surface,
                      ExtensionList const &required_extensions,
                      FeatureList const &required_features,
                      bool const order_by_perf = false);
@@ -53,17 +54,15 @@ private:
     using DeviceList = std::vector<DeviceProps>;
     DeviceList _available_devices;
 
-    vk::PhysicalDevice _handle;
-
     uint32_t _queue_index;
 
     vk::PhysicalDeviceMemoryProperties _memory_properties;
     vk::PhysicalDeviceFeatures         _enabled_features;
     std::vector<char const *>          _enabled_extensions;
 
-    vkInstance const &_instance;
+    vk::PhysicalDevice _handle;
 
-    void _select_device();
+    void _select_device(vk::SurfaceKHR const &surface);
 
     bool _check_features(
         vk::PhysicalDeviceFeatures const &supported_features,

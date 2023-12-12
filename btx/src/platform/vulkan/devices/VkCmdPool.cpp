@@ -1,6 +1,6 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
-#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdQueue.hpp"
 
 namespace btx {
@@ -27,7 +27,7 @@ void vkCmdPool::create(const vk::CommandPoolCreateFlags flags) {
     else {
         BTX_TRACE(
             "Created command pool {:#x}.",
-            reinterpret_cast<uint64_t>(VkCommandPool(_handle))
+            reinterpret_cast<uint64_t>(::VkCommandPool(_handle))
         );
     }
 }
@@ -36,7 +36,7 @@ void vkCmdPool::create(const vk::CommandPoolCreateFlags flags) {
 void vkCmdPool::destroy() {
     BTX_TRACE(
         "Destroying command pool {:#x}.",
-        reinterpret_cast<uint64_t>(VkCommandPool(_handle))
+        reinterpret_cast<uint64_t>(::VkCommandPool(_handle))
     );
     _device.native().destroyCommandPool(_handle);
 }
@@ -47,7 +47,7 @@ void vkCmdPool::reset(const vk::CommandPoolResetFlags flags) const {
 }
 
 // =============================================================================
-vkCmdPool::vkCmdPool(vkLogicalDevice const &device) :
+vkCmdPool::vkCmdPool(vkDevice const &device) :
     _handle { },
     _device { device }
 { }

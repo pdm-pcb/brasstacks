@@ -2,19 +2,25 @@
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/system/window/TargetWindow.hpp"
+#include "brasstacks/system/TargetWindow.hpp"
 
 namespace btx {
 
 // =============================================================================
 vkPhysicalDevice::vkPhysicalDevice(vkInstance const &instance,
+                                   vk::SurfaceKHR const &surface,
                                    ExtensionList const &required_extensions,
                                    FeatureList const &required_features,
                                    bool const order_by_perf) :
-    _instance {instance }
+    _available_devices  { },
+    _queue_index        { std::numeric_limits<uint32_t>::max() },
+    _memory_properties  { },
+    _enabled_features   { },
+    _enabled_extensions { },
+    _handle             { nullptr }
 {
     // Query and populate the list of physical devices
-    auto const dev_result = _instance.native().enumeratePhysicalDevices();
+    auto const dev_result = instance.native().enumeratePhysicalDevices();
     if(dev_result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to enumerate physical devices.");
         return;
@@ -111,15 +117,14 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance const &instance,
         );
     }
 
-    _select_device();
+    _select_device(surface);
 }
 
 // =============================================================================
 // In order to render, we need to ensure the graphics card support receiving
 // two types of commands: graphics and present. The latter requires an existing
 // surface to query, so here we go.
-void vkPhysicalDevice::_select_device() {
-    auto const& surface = TargetWindow::surface();
+void vkPhysicalDevice::_select_device(vk::SurfaceKHR const &surface) {
 
     // Set up our hopefully to-be-rectified failure conditions
     std::vector<std::pair<bool, uint32_t>> graphics_support;
@@ -204,7 +209,7 @@ void vkPhysicalDevice::_select_device() {
     }
 
     // This would be most unfortunate
-    if(_handle == nullptr) {
+    if(!_handle) {
         BTX_CRITICAL("Could not find a device with support for a graphics "
                          "and present command queues.");
     }

@@ -5,13 +5,13 @@
 
 namespace btx {
 
-class vkLogicalDevice;
+class vkDevice;
 
 class vkImageObject final {
 public:
     void create_view(vk::ImageViewType const type);
 
-    vkImageObject(vkLogicalDevice  const &device,
+    vkImageObject(vk::Device  const &device,
                   vk::Image const &handle,
                   vk::Format const format,
                   vk::ImageLayout const layout,
@@ -27,7 +27,7 @@ private:
     vk::ImageAspectFlags _flags;
     vk::ImageView        _view;
 
-    vkLogicalDevice const &_device;
+    vk::Device const &_device;
 };
 
 } // namespace btx

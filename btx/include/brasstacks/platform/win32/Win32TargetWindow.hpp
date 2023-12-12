@@ -1,74 +1,75 @@
 #ifndef BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
 #define BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
 
+#ifdef BTX_WINDOWS
+
 #include "brasstacks/pch.hpp"
 
+#include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
 
 namespace btx {
 
-class vkInstance;
-
-class Win32TargetWindow final {
+class Win32TargetWindow final : public TargetWindow {
 public:
-    struct Dimensions {
-        uint32_t width = 0;
-        uint32_t height = 0;
-    };
+    void create_window(Dimensions const &dimensions = { 0u, 0u },
+                       Position const &position = { 0, 0 }) override;
+    void show_window() override;
+    void destroy_window() override;
 
-    struct Position {
-        int32_t x = 0;
-        int32_t y = 0;
-    };
+    void create_surface(vk::Instance const &instance) override;
+    void destroy_surface() override;
 
-    static void init(std::string_view const app_name);
-    static void shutdown();
+    void message_loop() override;
 
-    // Size, place, and make visible a native window
-    static void create_window(Dimensions const &dimensions = { 0u, 0u },
-                              Position const &position = { 0, 0 });
-    static void show_window();
-    static void destroy_window();
+    inline vk::SurfaceKHR const & surface() const override { return _surface; }
 
-    // Manage the graphics surface
-    static void create_surface(const vkInstance &instance);
-    static void destroy_surface(const vkInstance &instance);
+    explicit Win32TargetWindow(std::string_view const app_name);
+    ~Win32TargetWindow() override;
 
-    // Give the OS a moment to speak up
-    static void message_loop();
-
-    inline static auto const& surface() { return _surface; }
-
-    // Only one target window at a time
     Win32TargetWindow() = delete;
+
+    Win32TargetWindow(Win32TargetWindow &&) = delete;
+    Win32TargetWindow(Win32TargetWindow const &) = delete;
+
+    Win32TargetWindow & operator=(Win32TargetWindow &&) = delete;
+    Win32TargetWindow & operator=(Win32TargetWindow const &) = delete;
 
 private:
     // Win32 specifics
-    static ::LPCSTR _window_title;
-    static ::HWND   _window;
-    static ::HDC    _device;
+    ::LPCSTR _window_title;
+    ::HWND   _window_handle;
+    ::HDC    _device_context;
 
-    static char *_raw_msg;
+    char *_raw_msg;
 
     // Vulkan specifics
-    static vk::SurfaceKHR _surface;
+    vk::Instance const *_instance;
+    vk::SurfaceKHR _surface;
 
-    static Win32ToBTXKeys const _keymap;
-    static Position _screen_center;
+    Win32ToBTXKeys const _keymap;
+    Position _screen_center;
 
-    static void _register_input();
-    static void _restrict_cursor();
-    static void _release_cursor();
-    static void _size_and_place();
+    void _register_input();
+    void _restrict_cursor();
+    void _release_cursor();
+    void _size_and_place();
 
-    // The way in for Windows
-    static ::LRESULT CALLBACK _wndproc(::HWND hWnd, ::UINT uMsg,
-                                       ::WPARAM wParam, ::LPARAM lParam);
+    // Static wndproc for Windows to call, per the Raymond Chen article:
+    // https://devblogs.microsoft.com/oldnewthing/20140203-00/?p=1893
+    static ::LRESULT CALLBACK _static_wndproc(::HWND hWnd, ::UINT uMsg,
+                                              ::WPARAM wParam, ::LPARAM lParam);
 
-    static void _parse_raw_keyboard(::RAWKEYBOARD const &raw);
-    static void _parse_raw_mouse(::RAWMOUSE const &raw);
+    // Per-instance wndproc to actually handle the OS messages
+    ::LRESULT CALLBACK _inst_wndproc(::HWND hWnd, ::UINT uMsg,
+                                     ::WPARAM wParam, ::LPARAM lParam);
+
+    void _parse_raw_keyboard(::RAWKEYBOARD const &raw);
+    void _parse_raw_mouse(::RAWMOUSE const &raw);
 };
 
 } // namespace btx
+
+#endif // BTX_WINDOWS
 
 #endif // BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP

@@ -1,6 +1,6 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
-#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 namespace btx {
 
@@ -86,7 +86,7 @@ void vkCmdBuffer::free() {
 }
 
 // =============================================================================
-vkCmdBuffer::vkCmdBuffer(vkLogicalDevice const &device) :
+vkCmdBuffer::vkCmdBuffer(vkDevice const &device) :
     _pool { },
     _handle { },
     _device { device }

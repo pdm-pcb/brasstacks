@@ -8,9 +8,9 @@ vk::DebugUtilsMessengerEXT vkDebugger::_debug_messenger { };
 
 // =============================================================================
 VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
-        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-        [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT types,
-        const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
+        ::VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+        [[maybe_unused]] ::VkDebugUtilsMessageTypeFlagsEXT types,
+        const ::VkDebugUtilsMessengerCallbackDataEXT *callback_data,
         [[maybe_unused]] void *user_data)
 {
     switch(severity) {
@@ -78,7 +78,7 @@ void vkDebugger::init(vk::Instance &instance) {
         BTX_TRACE(
             "Created vkDebugger messenger {:#x}",
             reinterpret_cast<std::uint64_t>(
-                VkDebugUtilsMessengerEXT(_debug_messenger)
+                ::VkDebugUtilsMessengerEXT(_debug_messenger)
             )
         );
     }
@@ -89,7 +89,7 @@ void vkDebugger::shutdown(vk::Instance &instance) {
     BTX_TRACE(
         "Destroying vkDebugger messenger {:#x}",
             reinterpret_cast<std::uint64_t>(
-                VkDebugUtilsMessengerEXT(_debug_messenger)
+                ::VkDebugUtilsMessengerEXT(_debug_messenger)
             )
     );
     instance.destroy(_debug_messenger);

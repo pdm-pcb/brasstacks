@@ -1,13 +1,13 @@
 #include "brasstacks/platform/vulkan/resources/vkImageObject.hpp"
 
-#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 
 namespace btx {
 
 // =============================================================================
 void vkImageObject::create_view(vk::ImageViewType const type) {
-    if(_handle == nullptr) {
+    if(!_handle) {
         BTX_CRITICAL("Cannot create view for non-existant image.");
         return;
     }
@@ -39,7 +39,7 @@ void vkImageObject::create_view(vk::ImageViewType const type) {
         }
     };
 
-    auto const result = _device.native().createImageView(view_info);
+    auto const result = _device.createImageView(view_info);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to create view for image {:#x}",
                      reinterpret_cast<uint64_t>(::VkImage(_handle)));
@@ -53,7 +53,7 @@ void vkImageObject::create_view(vk::ImageViewType const type) {
 }
 
 // =============================================================================
-vkImageObject::vkImageObject(vkLogicalDevice  const &device,
+vkImageObject::vkImageObject(vk::Device  const &device,
                              vk::Image const &handle,
                              vk::Format const format,
                              vk::ImageLayout const layout,
@@ -67,11 +67,11 @@ vkImageObject::vkImageObject(vkLogicalDevice  const &device,
 { }
 
 vkImageObject::~vkImageObject() {
-    if(_view != nullptr) {
+    if(_view) {
         BTX_TRACE("Destroying view {:#x} for image {:#x}",
               reinterpret_cast<uint64_t>(::VkImageView(_view)),
               reinterpret_cast<uint64_t>(::VkImage(_handle)));
-        _device.native().destroyImageView(_view);
+        _device.destroyImageView(_view);
         _view = nullptr;
     }
 }

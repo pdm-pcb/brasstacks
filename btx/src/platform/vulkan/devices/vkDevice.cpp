@@ -1,11 +1,11 @@
-#include "brasstacks/platform/vulkan/devices/vkLogicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 
 namespace btx {
 
 // =============================================================================
-void vkLogicalDevice::submit(vk::SubmitInfo const &submit_info) const {
+void vkDevice::submit(vk::SubmitInfo const &submit_info) const {
     auto const result = _cmd_queue.native().submit(submit_info);
     if(result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to submit to command queue.");
@@ -13,7 +13,7 @@ void vkLogicalDevice::submit(vk::SubmitInfo const &submit_info) const {
 }
 
 // =============================================================================
-void vkLogicalDevice::wait_idle() const {
+void vkDevice::wait_idle() const {
     auto const result = _handle.waitIdle();
     if(result != vk::Result::eSuccess) {
         BTX_WARN("Failed to wait for logical device idle.");
@@ -21,7 +21,7 @@ void vkLogicalDevice::wait_idle() const {
 }
 
 // =============================================================================
-vkLogicalDevice::vkLogicalDevice(vkPhysicalDevice const &adapter,
+vkDevice::vkDevice(vkPhysicalDevice const &adapter,
                                  Layers const &layers) :
     _cmd_queue { *this },
     _transient_pool { *this },
@@ -68,7 +68,7 @@ vkLogicalDevice::vkLogicalDevice(vkPhysicalDevice const &adapter,
     else {
         BTX_TRACE(
             "Created logical device {:#x}",
-            reinterpret_cast<uint64_t>(VkDevice(native()))
+            reinterpret_cast<uint64_t>(::VkDevice(native()))
         );
     }
 
@@ -83,12 +83,12 @@ vkLogicalDevice::vkLogicalDevice(vkPhysicalDevice const &adapter,
     _transient_pool.create(vk::CommandPoolCreateFlagBits::eTransient);
 }
 
-vkLogicalDevice::~vkLogicalDevice() {
+vkDevice::~vkDevice() {
     _transient_pool.destroy();
 
     BTX_TRACE(
         "Destroying logical device {:#x}",
-        reinterpret_cast<uint64_t>(VkDevice(native()))
+        reinterpret_cast<uint64_t>(::VkDevice(native()))
     );
     _handle.destroy();
 }
