@@ -36,11 +36,11 @@ public:
 private:
     bool _running;
 
-    TargetWindow *_target_window;
-    vkInstance  *_graphics_api;
+    TargetWindow       *_target_window;
+    vkInstance         *_graphics_api;
     vkPhysicalDevice   *_adapter;
-    vkDevice    *_device;
-    vkSwapchain *_swapchain;
+    vkDevice           *_device;
+    vkSwapchain        *_swapchain;
 };
 
 } // namespace btx
