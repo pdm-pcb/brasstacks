@@ -1,6 +1,7 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
 namespace btx {
 
@@ -37,25 +38,33 @@ void vkCmdBuffer::end_render_pass() const {
 // =============================================================================
 void vkCmdBuffer::submit_and_wait_on_device() const {
     vk::SubmitInfo const submit_info {
-        .commandBufferCount = 1u,
-        .pCommandBuffers = &_handle
+        .pNext                = nullptr,
+        .waitSemaphoreCount   = 0u,
+        .pWaitSemaphores      = nullptr,
+        .pWaitDstStageMask    = nullptr,
+        .commandBufferCount   = 1u,
+        .pCommandBuffers      = &_handle,
+        .signalSemaphoreCount = 0u,
+        .pSignalSemaphores    = nullptr,
     };
 
     _device.submit(submit_info);
     _device.wait_idle();
 }
-
 // =============================================================================
-void vkCmdBuffer::allocate(const vk::CommandPool pool, const bool primary) {
-    _pool = pool;
+vkCmdBuffer::vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool) :
+    _device { device },
+    _pool   { pool },
+    _handle { nullptr }
+{
+    vk::CommandBufferAllocateInfo const buffer_info {
+        .pNext = nullptr,
 
-    const vk::CommandBufferAllocateInfo buffer_info {
-        .commandPool = _pool,
+        .commandPool = _pool.native(),
 
         // A secondary command buffer can be reused between subpasses and even
         // render passes, while a primary command buffer is tied to its pass.
-        .level = (primary ? vk::CommandBufferLevel::ePrimary :
-                            vk::CommandBufferLevel::eSecondary),
+        .level = vk::CommandBufferLevel::ePrimary,
 
         .commandBufferCount = 1u,
     };
@@ -71,33 +80,32 @@ void vkCmdBuffer::allocate(const vk::CommandPool pool, const bool primary) {
             reinterpret_cast<uint64_t>(VkCommandPool(buffer_info.commandPool)),
             vk::to_string(result)
         );
+
+        return;
     }
-    else {
-        BTX_TRACE(
-            "Allocated command buffer from pool {:#x}",
-            reinterpret_cast<uint64_t>(VkCommandPool(buffer_info.commandPool))
-        );
+
+    BTX_TRACE(
+        "Allocated command buffer {:#x} from pool {:#x}",
+        reinterpret_cast<uint64_t>(VkCommandBuffer(_handle)),
+        reinterpret_cast<uint64_t>(VkCommandPool(buffer_info.commandPool))
+    );
+}
+
+vkCmdBuffer::~vkCmdBuffer() {
+    if(_handle) {
+        BTX_TRACE("Freeing command buffer {:#x}",
+                  reinterpret_cast<uint64_t>(VkCommandBuffer(_handle)));
+
+        _device.native().freeCommandBuffers(_pool.native(), { _handle });
+        _handle = nullptr;
     }
 }
 
-// =============================================================================
-void vkCmdBuffer::free() {
-    _device.native().freeCommandBuffers(_pool, { _handle });
-}
-
-// =============================================================================
-vkCmdBuffer::vkCmdBuffer(vkDevice const &device) :
-    _pool { },
-    _handle { },
-    _device { device }
-{ }
-
-vkCmdBuffer::vkCmdBuffer(vkCmdBuffer &&other) noexcept :
-    _pool { other._pool   },
-    _handle { other._handle },
-    _device { other._device }
+vkCmdBuffer::vkCmdBuffer(vkCmdBuffer &&other) :
+    _device { std::move(other._device) },
+    _pool   { std::move(other._pool) },
+    _handle { std::move(other._handle) }
 {
-    other._pool   = nullptr;
     other._handle = nullptr;
 }
 

@@ -9,28 +9,26 @@ class vkDevice;
 
 class vkCmdPool final {
 public:
-    void reset(const vk::CommandPoolResetFlags flags = { }) const;
-
-    void create(const vk::CommandPoolCreateFlags flags = { });
-    void destroy();
+    void reset(vk::CommandPoolResetFlags const flags = { }) const;
 
     inline auto const& native() const { return _handle; }
 
-    explicit vkCmdPool(vkDevice const &device);
-    ~vkCmdPool() = default;
+    vkCmdPool(vkDevice const &device,
+              vk::CommandPoolCreateFlags const flags = { });
+    ~vkCmdPool();
 
     vkCmdPool() = delete;
 
-    vkCmdPool(vkCmdPool &&other) noexcept;
+    vkCmdPool(vkCmdPool &&other);
     vkCmdPool(const vkCmdPool &) = delete;
 
     vkCmdPool & operator=(vkCmdPool &&) = delete;
     vkCmdPool & operator=(const vkCmdPool &) = delete;
 
 private:
-    vk::CommandPool _handle;
-
     vkDevice const &_device;
+
+    vk::CommandPool _handle;
 };
 
 } // namespace btx

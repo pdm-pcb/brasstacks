@@ -1,26 +1,91 @@
 #include "brasstacks/platform/vulkan/vkSwapchain.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/vkSurface.hpp"
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImageObject.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkFrame.hpp"
 
 namespace btx {
 
 // =============================================================================
-vkSwapchain::vkSwapchain(vk::PhysicalDevice const &adapter,
-                           vk::Device const &device,
-                           vk::SurfaceKHR const &surface) :
+void vkSwapchain::acquire_next_image_index(vkFrame &frame) {
+    uint32_t next_image_index = std::numeric_limits<uint32_t>::max();
+
+    auto const result = _device.native().acquireNextImageKHR(
+        _handle,
+        std::numeric_limits<uint64_t>::max(),
+        frame.acquire_complete_sem(),
+        VK_NULL_HANDLE,
+        &next_image_index
+    );
+
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Unable to acquire next swapchain image: '{}'",
+                     vk::to_string(result));
+        return;
+    }
+
+    frame.set_image_index(next_image_index);
+}
+
+// =============================================================================
+void vkSwapchain::present(vkFrame const &frame) {
+    // This array must be a duplicate of the one we used when submitting this
+    // frame's command buffer to the GPU
+    vk::Semaphore const commands_complete_sems[] {
+        frame.commands_complete_sem()
+    };
+
+    // There's one swapchain to present from
+    vk::SwapchainKHR const swapchains[] { _handle };
+
+    // The swapchain image index associated with this frame's command buffer
+    auto const image_index = frame.image_index();
+
+    // Build the submit info struct
+    vk::PresentInfoKHR const present_info {
+        .waitSemaphoreCount = static_cast<uint32_t>(
+            std::size(commands_complete_sems)
+        ),
+        .pWaitSemaphores = commands_complete_sems,
+        .swapchainCount  = static_cast<uint32_t>(std::size(swapchains)),
+        .pSwapchains     = swapchains,
+        .pImageIndices   = &image_index,
+    };
+
+    auto const result = _device.cmd_queue().native().presentKHR(present_info);
+
+    if(result != vk::Result::eSuccess) {
+        if(result == vk::Result::eSuboptimalKHR ||
+        result == vk::Result::eErrorOutOfDateKHR)
+        {
+            // TODO: this.
+            BTX_WARN("Recreate swapchain.");
+        }
+        else {
+            BTX_CRITICAL("Swapchain image failed: '{}", to_string(result));
+        }
+    }
+}
+
+// =============================================================================
+vkSwapchain::vkSwapchain(vkPhysicalDevice const &adapter,
+                         vkSurface const &surface,
+                         vkDevice const &device) :
+
+    _adapter      { adapter },
+    _surface      { surface },
+    _device       { device },
     _render_area  { },
     _image_format { },
     _color_space  { },
     _present_mode { },
     _handle       { nullptr },
-    _images       { },
-    _adapter      { adapter },
-    _device       { device },
-    _surface      { surface }
+    _image_views  { }
 {
     _query_surface_capabilities();
     _query_surface_format();
@@ -29,9 +94,10 @@ vkSwapchain::vkSwapchain(vk::PhysicalDevice const &adapter,
     vk::SwapchainCreateInfoKHR create_info { };
     _populate_create_info(create_info);
 
-    auto const result = _device.createSwapchainKHR(create_info);
+    auto const result = _device.native().createSwapchainKHR(create_info);
     if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create swapchain.");
+        BTX_CRITICAL("Failed to create swapchain: '{}'",
+                     vk::to_string(result.result));
         return;
     }
 
@@ -43,28 +109,28 @@ vkSwapchain::vkSwapchain(vk::PhysicalDevice const &adapter,
 }
 
 vkSwapchain::~vkSwapchain() {
-    for(auto &image : _images) {
-        delete image;
+    for(auto &view : _image_views) {
+        delete view;
     }
 
-    BTX_TRACE(
-        "Destroying swapchain {:#x}",
-        reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle))
-    );
+    BTX_TRACE("Destroying swapchain {:#x}",
+              reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle)));
 
-    _device.destroy(_handle);
+    _device.native().destroy(_handle);
 }
 
 // =============================================================================
 void vkSwapchain::_query_surface_capabilities() {
-    auto const cap_result = _adapter.getSurfaceCapabilitiesKHR(_surface);
+    auto const result =
+        _adapter.native().getSurfaceCapabilitiesKHR(_surface.native());
 
-    if(cap_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not get surface capabilities.");
+    if(result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Could not get surface capabilities: '{}'",
+                     vk::to_string(result.result));
         return;
     }
 
-    auto const &capabilities = cap_result.value;
+    auto const &capabilities = result.value;
     BTX_TRACE(
         "\nSurface Capabilities:"
         "\n\t Minimum Image Count: {}"
@@ -84,63 +150,28 @@ void vkSwapchain::_query_surface_capabilities() {
         capabilities.maxImageArrayLayers
     );
 
-    // The vk::SurfaceCapabilitiesKHR struct will let us know what resolutions
-    // our surface is allowed to be.
-    _render_area.extent.width = std::clamp(
-        static_cast<uint32_t>(RenderConfig::window_width),
-        capabilities.minImageExtent.width,
-        capabilities.maxImageExtent.width
-    );
-    _render_area.extent.height = std::clamp(
-        static_cast<uint32_t>(RenderConfig::window_height),
-        capabilities.minImageExtent.height,
-        capabilities.maxImageExtent.height
-    );
+    _render_area.extent = capabilities.currentExtent;
 
-    if(_render_area.extent.width != RenderConfig::window_width ||
-       _render_area.extent.height != RenderConfig::window_height)
-    {
-        BTX_WARN(
-            "Requested resolution {}x{} unsupported; using {}x{} instead",
-            RenderConfig::window_width, RenderConfig::window_height,
-            _render_area.extent.width, _render_area.extent.height
-        );
+    if(RenderConfig::vsync_on) {
+        _image_views.resize(3);
     }
-
-    // Provided image count has already been used to set some array sizes (in
-    // LogicalDevice, for example) it's become a hard requirement of the
-    // surface itself
-    if(RenderConfig::swapchain_image_count > capabilities.maxImageCount ||
-       RenderConfig::swapchain_image_count < capabilities.minImageCount)
-    {
-        BTX_WARN(
-            "{} swapchain images requested, but surface allows a minimum of {} "
-            "and a maximum of {} images. Defaulting to minimum.",
-            RenderConfig::swapchain_image_count,
-            capabilities.minImageCount,
-            capabilities.maxImageCount
-        );
-
-        RenderConfig::swapchain_image_count = capabilities.minImageCount;
-    }
-
-    if(RenderConfig::swapchain_image_count == 2 && RenderConfig::vsync_on) {
-        if(capabilities.maxImageCount >= 3) {
-            RenderConfig::swapchain_image_count = 3;
-        }
+    else {
+        _image_views.resize(capabilities.minImageCount);
     }
 }
 
 // =============================================================================
 void vkSwapchain::_query_surface_format() {
-    auto const formats_result = _adapter.getSurfaceFormatsKHR(_surface);
+    auto const result =
+        _adapter.native().getSurfaceFormatsKHR(_surface.native());
 
-    if(formats_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not get surface formats.");
+    if(result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Could not get surface formats: '{}'",
+                      vk::to_string(result.result));
         return;
     }
 
-    auto const &formats = formats_result.value;
+    auto const &formats = result.value;
     BTX_TRACE("Found {} surface formats.", formats.size());
 
     bool found_desired = false;
@@ -180,14 +211,16 @@ void vkSwapchain::_query_surface_format() {
 
 // =============================================================================
 void vkSwapchain::_query_surface_present_modes() {
-    auto const modes_result = _adapter.getSurfacePresentModesKHR(_surface);
+    auto const result =
+        _adapter.native().getSurfacePresentModesKHR(_surface.native());
 
-    if(modes_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not query surface present modes.");
+    if(result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Could not query surface present modes: '{}'",
+                     vk::to_string(result.result));
         return;
     }
 
-    auto const &modes = modes_result.value;
+    auto const &modes = result.value;
     BTX_TRACE("Found {} present modes.", modes.size());
 
     bool has_fifo_relaxed = false;
@@ -230,8 +263,8 @@ void vkSwapchain::_query_surface_present_modes() {
 // =============================================================================
 void vkSwapchain::_populate_create_info(vk::SwapchainCreateInfoKHR &create_info) {
     create_info = {
-        .surface         = _surface,
-        .minImageCount   = RenderConfig::swapchain_image_count,
+        .surface         = _surface.native(),
+        .minImageCount   = static_cast<uint32_t>(_image_views.size()),
         .imageFormat     = _image_format,
         .imageColorSpace = _color_space,
         .imageExtent     = _render_area.extent,
@@ -281,7 +314,7 @@ void vkSwapchain::_populate_create_info(vk::SwapchainCreateInfoKHR &create_info)
         "\n    Present Mode: {}",
         _render_area.extent.width, _render_area.extent.height,
         _render_area.offset.x, _render_area.offset.y,
-        RenderConfig::swapchain_image_count,
+        _image_views.size(),
         vk::to_string(_image_format),
         vk::to_string(_color_space),
         vk::to_string(_present_mode)
@@ -290,36 +323,30 @@ void vkSwapchain::_populate_create_info(vk::SwapchainCreateInfoKHR &create_info)
 
 // =============================================================================
 void vkSwapchain::_get_images() {
-    auto const images_result = _device.getSwapchainImagesKHR(_handle);
-    if(images_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not get swapchain images.");
+    auto const result = _device.native().getSwapchainImagesKHR(_handle);
+    if(result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Could not get swapchain images: '{}'",
+                     vk::to_string(result.result));
         return;
     }
 
-    auto const &images = images_result.value;
-    if(images.size() != RenderConfig::swapchain_image_count) {
-        BTX_CRITICAL(
-            "Swapchain supports {} images; {} configured",
-            _images.size(),
-            RenderConfig::swapchain_image_count
-        );
+    auto const &swapchain_images = result.value;
+    BTX_TRACE("Acquired {} swapchain images", swapchain_images.size());
+
+    if(swapchain_images.size() != _image_views.size()) {
+        BTX_CRITICAL("Swapchain provided {} images, expected {}",
+                     swapchain_images.size(), _image_views.size());
         return;
     }
 
-    BTX_INFO("Acquired {} swapchain images", images.size());
-
-    _images.reserve(RenderConfig::swapchain_image_count);
-
-    for(auto const &image : images) {
-        _images.emplace_back(new vkImageObject(
+    for(uint32_t i = 0u; i < _image_views.size(); ++i) {
+        _image_views[i] = new vkImageView(
             _device,
-            image,
+            swapchain_images[i],
             _image_format,
-            vk::ImageLayout::eUndefined,
+            vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor
-        ));
-
-        _images.back()->create_view(vk::ImageViewType::e2D);
+        );
     }
 }
 

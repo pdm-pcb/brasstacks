@@ -6,29 +6,32 @@
 namespace btx {
 class TargetWindow {
 public:
-    static TargetWindow * create(std::string_view const app_name);
-
-    struct Dimensions {
-        uint32_t width = 0;
-        uint32_t height = 0;
+    struct Dimensions final {
+        std::uint32_t width = 0;
+        std::uint32_t height = 0;
     };
 
-    struct Position {
-        int32_t x = 0;
-        int32_t y = 0;
+    struct Position final {
+        std::int32_t x = 0;
+        std::int32_t y = 0;
     };
 
-    virtual void create_window(Dimensions const &dimensions = { 0, 0 },
-                               Position const &position = { 0, 0 }) = 0;
+    static TargetWindow * create(std::string_view const app_name,
+                                 Dimensions const &dimensions = { 0u, 0u},
+                                 Position const &position = { 0, 0 });
+
     virtual void show_window() = 0;
-    virtual void destroy_window() = 0;
-
-    virtual void create_surface(vk::Instance const &instance) = 0;
-    virtual void destroy_surface() = 0;
-
     virtual void message_loop() = 0;
 
-    virtual vk::SurfaceKHR const & surface() const = 0;
+#if defined(BTX_LINUX)
+
+    // ...!
+
+#elif defined(BTX_WINDOWS)
+
+    virtual ::HWND const & native() const = 0;
+
+#endif // BTX platform
 
     virtual ~TargetWindow() = default;
 

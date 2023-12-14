@@ -12,19 +12,14 @@ namespace btx {
 
 class Win32TargetWindow final : public TargetWindow {
 public:
-    void create_window(Dimensions const &dimensions = { 0u, 0u },
-                       Position const &position = { 0, 0 }) override;
     void show_window() override;
-    void destroy_window() override;
-
-    void create_surface(vk::Instance const &instance) override;
-    void destroy_surface() override;
-
     void message_loop() override;
 
-    inline vk::SurfaceKHR const & surface() const override { return _surface; }
+    ::HWND const & native() const override { return _window_handle; }
 
-    explicit Win32TargetWindow(std::string_view const app_name);
+    Win32TargetWindow(std::string_view const app_name,
+                      Dimensions const &dimensions,
+                      Position const &position);
     ~Win32TargetWindow() override;
 
     Win32TargetWindow() = delete;
@@ -43,13 +38,18 @@ private:
 
     char *_raw_msg;
 
-    // Vulkan specifics
-    vk::Instance const *_instance;
-    vk::SurfaceKHR _surface;
-
+    // For brasstacks/win32 interop
     Win32ToBTXKeys const _keymap;
-    Position _screen_center;
 
+    // Details for later
+    Dimensions _screen_size;
+    Dimensions _window_size;
+    Position   _screen_center;
+    Position   _window_pos;
+
+    void _register_class();
+    void _create_window();
+    void _destroy_window();
     void _register_input();
     void _restrict_cursor();
     void _release_cursor();

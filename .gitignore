@@ -11,3 +11,7 @@ release/
 **/*.pdb
 **/*.exe.manifest
 **/*.exe
+
+**/*.spv
+**/*.vert.d
+**/*.frag.d

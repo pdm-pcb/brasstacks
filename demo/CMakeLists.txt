@@ -23,6 +23,23 @@ target_link_libraries(
     brasstacks
 )
 
+file(
+    GLOB SHADER_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/*.vert"
+    "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/*.frag"
+)
+
+if("${SHADER_SOURCE}" STREQUAL "")
+    message(FATAL_ERROR "Shader source glob was empty")
+endif()
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompileShaders.cmake")
+compile_shader(
+    ${TARGET_NAME}
+    ENV vulkan1.2
+    SOURCES ${SHADER_SOURCE}
+)
+
 set_target_properties(
 	${TARGET_NAME} PROPERTIES
 	CXX_STANDARD 20
@@ -30,5 +47,5 @@ set_target_properties(
     CXX_EXTENSIONS OFF
 
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/debug/bin"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/release/bin"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/demo"
 )

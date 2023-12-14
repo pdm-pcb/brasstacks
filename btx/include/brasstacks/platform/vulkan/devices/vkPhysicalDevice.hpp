@@ -6,6 +6,7 @@
 namespace btx {
 
 class vkInstance;
+class vkSurface;
 
 class vkPhysicalDevice final {
 public:
@@ -22,9 +23,25 @@ public:
     inline auto const & memory_props() const { return _memory_properties;  }
     inline auto const & features()     const { return _enabled_features;   }
     inline auto const & extensions()   const { return _enabled_extensions; }
+    inline auto depth_format()         const { return _depth_format;       }
+
+    inline auto max_msaa_flag() const {
+        switch(_max_msaa_samples) {
+            case 64u: return vk::SampleCountFlagBits::e64; break;
+            case 32u: return vk::SampleCountFlagBits::e32; break;
+            case 16u: return vk::SampleCountFlagBits::e16; break;
+            case 8u:  return vk::SampleCountFlagBits::e8;  break;
+            case 4u:  return vk::SampleCountFlagBits::e4;  break;
+            case 2u:  return vk::SampleCountFlagBits::e2;  break;
+            case 1u:  return vk::SampleCountFlagBits::e1;  break;
+        }
+
+        BTX_WARN("Unsupported MSAA sample count {}.", _max_msaa_samples);
+        return vk::SampleCountFlagBits::e1;
+    }
 
     vkPhysicalDevice(vkInstance const &instance,
-                     vk::SurfaceKHR const &surface,
+                     vkSurface const &surface,
                      ExtensionList const &required_extensions,
                      FeatureList const &required_features,
                      bool const order_by_perf = false);
@@ -41,9 +58,9 @@ public:
 private:
     struct DeviceProps {
         std::string name;
-        size_t  vram_bytes = 0;
-        uint8_t max_samples = 0u;
-        float   max_aniso = 0.0f;
+        std::size_t vram_bytes = 0;
+        std::uint8_t max_samples = 0u;
+        float max_aniso = 0.0f;
         std::string driver_version;
         std::string vkapi_version;
         vk::PhysicalDevice device = nullptr;
@@ -54,7 +71,10 @@ private:
     using DeviceList = std::vector<DeviceProps>;
     DeviceList _available_devices;
 
-    uint32_t _queue_index;
+    std::uint32_t _queue_index;
+    vk::Format    _depth_format;
+    std::uint32_t _max_msaa_samples;
+    float         _anisotropy;
 
     vk::PhysicalDeviceMemoryProperties _memory_properties;
     vk::PhysicalDeviceFeatures         _enabled_features;
@@ -62,7 +82,7 @@ private:
 
     vk::PhysicalDevice _handle;
 
-    void _select_device(vk::SurfaceKHR const &surface);
+    void _select_device(vkSurface const &surface);
 
     bool _check_features(
         vk::PhysicalDeviceFeatures const &supported_features,
@@ -73,6 +93,8 @@ private:
         std::vector<vk::ExtensionProperties> const &supported_extensions,
         ExtensionList const &required_extensions
     );
+
+    bool _check_depth_format(vk::PhysicalDevice const &device);
 
     void _store_device(
         const vk::PhysicalDevice &device,

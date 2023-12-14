@@ -67,6 +67,16 @@
 #include <functional>
 #include <unordered_map>
 #include <array>
+#include <filesystem>
+#include <fstream>
+
+#if defined(BTX_DEBUG)
+static std::filesystem::path const BTX_ASSET_PATH("../../demo/assets");
+static std::string           const BTX_SHADER_EXT("-debug.spv");
+#else
+static std::filesystem::path const BTX_ASSET_PATH("assets");
+static std::string           const BTX_SHADER_EXT("-release.spv");
+#endif // BTX build config
 
 #include "brasstacks/version.hpp"
 #include "brasstacks/tools/ConsoleLog.hpp"

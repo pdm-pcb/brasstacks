@@ -6,6 +6,7 @@
 namespace btx {
 
 class vkDevice;
+class vkCmdPool;
 
 class vkCmdBuffer final {
 public:
@@ -17,27 +18,24 @@ public:
 
     void submit_and_wait_on_device() const;
 
-    void allocate(const vk::CommandPool pool, const bool primary = true);
-    void free();
-
     inline auto const& native() const { return _handle; }
 
-    explicit vkCmdBuffer(vkDevice const &device);
-    ~vkCmdBuffer() = default;
+    vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool);
+    ~vkCmdBuffer();
 
     vkCmdBuffer() = delete;
 
-    vkCmdBuffer(vkCmdBuffer &&other) noexcept;
+    vkCmdBuffer(vkCmdBuffer &&other);
     vkCmdBuffer(const vkCmdBuffer &) = delete;
 
     vkCmdBuffer & operator=(vkCmdBuffer &&) = delete;
     vkCmdBuffer & operator=(const vkCmdBuffer &) = delete;
 
 private:
-    vk::CommandPool   _pool;
-    vk::CommandBuffer _handle;
+    vkDevice  const &_device;
+    vkCmdPool const &_pool;
 
-    vkDevice const &_device;
+    vk::CommandBuffer _handle;
 };
 
 } // namespace btx

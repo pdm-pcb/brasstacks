@@ -6,8 +6,17 @@
 namespace btx {
 
 // =============================================================================
-void vkCmdPool::create(const vk::CommandPoolCreateFlags flags) {
-    const vk::CommandPoolCreateInfo pool_info {
+void vkCmdPool::reset(vk::CommandPoolResetFlags const flags) const {
+    _device.native().resetCommandPool(_handle, flags);
+}
+
+// =============================================================================
+vkCmdPool::vkCmdPool(vkDevice const &device,
+                     vk::CommandPoolCreateFlags const flags) :
+    _device { device },
+    _handle { }
+{
+    vk::CommandPoolCreateInfo const pool_info {
         .flags = flags,
         .queueFamilyIndex = _device.cmd_queue().index()
     };
@@ -19,44 +28,30 @@ void vkCmdPool::create(const vk::CommandPoolCreateFlags flags) {
     );
 
     if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL(
-            "Failed to create command pool: '{}'",
-            vk::to_string(result)
-        );
+        BTX_CRITICAL("Failed to create command pool: '{}'",
+                     vk::to_string(result));
     }
     else {
-        BTX_TRACE(
-            "Created command pool {:#x}.",
-            reinterpret_cast<uint64_t>(::VkCommandPool(_handle))
-        );
+        BTX_TRACE("Created command pool {:#x}.",
+                  reinterpret_cast<uint64_t>(::VkCommandPool(_handle)));
     }
 }
 
-// =============================================================================
-void vkCmdPool::destroy() {
-    BTX_TRACE(
-        "Destroying command pool {:#x}.",
-        reinterpret_cast<uint64_t>(::VkCommandPool(_handle))
-    );
-    _device.native().destroyCommandPool(_handle);
+vkCmdPool::~vkCmdPool() {
+    if(_handle) {
+        BTX_TRACE("Destroying command pool {:#x}.",
+                  reinterpret_cast<uint64_t>(::VkCommandPool(_handle)));
+
+        _device.native().destroyCommandPool(_handle);
+        _handle = nullptr;
+    }
 }
 
-// =============================================================================
-void vkCmdPool::reset(const vk::CommandPoolResetFlags flags) const {
-    _device.native().resetCommandPool(_handle, flags);
-}
-
-// =============================================================================
-vkCmdPool::vkCmdPool(vkDevice const &device) :
-    _handle { },
-    _device { device }
-{ }
-
-vkCmdPool::vkCmdPool(vkCmdPool &&other) noexcept :
-    _handle { other._handle },
-    _device { other._device }
+vkCmdPool::vkCmdPool(vkCmdPool &&other) :
+    _device { std::move(other._device) },
+    _handle { std::move(other._handle) }
 {
-    other._handle = nullptr;
+    _handle = nullptr;
 }
 
 } // namespace btx

@@ -6,18 +6,22 @@
 namespace btx {
 
 class vkPhysicalDevice;
+class vkSurface;
 class vkDevice;
-class vkImageObject;
+class vkImageView;
+class vkFrame;
 
 class vkSwapchain final {
 public:
-    inline auto const& render_area()  { return _render_area;  }
-    inline auto const& images()       { return _images;       }
-    inline auto        image_format() { return _image_format; }
+    void acquire_next_image_index(vkFrame &frame);
+    void present(vkFrame const &frame);
 
-    vkSwapchain(vk::PhysicalDevice const &adapter,
-                    vk::Device const &device,
-                    vk::SurfaceKHR const &surface);
+    inline auto const & render_area()  const { return _render_area;  }
+    inline auto         image_format() const { return _image_format; }
+    inline auto         image_count()  const { return _image_views.size(); }
+
+    vkSwapchain(vkPhysicalDevice const &adapter, vkSurface const &surface,
+                vkDevice const &device);
     ~vkSwapchain();
 
     vkSwapchain() = delete;
@@ -29,17 +33,17 @@ public:
     vkSwapchain & operator=(vkSwapchain const &) = delete;
 
 private:
+    vkPhysicalDevice const &_adapter;
+    vkSurface        const &_surface;
+    vkDevice         const &_device;
+
     vk::Rect2D         _render_area;
     vk::Format         _image_format;
     vk::ColorSpaceKHR  _color_space;
     vk::PresentModeKHR _present_mode;
 
     vk::SwapchainKHR _handle;
-    std::vector<vkImageObject *> _images;
-
-    vk::PhysicalDevice const &_adapter;
-    vk::Device         const &_device;
-    vk::SurfaceKHR     const &_surface;
+    std::vector<vkImageView *> _image_views;
 
     void _query_surface_capabilities();
     void _query_surface_format();

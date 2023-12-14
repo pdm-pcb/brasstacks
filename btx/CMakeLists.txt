@@ -1,6 +1,6 @@
 set(TARGET_NAME "brasstacks")
 
-add_library(brasstacks STATIC)
+add_library(${TARGET_NAME} STATIC)
 add_library(brasstacks::brasstacks ALIAS brasstacks)
 
 configure_file(
@@ -59,7 +59,6 @@ elseif(CMAKE_BUILD_TYPE MATCHES "Release")
     )
 endif()
 
-
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
    CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(
@@ -75,6 +74,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
             "-Weverything"      # Clang supports enabling all possible warnings
             "-Wno-c++98-compat" # ...which means some must then be disabled
             "-Wno-c++98-compat-pedantic"
+            "-Wno-c++20-compat" # We're targeting C++20
             "-Wno-newline-eof"
             "-fsafe-buffer-usage-suggestions"
         )

@@ -8,10 +8,7 @@ namespace btx {
 struct KeyReleaseEvent;
 
 class TargetWindow;
-class vkInstance;
-class vkPhysicalDevice;
-class vkDevice;
-class vkSwapchain;
+class Renderer;
 
 class Application {
 public:
@@ -36,11 +33,8 @@ public:
 private:
     bool _running;
 
-    TargetWindow       *_target_window;
-    vkInstance         *_graphics_api;
-    vkPhysicalDevice   *_adapter;
-    vkDevice           *_device;
-    vkSwapchain        *_swapchain;
+    TargetWindow *_target_window;
+    Renderer     *_renderer;
 };
 
 } // namespace btx

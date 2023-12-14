@@ -1,19 +1,20 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
+#include "brasstacks/platform/vulkan/vkSurface.hpp"
 #include "brasstacks/system/TargetWindow.hpp"
 
 namespace btx {
 
 // =============================================================================
 vkPhysicalDevice::vkPhysicalDevice(vkInstance const &instance,
-                                   vk::SurfaceKHR const &surface,
+                                   vkSurface const &surface,
                                    ExtensionList const &required_extensions,
                                    FeatureList const &required_features,
                                    bool const order_by_perf) :
     _available_devices  { },
     _queue_index        { std::numeric_limits<uint32_t>::max() },
+    _depth_format       { vk::Format::eD32Sfloat },
     _memory_properties  { },
     _enabled_features   { },
     _enabled_extensions { },
@@ -50,6 +51,13 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance const &instance,
         auto const &extensions = ext_result.value;
         BTX_TRACE("Found {} physical device extensions", extensions.size());
         if(!_check_extensions(extensions, required_extensions)) {
+            continue;
+        }
+
+        // Double check for the depth format we want
+        if(!_check_depth_format(device)) {
+            BTX_WARN("{} does not support 32-bit signed float for depth image "
+                     "format; skipping", *device.getProperties().deviceName);
             continue;
         }
 
@@ -124,8 +132,7 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance const &instance,
 // In order to render, we need to ensure the graphics card support receiving
 // two types of commands: graphics and present. The latter requires an existing
 // surface to query, so here we go.
-void vkPhysicalDevice::_select_device(vk::SurfaceKHR const &surface) {
-
+void vkPhysicalDevice::_select_device(vkSurface const &surface) {
     // Set up our hopefully to-be-rectified failure conditions
     std::vector<std::pair<bool, uint32_t>> graphics_support;
     std::vector<std::pair<bool, uint32_t>> present_support;
@@ -142,8 +149,8 @@ void vkPhysicalDevice::_select_device(vk::SurfaceKHR const &surface) {
         ++device_index)
     {
         // Ask Vulkan for some details
-        auto const& gpu = _available_devices[device_index].device;
-        auto const props = gpu.getQueueFamilyProperties();
+        auto const &adapter = _available_devices[device_index].device;
+        auto const props = adapter.getQueueFamilyProperties();
 
         BTX_TRACE("Found {} queue families for {}",
                   props.size(), _available_devices[device_index].name);
@@ -163,7 +170,8 @@ void vkPhysicalDevice::_select_device(vk::SurfaceKHR const &surface) {
             // actually just checks whether a given queue family can present
             // on a given surface. Poorly named function, but oh well.
             if(!present_support[device_index].first) {
-                auto const support = gpu.getSurfaceSupportKHR(family, surface);
+                auto const support =
+                    adapter.getSurfaceSupportKHR(family, surface.native());
                 present_support[device_index] = {
                     (support.result == vk::Result::eSuccess),
                     family
@@ -192,14 +200,14 @@ void vkPhysicalDevice::_select_device(vk::SurfaceKHR const &surface) {
            present_fam != std::numeric_limits<uint32_t>::max() &&
            features.samplerAnisotropy != 0)
         {
-            gfx_queue_index            = graphics_support[device_index].second;
-            present_queue_index        = present_support[device_index].second;
+            gfx_queue_index     = graphics_support[device_index].second;
+            present_queue_index = present_support[device_index].second;
 
-            auto const& dev_store      = _available_devices[device_index];
-            _handle                    = dev_store.device;
-            _memory_properties         = dev_store.memory;
-            RenderConfig::max_msaa_samples = dev_store.max_samples;
-            RenderConfig::anisotropy   = dev_store.max_aniso;
+            auto const& dev_store = _available_devices[device_index];
+            _handle               = dev_store.device;
+            _memory_properties    = dev_store.memory;
+            _max_msaa_samples     = dev_store.max_samples;
+            _anisotropy           = dev_store.max_aniso;
             BTX_INFO("Selected {}", dev_store.name);
 
             // Just choose the first satisfactory device, as they're already
@@ -280,6 +288,23 @@ bool vkPhysicalDevice::_check_extensions(
             );
             return false;
         }
+    }
+
+    return true;
+}
+
+// =============================================================================
+bool vkPhysicalDevice::_check_depth_format(vk::PhysicalDevice const &device) {
+    auto const &props = device.getFormatProperties(_depth_format);
+
+    auto const depth_format_supported =
+        ( props.optimalTilingFeatures &
+          vk::FormatFeatureFlagBits::eDepthStencilAttachment );
+
+    if(!depth_format_supported) {
+        BTX_CRITICAL("Selected physical device does not support 32-bit "
+                     "floating point depth image format.");
+        return false;
     }
 
     return true;

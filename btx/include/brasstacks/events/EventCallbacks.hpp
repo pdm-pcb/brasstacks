@@ -9,6 +9,7 @@
 
 namespace btx {
 
+// -----------------------------------------------------------------------------
 class EventCallbacksBase {
 public:
     static constexpr uint32_t MAX_CALLBACKS = 32u;
@@ -27,6 +28,7 @@ protected:
     EventCallbacksBase() = default;
 };
 
+// -----------------------------------------------------------------------------
 template<typename Event>
 class EventCallbacks final : public EventCallbacksBase {
 
@@ -35,6 +37,7 @@ using CallbackIter = typename CallbackList::iterator;
 using HandleMap    = std::unordered_map<uint32_t, CallbackIter>;
 
 public:
+    // =========================================================================
     template<typename Callback>
     EventListenerHandle add(Callback callback) {
         _callbacks.emplace_back(callback);
@@ -45,25 +48,29 @@ public:
         };
     }
 
-    void emit(const Event &event) {
-        for(auto const &callback : _callbacks) {
-            callback(event);
-        }
-    }
-
+    // =========================================================================
     void remove(const EventListenerHandle &handle) override {
         auto iter = _handles[handle.listener_id];
         _handles.erase(handle.listener_id);
         _callbacks.erase(iter);
     }
 
-    explicit EventCallbacks(const uint32_t event_id) :
+    // =========================================================================
+    void emit(const Event &event) {
+        for(auto const &callback : _callbacks) {
+            callback(event);
+        }
+    }
+
+    // =========================================================================
+    explicit EventCallbacks(const uint32_t event_id)  :
         _event_id { event_id },
         _next_listener_id { 0u }
     { }
-    EventCallbacks() = delete;
 
     ~EventCallbacks() override = default;
+
+    EventCallbacks() = delete;
 
     EventCallbacks(EventCallbacks &&other) = delete;
     EventCallbacks(const EventCallbacks &other) = delete;

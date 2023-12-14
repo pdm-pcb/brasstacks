@@ -11,6 +11,7 @@ namespace btx {
 
 class EventBroker {
 public:
+    // =========================================================================
     template<typename Event, typename Listener, typename Callback>
     static EventListenerHandle subscribe(Listener *handler, Callback callback) {
         return static_cast<EventCallbacks<Event> *>(
@@ -21,6 +22,7 @@ public:
         );
     }
 
+    // =========================================================================
     template<typename Event, typename... EventParams>
     static void emit(EventParams ...event_args) {
         Event event { event_args... };
@@ -29,11 +31,24 @@ public:
         )->emit(event);
     }
 
-    static void unsubscribe(const EventListenerHandle &handle);
+    // =========================================================================
+    static void unsubscribe(const EventListenerHandle &handle) {
+        _callbacks[handle.event_id]->remove(handle);
+    }
 
-    static void init();
-    static void shutdown();
+    // =========================================================================
+    static void init() {
+        _callbacks.reserve(EventCallbacksBase::MAX_CALLBACKS);
+    }
 
+    // =========================================================================
+    static void shutdown() {
+        for(auto const *callback : _callbacks) {
+            delete callback;
+        }
+    }
+
+    // =========================================================================
     EventBroker() = delete;
     ~EventBroker() = delete;
 
@@ -48,12 +63,14 @@ private:
     static CallbackList _callbacks;
     static uint32_t _next_event_id;
 
+    // =========================================================================
     template<typename Event>
     static uint32_t _event_id() {
         static uint32_t event_id = _register_event<Event>();
         return event_id;
     }
 
+    // =========================================================================
     template<typename Event>
     static uint32_t _register_event() {
         _callbacks.emplace_back(new EventCallbacks<Event>(_next_event_id));

@@ -10,7 +10,7 @@ namespace btx {
 
 // =============================================================================
 vkInstance::vkInstance() :
-    _target_api_version { VK_API_VERSION_1_3 }
+    _target_api_version { VK_API_VERSION_1_2 }
 {
     static std::once_flag initialized;
     std::call_once(initialized, [&] {

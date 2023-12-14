@@ -2,7 +2,6 @@
 
 #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
-#include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/events/EventBroker.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
@@ -11,127 +10,8 @@
 namespace btx {
 
 // =============================================================================
-void Win32TargetWindow::create_window(Dimensions const &dimensions,
-                                      Position const &position)
-{
-    if(_window_handle != nullptr) {
-        BTX_CRITICAL("Only one target window at a time is allowed.");
-        return;
-    }
-
-    // If width and height aren't provided by Application, then just opt for
-    // three-quarters of the available real estate
-    if(dimensions.width == 0u || dimensions.height == 0u) {
-        auto width_fraction  = static_cast<float>(RenderConfig::screen_width);
-        auto height_fraction = static_cast<float>(RenderConfig::screen_height);
-        width_fraction  *= 0.75f;
-        height_fraction *= 0.75f;
-
-        RenderConfig::window_width  = static_cast<uint32_t>(width_fraction);
-        RenderConfig::window_height = static_cast<uint32_t>(height_fraction);
-    }
-    else {
-        RenderConfig::window_width = dimensions.width;
-        RenderConfig::window_height = dimensions.height;
-    }
-
-    // Determine the window's eventual position on screen
-    auto const half_width =
-        static_cast<int32_t>(RenderConfig::window_width)  / 2;
-    auto const half_height =
-        static_cast<int32_t>(RenderConfig::window_height) / 2;
-
-    if(position.x == 0 || position.y == 0) {
-        RenderConfig::window_pos_x = _screen_center.x - half_width;
-        RenderConfig::window_pos_y = _screen_center.y - half_height;
-    }
-    else {
-        RenderConfig::window_pos_x = position.x;
-        RenderConfig::window_pos_y = position.y;
-    }
-
-    // Create!
-    _window_handle = ::CreateWindowEx(
-        0u,             // No extended style
-        BTX_NAME,       // Win32 class name
-        _window_title,  // Win32 window title
-        WS_POPUP,       // Popup window style means no decorations
-        CW_USEDEFAULT,  // x location
-        CW_USEDEFAULT,  // y location
-        CW_USEDEFAULT,  // Window width
-        CW_USEDEFAULT,  // Window height
-        nullptr,        // Parent window handle
-        nullptr,        // Menu handle
-        nullptr,        // Instance handle
-        this            // Pointer to lParam; retrieved later via WM_NCCREATE
-    );
-
-    if(_window_handle == nullptr) {
-        auto const error = ::GetLastError();
-        BTX_CRITICAL(
-            "Failed to create win32 target window. Error {}: '{}'",
-            error,
-            std::system_category().message(static_cast<int>(error))
-        );
-        return;
-    }
-
-    BTX_TRACE(
-        "Created win32 target window: {}x{}",
-        RenderConfig::window_width,
-        RenderConfig::window_height
-    );
-
-    _register_input();
-    _size_and_place();
-}
-
-// =============================================================================
 void Win32TargetWindow::show_window() {
     ::ShowWindow(_window_handle, SW_SHOWNORMAL);
-}
-
-// =============================================================================
-void Win32TargetWindow::destroy_window() {
-    BTX_TRACE("Destroying win32 target window.");
-    ::SendMessage(_window_handle, WM_CLOSE, 0, 0);
-    Win32TargetWindow::message_loop();
-}
-
-// =============================================================================
-void Win32TargetWindow::create_surface(vk::Instance const &instance) {
-    // Capture the Vulkan instance for later
-    _instance = &instance;
-
-    // The details Vulkan cares about
-    vk::Win32SurfaceCreateInfoKHR const surface_info {
-        .hinstance = nullptr,
-        .hwnd = _window_handle,
-    };
-
-    // Create, check, assign
-    auto result = _instance->createWin32SurfaceKHR(surface_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL(
-            "Unable to create Win32 KHR surface: '{}'",
-            vk::to_string(result.result)
-        );
-    }
-    _surface = result.value;
-
-    BTX_TRACE(
-        "Created Vulkan surface {:#x}",
-        reinterpret_cast<uint64_t>(::VkSurfaceKHR(_surface))
-    );
-}
-
-// =============================================================================
-void Win32TargetWindow::destroy_surface() {
-    BTX_TRACE(
-        "Destroying Vulkan surface {:#x}",
-        reinterpret_cast<uint64_t>(::VkSurfaceKHR(_surface))
-    );
-    _instance->destroy(_surface);
 }
 
 // =============================================================================
@@ -146,15 +26,18 @@ void Win32TargetWindow::message_loop() {
 }
 
 // =============================================================================
-Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
+Win32TargetWindow::Win32TargetWindow(std::string_view const app_name,
+                                     Dimensions const &dimensions,
+                                     Position const &position) :
     _window_title   { app_name.data() },
     _window_handle  { nullptr },
     _device_context { nullptr },
-    _raw_msg        { nullptr },
-    _instance       { nullptr },
-    _surface        { nullptr },
+    _raw_msg        { new char[sizeof(::RAWINPUTHEADER)] },
     _keymap         { },
-    _screen_center  { 0, 0 }
+    _screen_size    { 0u, 0u },
+    _window_size    { dimensions },
+    _screen_center  { 0, 0 },
+    _window_pos     { position }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -171,15 +54,31 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
 
     // Testing for the primary display's resolution this way feels brittle,
     // but it does work for the average use case
-    RenderConfig::screen_width  =
-        static_cast<uint32_t>(::GetSystemMetrics(SM_CXSCREEN));
-    RenderConfig::screen_height =
-        static_cast<uint32_t>(::GetSystemMetrics(SM_CYSCREEN));
+    _screen_size = {
+        static_cast<std::uint32_t>(::GetSystemMetrics(SM_CXSCREEN)),
+        static_cast<std::uint32_t>(::GetSystemMetrics(SM_CYSCREEN))
+    };
 
     // Hold on to the screen's center for later
-    _screen_center.x = static_cast<int32_t>(RenderConfig::screen_width) / 2;
-    _screen_center.y = static_cast<int32_t>(RenderConfig::screen_height) / 2;
+    _screen_center = {
+        static_cast<std::int32_t>(_screen_size.width / 2),
+        static_cast<std::int32_t>(_screen_size.height / 2)
+    };
 
+    _register_class();
+    _create_window();
+    _register_input();
+    _size_and_place();
+}
+
+Win32TargetWindow::~Win32TargetWindow() {
+    _destroy_window();
+    // Clean up our one allocation
+    delete[] _raw_msg;
+}
+
+// =============================================================================
+void Win32TargetWindow::_register_class() {
     // Now it's time to register the window class
     ::WNDCLASSEX const wcex {
         .cbSize = sizeof(::WNDCLASSEX),
@@ -226,14 +125,158 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
         );
         return;
     }
-
-    // Allocate a struct for the raw device input messages
-    _raw_msg = new char[sizeof(::RAWINPUTHEADER)];
 }
 
-Win32TargetWindow::~Win32TargetWindow() {
-    // Clean up our one allocation
-    delete[] _raw_msg;
+// =============================================================================
+void Win32TargetWindow::_create_window() {
+    // If width and height aren't provided by Application, then just opt for
+    // three-quarters of the available real estate
+    if(_window_size.width == 0u || _window_size.height == 0u) {
+        auto const w = static_cast<float>(_screen_size.width);
+        auto const h = static_cast<float>(_screen_size.height);
+
+        _window_size = {
+            static_cast<uint32_t>(w * 0.75f),
+            static_cast<uint32_t>(h * 0.75f)
+        };
+    }
+
+    // Default to a centered window
+    if(_window_pos.x == 0 || _window_pos.y == 0) {
+        auto const half_width = static_cast<int32_t>(_window_size.width) / 2;
+        auto const half_height = static_cast<int32_t>(_window_size.height) / 2;
+
+        _window_pos = { _screen_center.x - half_width,
+                        _screen_center.y - half_height };
+    }
+
+    // Create!
+    _window_handle = ::CreateWindowEx(
+        0u,             // No extended style
+        BTX_NAME,       // Win32 class name
+        _window_title,  // Win32 window title
+        WS_POPUP,       // Popup window style means no decorations
+        CW_USEDEFAULT,  // x location
+        CW_USEDEFAULT,  // y location
+        CW_USEDEFAULT,  // Window width
+        CW_USEDEFAULT,  // Window height
+        nullptr,        // Parent window handle
+        nullptr,        // Menu handle
+        nullptr,        // Instance handle
+        this            // Pointer to lParam; retrieved later via WM_NCCREATE
+    );
+
+    if(_window_handle == nullptr) {
+        auto const error = ::GetLastError();
+        BTX_CRITICAL(
+            "Failed to create win32 target window. Error {}: '{}'",
+            error,
+            std::system_category().message(static_cast<int>(error))
+        );
+        return;
+    }
+
+    BTX_TRACE("Created win32 target window");
+}
+
+// =============================================================================
+void Win32TargetWindow::_destroy_window() {
+    BTX_TRACE("Destroying win32 target window.");
+    ::SendMessage(_window_handle, WM_CLOSE, 0, 0);
+    Win32TargetWindow::message_loop();
+}
+
+// =============================================================================
+void Win32TargetWindow::_register_input() {
+    if(_raw_msg == nullptr) {
+        BTX_CRITICAL(
+            "Win32TargetWindow::_raw_msg cannot be null. "
+            "Did Win32TargetWindow::init() get called?"
+        );
+        return;
+    }
+
+    std::array<::RAWINPUTDEVICE, 2> devices;
+
+    devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+    devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD;
+    // The RIDEV_NOLEGACY flag tells the raw device not to generate legacy
+    // messages, like WM_KEYDOWN
+    devices[0].dwFlags     = RIDEV_NOLEGACY;
+    devices[0].hwndTarget  = _window_handle;
+
+    devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
+    devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE;
+    devices[1].dwFlags     = RIDEV_NOLEGACY; // Same as above, but for mouse
+    devices[1].hwndTarget  = _window_handle;
+
+    auto const result = ::RegisterRawInputDevices(
+        devices.data(),
+        devices.size(),
+        sizeof(::RAWINPUTDEVICE)
+    );
+
+    if(result == FALSE) {
+        auto const error = ::GetLastError();
+        BTX_CRITICAL(
+            "Failed to register for raw win32 input with error: '{}'",
+            std::system_category().message(static_cast<int>(error))
+        );
+        return;
+    }
+
+    BTX_TRACE("Registered for raw win32 input");
+}
+
+// =============================================================================
+void Win32TargetWindow::_restrict_cursor() {
+    ::SetCursorPos(_screen_center.x, _screen_center.y);
+
+	::RECT client_area;
+	::GetClientRect(_window_handle, &client_area);
+	::MapWindowPoints(
+        _window_handle,
+        nullptr, // Convert window-relative coordinates to desktop coordinates
+        reinterpret_cast<::POINT *>(&client_area),
+        2
+    );
+    // Restrict the cursor to moving within the client area
+	::ClipCursor(&client_area);
+
+    // Run through all requests to show a cursor until there are none
+    while(::ShowCursor(FALSE) >= 0) { }
+}
+
+// =============================================================================
+void Win32TargetWindow::_release_cursor() {
+    // Allow the cursor to travel outside the client space
+    ::ClipCursor(nullptr);
+
+    // Queue requests until there are some
+    while(::ShowCursor(TRUE) < 0) { }
+}
+
+// =============================================================================
+void
+Win32TargetWindow::_size_and_place() {
+    BTX_TRACE("Target window size: {}x{}, position: {}x{}",
+              _window_size.width, _window_size.height,
+              _window_pos.x, _window_pos.y);
+
+    auto const result = ::SetWindowPos(
+        _window_handle, nullptr,
+        static_cast<int>(_window_pos.x),
+        static_cast<int>(_window_pos.y),
+        static_cast<int>(_window_size.width),
+        static_cast<int>(_window_size.height),
+        0
+    );
+
+    if(!SUCCEEDED(result)) {
+        auto const error = ::GetLastError();
+        BTX_CRITICAL("Failed to set win32 window position with error: '{}'",
+                     std::system_category().message(static_cast<int>(error)));
+    }
 }
 
 // =============================================================================
@@ -271,7 +314,7 @@ Win32TargetWindow::~Win32TargetWindow() {
 
     // We don't know what our "this" pointer is, so just do the default
     // thing. Hopefully, we didn't need to customize the behavior yet.
-    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
 // =============================================================================
@@ -497,108 +540,6 @@ void Win32TargetWindow::_parse_raw_mouse(::RAWMOUSE const &raw) {
             0,
             static_cast<int32_t>(button_data)
         );
-    }
-}
-
-// =============================================================================
-void Win32TargetWindow::_register_input() {
-    if(_raw_msg == nullptr) {
-        BTX_CRITICAL(
-            "Win32TargetWindow::_raw_msg cannot be null. "
-            "Did Win32TargetWindow::init() get called?"
-        );
-        return;
-    }
-
-    std::array<::RAWINPUTDEVICE, 2> devices;
-
-    devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
-    devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD;
-    // The RIDEV_NOLEGACY flag tells the raw device not to generate legacy
-    // messages, like WM_KEYDOWN
-    devices[0].dwFlags     = RIDEV_NOLEGACY;
-    devices[0].hwndTarget  = _window_handle;
-
-    devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
-    devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE;
-    devices[1].dwFlags     = RIDEV_NOLEGACY; // Same as above, but for mouse
-    devices[1].hwndTarget  = _window_handle;
-
-    auto const result = ::RegisterRawInputDevices(
-        devices.data(),
-        devices.size(),
-        sizeof(::RAWINPUTDEVICE)
-    );
-
-    if(result == FALSE) {
-        auto const error = ::GetLastError();
-        BTX_CRITICAL(
-            "Failed to register for raw win32 input with error: '{}'",
-            std::system_category().message(static_cast<int>(error))
-        );
-        return;
-    }
-
-    BTX_TRACE("Registered for raw win32 input");
-}
-
-// =============================================================================
-void Win32TargetWindow::_restrict_cursor() {
-    ::SetCursorPos(_screen_center.x, _screen_center.y);
-
-	::RECT client_area;
-	::GetClientRect(_window_handle, &client_area);
-	::MapWindowPoints(
-        _window_handle,
-        nullptr, // Convert window-relative coordinates to desktop coordinates
-        reinterpret_cast<::POINT *>(&client_area),
-        2
-    );
-    // Restrict the cursor to moving within the client area
-	::ClipCursor(&client_area);
-
-    // Run through all requests to show a cursor until there are none
-    while(::ShowCursor(FALSE) >= 0) { }
-}
-
-// =============================================================================
-void Win32TargetWindow::_release_cursor() {
-    // Allow the cursor to travel outside the client space
-    ::ClipCursor(nullptr);
-
-    // Queue requests until there are some
-    while(::ShowCursor(TRUE) < 0) { }
-}
-
-// =============================================================================
-void Win32TargetWindow::_size_and_place() {
-    BTX_TRACE(
-        "Window size: {}x{}, position: {}x{}",
-        RenderConfig::window_width, RenderConfig::window_height,
-        RenderConfig::window_pos_x, RenderConfig::window_pos_y
-    );
-
-    // Update the window aspect ratio
-    RenderConfig::window_aspect =
-        static_cast<float>(RenderConfig::window_width) /
-        static_cast<float>(RenderConfig::window_height);
-
-    auto const result = ::SetWindowPos(
-        _window_handle, nullptr,
-        static_cast<int>(RenderConfig::window_pos_x),
-        static_cast<int>(RenderConfig::window_pos_y),
-        static_cast<int>(RenderConfig::window_width),
-        static_cast<int>(RenderConfig::window_height),
-        0
-    );
-
-    if(result == FALSE) {
-        auto const error = ::GetLastError();
-        BTX_CRITICAL(
-            "Failed to set win32 window position with error: '{}'",
-            std::system_category().message(static_cast<int>(error))
-        );
-        return;
     }
 }
 

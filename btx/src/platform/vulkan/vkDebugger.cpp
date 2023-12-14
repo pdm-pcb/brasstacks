@@ -25,7 +25,6 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
             break;
         case ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
             BTX_ERROR("\n{:s}\n", callback_data->pMessage);
-            assert(false);
             break;
         case ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
             BTX_CRITICAL("???: {:s}", callback_data->pMessage);

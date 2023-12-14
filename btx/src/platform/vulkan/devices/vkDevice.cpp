@@ -21,24 +21,21 @@ void vkDevice::wait_idle() const {
 }
 
 // =============================================================================
-vkDevice::vkDevice(vkPhysicalDevice const &adapter,
-                                 Layers const &layers) :
-    _cmd_queue { *this },
-    _transient_pool { *this },
-    _adapter { adapter }
+vkDevice::vkDevice(vkPhysicalDevice const &adapter, Layers const &layers) :
+    _cmd_queue { *this }
 {
     // The first step in device creation is to tell the queue what index it
     // will be using.
-    _cmd_queue.fill_create_info(_adapter.queue_index());
+    _cmd_queue.fill_create_info(adapter.queue_index());
 
     // Then ask the queue for the populated structure
-    vk::DeviceQueueCreateInfo queue_info[] {
+    vk::DeviceQueueCreateInfo const queue_info[] {
         _cmd_queue.create_info()
     };
 
     // The logical device wants to know what the physical device has to offer
-    auto const &extensions = _adapter.extensions();
-    auto const * features   = &(_adapter.features());
+    auto const &extensions = adapter.extensions();
+    auto const *features   = &(adapter.features());
 
     // That should be everything we need
     const vk::DeviceCreateInfo device_info {
@@ -52,7 +49,7 @@ vkDevice::vkDevice(vkPhysicalDevice const &adapter,
     };
 
     // Attempt creation
-    auto const result = _adapter.native().createDevice(
+    auto const result = adapter.native().createDevice(
         &device_info,
         nullptr,
         &_handle
@@ -60,17 +57,13 @@ vkDevice::vkDevice(vkPhysicalDevice const &adapter,
 
     // Make sure it worked
     if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL(
-            "Unable to create logical device: '{}'",
-            vk::to_string(result)
-        );
+        BTX_CRITICAL("Unable to create logical device: '{}'",
+                     vk::to_string(result));
+        return;
     }
-    else {
-        BTX_TRACE(
-            "Created logical device {:#x}",
-            reinterpret_cast<uint64_t>(::VkDevice(native()))
-        );
-    }
+
+    BTX_TRACE("Created logical device {:#x}",
+                reinterpret_cast<uint64_t>(::VkDevice(_handle)));
 
     // Once the logical device is established, the queue can likewise come
     // online
@@ -78,18 +71,11 @@ vkDevice::vkDevice(vkPhysicalDevice const &adapter,
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
-
-    // Create the dedicated command pool for one-use command buffers
-    _transient_pool.create(vk::CommandPoolCreateFlagBits::eTransient);
 }
 
 vkDevice::~vkDevice() {
-    _transient_pool.destroy();
-
-    BTX_TRACE(
-        "Destroying logical device {:#x}",
-        reinterpret_cast<uint64_t>(::VkDevice(native()))
-    );
+    BTX_TRACE("Destroying logical device {:#x}",
+              reinterpret_cast<uint64_t>(::VkDevice(_handle)));
     _handle.destroy();
 }
 
