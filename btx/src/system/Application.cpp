@@ -10,8 +10,6 @@ namespace btx {
 
 // =============================================================================
 void Application::run() {
-    _target_window->show_window();
-
     this->init();
 
     while(_running) {

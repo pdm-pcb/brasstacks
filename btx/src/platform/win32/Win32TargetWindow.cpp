@@ -15,6 +15,11 @@ void Win32TargetWindow::show_window() {
 }
 
 // =============================================================================
+void Win32TargetWindow::hide_window() {
+    ::ShowWindow(_window_handle, SW_HIDE);
+}
+
+// =============================================================================
 void Win32TargetWindow::message_loop() {
     static ::MSG message;
     ::memset(&message, 0, sizeof(::MSG));
@@ -33,6 +38,7 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name,
     _window_handle  { nullptr },
     _device_context { nullptr },
     _raw_msg        { new char[sizeof(::RAWINPUT)] },
+    _msg_map        { },
     _keymap         { },
     _screen_size    { 0u, 0u },
     _window_size    { dimensions },
@@ -67,8 +73,9 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name,
 
     _register_class();
     _create_window();
-    _register_input();
     _size_and_place();
+
+    show_window();
 }
 
 Win32TargetWindow::~Win32TargetWindow() {
@@ -187,78 +194,85 @@ void Win32TargetWindow::_destroy_window() {
 }
 
 // =============================================================================
-void Win32TargetWindow::_register_input() {
-    if(_raw_msg == nullptr) {
-        BTX_CRITICAL(
-            "Win32TargetWindow::_raw_msg cannot be null. "
-            "Did Win32TargetWindow::init() get called?"
-        );
-        return;
-    }
+void Win32TargetWindow::_toggle_raw_input() {
+    // Static bool to facilitate toggling behavior of this function
+    static bool enabled = false;
 
+    // Below, we specify the keyboard and mouse as raw input devices. The
+    // RIDEV_NOLEGACY flag tells Windows not to generate legacy messages, like
+    // WM_KEYDOWN, etc.
     std::array<::RAWINPUTDEVICE, 2> devices;
 
+    // First, the keyboard
     devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
     devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD;
-    // The RIDEV_NOLEGACY flag tells the raw device not to generate legacy
-    // messages, like WM_KEYDOWN
-    devices[0].dwFlags     = RIDEV_NOLEGACY;
-    devices[0].hwndTarget  = _window_handle;
+    devices[0].dwFlags     = (enabled ? RIDEV_REMOVE : RIDEV_NOLEGACY);
+    devices[0].hwndTarget  = (enabled ? nullptr : _window_handle);
 
+    // And then the mouse
     devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
     devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE;
-    devices[1].dwFlags     = RIDEV_NOLEGACY; // Same as above, but for mouse
-    devices[1].hwndTarget  = _window_handle;
+    devices[1].dwFlags     = (enabled ? RIDEV_REMOVE : RIDEV_NOLEGACY);
+    devices[1].hwndTarget  = (enabled ? nullptr : _window_handle);
 
+    // Attempt to register
     auto const result = ::RegisterRawInputDevices(
         devices.data(),
         devices.size(),
         sizeof(::RAWINPUTDEVICE)
     );
 
+    // If it failed... just drop out
     if(result == FALSE) {
         auto const error = ::GetLastError();
-        BTX_CRITICAL(
-            "Failed to register for raw win32 input with error: '{}'",
-            std::system_category().message(static_cast<int>(error))
-        );
+        BTX_CRITICAL("Failed to register for raw win32 input with error: '{}'",
+                     std::system_category().message(static_cast<int>(error)));
         return;
     }
 
-    BTX_TRACE("Registered for raw win32 input");
+    // But if it succeeded, flip the toggle flag
+    enabled = !enabled;
 }
 
 // =============================================================================
 void Win32TargetWindow::_restrict_cursor() {
-    ::SetCursorPos(_screen_center.x, _screen_center.y);
+    // Activate raw input
+    _toggle_raw_input();
 
+    // Retrieve the window's drawable surface
 	::RECT client_area;
 	::GetClientRect(_window_handle, &client_area);
+
+    // Since GetClientRect() doesn't tell us anything about where the window
+    // is, we need to convert client_area to desktop coordinates
 	::MapWindowPoints(
         _window_handle,
-        nullptr, // Convert window-relative coordinates to desktop coordinates
+        HWND_DESKTOP,
         reinterpret_cast<::POINT *>(&client_area),
         2
     );
-    // Restrict the cursor to moving within the client area
+
+    // Now we can ensure the cursor stays within the window
 	::ClipCursor(&client_area);
 
-    // Run through all requests to show a cursor until there are none
+    // Run through all requests to show a cursor until ours is the last
     while(::ShowCursor(FALSE) >= 0) { }
 }
 
 // =============================================================================
 void Win32TargetWindow::_release_cursor() {
+    // Deactivate raw input
+    _toggle_raw_input();
+
     // Allow the cursor to travel outside the client space
     ::ClipCursor(nullptr);
 
-    // Queue requests until there are some
+    // Run through all requests to show a cursor until ours is the last
     while(::ShowCursor(TRUE) < 0) { }
 }
 
 // =============================================================================
-void
-Win32TargetWindow::_size_and_place() {
+void Win32TargetWindow::_size_and_place() {
     BTX_TRACE("Target window size: {}x{}, position: {}x{}",
               _window_size.width, _window_size.height,
               _window_pos.x, _window_pos.y);
@@ -321,6 +335,8 @@ Win32TargetWindow::_size_and_place() {
 ::LRESULT Win32TargetWindow::_inst_wndproc(::HWND hWnd, ::UINT uMsg,
                                            ::WPARAM wParam, ::LPARAM lParam)
 {
+    // BTX_WARN("{}", _msg_map.translate(uMsg));
+
     switch(uMsg) {
         case WM_INPUT: {
             // First call to GetRawInputData is just to get the size of the
@@ -374,16 +390,12 @@ Win32TargetWindow::_size_and_place() {
             break;
         }
 
-        case WM_CREATE:
-            _restrict_cursor();
-            break;
-
         case WM_ACTIVATE:
-            if(wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) {
-                _restrict_cursor();
-            }
-            else if(wParam == WA_INACTIVE) {
+            if(wParam == WA_INACTIVE) {
                 _release_cursor();
+            }
+            else {
+                _restrict_cursor();
             }
             break;
 

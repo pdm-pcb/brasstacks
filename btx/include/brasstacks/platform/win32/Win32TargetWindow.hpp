@@ -6,6 +6,7 @@
 #include "brasstacks/pch.hpp"
 
 #include "brasstacks/system/TargetWindow.hpp"
+#include "brasstacks/platform/win32/Win32MsgToStr.hpp"
 #include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
 
 namespace btx {
@@ -13,6 +14,8 @@ namespace btx {
 class Win32TargetWindow final : public TargetWindow {
 public:
     void show_window() override;
+    void hide_window() override;
+
     void message_loop() override;
 
     ::HWND const & native() const override { return _window_handle; }
@@ -38,6 +41,9 @@ private:
 
     char *_raw_msg;
 
+    // For message loop debugging
+    Win32MsgToStr const _msg_map;
+
     // For brasstacks/win32 interop
     Win32ToBTXKeys const _keymap;
 
@@ -50,7 +56,7 @@ private:
     void _register_class();
     void _create_window();
     void _destroy_window();
-    void _register_input();
+    void _toggle_raw_input();
     void _restrict_cursor();
     void _release_cursor();
     void _size_and_place();

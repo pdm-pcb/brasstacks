@@ -21,6 +21,7 @@ public:
                                  Position const &position = { 0, 0 });
 
     virtual void show_window() = 0;
+    virtual void hide_window() = 0;
     virtual void message_loop() = 0;
 
 #if defined(BTX_LINUX)
