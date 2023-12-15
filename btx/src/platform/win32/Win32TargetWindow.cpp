@@ -17,7 +17,7 @@ void Win32TargetWindow::show_window() {
 // =============================================================================
 void Win32TargetWindow::message_loop() {
     static ::MSG message;
-    std::memset(&message, 0, sizeof(::MSG));
+    ::memset(&message, 0, sizeof(::MSG));
 
     // Run through available messages from the OS
     while(::PeekMessage(&message, _window_handle, 0u, 0u, PM_REMOVE) != 0) {
@@ -32,7 +32,7 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name,
     _window_title   { app_name.data() },
     _window_handle  { nullptr },
     _device_context { nullptr },
-    _raw_msg        { new char[sizeof(::RAWINPUTHEADER)] },
+    _raw_msg        { new char[sizeof(::RAWINPUT)] },
     _keymap         { },
     _screen_size    { 0u, 0u },
     _window_size    { dimensions },
@@ -80,8 +80,8 @@ Win32TargetWindow::~Win32TargetWindow() {
 // =============================================================================
 void Win32TargetWindow::_register_class() {
     // Now it's time to register the window class
-    ::WNDCLASSEX const wcex {
-        .cbSize = sizeof(::WNDCLASSEX),
+    ::WNDCLASSEXA const wcex {
+        .cbSize = sizeof(::WNDCLASSEXA),
 
         // These flags instruct Windows to redraw the entire window surface if
         // the size changes; by default it'll just refresh the new real estate
@@ -151,7 +151,7 @@ void Win32TargetWindow::_create_window() {
     }
 
     // Create!
-    _window_handle = ::CreateWindowEx(
+    _window_handle = ::CreateWindowExA(
         0u,             // No extended style
         BTX_NAME,       // Win32 class name
         _window_title,  // Win32 window title
@@ -182,7 +182,7 @@ void Win32TargetWindow::_create_window() {
 // =============================================================================
 void Win32TargetWindow::_destroy_window() {
     BTX_TRACE("Destroying win32 target window.");
-    ::SendMessage(_window_handle, WM_CLOSE, 0, 0);
+    ::SendMessageA(_window_handle, WM_CLOSE, 0, 0);
     Win32TargetWindow::message_loop();
 }
 
@@ -292,7 +292,7 @@ Win32TargetWindow::_size_and_place() {
         target = static_cast<Win32TargetWindow *>(lpcs->lpCreateParams);
 
         // Put the value in a safe place for future use
-        ::SetWindowLongPtr(
+        ::SetWindowLongPtrA(
             hWnd,
             GWLP_USERDATA,
             reinterpret_cast<::LONG_PTR>(target)
@@ -302,7 +302,7 @@ Win32TargetWindow::_size_and_place() {
         // Recover the "this" pointer from where our WM_NCCREATE handler
         // stashed it.
         target = reinterpret_cast<Win32TargetWindow *>(
-            ::GetWindowLongPtr(hWnd, GWLP_USERDATA)
+            ::GetWindowLongPtrA(hWnd, GWLP_USERDATA)
         );
     }
 
@@ -314,7 +314,7 @@ Win32TargetWindow::_size_and_place() {
 
     // We don't know what our "this" pointer is, so just do the default
     // thing. Hopefully, we didn't need to customize the behavior yet.
-    return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
+    return ::DefWindowProcA(hWnd, uMsg, wParam, lParam);
 }
 
 // =============================================================================
@@ -338,6 +338,8 @@ Win32TargetWindow::_size_and_place() {
                 BTX_CRITICAL("Failed to get win32 raw input message");
                 break;
             }
+
+            assert(message_size <= sizeof(::RAWINPUT));
 
             // Get the actual message
             result = ::GetRawInputData(
@@ -389,7 +391,7 @@ Win32TargetWindow::_size_and_place() {
         // early return so there's no call to ::DefWindowProc()
         case WM_CLOSE:
             ::DestroyWindow(hWnd);
-            ::UnregisterClass(BTX_NAME, nullptr);
+            ::UnregisterClassA(BTX_NAME, nullptr);
             return 0;
 
         // And this is the second message, but also the last one we have to
@@ -419,7 +421,7 @@ void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw) {
     // correct left-hand / right-hand SHIFT
     if(vkey == VK_SHIFT) {
         vkey = static_cast<::USHORT>(
-            MapVirtualKey(raw.MakeCode, MAPVK_VSC_TO_VK_EX)
+            ::MapVirtualKeyA(raw.MakeCode, MAPVK_VSC_TO_VK_EX)
         );
     }
 

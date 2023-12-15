@@ -48,10 +48,9 @@ Application::Application(std::string_view const app_name) :
 }
 
 Application::~Application() {
+    EventBroker::shutdown();
     delete _renderer;
     delete _target_window;
-
-    EventBroker::shutdown();
 }
 
 } // namespace btx
