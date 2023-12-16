@@ -1,17 +1,22 @@
 #include "brasstacks/renderer/Renderer.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
-#include "brasstacks/platform/vulkan/vkSurface.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/vkSwapchain.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrame.hpp"
 
 #include "brasstacks/system/TargetWindow.hpp"
 
 namespace btx {
+
+// =============================================================================
+void Renderer::acquire_next_frame() {
+}
 
 // =============================================================================
 void Renderer::record_commands() {
@@ -64,7 +69,8 @@ Renderer::Renderer(TargetWindow const &target_window) :
         {
             vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
             vkPhysicalDevice::Features::FILL_MODE_NONSOLID,
-        }
+        },
+        true // Prefer dGPUs and more VRAM
     );
 
     _device = new vkDevice(
@@ -74,59 +80,35 @@ Renderer::Renderer(TargetWindow const &target_window) :
 #endif // BTX_DEBUG
     );
 
-    _cmd_pool = new vkCmdPool(*_device);
-
     _swapchain = new vkSwapchain(*_adapter, *_surface, *_device);
 
-    _frames.resize(_swapchain->image_count());
-    for(auto &frame : _frames) {
-        frame = new vkFrame(*_device);
-    }
+    _render_pass = new vkRenderPass(*_device, _swapchain->image_format());
 
-    // _pipeline = new vkPipeline(*_device);
-    // (*_pipeline)
-    //     .vert_from_spirv("shaders/01flat_color.vert")
-    //     .frag_from_spirv("shaders/01flat_color.frag")
-    //     .describe_vertex_input(
-    //         {{
-    //             .binding   = 0u,
-    //             .stride    = sizeof(float) * 4u * 2u,
-    //             .inputRate = vk::VertexInputRate::eVertex
-    //         }},
-    //         {{
-    //             .location = 0u,
-    //             .binding  = 0u,
-    //             .format   = vk::Format::eR32G32B32A32Sfloat,
-    //             .offset   = 0u,
-    //         },
-    //         {
-    //             .location = 1u,
-    //             .binding  = 0u,
-    //             .format   = vk::Format::eR32G32B32A32Sfloat,
-    //             .offset   = sizeof(float) * 4u,
-    //         }}
-    //     )
-    //     .add_descriptor_set({ })
-    //     .create({
-    //         .color_formats = {
-    //             _swapchain->image_format()
-    //         },
-    //         .depth_format    = _adapter->depth_format(),
-    //         .viewport_extent = _swapchain->render_area().extent,
-    //         .viewport_offset = _swapchain->render_area().offset,
-    //         .sample_flags    = _adapter->max_msaa_flag(),
-    //     });
+    _pipeline = new vkPipeline(*_device);
+    (*_pipeline)
+        .module_from_spirv("shaders/demo.vert",
+                           vk::ShaderStageFlagBits::eVertex)
+        .module_from_spirv("shaders/demo.frag",
+                           vk::ShaderStageFlagBits::eFragment)
+        .describe_vertex_input({ }, { })
+        .create(
+            *_render_pass,
+            {
+                .color_formats = {
+                    _swapchain->image_format()
+                },
+                .depth_format    = vk::Format::eUndefined,
+                .viewport_extent = _swapchain->render_area().extent,
+                .viewport_offset = _swapchain->render_area().offset,
+                .sample_flags    = vk::SampleCountFlagBits::e1,
+            }
+        );
 }
 
 Renderer::~Renderer() {
-    // delete _pipeline;
-
-    for(auto &frame : _frames) {
-        delete frame;
-    }
-
+    delete _pipeline;
+    delete _render_pass;
     delete _swapchain;
-    delete _cmd_pool;
     delete _device;
     delete _surface;
     delete _instance;

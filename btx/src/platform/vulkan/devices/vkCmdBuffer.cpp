@@ -59,13 +59,8 @@ vkCmdBuffer::vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool) :
 {
     vk::CommandBufferAllocateInfo const buffer_info {
         .pNext = nullptr,
-
         .commandPool = _pool.native(),
-
-        // A secondary command buffer can be reused between subpasses and even
-        // render passes, while a primary command buffer is tied to its pass.
         .level = vk::CommandBufferLevel::ePrimary,
-
         .commandBufferCount = 1u,
     };
 
@@ -99,14 +94,6 @@ vkCmdBuffer::~vkCmdBuffer() {
         _device.native().freeCommandBuffers(_pool.native(), { _handle });
         _handle = nullptr;
     }
-}
-
-vkCmdBuffer::vkCmdBuffer(vkCmdBuffer &&other) :
-    _device { std::move(other._device) },
-    _pool   { std::move(other._pool) },
-    _handle { std::move(other._handle) }
-{
-    other._handle = nullptr;
 }
 
 } // namespace btx

@@ -12,15 +12,14 @@ class vkPhysicalDevice;
 class vkDevice;
 class vkSurface;
 class vkSwapchain;
+class vkRenderPass;
 class vkPipeline;
-
-class vkCmdPool;
-class vkCmdBuffer;
 
 class vkFrame;
 
 class Renderer {
 public:
+    void acquire_next_frame();
     void record_commands();
     void submit_commands();
     void present_image();
@@ -42,12 +41,10 @@ private:
     vkDevice         *_device;
     vkSurface        *_surface;
     vkSwapchain      *_swapchain;
+    vkRenderPass     *_render_pass;
     vkPipeline       *_pipeline;
 
-    vkCmdPool        *_cmd_pool;
-    vkCmdBuffer      *_cmd_buffer;
-
-    std::vector<vkFrame *> _frames;
+    vkFrame const *_next_frame;
 };
 
 } // namespace btx

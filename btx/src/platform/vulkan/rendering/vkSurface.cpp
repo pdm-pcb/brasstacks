@@ -1,4 +1,4 @@
-#include "brasstacks/platform/vulkan/vkSurface.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 
 namespace btx {

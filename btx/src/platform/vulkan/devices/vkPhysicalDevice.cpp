@@ -1,7 +1,7 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
-#include "brasstacks/platform/vulkan/vkSurface.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/system/TargetWindow.hpp"
 
 namespace btx {

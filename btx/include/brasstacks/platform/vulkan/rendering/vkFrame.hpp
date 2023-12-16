@@ -2,61 +2,50 @@
 #define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAME_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
-#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 namespace btx {
 
 class vkDevice;
+class vkCmdPool;
+class vkCmdBuffer;
+class vkFramebuffer;
 
 class vkFrame final {
-public:
-    void wait_on_queue_fence() const;
-    void submit_to_device() const;
+ public:
+    void wait_and_reset() const;
 
-    inline auto const & cmd_pool()   const { return _cmd_pool; }
-    inline auto const & cmd_buffer() const { return _cmd_buffer; }
+    inline auto & image_acquire_semaphore() { return _image_acquire_sem; }
 
-    inline auto const & acquire_complete_sem() const {
-        return _acquire_complete;
+    inline auto const & cmds_complete_semaphore() const {
+        return _cmds_complete_sem;
     }
-
-    inline auto const & commands_complete_sem() const {
-        return _commands_complete;
-    }
-
-    inline auto const & queue_complete_fence() const {
-        return _queue_complete;
-    }
-
-    inline void set_image_index(uint32_t const index) { _image_index = index; }
-    inline auto image_index() const { return _image_index; }
 
     explicit vkFrame(vkDevice const &device);
     ~vkFrame();
 
     vkFrame() = delete;
 
-    vkFrame(vkFrame &&other);
-    vkFrame(vkFrame const &) = delete;
+    vkFrame(vkFrame &&) = delete;
+    vkFrame(const vkFrame &) = delete;
 
     vkFrame & operator=(vkFrame &&) = delete;
-    vkFrame & operator=(vkFrame const &) = delete;
+    vkFrame & operator=(const vkFrame &) = delete;
 
 private:
     vkDevice const &_device;
 
-    vkCmdPool   _cmd_pool;
-    vkCmdBuffer _cmd_buffer;
+    vk::Fence     _queue_fence;
+    vk::Semaphore _image_acquire_sem;
+    vk::Semaphore _cmds_complete_sem;
 
-    vk::Semaphore _acquire_complete;
-    vk::Semaphore _commands_complete;
-    vk::Fence     _queue_complete;
+    vkCmdPool   *_cmd_pool;
+    vkCmdBuffer *_cmd_buffer;
 
-    uint32_t _image_index;
+    vkFramebuffer *_framebuffer;
 
     void _create_sync_primitives();
-    void _destroy_sync_primitives();
+    void _create_cmd_buffer();
+    void _create_framebuffer();
 };
 
 } // namespace btx

@@ -4,10 +4,8 @@
 namespace btx {
 
 // =============================================================================
-vkShader::vkShader(vkDevice const &device, std::string_view filepath,
-                   std::string_view const entry_point) :
-    _device { device },
-    _entry_point { entry_point }
+vkShader::vkShader(vkDevice const &device, std::string_view filepath) :
+    _device { device }
 {
     auto const shader_binary = _spirv_to_binary(filepath);
     const vk::ShaderModuleCreateInfo module_info {

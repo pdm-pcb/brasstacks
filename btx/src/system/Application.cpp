@@ -13,6 +13,7 @@ void Application::run() {
     this->init();
 
     while(_running) {
+        _renderer->acquire_next_frame();
         _renderer->record_commands();
         _renderer->submit_commands();
         _renderer->present_image();
@@ -46,7 +47,10 @@ Application::Application(std::string_view const app_name) :
 }
 
 Application::~Application() {
+    // Kill the event broker first so nothing unexpected pops up during
+    // shutdown
     EventBroker::shutdown();
+
     delete _renderer;
     delete _target_window;
 }

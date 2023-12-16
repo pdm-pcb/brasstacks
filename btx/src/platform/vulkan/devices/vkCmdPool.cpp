@@ -47,11 +47,4 @@ vkCmdPool::~vkCmdPool() {
     }
 }
 
-vkCmdPool::vkCmdPool(vkCmdPool &&other) :
-    _device { std::move(other._device) },
-    _handle { std::move(other._handle) }
-{
-    _handle = nullptr;
-}
-
 } // namespace btx

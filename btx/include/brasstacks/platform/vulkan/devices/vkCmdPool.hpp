@@ -19,7 +19,7 @@ public:
 
     vkCmdPool() = delete;
 
-    vkCmdPool(vkCmdPool &&other);
+    vkCmdPool(vkCmdPool &&) = delete;
     vkCmdPool(const vkCmdPool &) = delete;
 
     vkCmdPool & operator=(vkCmdPool &&) = delete;

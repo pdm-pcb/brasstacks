@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_PLATFORM_VULKAN_VKSWAPCHAIN_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_VKSWAPCHAIN_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKSWAPCHAIN_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKSWAPCHAIN_HPP
 
 #include "brasstacks/pch.hpp"
 
@@ -13,12 +13,11 @@ class vkFrame;
 
 class vkSwapchain final {
 public:
-    void acquire_next_image_index(vkFrame &frame);
-    void present(vkFrame const &frame);
+    vkFrame const & acquire_next_image_index();
+    void present();
 
-    inline auto const & render_area()  const { return _render_area;  }
-    inline auto         image_format() const { return _image_format; }
-    inline auto         image_count()  const { return _image_views.size(); }
+    auto image_format() const { return _image_format; }
+    auto const & render_area() const { return _render_area; }
 
     vkSwapchain(vkPhysicalDevice const &adapter, vkSurface const &surface,
                 vkDevice const &device);
@@ -45,13 +44,18 @@ private:
     vk::SwapchainKHR _handle;
     std::vector<vkImageView *> _image_views;
 
+    uint32_t _next_image_index;
+    std::queue<vk::Semaphore> _image_acquire_sems;
+    std::vector<vkFrame *> _frames;
+
     void _query_surface_capabilities();
     void _query_surface_format();
     void _query_surface_present_modes();
     void _populate_create_info(vk::SwapchainCreateInfoKHR &create_info);
-    void _get_images();
+    void _get_swapchain_images();
+    void _create_frame_data();
 };
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_VKSWAPCHAIN_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKSWAPCHAIN_HPP

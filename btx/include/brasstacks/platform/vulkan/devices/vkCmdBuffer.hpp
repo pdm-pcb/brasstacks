@@ -25,7 +25,7 @@ public:
 
     vkCmdBuffer() = delete;
 
-    vkCmdBuffer(vkCmdBuffer &&other);
+    vkCmdBuffer(vkCmdBuffer &&) = delete;
     vkCmdBuffer(const vkCmdBuffer &) = delete;
 
     vkCmdBuffer & operator=(vkCmdBuffer &&) = delete;

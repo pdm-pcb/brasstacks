@@ -8,10 +8,8 @@ class vkDevice;
 class vkShader final {
 public:
     inline auto const & native() const { return _handle; }
-    inline std::string_view const entry_point() const { return _entry_point; }
 
-    vkShader(vkDevice const &device, std::string_view filepath,
-             std::string_view const entry_point);
+    vkShader(vkDevice const &device, std::string_view filepath);
     ~vkShader();
 
     vkShader() = delete;
@@ -24,7 +22,7 @@ public:
 
 private:
     vkDevice const &_device;
-    std::string const _entry_point;
+
     vk::ShaderModule _handle;
 
     using BinaryData = std::vector<uint32_t>;
