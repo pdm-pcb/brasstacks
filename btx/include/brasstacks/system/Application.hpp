@@ -6,15 +6,11 @@
 namespace btx {
 
 struct KeyReleaseEvent;
-
 class TargetWindow;
 class Renderer;
 
 class Application {
 public:
-    virtual void init()     = 0;
-    virtual void shutdown() = 0;
-
     void run();
 
     void on_key_release(KeyReleaseEvent const &event);
@@ -29,6 +25,13 @@ public:
 
     Application & operator=(Application &&) = delete;
     Application & operator=(const Application &) = delete;
+
+protected:
+    virtual void init()     = 0;
+    virtual void shutdown() = 0;
+    virtual void update()   = 0;
+
+    void request_draw();
 
 private:
     bool _running;

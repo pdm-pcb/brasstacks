@@ -13,6 +13,8 @@ void Application::run() {
     this->init();
 
     while(_running) {
+        this->update();
+
         _renderer->acquire_next_frame();
         _renderer->record_commands();
         _renderer->submit_commands();
@@ -28,6 +30,11 @@ void Application::on_key_release(KeyReleaseEvent const &event) {
     if(event.code == BTX_KB_ESCAPE) {
         _running = false;
     }
+}
+
+// =============================================================================
+void Application::request_draw() {
+    _renderer->request_draw();
 }
 
 // =============================================================================

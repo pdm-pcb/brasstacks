@@ -19,6 +19,8 @@ class vkFrame;
 
 class Renderer {
 public:
+    void request_draw() { }
+
     void acquire_next_frame();
     void record_commands();
     void submit_commands();

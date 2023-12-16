@@ -1,5 +1,8 @@
 #include "brasstacks/renderer/Renderer.hpp"
 
+#include "brasstacks/system/TargetWindow.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
+
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -11,9 +14,6 @@
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrame.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
-
-#include "brasstacks/system/TargetWindow.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -115,10 +115,10 @@ void Renderer::present_image() {
 
 // =============================================================================
 Renderer::Renderer(TargetWindow const &target_window) :
-    _instance { new vkInstance() },
+    _instance           { new vkInstance() },
     _image_acquire_sems { },
-    _frames { },
-    _next_image_index { std::numeric_limits<uint32_t>::max() }
+    _frames             { },
+    _next_image_index   { std::numeric_limits<uint32_t>::max() }
 {
 
 #if defined(BTX_LINUX)
