@@ -13,11 +13,14 @@ class vkFrame;
 
 class vkSwapchain final {
 public:
-    vkFrame const & acquire_next_image_index();
-    void present();
+    uint32_t acquire_next_image_index(vk::Semaphore const &semaphore);
+    void present(vkFrame const &frame);
 
-    auto image_format() const { return _image_format; }
-    auto const & render_area() const { return _render_area; }
+    inline auto image_format()        const { return _image_format; }
+    inline auto const & image_views() const { return _image_views; }
+    inline auto const & extent()      const { return _render_area.extent; }
+    inline auto const & offset()      const { return _render_area.offset; }
+    inline auto const & render_area() const { return _render_area; }
 
     vkSwapchain(vkPhysicalDevice const &adapter, vkSurface const &surface,
                 vkDevice const &device);
@@ -45,15 +48,12 @@ private:
     std::vector<vkImageView *> _image_views;
 
     uint32_t _next_image_index;
-    std::queue<vk::Semaphore> _image_acquire_sems;
-    std::vector<vkFrame *> _frames;
 
     void _query_surface_capabilities();
     void _query_surface_format();
     void _query_surface_present_modes();
     void _populate_create_info(vk::SwapchainCreateInfoKHR &create_info);
     void _get_swapchain_images();
-    void _create_frame_data();
 };
 
 } // namespace btx

@@ -5,14 +5,6 @@
 namespace btx {
 
 // =============================================================================
-void vkDevice::submit(vk::SubmitInfo const &submit_info) const {
-    auto const result = _cmd_queue.native().submit(submit_info);
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to submit to command queue.");
-    }
-}
-
-// =============================================================================
 void vkDevice::wait_idle() const {
     auto const result = _handle.waitIdle();
     if(result != vk::Result::eSuccess) {

@@ -1,16 +1,22 @@
-#version 460 // GLSL version identifier
+#version 460
 
-// Three vertices to describe a triangle in space
-const vec4 vertices[3] = vec4[3](
-    vec4(-0.5f, -0.5f, 0.0f, 1.0f), // -x, -y is the left corner
-    vec4( 0.0f,  0.5f, 0.0f, 1.0f), // zero, +y is the tip of the triangle
-    vec4( 0.5f, -0.5f, 0.0f, 1.0f)  // +x, -y is the right corner
+layout(location = 0) out vec3 out_color;
+
+vec2 triangle_positions[3] = vec2[](
+    vec2(0.5, -0.5),
+    vec2(0.0, 0.5),
+    vec2(-0.5, -0.5)
 );
 
-void main() {
-    // The vertex shader only has one required output: the position of the
-    // vertex it just completed processing. Normally, there's some more 3D math
-    // that goes on before assigning  this value, but this is where we're
-    // starting.
-	gl_Position = vertices[gl_VertexIndex];
+vec3 triangle_colors[3] = vec3[](
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(0.0, 0.0, 1.0)
+);
+
+void main()
+{
+    gl_Position = vec4(triangle_positions[gl_VertexIndex], 0.5, 1.0);
+
+    out_color = triangle_colors[gl_VertexIndex];
 }

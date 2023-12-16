@@ -44,7 +44,11 @@ private:
     vkRenderPass     *_render_pass;
     vkPipeline       *_pipeline;
 
-    vkFrame const *_next_frame;
+    std::queue<vk::Semaphore> _image_acquire_sems;
+    std::vector<vkFrame *> _frames;
+    uint32_t _next_image_index;
+
+    void _create_frame_data();
 };
 
 } // namespace btx

@@ -6,6 +6,7 @@
 namespace btx {
 
 class vkDevice;
+class vkRenderPass;
 class vkCmdPool;
 class vkCmdBuffer;
 class vkFramebuffer;
@@ -14,13 +15,23 @@ class vkFrame final {
  public:
     void wait_and_reset() const;
 
-    inline auto & image_acquire_semaphore() { return _image_acquire_sem; }
+    inline auto const & queue_fence() const {
+        return _queue_fence;
+    }
+
+    inline auto & image_acquire_semaphore() {
+        return _image_acquire_sem;
+    }
 
     inline auto const & cmds_complete_semaphore() const {
         return _cmds_complete_sem;
     }
 
-    explicit vkFrame(vkDevice const &device);
+    inline auto const & cmd_buffer()  const { return *_cmd_buffer; }
+    inline auto const & framebuffer() const { return *_framebuffer; }
+
+    vkFrame(vkDevice const &device, vkRenderPass const &render_pass,
+            vk::Extent2D const &extent, vk::ImageView const &image_view);
     ~vkFrame();
 
     vkFrame() = delete;
@@ -44,8 +55,7 @@ private:
     vkFramebuffer *_framebuffer;
 
     void _create_sync_primitives();
-    void _create_cmd_buffer();
-    void _create_framebuffer();
+    void _create_cmd_structures();
 };
 
 } // namespace btx

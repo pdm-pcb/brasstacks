@@ -30,21 +30,19 @@ vkCmdPool::vkCmdPool(vkDevice const &device,
     if(result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to create command pool: '{}'",
                      vk::to_string(result));
+        return;
     }
-    else {
-        BTX_TRACE("Created command pool {:#x}.",
-                  reinterpret_cast<uint64_t>(::VkCommandPool(_handle)));
-    }
+
+    BTX_TRACE("Created command pool {:#x}.",
+                reinterpret_cast<uint64_t>(::VkCommandPool(_handle)));
 }
 
 vkCmdPool::~vkCmdPool() {
-    if(_handle) {
-        BTX_TRACE("Destroying command pool {:#x}.",
-                  reinterpret_cast<uint64_t>(::VkCommandPool(_handle)));
+    BTX_TRACE("Destroying command pool {:#x}.",
+                reinterpret_cast<uint64_t>(::VkCommandPool(_handle)));
 
-        _device.native().destroyCommandPool(_handle);
-        _handle = nullptr;
-    }
+    _device.native().destroyCommandPool(_handle);
+    _handle = nullptr;
 }
 
 } // namespace btx

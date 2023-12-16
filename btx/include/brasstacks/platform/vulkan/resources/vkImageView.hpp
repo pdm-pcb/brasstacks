@@ -9,6 +9,8 @@ class vkDevice;
 
 class vkImageView final {
 public:
+    auto const & native() const { return _handle; }
+
     vkImageView(vkDevice const &device, vk::Image const &image,
                 vk::Format const format, vk::ImageViewType const type,
                 vk::ImageAspectFlags const aspect_flags);

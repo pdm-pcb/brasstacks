@@ -11,7 +11,6 @@ class vkPhysicalDevice;
 
 class vkDevice final {
 public:
-    void submit(vk::SubmitInfo const &submit_info) const;
     void wait_idle() const;
 
     inline auto const& native()    const { return _handle; }

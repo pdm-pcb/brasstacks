@@ -36,22 +36,6 @@ void vkCmdBuffer::end_render_pass() const {
 }
 
 // =============================================================================
-void vkCmdBuffer::submit_and_wait_on_device() const {
-    vk::SubmitInfo const submit_info {
-        .pNext                = nullptr,
-        .waitSemaphoreCount   = 0u,
-        .pWaitSemaphores      = nullptr,
-        .pWaitDstStageMask    = nullptr,
-        .commandBufferCount   = 1u,
-        .pCommandBuffers      = &_handle,
-        .signalSemaphoreCount = 0u,
-        .pSignalSemaphores    = nullptr,
-    };
-
-    _device.submit(submit_info);
-    _device.wait_idle();
-}
-// =============================================================================
 vkCmdBuffer::vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool) :
     _device { device },
     _pool   { pool },

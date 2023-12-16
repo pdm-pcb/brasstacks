@@ -3,12 +3,12 @@
 
 #include "brasstacks/pch.hpp"
 
-#include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
-
 namespace btx {
 
 class vkDevice;
+class vkShader;
 class vkRenderPass;
+class vkCmdBuffer;
 
 class vkPipeline final {
 public:
@@ -42,7 +42,7 @@ public:
 
     void create(vkRenderPass const &render_pass, Config const &config);
 
-    void bind(vk::CommandBuffer const &cmd_buffer);
+    void bind(vkCmdBuffer const &cmd_buffer);
 
     vkPipeline & module_from_spirv(std::string_view filepath,
                                    vk::ShaderStageFlagBits const stage,

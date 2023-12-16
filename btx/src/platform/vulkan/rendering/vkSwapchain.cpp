@@ -12,20 +12,12 @@
 namespace btx {
 
 // =============================================================================
-vkFrame const & vkSwapchain::acquire_next_image_index() {
-    if(_image_acquire_sems.empty()) {
-        BTX_CRITICAL("Swapchain ran out of image acquire semaphores.");
-    }
-
-    // Grab the first available semaphore
-    auto const acquire_sem = _image_acquire_sems.front();
-    _image_acquire_sems.pop();
-
+uint32_t vkSwapchain::acquire_next_image_index(vk::Semaphore const &semaphore) {
     // Request the next image index, and provide the semaphore we just popped
     auto const result = _device.native().acquireNextImageKHR(
         _handle,
         std::numeric_limits<uint64_t>::max(),
-        acquire_sem,
+        semaphore,
         VK_NULL_HANDLE,
         &_next_image_index
     );
@@ -42,29 +34,13 @@ vkFrame const & vkSwapchain::acquire_next_image_index() {
         }
     }
 
-    // Grab the corresponding frame data
-    auto &frame = *_frames[_next_image_index];
+    BTX_TRACE("Acquired swapchain image {}", _next_image_index);
 
-    // Wait on this frame's queue fence, which should always be signaled by
-    // the time we get here. After waiting, reset the submit fence and
-    // command pool.
-    frame.wait_and_reset();
-
-    // Now swap this frame's image acquire semaphore out for the one we just
-    // submitted
-    if(frame.image_acquire_semaphore()) {
-        _image_acquire_sems.push(frame.image_acquire_semaphore());
-    }
-
-    frame.image_acquire_semaphore() = acquire_sem;
-
-    return frame;
+    return _next_image_index;
 }
 
 // =============================================================================
-void vkSwapchain::present() {
-    auto const &frame = *_frames[_next_image_index];
-
+void vkSwapchain::present(vkFrame const &frame) {
     // This present call will wait on frame.cmds_complete_sem to ensure the
     // submitted batch of commands has finished
     vk::PresentInfoKHR const present_info {
@@ -127,19 +103,9 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &adapter,
     // Now that we've got a swapchain, we want to be able to interact with the
     // images it can present
     _get_swapchain_images();
-    _create_frame_data();
 }
 
 vkSwapchain::~vkSwapchain() {
-    for(auto *frame : _frames) {
-        delete frame;
-    }
-
-    while(!_image_acquire_sems.empty()) {
-        _device.native().destroySemaphore(_image_acquire_sems.front());
-        _image_acquire_sems.pop();
-    }
-
     for(auto *view : _image_views) {
         delete view;
     }
@@ -378,32 +344,6 @@ void vkSwapchain::_get_swapchain_images() {
             vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor
         );
-    }
-}
-
-// =============================================================================
-void vkSwapchain::_create_frame_data() {
-    for(size_t image = 0; image < _image_views.size(); ++image) {
-        auto const acquire_sem_result = _device.native().createSemaphore({ });
-        if(acquire_sem_result.result != vk::Result::eSuccess) {
-            BTX_CRITICAL("Unable to create semaphore: '{}'",
-                         vk::to_string(acquire_sem_result.result));
-            continue;
-        }
-
-        _image_acquire_sems.push(acquire_sem_result.value);
-    }
-
-    if(_image_acquire_sems.size() != _image_views.size()) {
-        BTX_CRITICAL("Swapchain has {} image views and {} image acquire "
-                     "semaphores. These should be the same.",
-                     _image_views.size(),
-                     _image_acquire_sems.size());
-    }
-
-    _frames.resize(_image_views.size());
-    for(auto &frame : _frames) {
-        frame = new vkFrame(_device);
     }
 }
 

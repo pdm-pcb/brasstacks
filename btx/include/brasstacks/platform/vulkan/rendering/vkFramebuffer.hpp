@@ -10,6 +10,8 @@ class vkRenderPass;
 
 class vkFramebuffer final {
 public:
+    inline auto const & native() const { return _handle; }
+
     vkFramebuffer(vkDevice const &device, vkRenderPass const &render_pass,
                   vk::Extent2D const &extent, vk::ImageView const &image_view);
     ~vkFramebuffer();

@@ -3,6 +3,7 @@
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 
 namespace btx {
 
@@ -26,35 +27,43 @@ void vkFrame::wait_and_reset() const {
 }
 
 // =============================================================================
-vkFrame::vkFrame(vkDevice const &device) :
+vkFrame::vkFrame(vkDevice const &device, vkRenderPass const &render_pass,
+                 vk::Extent2D const &extent, vk::ImageView const &image_view) :
     _device            { device },
     _image_acquire_sem { nullptr }
 {
     _create_sync_primitives();
-    _create_cmd_buffer();
-    _create_framebuffer();
+    _create_cmd_structures();
+
+    _framebuffer = new vkFramebuffer(_device, render_pass, extent, image_view);
 }
 
 vkFrame::~vkFrame() {
+    delete _framebuffer;
+
     delete _cmd_buffer;
     delete _cmd_pool;
 
-    // BTX_TRACE("\nDestroying frame sync primitives:"
-    //           "\n\tdevice queue fence          {:#x}",
-    //           "\n\tcommands complete semaphore {:#x}",
-    //           reinterpret_cast<uint64_t>(VkFence(_queue_fence)),
-    //           reinterpret_cast<uint64_t>(VkSemaphore(_cmds_complete_sem)));
+    BTX_TRACE("\nDestroying frame sync primitives:"
+              "\n\tdevice queue fence          {:#x}"
+              "\n\timage acquire semaphore     {:#x}"
+              "\n\tcommands complete semaphore {:#x}",
+              reinterpret_cast<uint64_t>(VkFence(_queue_fence)),
+              reinterpret_cast<uint64_t>(VkSemaphore(_image_acquire_sem)),
+              reinterpret_cast<uint64_t>(VkSemaphore(_cmds_complete_sem)));
 
     _device.native().destroyFence(_queue_fence);
     _device.native().destroySemaphore(_cmds_complete_sem);
+
+    if(_image_acquire_sem != nullptr) {
+        _device.native().destroySemaphore(_image_acquire_sem);
+    }
 }
 
 // =============================================================================
-void vkFrame::_create_cmd_buffer() {
-    _cmd_pool = new vkCmdPool(
-        _device,
-        vk::CommandPoolCreateFlagBits::eTransient
-    );
+void vkFrame::_create_cmd_structures() {
+    _cmd_pool =
+        new vkCmdPool(_device, vk::CommandPoolCreateFlagBits::eTransient);
 
     _cmd_buffer = new vkCmdBuffer(_device, *_cmd_pool);
 }
@@ -84,15 +93,11 @@ void vkFrame::_create_sync_primitives() {
 
     _cmds_complete_sem = cmd_sem_result.value;
 
-    // BTX_TRACE("\nCreated frame sync primitives:"
-    //           "\n\tdevice queue fence          {:#x}",
-    //           "\n\tcommands complete semaphore {:#x}",
-    //           reinterpret_cast<uint64_t>(VkFence(_queue_fence)),
-    //           reinterpret_cast<uint64_t>(VkSemaphore(_cmds_complete_sem)));
-}
-
-// =============================================================================
-void vkFrame::_create_framebuffer() {
+    BTX_TRACE("\nCreated frame sync primitives:"
+              "\n\tdevice queue fence          {:#x}"
+              "\n\tcommands complete semaphore {:#x}",
+              reinterpret_cast<uint64_t>(VkFence(_queue_fence)),
+              reinterpret_cast<uint64_t>(VkSemaphore(_cmds_complete_sem)));
 }
 
 } // namespace btx

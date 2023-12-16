@@ -7,8 +7,8 @@ namespace btx {
 
 // =============================================================================
 vkImageView::vkImageView(vkDevice const &device, vk::Image const &image,
-                vk::Format const format, vk::ImageViewType const type,
-                vk::ImageAspectFlags const aspect_flags) :
+                         vk::Format const format, vk::ImageViewType const type,
+                         vk::ImageAspectFlags const aspect_flags) :
     _device { device },
     _image { image }
 {

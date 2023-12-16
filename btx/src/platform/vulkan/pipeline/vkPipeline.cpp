@@ -1,7 +1,9 @@
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 namespace btx {
 
@@ -69,13 +71,13 @@ void vkPipeline::create(vkRenderPass const &render_pass, Config const &config) {
 }
 
 // =============================================================================
-void vkPipeline::bind(vk::CommandBuffer const &cmd_buffer) {
-    cmd_buffer.bindPipeline(
+void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) {
+    cmd_buffer.native().bindPipeline(
         vk::PipelineBindPoint::eGraphics,
         _handle
     );
-    cmd_buffer.setViewport(0u, _viewport);
-    cmd_buffer.setScissor(0u, _scissor);
+    cmd_buffer.native().setViewport(0u, _viewport);
+    cmd_buffer.native().setScissor(0u, _scissor);
 }
 
 // =============================================================================
