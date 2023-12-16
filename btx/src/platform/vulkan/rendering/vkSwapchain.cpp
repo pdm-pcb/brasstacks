@@ -34,8 +34,6 @@ uint32_t vkSwapchain::acquire_next_image_index(vk::Semaphore const &semaphore) {
         }
     }
 
-    BTX_TRACE("Acquired swapchain image {}", _next_image_index);
-
     return _next_image_index;
 }
 
@@ -301,7 +299,7 @@ void vkSwapchain::_populate_create_info(vk::SwapchainCreateInfoKHR &create_info)
         .oldSwapchain = nullptr,
     };
 
-    BTX_INFO(
+    BTX_TRACE(
         "\nSwapchain Create Info:"
         "\n    Extent:       {}x{}"
         "\n    Offset:       {}x{}"

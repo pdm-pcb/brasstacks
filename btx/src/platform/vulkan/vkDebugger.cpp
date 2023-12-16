@@ -13,22 +13,17 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
         const ::VkDebugUtilsMessengerCallbackDataEXT *callback_data,
         [[maybe_unused]] void *user_data)
 {
-    switch(severity) {
-        case ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-            BTX_TRACE("{:s}", callback_data->pMessage);
-            break;
-        case ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-            BTX_INFO("{:s}", callback_data->pMessage);
-            break;
-        case ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-            BTX_WARN("{:s}", callback_data->pMessage);
-            break;
-        case ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-            BTX_ERROR("\n{:s}\n", callback_data->pMessage);
-            break;
-        case ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
-            BTX_CRITICAL("???: {:s}", callback_data->pMessage);
-            break;
+    if(severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+        BTX_TRACE("{}", callback_data->pMessage);
+    }
+    if(severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+        BTX_INFO("{}", callback_data->pMessage);
+    }
+    if(severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+        BTX_WARN("{}", callback_data->pMessage);
+    }
+    if(severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        BTX_ERROR("\n{}\n", callback_data->pMessage);
     }
 
     return VK_FALSE;
