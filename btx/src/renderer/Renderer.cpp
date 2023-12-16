@@ -53,7 +53,7 @@ void Renderer::record_commands() {
     auto const &frame = *_frames[_next_image_index];
     auto const &cmd_buffer = frame.cmd_buffer();
 
-    static vk::ClearValue clear_value {
+    static vk::ClearValue const clear_value {
         .color = { RenderConfig::clear_color }
     };
 
@@ -81,11 +81,11 @@ void Renderer::record_commands() {
 void Renderer::submit_commands() {
     auto &frame = *_frames[_next_image_index];
 
-    vk::PipelineStageFlags wait_stage {
+    static vk::PipelineStageFlags const wait_stage {
         vk::PipelineStageFlagBits::eColorAttachmentOutput
     };
 
-    vk::SubmitInfo submit_info {
+    vk::SubmitInfo const submit_info {
         .pNext                = nullptr,
         .waitSemaphoreCount   = 1u,
         .pWaitSemaphores      = &frame.image_acquire_semaphore(),

@@ -21,6 +21,12 @@ public:
 
     vkImage() = delete;
 
+    vkImage(vkImage &&) = delete;
+    vkImage(const vkImage &) = delete;
+
+    vkImage & operator=(vkImage &&) = delete;
+    vkImage & operator=(const vkImage &) = delete;
+
 private:
     vkDevice const &_device;
 

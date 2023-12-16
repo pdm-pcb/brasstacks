@@ -200,25 +200,30 @@ void Win32TargetWindow::_toggle_raw_input() {
 
     // Below, we specify the keyboard and mouse as raw input devices. The
     // RIDEV_NOLEGACY flag tells Windows not to generate legacy messages, like
-    // WM_KEYDOWN, etc.
-    std::array<::RAWINPUTDEVICE, 2> devices;
+    // WM_KEYDOWN, while RIDEV_REMOVE unregisters the device from Windows' raw
+    // input.
+
+    auto const dwFlags =
+        static_cast<::DWORD>(enabled ? RIDEV_REMOVE : RIDEV_NOLEGACY);
+
+    std::array<::RAWINPUTDEVICE, 2> devices { };
 
     // First, the keyboard
     devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
     devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD;
-    devices[0].dwFlags     = (enabled ? RIDEV_REMOVE : RIDEV_NOLEGACY);
+    devices[0].dwFlags     = dwFlags;
     devices[0].hwndTarget  = (enabled ? nullptr : _window_handle);
 
     // And then the mouse
     devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
     devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE;
-    devices[1].dwFlags     = (enabled ? RIDEV_REMOVE : RIDEV_NOLEGACY);
+    devices[1].dwFlags     = dwFlags;
     devices[1].hwndTarget  = (enabled ? nullptr : _window_handle);
 
     // Attempt to register
     auto const result = ::RegisterRawInputDevices(
         devices.data(),
-        devices.size(),
+        static_cast<::UINT>(devices.size()),
         sizeof(::RAWINPUTDEVICE)
     );
 

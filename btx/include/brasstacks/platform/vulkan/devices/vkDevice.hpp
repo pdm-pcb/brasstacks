@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKLOGICALDEVICE_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKLOGICALDEVICE_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKDEVICE_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKDEVICE_HPP
 
 #include "brasstacks/pch.hpp"
 
@@ -14,10 +14,11 @@ public:
     void wait_idle() const;
 
     inline auto const& native()    const { return _handle; }
-    inline auto const& queue() const { return _queue; }
+    inline auto const& queue() const { return *_queue; }
 
     using Layers = std::vector<char const *>;
-    vkDevice(vkPhysicalDevice const &adapter, Layers const &layers = { });
+    explicit vkDevice(vkPhysicalDevice const &adapter,
+                      Layers const &layers = { });
     ~vkDevice();
 
     vkDevice() = delete;
@@ -29,10 +30,10 @@ public:
     vkDevice & operator=(const vkDevice &) = delete;
 
 private:
-    vkQueue _queue;
+    vkQueue *_queue;
     vk::Device _handle;
 };
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKLOGICALDEVICE_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKDEVICE_HPP

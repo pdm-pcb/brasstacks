@@ -53,7 +53,7 @@ private:
     Position   _screen_center;
     Position   _window_pos;
 
-    void _register_class();
+    static void _register_class();
     void _create_window();
     void _destroy_window();
     void _toggle_raw_input();
@@ -71,7 +71,7 @@ private:
                                      ::WPARAM wParam, ::LPARAM lParam);
 
     void _parse_raw_keyboard(::RAWKEYBOARD const &raw);
-    void _parse_raw_mouse(::RAWMOUSE const &raw);
+    static void _parse_raw_mouse(::RAWMOUSE const &raw);
 };
 
 } // namespace btx

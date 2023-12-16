@@ -69,15 +69,16 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &adapter,
                          vkSurface const &surface,
                          vkDevice const &device) :
 
-    _adapter      { adapter },
-    _surface      { surface },
-    _device       { device },
-    _render_area  { },
-    _image_format { },
-    _color_space  { },
-    _present_mode { },
-    _handle       { nullptr },
-    _image_views  { }
+    _adapter          { adapter },
+    _surface          { surface },
+    _device           { device },
+    _render_area      { },
+    _image_format     { },
+    _color_space      { },
+    _present_mode     { },
+    _handle           { nullptr },
+    _image_views      { },
+    _next_image_index { std::numeric_limits<uint32_t>::max() }
 {
     _query_surface_capabilities();
     _query_surface_format();
