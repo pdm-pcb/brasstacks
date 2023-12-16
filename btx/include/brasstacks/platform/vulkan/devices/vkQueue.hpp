@@ -7,7 +7,7 @@ namespace btx {
 
 class vkDevice;
 
-class vkCmdQueue final {
+class vkQueue final {
 public:
     void fill_create_info(uint32_t const index, float const priority = 1.0f);
     void request_queue();
@@ -17,16 +17,16 @@ public:
     inline auto const& priority()    const { return _priority;    }
     inline auto const& create_info() const { return _create_info; }
 
-    explicit vkCmdQueue(vkDevice const &device);
-    ~vkCmdQueue() = default;
+    explicit vkQueue(vkDevice const &device);
+    ~vkQueue() = default;
 
-    vkCmdQueue() = delete;
+    vkQueue() = delete;
 
-    vkCmdQueue(vkCmdQueue &&) = delete;
-    vkCmdQueue(const vkCmdQueue &) = delete;
+    vkQueue(vkQueue &&) = delete;
+    vkQueue(const vkQueue &) = delete;
 
-    vkCmdQueue& operator=(vkCmdQueue &&) = delete;
-    vkCmdQueue& operator=(const vkCmdQueue &) = delete;
+    vkQueue& operator=(vkQueue &&) = delete;
+    vkQueue& operator=(const vkQueue &) = delete;
 
 private:
     uint32_t _index;

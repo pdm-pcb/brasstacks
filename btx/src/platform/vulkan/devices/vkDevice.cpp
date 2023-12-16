@@ -14,15 +14,15 @@ void vkDevice::wait_idle() const {
 
 // =============================================================================
 vkDevice::vkDevice(vkPhysicalDevice const &adapter, Layers const &layers) :
-    _cmd_queue { *this }
+    _queue { *this }
 {
     // The first step in device creation is to tell the queue what index it
     // will be using.
-    _cmd_queue.fill_create_info(adapter.queue_index());
+    _queue.fill_create_info(adapter.queue_index());
 
     // Then ask the queue for the populated structure
     vk::DeviceQueueCreateInfo const queue_info[] {
-        _cmd_queue.create_info()
+        _queue.create_info()
     };
 
     // The logical device wants to know what the physical device has to offer
@@ -59,7 +59,7 @@ vkDevice::vkDevice(vkPhysicalDevice const &adapter, Layers const &layers) :
 
     // Once the logical device is established, the queue can likewise come
     // online
-    _cmd_queue.request_queue();
+    _queue.request_queue();
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);

@@ -96,7 +96,7 @@ void Renderer::submit_commands() {
         .pSignalSemaphores    = &frame.cmds_complete_semaphore(),
     };
 
-    auto const result = _device->cmd_queue().native().submit(
+    auto const result = _device->queue().native().submit(
         1u,
         &submit_info,
         frame.queue_fence()

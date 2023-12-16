@@ -49,7 +49,7 @@ void vkSwapchain::present(vkFrame const &frame) {
         .pImageIndices   = &_next_image_index,
     };
 
-    auto const result = _device.cmd_queue().native().presentKHR(present_info);
+    auto const result = _device.queue().native().presentKHR(present_info);
 
     if(result != vk::Result::eSuccess) {
         if(result == vk::Result::eSuboptimalKHR ||

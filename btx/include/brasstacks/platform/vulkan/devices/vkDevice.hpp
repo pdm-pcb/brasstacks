@@ -3,7 +3,7 @@
 
 #include "brasstacks/pch.hpp"
 
-#include "brasstacks/platform/vulkan/devices/vkCmdQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 
 namespace btx {
 
@@ -14,7 +14,7 @@ public:
     void wait_idle() const;
 
     inline auto const& native()    const { return _handle; }
-    inline auto const& cmd_queue() const { return _cmd_queue; }
+    inline auto const& queue() const { return _queue; }
 
     using Layers = std::vector<char const *>;
     vkDevice(vkPhysicalDevice const &adapter, Layers const &layers = { });
@@ -29,7 +29,7 @@ public:
     vkDevice & operator=(const vkDevice &) = delete;
 
 private:
-    vkCmdQueue _cmd_queue;
+    vkQueue _queue;
     vk::Device _handle;
 };
 

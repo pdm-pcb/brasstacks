@@ -1,7 +1,7 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/vkCmdQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 
 namespace btx {
 
@@ -18,7 +18,7 @@ vkCmdPool::vkCmdPool(vkDevice const &device,
 {
     vk::CommandPoolCreateInfo const pool_info {
         .flags = flags,
-        .queueFamilyIndex = _device.cmd_queue().index()
+        .queueFamilyIndex = _device.queue().index()
     };
 
     auto const result = _device.native().createCommandPool(
