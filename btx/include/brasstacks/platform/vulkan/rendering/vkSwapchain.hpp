@@ -14,7 +14,7 @@ class vkFrame;
 class vkSwapchain final {
 public:
     uint32_t acquire_next_image_index(vk::Semaphore const &semaphore);
-    void present(vkFrame const &frame);
+    void present(vkFrame const &frame, uint32_t const image_index);
 
     inline auto image_format()        const { return _image_format; }
     inline auto const & image_views() const { return _image_views; }
@@ -46,8 +46,6 @@ private:
 
     vk::SwapchainKHR _handle;
     std::vector<vkImageView *> _image_views;
-
-    uint32_t _next_image_index;
 
     void _query_surface_capabilities();
     void _query_surface_format();

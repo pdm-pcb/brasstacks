@@ -110,7 +110,7 @@ void Renderer::submit_commands() {
 
 // =============================================================================
 void Renderer::present_image() {
-    _swapchain->present(*_frames[_next_image_index]);
+    _swapchain->present(*_frames[_next_image_index], _next_image_index);
 }
 
 // =============================================================================

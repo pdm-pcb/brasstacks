@@ -13,13 +13,15 @@ namespace btx {
 
 // =============================================================================
 uint32_t vkSwapchain::acquire_next_image_index(vk::Semaphore const &semaphore) {
+    uint32_t next_image_index;
+
     // Request the next image index, and provide the semaphore we just popped
     auto const result = _device.native().acquireNextImageKHR(
         _handle,
         std::numeric_limits<uint64_t>::max(),
         semaphore,
         VK_NULL_HANDLE,
-        &_next_image_index
+        &next_image_index
     );
 
     if(result != vk::Result::eSuccess) {
@@ -34,11 +36,11 @@ uint32_t vkSwapchain::acquire_next_image_index(vk::Semaphore const &semaphore) {
         }
     }
 
-    return _next_image_index;
+    return next_image_index;
 }
 
 // =============================================================================
-void vkSwapchain::present(vkFrame const &frame) {
+void vkSwapchain::present(vkFrame const &frame, uint32_t const image_index) {
     // This present call will wait on frame.cmds_complete_sem to ensure the
     // submitted batch of commands has finished
     vk::PresentInfoKHR const present_info {
@@ -46,7 +48,7 @@ void vkSwapchain::present(vkFrame const &frame) {
         .pWaitSemaphores = &frame.cmds_complete_semaphore(),
         .swapchainCount  = 1u,
         .pSwapchains     = &_handle,
-        .pImageIndices   = &_next_image_index,
+        .pImageIndices   = &image_index,
     };
 
     auto const result = _device.queue().native().presentKHR(present_info);
@@ -59,7 +61,7 @@ void vkSwapchain::present(vkFrame const &frame) {
         }
         else {
             BTX_CRITICAL("Failed to submit swapchain image {}: '{}",
-                         _next_image_index, vk::to_string(result));
+                         image_index, vk::to_string(result));
         }
     }
 }
@@ -77,8 +79,7 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &adapter,
     _color_space      { },
     _present_mode     { },
     _handle           { nullptr },
-    _image_views      { },
-    _next_image_index { std::numeric_limits<uint32_t>::max() }
+    _image_views      { }
 {
     _query_surface_capabilities();
     _query_surface_format();
