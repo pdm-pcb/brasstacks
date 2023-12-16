@@ -1,3 +1,9 @@
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CheckCompilerVersions.cmake")
+CheckCompilerVersions()
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FetchDeps.cmake")
+FetchDeps()
+
 set(TARGET_NAME "brasstacks")
 
 add_library(${TARGET_NAME} STATIC)
@@ -25,9 +31,6 @@ target_precompile_headers(
     ${TARGET_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include/brasstacks/pch.hpp"
 )
-
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FetchDeps.cmake")
-FetchDeps()
 
 target_link_libraries(
     ${TARGET_NAME} PUBLIC
@@ -111,6 +114,8 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         "/Wall"         # All warnings not disabled by default
         "/wd4820"       # Ignore warning for padding
         "/wd5045"       # Ignore warning for spectre mitigation
+        "/wd4710"       # "function not inlined"
+        "/wd4711"       # "selected for automatic inline expansion"
     )
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64")
@@ -148,7 +153,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
                         # - inline function expansion
                         # - eliminate duplicate strings
                         # - function-level linking
-            "/Ob3"      # More aggressive inline expansions than /O2
         )
 
         target_link_options(

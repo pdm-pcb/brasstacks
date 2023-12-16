@@ -41,6 +41,7 @@
         },
         {
             "name": "llvm-base",
+            "hidden": true,
             "cacheVariables": {
                 "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_C_COMPILER": "clang"

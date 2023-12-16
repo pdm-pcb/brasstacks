@@ -7,7 +7,7 @@ project(
     LANGUAGES CXX C
 )
 
-find_package(Vulkan 1.3 REQUIRED COMPONENTS glslc)
+find_package(Vulkan 1.2 REQUIRED COMPONENTS glslc)
 
 add_subdirectory(btx)
 
