@@ -5,8 +5,7 @@
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
+#include "brasstacks/platform/vulkan/resources/images/vkImage.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
 namespace btx {
@@ -20,7 +19,7 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &physical_device,
     _image_format    { },
     _present_mode    { },
     _handle          { nullptr },
-    _image_views     { }
+    _images          { }
 {
     // Grab the supported image counts, resolutions, etc from the surface
     _query_surface_capabilities(physical_device.native(), surface.native());
@@ -48,15 +47,14 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &physical_device,
     BTX_TRACE("Created swapchain {:#x}",
               reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle)));
 
-    // Now that we've got it, create some views associated with the swapchain
-    // images
+    // Now that we've got the swapchain itself, we'll need its images
     _get_swapchain_images();
 }
 
 // =============================================================================
 vkSwapchain::~vkSwapchain() {
-    for(auto *view : _image_views) {
-        delete view;
+    for(auto *image : _images) {
+        delete image;
     }
 
     BTX_TRACE("Destroying swapchain {:#x}",
@@ -162,8 +160,8 @@ void vkSwapchain::_query_surface_capabilities(
     // We intend to draw to the whole surface
     _render_area.extent = capabilities.currentExtent;
 
-    // One extra frame to keep the CPU busy
-    _image_views.resize(capabilities.minImageCount + 1);
+    // TODO: this merits some actual rationale
+    _images.resize(capabilities.minImageCount + 1);
 }
 
 // =============================================================================
@@ -287,7 +285,7 @@ vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
         "\n    Present Mode: {}",
         _render_area.extent.width, _render_area.extent.height,
         _render_area.offset.x, _render_area.offset.y,
-        _image_views.size(),
+        _images.size(),
         vk::to_string(_image_format.format),
         vk::to_string(_image_format.colorSpace),
         vk::to_string(_present_mode)
@@ -295,7 +293,7 @@ vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
 
     return {
         .surface         = surface,
-        .minImageCount   = static_cast<uint32_t>(_image_views.size()),
+        .minImageCount   = static_cast<uint32_t>(_images.size()),
         .imageFormat     = _image_format.format,
         .imageColorSpace = _image_format.colorSpace,
         .imageExtent     = _render_area.extent,
@@ -348,21 +346,19 @@ void vkSwapchain::_get_swapchain_images() {
     }
 
     auto const &swapchain_images = result.value;
-    BTX_TRACE("Acquired {} swapchain images", swapchain_images.size());
-
-    if(swapchain_images.size() != _image_views.size()) {
+    if(swapchain_images.size() != _images.size()) {
         BTX_CRITICAL("Swapchain provided {} images, expected {}",
-                     swapchain_images.size(), _image_views.size());
+                     swapchain_images.size(), _images.size());
         return;
     }
 
-    for(uint32_t i = 0u; i < _image_views.size(); ++i) {
-        _image_views[i] = new vkImageView(
+    BTX_TRACE("Acquired {} swapchain images", swapchain_images.size());
+
+    for(uint32_t i = 0u; i < _images.size(); ++i) {
+        _images[i] = new vkImage(
             _device,
             swapchain_images[i],
-            _image_format.format,
-            vk::ImageViewType::e2D,
-            vk::ImageAspectFlagBits::eColor
+            _image_format.format
         );
     }
 }

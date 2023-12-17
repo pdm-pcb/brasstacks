@@ -12,7 +12,7 @@ namespace btx {
 
 class vkDevice;
 class vkRenderPass;
-class vkImageView;
+class vkImage;
 
 /**
  * @brief Simple wrapper for a Vulkan framebuffer
@@ -25,10 +25,10 @@ public:
      * @param device An established Vulkan logical device
      * @param render_pass Render pass associated with this framebuffer
      * @param extent Drawable dimensions of this framebuffer
-     * @param image_view View of the image associated with this framebuffer
+     * @param image The image this framebuffer will represent
      */
     vkFramebuffer(vkDevice const &device, vkRenderPass const &render_pass,
-                  vk::Extent2D const &extent, vkImageView const &image_view);
+                  vk::Extent2D const &extent, vkImage const &image);
 
     ~vkFramebuffer();
 

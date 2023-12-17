@@ -3,8 +3,8 @@
  * @brief A wrapper class for Vulkan image views
  */
 
-#ifndef BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGEVIEW_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGEVIEW_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGEVIEW_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGEVIEW_HPP
 
 #include "brasstacks/pch.hpp"
 
@@ -53,11 +53,6 @@ private:
     vkDevice const &_device;
 
     /**
-     * @brief The raw Vulkan image this view is associated with
-     */
-    vk::Image const &_image;
-
-    /**
      * @brief The native Vulkan handle
      */
     vk::ImageView _handle;
@@ -65,4 +60,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGEVIEW_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGE_HPP

@@ -1,0 +1,34 @@
+#ifndef BRASSTACKS_PLATFORM_VULKAN_DESCRIPTORS_VKDESCRIPTORPOOL_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_DESCRIPTORS_VKDESCRIPTORPOOL_HPP
+
+#include "brasstacks/pch.hpp"
+
+namespace btx {
+
+class vkDevice;
+
+class vkDescriptorPool {
+public:
+    using PoolSizes = std::set<vk::DescriptorPoolSize>;
+    vkDescriptorPool(vkDevice const &device, uint32_t const max_sets,
+                     PoolSizes const &sizes);
+    ~vkDescriptorPool();
+
+    inline auto const& native() const { return _pool; }
+
+    vkDescriptorPool() = delete;
+
+    vkDescriptorPool(vkDescriptorPool &&) = delete;
+    vkDescriptorPool(const vkDescriptorPool &) = delete;
+
+    vkDescriptorPool& operator=(vkDescriptorPool &&) = delete;
+    vkDescriptorPool& operator=(const vkDescriptorPool &) = delete;
+
+private:
+    vkDevice const &_device;
+    vk::DescriptorPool _pool;
+};
+
+} // namespace btx
+
+#endif // BRASSTACKS_PLATFORM_VULKAN_DESCRIPTORS_VKDESCRIPTORPOOL_HPP

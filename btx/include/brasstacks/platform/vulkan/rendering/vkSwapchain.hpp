@@ -13,7 +13,7 @@ namespace btx {
 class vkPhysicalDevice;
 class vkSurface;
 class vkDevice;
-class vkImageView;
+class vkImage;
 class vkFrameSync;
 
 /**
@@ -59,10 +59,10 @@ public:
     inline auto image_format() const { return _image_format.format; }
 
     /**
-     * @brief Return a vector of image views associated with the swapchain
-     * @return std::vector<vkImageView *> const&
+     * @brief Return a vector of images from this swapchain
+     * @return std::vector<vkImage *> const&
      */
-    inline auto const & image_views() const { return _image_views; }
+    inline auto const & images() const { return _images; }
 
     /**
      * @brief Return the swapchain render area's (x,y) dimensions
@@ -118,9 +118,9 @@ private:
     vk::SwapchainKHR _handle;
 
     /**
-     * @brief A list of views associated with the swapchain images
+     * @brief A list of images from this swapchain
      */
-    std::vector<vkImageView *> _image_views;
+    std::vector<vkImage *> _images;
 
 
     /**

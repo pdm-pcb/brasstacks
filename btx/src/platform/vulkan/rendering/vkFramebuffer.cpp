@@ -2,7 +2,7 @@
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
+#include "brasstacks/platform/vulkan/resources/images/vkImage.hpp"
 
 namespace btx {
 
@@ -10,21 +10,21 @@ namespace btx {
 vkFramebuffer::vkFramebuffer(vkDevice const &device,
                              vkRenderPass const &render_pass,
                              vk::Extent2D const &extent,
-                             vkImageView const &image_view) :
+                             vkImage const &image) :
     _device { device }
 {
-    vk::FramebufferCreateInfo framebuffer_info {
+    vk::FramebufferCreateInfo const create_info {
         .pNext           = nullptr,
         .flags           = { },
         .renderPass      = render_pass.native(),
         .attachmentCount = 1u,
-        .pAttachments    = &image_view.native(),
+        .pAttachments    = &image.view().native(),
         .width           = extent.width,
         .height          = extent.height,
         .layers          = 1u,
     };
 
-    auto const result = _device.native().createFramebuffer(framebuffer_info);
+    auto const result = _device.native().createFramebuffer(create_info);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to create framebuffer: '{}'",
                      vk::to_string(result.result));

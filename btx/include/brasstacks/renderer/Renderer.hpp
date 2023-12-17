@@ -18,6 +18,7 @@ class vkDevice;
 class vkSurface;
 class vkSwapchain;
 class vkRenderPass;
+class vkDescriptorPool;
 class vkPipeline;
 
 class vkFrameSync;
@@ -74,6 +75,7 @@ private:
     vkSurface        *_surface;
     vkSwapchain      *_swapchain;
     vkRenderPass     *_render_pass;
+    vkDescriptorPool *_desc_pool;
     vkPipeline       *_pipeline;
 
     /**
@@ -98,15 +100,27 @@ private:
     std::vector<vkFramebuffer *> _framebuffers;
 
     /**
+     * @brief A collection of descriptor sets to be used per-frame
+     */
+    // std::vector<vkDescriptorSet *> _desc_sets;
+
+    /**
      * @brief The index of the swapchain's next available image. This value is
      * also used to index Renderer's internal vkFrameSync objects.
      */
     uint32_t _next_image_index;
 
     /**
-     * @brief Create the frame sync and other per-frame data
+     * @brief Create the structures to synchronize commands with swapchain
+     * images as well as the framebuffers
      */
     void _create_frame_data();
+
+    /**
+     * @brief Called from the destructor to destroy what was created in the last
+     * function
+     */
+    void _destroy_frame_data();
 };
 
 } // namespace btx

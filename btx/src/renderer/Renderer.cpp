@@ -9,9 +9,10 @@
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
+#include "brasstacks/platform/vulkan/resources/images/vkImage.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 
@@ -21,7 +22,7 @@ namespace btx {
 Renderer::Renderer(TargetWindow const &target_window) :
     _instance           { new vkInstance() },
     _image_acquire_sems { },
-    _frame_sync             { },
+    _frame_sync         { },
     _next_image_index   { std::numeric_limits<uint32_t>::max() }
 {
 
@@ -72,6 +73,14 @@ Renderer::Renderer(TargetWindow const &target_window) :
 
     _render_pass = new vkRenderPass(*_device, _swapchain->image_format());
 
+    _desc_pool = new vkDescriptorPool(*_device,
+        100u,
+        {{
+            .type = vk::DescriptorType::eUniformBuffer,
+            .descriptorCount = 100u,
+        }}
+    );
+
     _pipeline = new vkPipeline(*_device);
     (*_pipeline)
         .module_from_spirv("shaders/demo.vert",
@@ -82,9 +91,7 @@ Renderer::Renderer(TargetWindow const &target_window) :
         .create(
             *_render_pass,
             {
-                .color_formats = {
-                    _swapchain->image_format()
-                },
+                .color_formats = { _swapchain->image_format() },
                 .depth_format    = vk::Format::eUndefined,
                 .viewport_extent = _swapchain->extent(),
                 .viewport_offset = _swapchain->offset(),
@@ -99,25 +106,10 @@ Renderer::Renderer(TargetWindow const &target_window) :
 Renderer::~Renderer() {
     _device->wait_idle();
 
-    for(auto *framebuffer : _framebuffers) {
-        delete framebuffer;
-    }
-
-    for(auto *frame : _frame_sync) {
-        delete frame;
-    }
-
-    while(!_image_acquire_sems.empty()) {
-        auto const sem = _image_acquire_sems.front();
-
-        BTX_TRACE("Destroying image acquire semaphore {:#x}",
-                  reinterpret_cast<uint64_t>(VkSemaphore(sem)));
-        _device->native().destroySemaphore(sem);
-
-        _image_acquire_sems.pop();
-    }
+    _destroy_frame_data();
 
     delete _pipeline;
+    delete _desc_pool;
     delete _render_pass;
     delete _swapchain;
     delete _device;
@@ -225,14 +217,12 @@ void Renderer::present_image() {
 
 // =============================================================================
 void Renderer::_create_frame_data() {
-    for(auto const *image_view : _swapchain->image_views()) {
+    for(auto const *image : _swapchain->images()) {
         _frame_sync.push_back(new vkFrameSync(*_device));
-        _framebuffers.push_back(new vkFramebuffer(
-            *_device,
-            *_render_pass,
-            _swapchain->extent(),
-            *image_view
-        ));
+        _framebuffers.push_back(new vkFramebuffer(*_device,
+                                                  *_render_pass,
+                                                  _swapchain->extent(),
+                                                  *image));
     }
 
     // Create one extra semaphore because by the time the first n frames have
@@ -251,6 +241,27 @@ void Renderer::_create_frame_data() {
                 reinterpret_cast<uint64_t>(VkSemaphore(result.value)));
 
     _image_acquire_sems.push(result.value);
+}
+
+// =============================================================================
+void Renderer::_destroy_frame_data() {
+    for(auto *framebuffer : _framebuffers) {
+        delete framebuffer;
+    }
+
+    for(auto *frame : _frame_sync) {
+        delete frame;
+    }
+
+    while(!_image_acquire_sems.empty()) {
+        auto const sem = _image_acquire_sems.front();
+
+        BTX_TRACE("Destroying image acquire semaphore {:#x}",
+                  reinterpret_cast<uint64_t>(VkSemaphore(sem)));
+        _device->native().destroySemaphore(sem);
+
+        _image_acquire_sems.pop();
+    }
 }
 
 } // namespace btx
