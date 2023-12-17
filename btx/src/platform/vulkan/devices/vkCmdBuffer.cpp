@@ -6,36 +6,6 @@
 namespace btx {
 
 // =============================================================================
-void vkCmdBuffer::begin_one_time_submit() const {
-    vk::CommandBufferBeginInfo const begin_info {
-        .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
-    };
-
-    auto const result = _handle.begin(begin_info);
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to begin recording to one-shot command buffer.");
-    }
-}
-
-// =============================================================================
-void vkCmdBuffer::end_recording() const {
-    auto const result = _handle.end();
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to end command buffer recording.");
-    }
-}
-
-// =============================================================================
-void vkCmdBuffer::begin_render_pass(vk::RenderPassBeginInfo const &info) const {
-    _handle.beginRenderPass(info, vk::SubpassContents::eInline);
-}
-
-// =============================================================================
-void vkCmdBuffer::end_render_pass() const {
-    _handle.endRenderPass();
-}
-
-// =============================================================================
 vkCmdBuffer::vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool) :
     _device { device },
     _pool   { pool },
@@ -70,6 +40,7 @@ vkCmdBuffer::vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool) :
     );
 }
 
+// =============================================================================
 vkCmdBuffer::~vkCmdBuffer() {
     if(_handle) {
         BTX_TRACE("Freeing command buffer {:#x}",
@@ -78,6 +49,36 @@ vkCmdBuffer::~vkCmdBuffer() {
         _device.native().freeCommandBuffers(_pool.native(), { _handle });
         _handle = nullptr;
     }
+}
+
+// =============================================================================
+void vkCmdBuffer::begin_one_time_submit() const {
+    static vk::CommandBufferBeginInfo const begin_info {
+        .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+    };
+
+    auto const result = _handle.begin(begin_info);
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to begin recording to one-shot command buffer.");
+    }
+}
+
+// =============================================================================
+void vkCmdBuffer::end_recording() const {
+    auto const result = _handle.end();
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to end command buffer recording.");
+    }
+}
+
+// =============================================================================
+void vkCmdBuffer::begin_render_pass(vk::RenderPassBeginInfo const &info) const {
+    _handle.beginRenderPass(info, vk::SubpassContents::eInline);
+}
+
+// =============================================================================
+void vkCmdBuffer::end_render_pass() const {
+    _handle.endRenderPass();
 }
 
 } // namespace btx
