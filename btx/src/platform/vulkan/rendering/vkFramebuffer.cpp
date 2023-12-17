@@ -2,6 +2,7 @@
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
 
@@ -9,7 +10,7 @@ namespace btx {
 vkFramebuffer::vkFramebuffer(vkDevice const &device,
                              vkRenderPass const &render_pass,
                              vk::Extent2D const &extent,
-                             vk::ImageView const &image_view) :
+                             vkImageView const &image_view) :
     _device { device }
 {
     vk::FramebufferCreateInfo framebuffer_info {
@@ -17,7 +18,7 @@ vkFramebuffer::vkFramebuffer(vkDevice const &device,
         .flags           = { },
         .renderPass      = render_pass.native(),
         .attachmentCount = 1u,
-        .pAttachments    = &image_view,
+        .pAttachments    = &image_view.native(),
         .width           = extent.width,
         .height          = extent.height,
         .layers          = 1u,
@@ -35,6 +36,7 @@ vkFramebuffer::vkFramebuffer(vkDevice const &device,
               reinterpret_cast<uint64_t>(VkFramebuffer(_handle)));
 }
 
+// =============================================================================
 vkFramebuffer::~vkFramebuffer() {
     BTX_TRACE("Destroying framebuffer {:#x}",
               reinterpret_cast<uint64_t>(VkFramebuffer(_handle)));

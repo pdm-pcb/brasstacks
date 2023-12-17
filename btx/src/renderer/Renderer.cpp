@@ -12,7 +12,7 @@
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFrame.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 
 namespace btx {
@@ -21,7 +21,7 @@ namespace btx {
 Renderer::Renderer(TargetWindow const &target_window) :
     _instance           { new vkInstance() },
     _image_acquire_sems { },
-    _frames             { },
+    _frame_sync             { },
     _next_image_index   { std::numeric_limits<uint32_t>::max() }
 {
 
@@ -99,12 +99,16 @@ Renderer::Renderer(TargetWindow const &target_window) :
 Renderer::~Renderer() {
     _device->wait_idle();
 
-    for(auto *frame : _frames) {
+    for(auto *framebuffer : _framebuffers) {
+        delete framebuffer;
+    }
+
+    for(auto *frame : _frame_sync) {
         delete frame;
     }
 
     while(!_image_acquire_sems.empty()) {
-        auto const &sem = _image_acquire_sems.front();
+        auto const sem = _image_acquire_sems.front();
 
         BTX_TRACE("Destroying image acquire semaphore {:#x}",
                   reinterpret_cast<uint64_t>(VkSemaphore(sem)));
@@ -130,14 +134,14 @@ void Renderer::acquire_next_frame() {
     }
 
     // Grab the first available semaphore
-    auto const acquire_sem = _image_acquire_sems.front();
+    auto acquire_sem = _image_acquire_sems.front();
     _image_acquire_sems.pop();
 
     // And ask the swapchain which index comes next
     _next_image_index = _swapchain->acquire_next_image_index(acquire_sem);
 
     // Wrap the corresponding frame's data for convenience
-    auto &frame = *_frames[_next_image_index];
+    auto &frame = *_frame_sync[_next_image_index];
 
     // Wait on this frame's queue fence, which should always be signaled by
     // the time we get here. After waiting, reset the submit fence and
@@ -155,8 +159,9 @@ void Renderer::acquire_next_frame() {
 
 // =============================================================================
 void Renderer::record_commands() {
-    auto const &frame = *_frames[_next_image_index];
-    auto const &cmd_buffer = frame.cmd_buffer();
+    auto const &frame_sync = *_frame_sync[_next_image_index];
+    auto const &cmd_buffer = frame_sync.cmd_buffer();
+    auto const &framebuffer = *_framebuffers[_next_image_index];
 
     static vk::ClearValue const clear_value {
         .color = { RenderConfig::clear_color }
@@ -167,7 +172,7 @@ void Renderer::record_commands() {
         vk::RenderPassBeginInfo {
             .pNext           = nullptr,
             .renderPass      = _render_pass->native(),
-            .framebuffer     = frame.framebuffer().native(),
+            .framebuffer     = framebuffer.native(),
             .renderArea      = _swapchain->render_area(),
             .clearValueCount = 1u,
             .pClearValues    = &clear_value,
@@ -184,7 +189,7 @@ void Renderer::record_commands() {
 
 // =============================================================================
 void Renderer::submit_commands() {
-    auto &frame = *_frames[_next_image_index];
+    auto &frame = *_frame_sync[_next_image_index];
 
     static vk::PipelineStageFlags const wait_stage {
         vk::PipelineStageFlagBits::eColorAttachmentOutput
@@ -215,36 +220,27 @@ void Renderer::submit_commands() {
 
 // =============================================================================
 void Renderer::present_image() {
-    _swapchain->present(*_frames[_next_image_index], _next_image_index);
+    _swapchain->present(*_frame_sync[_next_image_index], _next_image_index);
 }
 
 // =============================================================================
 void Renderer::_create_frame_data() {
     for(auto const *image_view : _swapchain->image_views()) {
-        auto const result = _device->native().createSemaphore({ });
-        if(result.result != vk::Result::eSuccess) {
-            BTX_CRITICAL("Unable to create semaphore: '{}'",
-                         vk::to_string(result.result));
-            continue;
-        }
-
-        BTX_TRACE("Created image acquire semaphore {:#x}",
-                  reinterpret_cast<uint64_t>(VkSemaphore(result.value)));
-
-        _image_acquire_sems.push(result.value);
-
-        _frames.push_back(
-            new vkFrame(
-                *_device,
-                *_render_pass,
-                _swapchain->extent(),
-                image_view->native()
-            )
-        );
+        _frame_sync.push_back(new vkFrameSync(*_device));
+        _framebuffers.push_back(new vkFramebuffer(
+            *_device,
+            *_render_pass,
+            _swapchain->extent(),
+            *image_view
+        ));
     }
 
-    // Create one extra semaphore because... reasons?
-    auto const result = _device->native().createSemaphore({ });
+    // Create one extra semaphore because by the time the first n frames have
+    // requested images from the swapchain, the queue of semaphores will be
+    // empty. And since the logic in acquire_next_frame() tries to get a new
+    // semaphore before releasing the old one for that frame, there has to be
+    // one semaphore spare.
+    auto result = _device->native().createSemaphore({ });
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Unable to create semaphore: '{}'",
                         vk::to_string(result.result));

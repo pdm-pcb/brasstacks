@@ -1,3 +1,8 @@
+/**
+ * @file vkFramebuffer.hpp
+ * @brief Simple wrapper for a Vulkan framebuffer
+ */
+
 #ifndef BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAMEBUFFER_HPP
 #define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAMEBUFFER_HPP
 
@@ -7,14 +12,31 @@ namespace btx {
 
 class vkDevice;
 class vkRenderPass;
+class vkImageView;
 
+/**
+ * @brief Simple wrapper for a Vulkan framebuffer
+ */
 class vkFramebuffer final {
 public:
-    inline auto const & native() const { return _handle; }
 
+    /**
+     * @brief Construct the vkFramebuffer object.
+     * @param device An established Vulkan logical device
+     * @param render_pass Render pass associated with this framebuffer
+     * @param extent Drawable dimensions of this framebuffer
+     * @param image_view View of the image associated with this framebuffer
+     */
     vkFramebuffer(vkDevice const &device, vkRenderPass const &render_pass,
-                  vk::Extent2D const &extent, vk::ImageView const &image_view);
+                  vk::Extent2D const &extent, vkImageView const &image_view);
+
     ~vkFramebuffer();
+
+    /**
+     * @brief Return the native Vulkan handle
+     * @return auto const&
+     */
+    inline auto const & native() const { return _handle; }
 
     vkFramebuffer() = delete;
 
@@ -25,8 +47,14 @@ public:
     vkFramebuffer & operator=(const vkFramebuffer &) = delete;
 
 private:
+    /**
+     * @brief The Vulkan logical device used to create this framebuffer
+     */
     vkDevice const &_device;
 
+    /**
+     * @brief Native Vulkan handle
+     */
     vk::Framebuffer _handle;
 };
 

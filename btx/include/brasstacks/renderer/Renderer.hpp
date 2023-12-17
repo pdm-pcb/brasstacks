@@ -20,7 +20,8 @@ class vkSwapchain;
 class vkRenderPass;
 class vkPipeline;
 
-class vkFrame;
+class vkFrameSync;
+class vkFramebuffer;
 
 /**
  * @brief The Vulkan rendering backend.
@@ -81,22 +82,30 @@ private:
      * At most, this queue will be of size 1 + the number of images available
      * from the swapchain. Each time a new image is requested, a semaphore is
      * removed from the queue, provided to the swapchain, and then stored in a
-     * vkFrame object. If the vkFrame object being used already had an image
+     * vkFrameSync object. If the vkFrameSync object being used already had an image
      * acquire semaphore, the old one is returned to this queue.
      */
     std::queue<vk::Semaphore> _image_acquire_sems;
 
     /**
-     * @brief A collection of frame synchronization objects.
+     * @brief A collection of frame synchronization objects
      */
-    std::vector<vkFrame *> _frames;
+    std::vector<vkFrameSync *> _frame_sync;
+
+    /**
+     * @brief A collection of framebuffers associated with swapchain images
+     */
+    std::vector<vkFramebuffer *> _framebuffers;
 
     /**
      * @brief The index of the swapchain's next available image. This value is
-     * also used to index Renderer's internal vkFrame objects.
+     * also used to index Renderer's internal vkFrameSync objects.
      */
     uint32_t _next_image_index;
 
+    /**
+     * @brief Create the frame sync and other per-frame data
+     */
     void _create_frame_data();
 };
 

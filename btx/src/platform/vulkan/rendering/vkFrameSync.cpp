@@ -1,4 +1,4 @@
-#include "brasstacks/platform/vulkan/rendering/vkFrame.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
@@ -8,7 +8,38 @@
 namespace btx {
 
 // =============================================================================
-void vkFrame::wait_and_reset() const {
+vkFrameSync::vkFrameSync(vkDevice const &device) :
+    _device            { device },
+    _queue_fence       { nullptr },
+    _image_acquire_sem { nullptr },
+    _cmds_complete_sem { nullptr },
+    _cmd_pool          { nullptr },
+    _cmd_buffer        { nullptr }
+{
+    _create_sync_primitives();
+    _create_cmd_structures();
+}
+
+// =============================================================================
+vkFrameSync::~vkFrameSync() {
+    delete _cmd_buffer;
+    delete _cmd_pool;
+
+    BTX_TRACE("\nDestroying frame sync primitives:"
+              "\n\tdevice queue fence          {:#x}"
+              "\n\timage acquire semaphore     {:#x}"
+              "\n\tcommands complete semaphore {:#x}",
+              reinterpret_cast<uint64_t>(VkFence(_queue_fence)),
+              reinterpret_cast<uint64_t>(VkSemaphore(_image_acquire_sem)),
+              reinterpret_cast<uint64_t>(VkSemaphore(_cmds_complete_sem)));
+
+    _device.native().destroyFence(_queue_fence);
+    _device.native().destroySemaphore(_image_acquire_sem);
+    _device.native().destroySemaphore(_cmds_complete_sem);
+}
+
+// =============================================================================
+void vkFrameSync::wait_and_reset() const {
     auto const result = _device.native().waitForFences(
         _queue_fence,
         VK_TRUE,
@@ -22,46 +53,11 @@ void vkFrame::wait_and_reset() const {
     }
 
     _device.native().resetFences(_queue_fence);
-
     _device.native().resetCommandPool(_cmd_pool->native());
 }
 
 // =============================================================================
-vkFrame::vkFrame(vkDevice const &device, vkRenderPass const &render_pass,
-                 vk::Extent2D const &extent, vk::ImageView const &image_view) :
-    _device            { device },
-    _image_acquire_sem { nullptr }
-{
-    _create_sync_primitives();
-    _create_cmd_structures();
-
-    _framebuffer = new vkFramebuffer(_device, render_pass, extent, image_view);
-}
-
-vkFrame::~vkFrame() {
-    delete _framebuffer;
-
-    delete _cmd_buffer;
-    delete _cmd_pool;
-
-    BTX_TRACE("\nDestroying frame sync primitives:"
-              "\n\tdevice queue fence          {:#x}"
-              "\n\timage acquire semaphore     {:#x}"
-              "\n\tcommands complete semaphore {:#x}",
-              reinterpret_cast<uint64_t>(VkFence(_queue_fence)),
-              reinterpret_cast<uint64_t>(VkSemaphore(_image_acquire_sem)),
-              reinterpret_cast<uint64_t>(VkSemaphore(_cmds_complete_sem)));
-
-    _device.native().destroyFence(_queue_fence);
-    _device.native().destroySemaphore(_cmds_complete_sem);
-
-    if(_image_acquire_sem != nullptr) {
-        _device.native().destroySemaphore(_image_acquire_sem);
-    }
-}
-
-// =============================================================================
-void vkFrame::_create_cmd_structures() {
+void vkFrameSync::_create_cmd_structures() {
     _cmd_pool =
         new vkCmdPool(_device, vk::CommandPoolCreateFlagBits::eTransient);
 
@@ -69,7 +65,7 @@ void vkFrame::_create_cmd_structures() {
 }
 
 // =============================================================================
-void vkFrame::_create_sync_primitives() {
+void vkFrameSync::_create_sync_primitives() {
     vk::FenceCreateInfo const fence_info {
         .pNext = nullptr,
         .flags = vk::FenceCreateFlagBits::eSignaled
@@ -83,6 +79,15 @@ void vkFrame::_create_sync_primitives() {
     }
 
     _queue_fence = fence_result.value;
+
+    auto img_sem_result = _device.native().createSemaphore({ });
+    if(img_sem_result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Unable to create semaphore: '{}'",
+                        vk::to_string(img_sem_result.result));
+        return;
+    }
+
+    _image_acquire_sem = img_sem_result.value;
 
     auto const cmd_sem_result = _device.native().createSemaphore({ });
     if(cmd_sem_result.result != vk::Result::eSuccess) {

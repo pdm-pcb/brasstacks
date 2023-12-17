@@ -48,6 +48,7 @@ vkImageView::vkImageView(vkDevice const &device, vk::Image const &image,
               reinterpret_cast<uint64_t>(::VkImage(_image)));
 }
 
+// =============================================================================
 vkImageView::~vkImageView() {
     BTX_TRACE("Destroying view {:#x} for image {:#x}",
               reinterpret_cast<uint64_t>(::VkImageView(_handle)),

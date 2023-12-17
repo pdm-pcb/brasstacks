@@ -7,15 +7,70 @@
 #include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFrame.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
 namespace btx {
+
+// =============================================================================
+vkSwapchain::vkSwapchain(vkPhysicalDevice const &physical_device,
+                         vkSurface const &surface,
+                         vkDevice const &device) :
+    _device          { device },
+    _render_area     { },
+    _image_format    { },
+    _present_mode    { },
+    _handle          { nullptr },
+    _image_views     { }
+{
+    // Grab the supported image counts, resolutions, etc from the surface
+    _query_surface_capabilities(physical_device.native(), surface.native());
+
+    // This swapchain's images will have the same formatting as the provided
+    // surface
+    _query_surface_format(physical_device.native(), surface.native());
+
+    // The surface also determines the presentation engine modes we can choose
+    // from
+    _query_surface_present_modes(physical_device.native(), surface.native());
+
+    // Build out the create info struct
+    auto const create_info = _populate_create_info(surface.native());
+
+    // Finally, create the swapchain
+    auto const result = _device.native().createSwapchainKHR(create_info);
+    if(result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to create swapchain: '{}'",
+                     vk::to_string(result.result));
+        return;
+    }
+
+    _handle = result.value;
+    BTX_TRACE("Created swapchain {:#x}",
+              reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle)));
+
+    // Now that we've got it, create some views associated with the swapchain
+    // images
+    _get_swapchain_images();
+}
+
+// =============================================================================
+vkSwapchain::~vkSwapchain() {
+    for(auto *view : _image_views) {
+        delete view;
+    }
+
+    BTX_TRACE("Destroying swapchain {:#x}",
+              reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle)));
+
+    _device.native().destroy(_handle);
+}
 
 // =============================================================================
 uint32_t vkSwapchain::acquire_next_image_index(vk::Semaphore const &semaphore) {
     uint32_t next_image_index;
 
-    // Request the next image index, and provide the semaphore we just popped
+    // Request the next image index and signal the provided semaphore when the
+    // acquisition is complete
     auto const result = _device.native().acquireNextImageKHR(
         _handle,
         std::numeric_limits<uint64_t>::max(),
@@ -28,7 +83,7 @@ uint32_t vkSwapchain::acquire_next_image_index(vk::Semaphore const &semaphore) {
         if(result == vk::Result::eSuboptimalKHR ||
            result == vk::Result::eErrorOutOfDateKHR)
         {
-            BTX_ERROR("Recreate swapchain: {}", vk::to_string(result));
+            BTX_CRITICAL("Recreate swapchain: {}", vk::to_string(result));
         }
         else {
             BTX_CRITICAL("Could not acquire next swapchain image: '{}",
@@ -36,11 +91,12 @@ uint32_t vkSwapchain::acquire_next_image_index(vk::Semaphore const &semaphore) {
         }
     }
 
+    // Return the index of the image that'll be safe to write next
     return next_image_index;
 }
 
 // =============================================================================
-void vkSwapchain::present(vkFrame const &frame, uint32_t const image_index) {
+void vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index) {
     // This present call will wait on frame.cmds_complete_sem to ensure the
     // submitted batch of commands has finished
     vk::PresentInfoKHR const present_info {
@@ -67,60 +123,11 @@ void vkSwapchain::present(vkFrame const &frame, uint32_t const image_index) {
 }
 
 // =============================================================================
-vkSwapchain::vkSwapchain(vkPhysicalDevice const &adapter,
-                         vkSurface const &surface,
-                         vkDevice const &device) :
-
-    _adapter          { adapter },
-    _surface          { surface },
-    _device           { device },
-    _render_area      { },
-    _image_format     { },
-    _color_space      { },
-    _present_mode     { },
-    _handle           { nullptr },
-    _image_views      { }
+void vkSwapchain::_query_surface_capabilities(
+    vk::PhysicalDevice const &physical_device,
+    vk::SurfaceKHR const &surface)
 {
-    _query_surface_capabilities();
-    _query_surface_format();
-    _query_surface_present_modes();
-
-    vk::SwapchainCreateInfoKHR create_info { };
-    _populate_create_info(create_info);
-
-    // Finally, create the swapchain
-    auto const result = _device.native().createSwapchainKHR(create_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create swapchain: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
-    BTX_TRACE("Created swapchain {:#x}",
-              reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle)));
-
-    // Now that we've got a swapchain, we want to be able to interact with the
-    // images it can present
-    _get_swapchain_images();
-}
-
-vkSwapchain::~vkSwapchain() {
-    for(auto *view : _image_views) {
-        delete view;
-    }
-
-    BTX_TRACE("Destroying swapchain {:#x}",
-              reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle)));
-
-    _device.native().destroy(_handle);
-}
-
-// =============================================================================
-void vkSwapchain::_query_surface_capabilities() {
-    auto const result =
-        _adapter.native().getSurfaceCapabilitiesKHR(_surface.native());
-
+    auto const result = physical_device.getSurfaceCapabilitiesKHR(surface);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not get surface capabilities: '{}'",
                      vk::to_string(result.result));
@@ -147,21 +154,19 @@ void vkSwapchain::_query_surface_capabilities() {
         capabilities.maxImageArrayLayers
     );
 
+    // We intend to draw to the whole surface
     _render_area.extent = capabilities.currentExtent;
 
-    if(RenderConfig::vsync_on) {
-        _image_views.resize(3);
-    }
-    else {
-        _image_views.resize(capabilities.minImageCount);
-    }
+    // One extra frame to keep the CPU busy
+    _image_views.resize(capabilities.minImageCount + 1);
 }
 
 // =============================================================================
-void vkSwapchain::_query_surface_format() {
-    auto const result =
-        _adapter.native().getSurfaceFormatsKHR(_surface.native());
-
+void vkSwapchain::_query_surface_format(
+    vk::PhysicalDevice const &physical_device,
+    vk::SurfaceKHR const &surface)
+{
+    auto const result = physical_device.getSurfaceFormatsKHR(surface);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not get surface formats: '{}'",
                       vk::to_string(result.result));
@@ -171,16 +176,18 @@ void vkSwapchain::_query_surface_format() {
     auto const &formats = result.value;
     BTX_TRACE("Found {} surface formats.", formats.size());
 
-    bool found_desired = false;
+    // These format details were chosen to produce the most intuitive and/or
+    // predictable results on the average desktop disaply
     auto const desired_format = vk::Format::eB8G8R8A8Unorm;
     auto const deisred_space = vk::ColorSpaceKHR::eSrgbNonlinear;
+
+    bool found_desired = false;
 
     for(auto const& format : formats) {
         if(format.format == desired_format &&
            format.colorSpace == deisred_space)
         {
-            _image_format = format.format;
-            _color_space  = format.colorSpace;
+            _image_format = format;
             found_desired = true;
         }
 
@@ -192,25 +199,27 @@ void vkSwapchain::_query_surface_format() {
     }
 
     if(!found_desired) {
-        _image_format = formats[0].format;
-        _color_space  = formats[0].colorSpace;
+        // In the event that our desired combination isn't found, just go with
+        // whatever the implementation has as its first result
+        _image_format = formats[0];
 
         BTX_WARN(
             "Could not find desired swapchain surface format/color space of "
             "{} / {}. Defaulting instead to {} / {}.",
             vk::to_string(desired_format),
             vk::to_string(deisred_space),
-            vk::to_string(_image_format),
-            vk::to_string(_color_space)
+            vk::to_string(_image_format.format),
+            vk::to_string(_image_format.colorSpace)
         );
     }
 }
 
 // =============================================================================
-void vkSwapchain::_query_surface_present_modes() {
-    auto const result =
-        _adapter.native().getSurfacePresentModesKHR(_surface.native());
-
+void vkSwapchain::_query_surface_present_modes(
+    vk::PhysicalDevice const &physical_device,
+    vk::SurfaceKHR const &surface)
+{
+    auto const result = physical_device.getSurfacePresentModesKHR(surface);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not query surface present modes: '{}'",
                      vk::to_string(result.result));
@@ -220,11 +229,11 @@ void vkSwapchain::_query_surface_present_modes() {
     auto const &modes = result.value;
     BTX_TRACE("Found {} present modes.", modes.size());
 
-    bool has_fifo_relaxed = false;
-    bool has_fifo         = false;
-    bool has_immediate    = false;
+    // This is the order of preference for present modes:
+    bool has_fifo_relaxed = false;  // V-Sync on, but with some latency tweaks
+    bool has_fifo         = false;  // Strict V-Sync
+    bool has_immediate    = false;  // V-Sync off; draw as fast as possible
 
-    // iterate available modes, noting what we've got
     for(auto const mode : modes) {
         BTX_TRACE("    {}", vk::to_string(mode));
         if(mode == vk::PresentModeKHR::eFifoRelaxed) {
@@ -238,6 +247,8 @@ void vkSwapchain::_query_surface_present_modes() {
         }
     }
 
+    // Use a FIFO variant if they're available and V-Sync has been chosen by
+    // the user
     if(has_fifo_relaxed && RenderConfig::vsync_on) {
         _present_mode = vk::PresentModeKHR::eFifoRelaxed;
     }
@@ -245,7 +256,7 @@ void vkSwapchain::_query_surface_present_modes() {
         _present_mode = vk::PresentModeKHR::eFifo;
     }
     else if(RenderConfig::vsync_on) {
-        BTX_WARN("VSync requested but the available present modes don't "
+        BTX_WARN("V-Sync requested but the available present modes don't "
                  "support it.");
     }
     else if(has_immediate) {
@@ -258,49 +269,9 @@ void vkSwapchain::_query_surface_present_modes() {
 }
 
 // =============================================================================
-void vkSwapchain::_populate_create_info(vk::SwapchainCreateInfoKHR &create_info) {
-    create_info = {
-        .surface         = _surface.native(),
-        .minImageCount   = static_cast<uint32_t>(_image_views.size()),
-        .imageFormat     = _image_format,
-        .imageColorSpace = _color_space,
-        .imageExtent     = _render_area.extent,
-
-        // Image array layers will always be one, except in the case of a
-        // device with displays interested in the same swapchain, like a VR
-        // headset
-        .imageArrayLayers = 1u,
-
-        // Marking the images in this swapchain as color attachments means they
-        // can be used to draw the scene into
-        .imageUsage = vk::ImageUsageFlagBits::eColorAttachment,
-
-        // We don't need to worry about sharing images between queues
-        .imageSharingMode = vk::SharingMode::eExclusive,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr,
-
-        // Transforms are what you'd expect: the image can be flipped, rotated,
-        // etc. Leaving it alone gets us what we want for now.
-        .preTransform = vk::SurfaceTransformFlagBitsKHR::eIdentity,
-
-        // Working with transparency and blending will come later
-        .compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
-
-        // Store the selected presentation mode
-        .presentMode = _present_mode,
-
-        // Setting clipped to true allows Vulkan to ignore pixels on the render
-        // surface that can't be seen. For example, moving a window in front
-        // of the render surface.
-        .clipped = 1u,
-
-        // There are situations during which you'll want to recreate the
-        // swapchain from scratch. Providing the previous swapchain aids this
-        // process.
-        .oldSwapchain = nullptr,
-    };
-
+vk::SwapchainCreateInfoKHR
+vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
+{
     BTX_TRACE(
         "\nSwapchain Create Info:"
         "\n    Extent:       {}x{}"
@@ -312,10 +283,54 @@ void vkSwapchain::_populate_create_info(vk::SwapchainCreateInfoKHR &create_info)
         _render_area.extent.width, _render_area.extent.height,
         _render_area.offset.x, _render_area.offset.y,
         _image_views.size(),
-        vk::to_string(_image_format),
-        vk::to_string(_color_space),
+        vk::to_string(_image_format.format),
+        vk::to_string(_image_format.colorSpace),
         vk::to_string(_present_mode)
     );
+
+    return {
+        .surface         = surface,
+        .minImageCount   = static_cast<uint32_t>(_image_views.size()),
+        .imageFormat     = _image_format.format,
+        .imageColorSpace = _image_format.colorSpace,
+        .imageExtent     = _render_area.extent,
+
+        // Image array layers will always be one, except in the case of a
+        // device with multiple displays interested in the same swapchain, like
+        // a VR headset
+        .imageArrayLayers = 1u,
+
+        // Marking the images in this swapchain as color attachments means they
+        // can be used to draw into
+        .imageUsage = vk::ImageUsageFlagBits::eColorAttachment,
+
+        // We don't need to worry about sharing images between queues because
+        // vkPhysicalDevice insisted on having a queue family that could accept
+        // both graphics and present commands
+        .imageSharingMode = vk::SharingMode::eExclusive,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+
+        // Transforms are what you'd expect: the image can be flipped, rotated,
+        // etc. Leaving it alone gets us what we want for now.
+        .preTransform = vk::SurfaceTransformFlagBitsKHR::eIdentity,
+
+        // No support for transparency or color blending for now
+        .compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
+
+        // Store the selected present mode
+        .presentMode = _present_mode,
+
+        // Setting clipped to true allows Vulkan to ignore pixels on the render
+        // surface that can't be seen. For example, moving another window in
+        // front of the render surface
+        .clipped = 1u,
+
+        // There are situations during which you'll want to recreate the
+        // swapchain, and providing an existing example can speed up the
+        // process.
+        .oldSwapchain = nullptr,
+    };
 }
 
 // =============================================================================
@@ -340,7 +355,7 @@ void vkSwapchain::_get_swapchain_images() {
         _image_views[i] = new vkImageView(
             _device,
             swapchain_images[i],
-            _image_format,
+            _image_format.format,
             vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor
         );
