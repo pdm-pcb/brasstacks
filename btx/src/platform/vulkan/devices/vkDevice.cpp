@@ -45,7 +45,7 @@ vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
     );
 
     // Check that we've got good results to work with
-    if(result != vk::Result::eSuccess || _handle == nullptr) {
+    if(result != vk::Result::eSuccess || !_handle) {
         BTX_CRITICAL("Unable to create logical device: '{}'",
                      vk::to_string(result));
         return;

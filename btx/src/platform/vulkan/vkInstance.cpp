@@ -40,7 +40,11 @@ vkInstance::vkInstance(uint32_t const api_version) :
         // the pNext member of vk::InstanceCreateInfo must point to the
         // structure assembled above.
         const vk::InstanceCreateInfo instance_info {
+#ifdef BTX_DEBUG
             .pNext = reinterpret_cast<void *>(&_validation_extensions),
+#else
+            .pNext = nullptr,
+#endif // BTX_DEBUG
             .flags = { },
             .pApplicationInfo = &_app_info,
             .enabledLayerCount =
@@ -137,7 +141,7 @@ void vkInstance::_init_extensions() {
 #endif // BTX platform
 
 #ifdef BTX_DEBUG
-    // The first steps toward giving the drive a path to keep us abreast of
+    // The first steps toward giving the driver a path to keep us abreast of
     // myriad details.
     _enabled_extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     _enabled_extensions.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
@@ -155,7 +159,6 @@ void vkInstance::_init_extensions() {
 
         // vk::ValidationFeatureEnableEXT::eDebugPrintf,
     };
-#endif // BTX_DEBUG
 
     _validation_extensions = {
         .enabledValidationFeatureCount =
@@ -164,6 +167,7 @@ void vkInstance::_init_extensions() {
         .disabledValidationFeatureCount = 0u,
         .pDisabledValidationFeatures = nullptr
     };
+#endif // BTX_DEBUG
 
     for(auto const& extension : _enabled_extensions) {
         BTX_TRACE("Requesting instance extension '{}'", extension);

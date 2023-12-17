@@ -47,7 +47,7 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance    const &instance,
         break;
     }
 
-    if(_chosen_device.handle == nullptr) {
+    if(!_chosen_device.handle) {
         BTX_CRITICAL("Could not find suitable phsyical device.");
         return;
     }
