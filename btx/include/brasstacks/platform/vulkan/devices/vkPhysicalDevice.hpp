@@ -1,3 +1,8 @@
+/**
+ * @file vkPhysicalDevice.hpp
+ * @brief A wrapper class for Vulkan's idea of a physical GPU.
+ */
+
 #ifndef BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKPHYSICALDEVICE_HPP
 #define BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKPHYSICALDEVICE_HPP
 
@@ -8,44 +13,80 @@ namespace btx {
 class vkInstance;
 class vkSurface;
 
+/**
+ * @brief A wrapper class for Vulkan's idea of a physical GPU.
+ *
+ * This class is a glorified collection of details. It enumerates the GPUs the
+ * Vulkan instance can find, then sorts them with a preference for dGPUs and
+ * VRAM. It then goes through the list of available devices and chooses the
+ * first one it comes across that satisfy the following criteria:
+ *
+ *  - Support for graphics and present commands in the same queue family
+ *  - Support for all required features
+ *  - Support for all required extensions
+ *
+ * Once the selection process is complete, the properties of the chosen GPU are
+ * saved for later systems to query.
+ */
 class vkPhysicalDevice final {
 public:
+    /**
+     * @brief A means by which to request physical device features.
+     */
     enum class Features {
         SAMPLER_ANISOTROPY,
         FILL_MODE_NONSOLID,
     };
-
-    using ExtensionList = std::vector<std::string_view>;
     using FeatureList = std::vector<Features>;
 
-    inline auto queue_index()          const { return _queue_index;        }
-    inline auto const & native()       const { return _handle;             }
-    inline auto const & memory_props() const { return _memory_properties;  }
-    inline auto const & features()     const { return _enabled_features;   }
-    inline auto const & extensions()   const { return _enabled_extensions; }
-    inline auto depth_format()         const { return _depth_format;       }
+    /**
+     * @brief A means by which to request physical device extensions.
+     */
+    using ExtensionList = std::vector<std::string_view>;
 
-    inline auto max_msaa_flag() const {
-        switch(_max_msaa_samples) {
-            case 64u: return vk::SampleCountFlagBits::e64; break;
-            case 32u: return vk::SampleCountFlagBits::e32; break;
-            case 16u: return vk::SampleCountFlagBits::e16; break;
-            case 8u:  return vk::SampleCountFlagBits::e8;  break;
-            case 4u:  return vk::SampleCountFlagBits::e4;  break;
-            case 2u:  return vk::SampleCountFlagBits::e2;  break;
-            case 1u:  return vk::SampleCountFlagBits::e1;  break;
-        }
+    /**
+     * @brief Construct the vk Physical Device object.
+     * @param instance An established Vulkan instance
+     * @param surface An established Vulkan surface
+     * @param required_features A list of features the selected device must
+     * support
+     * @param required_extensions A list of extensions the selected device must
+     * support
+     */
+    vkPhysicalDevice(vkInstance    const &instance,
+                     vkSurface     const &surface,
+                     FeatureList   const &required_features,
+                     ExtensionList const &required_extensions);
 
-        BTX_WARN("Unsupported MSAA sample count {}.", _max_msaa_samples);
-        return vk::SampleCountFlagBits::e1;
+    ~vkPhysicalDevice() = default;
+
+    /**
+     * @brief Return the device queue family index.
+     * @return uint32_t
+     */
+    inline auto queue_index() const { return _chosen_device.queue_index; }
+
+    /**
+     * @brief Return a list of enabled device features.
+     * @return struct vk::PhysicalDeviceFeatures const&
+     */
+    inline auto const & features() const {
+        return _chosen_device.enabled_features;
     }
 
-    vkPhysicalDevice(vkInstance const &instance,
-                     vkSurface const &surface,
-                     ExtensionList const &required_extensions,
-                     FeatureList const &required_features,
-                     bool const order_by_perf = false);
-    ~vkPhysicalDevice() = default;
+    /**
+     * @brief Return a list of enabled device features.
+     * @return struct vk::PhysicalDeviceFeatures const&
+     */
+    inline auto const & extensions() const {
+        return _chosen_device.enabled_extensions;
+    }
+
+    /**
+     * @brief Return the native Vulkan handle.
+     * @return vk::PhysicalDevice const&
+     */
+    inline auto const & native() const { return _chosen_device.handle; }
 
     vkPhysicalDevice() = delete;
 
@@ -56,55 +97,86 @@ public:
     vkPhysicalDevice & operator=(const vkPhysicalDevice &) = delete;
 
 private:
+    /**
+     * @brief Details of a given device
+     */
     struct DeviceProps {
         std::string name;
-        std::size_t vram_bytes = 0;
-        std::uint8_t max_samples = 0u;
-        float max_aniso = 0.0f;
         std::string driver_version;
         std::string vkapi_version;
-        vk::PhysicalDevice device = nullptr;
+
+        size_t vram_bytes = 0;
+        uint32_t queue_index = std::numeric_limits<uint32_t>::max();
+
+        vk::PhysicalDevice handle = nullptr;
         vk::PhysicalDeviceType type = vk::PhysicalDeviceType::eOther;
+
         vk::PhysicalDeviceMemoryProperties memory { };
+
+        vk::PhysicalDeviceFeatures enabled_features;
+        std::vector<char const *> enabled_extensions;
     };
 
-    using DeviceList = std::vector<DeviceProps>;
-    DeviceList _available_devices;
+    /**
+     * @brief A list of devices to choose from
+     */
+    std::vector<DeviceProps> _available_devices;
 
-    std::uint32_t _queue_index;
-    vk::Format    _depth_format;
-    std::uint32_t _max_msaa_samples;
-    float         _anisotropy;
+    /**
+     * @brief The details of the device that supported provided requirements
+     */
+    DeviceProps _chosen_device;
 
-    vk::PhysicalDeviceMemoryProperties _memory_properties;
-    vk::PhysicalDeviceFeatures         _enabled_features;
-    std::vector<char const *>          _enabled_extensions;
+    /**
+     * @brief Make a list of phsyical devices available via this instance
+     * @param instance An established Vulkan instance
+     */
+    void _enumerate_and_sort(vkInstance const &instance);
 
-    vk::PhysicalDevice _handle;
+    /**
+     * @brief Check if a device supports graphics and present commands within
+     * a single queue family
+     * @param device The device to check
+     * @param surface The surface is required to check for presentat support
+     * @return true If the device does support graphics and present commands
+     * within a single queue family
+     * @return false If the device does not support graphics and present
+     * commands within a single queue family
+     */
+    bool _check_queue_families(DeviceProps &device, vkSurface const &surface);
 
-    void _select_device(vkSurface const &surface);
+    /**
+     * @brief Check if a device supports a given list of features
+     * @param device The device to check
+     * @param required_features The features the device must support
+     * @return true If the device supports all of the features
+     * @return false If the device does not support all of the features
+     */
+    bool _check_features(DeviceProps &device,
+                         FeatureList const &required_features);
 
-    bool _check_features(
-        vk::PhysicalDeviceFeatures const &supported_features,
-        FeatureList const &required_features
-    );
+    /**
+     * @brief Check if a device supports a given list of extensions
+     * @param device The device to check
+     * @param required_extensions The extensions the device must support
+     * @return true If the device supports all of the extensions
+     * @return false If the device does not support all of the extensions
+     */
+    bool _check_extensions(DeviceProps &device,
+                           ExtensionList const &required_extensions);
 
-    bool _check_extensions(
-        std::vector<vk::ExtensionProperties> const &supported_extensions,
-        ExtensionList const &required_extensions
-    );
+    /**
+     * @brief Populate a DeviceProps struct and add it to _available_devices
+     * @param device The native Vulkan device handle
+     */
+    void _store_device(vk::PhysicalDevice const &device);
 
-    bool _check_depth_format(vk::PhysicalDevice const &device);
-
-    void _store_device(
-        const vk::PhysicalDevice &device,
-        const vk::PhysicalDeviceProperties &properties,
-        const vk::PhysicalDeviceMemoryProperties &memory,
-        const vk::PhysicalDeviceDriverProperties &drivers
-    );
-
-    void _print_family_flags(uint32_t const family,
-                                    const vk::QueueFlags flags);
+    /**
+     * @brief Log queue family capabilities
+     * @param family Queue family index
+     * @param flags Flags indicating this queue family's abilites
+     */
+    void _print_family_flags(uint32_t const family, vk::QueueFlags const flags);
 };
 
 } // namespace btx

@@ -5,7 +5,7 @@
 
 namespace btx {
 
-using Keycode = std::uint32_t;
+using Keycode = uint32_t;
 
 static constexpr Keycode BTX_KB_UNKNOWN       = ~0u;
 

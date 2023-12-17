@@ -10,27 +10,6 @@
 namespace btx {
 
 // =============================================================================
-void Win32TargetWindow::show_window() {
-    ::ShowWindow(_window_handle, SW_SHOWNORMAL);
-}
-
-// =============================================================================
-void Win32TargetWindow::hide_window() {
-    ::ShowWindow(_window_handle, SW_HIDE);
-}
-
-// =============================================================================
-void Win32TargetWindow::message_loop() {
-    static ::MSG message;
-    ::memset(&message, 0, sizeof(::MSG));
-
-    // Run through available messages from the OS
-    while(::PeekMessage(&message, _window_handle, 0u, 0u, PM_REMOVE) != 0) {
-        ::DispatchMessage(&message);
-    }
-}
-
-// =============================================================================
 Win32TargetWindow::Win32TargetWindow(std::string_view const app_name,
                                      Dimensions const &dimensions,
                                      Position const &position) :
@@ -61,14 +40,14 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name,
     // Testing for the primary display's resolution this way feels brittle,
     // but it does work for the average use case
     _screen_size = {
-        static_cast<std::uint32_t>(::GetSystemMetrics(SM_CXSCREEN)),
-        static_cast<std::uint32_t>(::GetSystemMetrics(SM_CYSCREEN))
+        static_cast<uint32_t>(::GetSystemMetrics(SM_CXSCREEN)),
+        static_cast<uint32_t>(::GetSystemMetrics(SM_CYSCREEN))
     };
 
     // Hold on to the screen's center for later
     _screen_center = {
-        static_cast<std::int32_t>(_screen_size.width / 2),
-        static_cast<std::int32_t>(_screen_size.height / 2)
+        static_cast<int32_t>(_screen_size.width / 2),
+        static_cast<int32_t>(_screen_size.height / 2)
     };
 
     _register_class();
@@ -78,10 +57,32 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name,
     show_window();
 }
 
+// =============================================================================
 Win32TargetWindow::~Win32TargetWindow() {
     _destroy_window();
     // Clean up our one allocation
     delete[] _raw_msg;
+}
+
+// =============================================================================
+void Win32TargetWindow::show_window() {
+    ::ShowWindow(_window_handle, SW_SHOWNORMAL);
+}
+
+// =============================================================================
+void Win32TargetWindow::hide_window() {
+    ::ShowWindow(_window_handle, SW_HIDE);
+}
+
+// =============================================================================
+void Win32TargetWindow::message_loop() {
+    static ::MSG message;
+    ::memset(&message, 0, sizeof(::MSG));
+
+    // Run through available messages from the OS
+    while(::PeekMessage(&message, _window_handle, 0u, 0u, PM_REMOVE) != 0) {
+        ::DispatchMessage(&message);
+    }
 }
 
 // =============================================================================
@@ -183,7 +184,7 @@ void Win32TargetWindow::_create_window() {
         return;
     }
 
-    BTX_TRACE("Created win32 target window");
+    BTX_INFO("Created win32 target window");
 }
 
 // =============================================================================

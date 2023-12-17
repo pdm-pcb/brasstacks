@@ -9,12 +9,39 @@
 namespace btx {
 
 // =============================================================================
+Application::Application(std::string_view const app_name) :
+    _running { true }
+{
+    // Events can start firing potentially as soon as we let TargetWindow run
+    // its message loop
+    EventBroker::init();
+
+    // Instantiate the platform window and renderer backend
+    _target_window = TargetWindow::create(app_name);
+    _renderer = new Renderer(*_target_window);
+}
+
+Application::~Application() {
+    // Kill Events first so nothing unexpected pops up during destruction
+    EventBroker::shutdown();
+
+    delete _renderer;
+    delete _target_window;
+}
+
+// =============================================================================
 void Application::run() {
+    // Application uses key releases to controll its running state
+    EventBroker::subscribe<KeyReleaseEvent>(this, &Application::on_key_release);
+
+    // Give the user a chance to bring up their data
     this->init();
 
     while(_running) {
+        // Have the client do per-frame processing and submit draw calls
         this->update();
 
+        // Let the renderer go to town on a frame
         _renderer->acquire_next_frame();
         _renderer->record_commands();
         _renderer->submit_commands();
@@ -22,11 +49,13 @@ void Application::run() {
         _target_window->message_loop();
     }
 
+    // Give the user a chance to clean up
     this->shutdown();
 }
 
 // =============================================================================
 void Application::on_key_release(KeyReleaseEvent const &event) {
+    // For now, a hard-coded check against Esc is how Application terminates
     if(event.code == BTX_KB_ESCAPE) {
         _running = false;
     }
@@ -34,32 +63,8 @@ void Application::on_key_release(KeyReleaseEvent const &event) {
 
 // =============================================================================
 void Application::request_draw() {
+    // A simple passthrough until things get more configurable
     _renderer->request_draw();
-}
-
-// =============================================================================
-Application::Application(std::string_view const app_name) :
-    _running { true }
-{
-    ConsoleLog::init();
-
-    EventBroker::init();
-    EventBroker::subscribe<KeyReleaseEvent>(
-        this,
-        &Application::on_key_release
-    );
-
-    _target_window = TargetWindow::create(app_name);
-    _renderer = new Renderer(*_target_window);
-}
-
-Application::~Application() {
-    // Kill the event broker first so nothing unexpected pops up during
-    // shutdown
-    EventBroker::shutdown();
-
-    delete _renderer;
-    delete _target_window;
 }
 
 } // namespace btx

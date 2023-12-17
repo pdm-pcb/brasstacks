@@ -9,8 +9,8 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 namespace btx {
 
 // =============================================================================
-vkInstance::vkInstance() :
-    _target_api_version { VK_API_VERSION_1_2 }
+vkInstance::vkInstance(uint32_t const api_version) :
+    _target_api_version { api_version }
 {
     static std::once_flag initialized;
     std::call_once(initialized, [&] {
@@ -31,6 +31,8 @@ vkInstance::vkInstance() :
         // Run through the extensions the driver offers and make sure we've got
         // what we need
         if(!_check_extensions(extensions)) {
+            BTX_CRITICAL("Could not get support for all requested instance "
+                         "extensions.");
             return;
         }
 
@@ -42,10 +44,10 @@ vkInstance::vkInstance() :
             .flags = { },
             .pApplicationInfo = &_app_info,
             .enabledLayerCount =
-                static_cast<std::uint32_t>(_enabled_layers.size()),
+                static_cast<uint32_t>(_enabled_layers.size()),
             .ppEnabledLayerNames = _enabled_layers.data(),
             .enabledExtensionCount =
-                static_cast<std::uint32_t>(_enabled_extensions.size()),
+                static_cast<uint32_t>(_enabled_extensions.size()),
             .ppEnabledExtensionNames = _enabled_extensions.data()
         };
 
@@ -91,16 +93,19 @@ vkInstance::~vkInstance() {
 
 // =============================================================================
 void vkInstance::_init_dynamic_loader() {
-    using inst_proc = PFN_vkGetInstanceProcAddr; // A little brevity
-    auto vkGetInstanceProcAddr = _loader.getProcAddress<inst_proc>(
+    using instance_proc = PFN_vkGetInstanceProcAddr;
+
+    // The dynamic loader needs something to boostrap itself, so provide it a
+    // pointer to find the instance at least
+    auto vkGetInstanceProcAddr = _loader.getProcAddress<instance_proc>(
         "vkGetInstanceProcAddr"
     );
-    // Bootstrap the auto-loader
+
+    // Now we're ready to let it run
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 }
 
 // =============================================================================
-// Several static constexpr values loaded in from the central header
 void vkInstance::_init_app_info() {
     _app_info.pApplicationName   = nullptr;
     _app_info.applicationVersion = 0u;
@@ -142,23 +147,19 @@ void vkInstance::_init_extensions() {
         vk::ValidationFeatureEnableEXT::eGpuAssisted,
         vk::ValidationFeatureEnableEXT::eGpuAssistedReserveBindingSlot,
         vk::ValidationFeatureEnableEXT::eBestPractices,
+        vk::ValidationFeatureEnableEXT::eSynchronizationValidation
 
         // DebugPrintf and GpuAssisted are mutually exclusive. DebugPrintf is
         // very handy when used in conjucntion with RenderDoc, but I'm opting
         // for more self-contained guidance for now.
-        // vk::ValidationFeatureEnableEXT::eDebugPrintf,
 
-        // Last time I checked, there were false positives/bugs around
-        // synchronization validation on Linux
-        #if defined(BTX_WINDOWS)
-            vk::ValidationFeatureEnableEXT::eSynchronizationValidation
-        #endif
+        // vk::ValidationFeatureEnableEXT::eDebugPrintf,
     };
 #endif // BTX_DEBUG
 
     _validation_extensions = {
         .enabledValidationFeatureCount =
-            static_cast<std::uint32_t>(_validation_features.size()),
+            static_cast<uint32_t>(_validation_features.size()),
         .pEnabledValidationFeatures = _validation_features.data(),
         .disabledValidationFeatureCount = 0u,
         .pDisabledValidationFeatures = nullptr
@@ -171,6 +172,8 @@ void vkInstance::_init_extensions() {
 
 // =============================================================================
 bool vkInstance::_check_extensions(Extensions const &supported_extensions) {
+    bool all_extensions_supported = true;
+
     for(auto const * const ext_name : _enabled_extensions) {
         bool extension_found = false;
 
@@ -182,11 +185,11 @@ bool vkInstance::_check_extensions(Extensions const &supported_extensions) {
         }
         if(!extension_found) {
             BTX_WARN("No support for instance extension '{}'", ext_name);
-            return false;
+            all_extensions_supported = false;
         }
     }
 
-    return true;
+    return all_extensions_supported;
 }
 
 } // namespace btx

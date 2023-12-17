@@ -36,11 +36,7 @@ void vkDebugger::init(vk::Instance &instance) {
     // pointer to the API
     const vk::DebugUtilsMessengerCreateInfoEXT messenger_info {
         .messageSeverity = (
-#if defined(BTX_LINUX)
-			// I find this log level too verbose (ha) on Windows, but it can
-            // be helpful on Linux
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-#endif
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo    |
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eError
@@ -63,15 +59,13 @@ void vkDebugger::init(vk::Instance &instance) {
 
     // React accordingly
     if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL(
-            "Unable to create debug messenger: '{}'",
-            vk::to_string(result)
-        );
+        BTX_CRITICAL("Unable to create debug messenger: '{}'",
+                     vk::to_string(result));
     }
     else {
         BTX_TRACE(
             "Created vkDebugger messenger {:#x}",
-            reinterpret_cast<std::uint64_t>(
+            reinterpret_cast<uint64_t>(
                 ::VkDebugUtilsMessengerEXT(_debug_messenger)
             )
         );
@@ -82,7 +76,7 @@ void vkDebugger::init(vk::Instance &instance) {
 void vkDebugger::shutdown(vk::Instance &instance) {
     BTX_TRACE(
         "Destroying vkDebugger messenger {:#x}",
-            reinterpret_cast<std::uint64_t>(
+            reinterpret_cast<uint64_t>(
                 ::VkDebugUtilsMessengerEXT(_debug_messenger)
             )
     );

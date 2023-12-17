@@ -1,3 +1,9 @@
+/**
+ * @file Win32TargetWindow.hpp
+ * @brief The specialization of TargetWindow that supports Windows via the win32
+ * API
+ */
+
 #ifndef BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
 #define BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
 
@@ -11,19 +17,26 @@
 
 namespace btx {
 
+/**
+ * @brief The specialization of TargetWindow that supports Windows via the win32
+ * API
+ *
+ * This class extends TargetWindow and implements a single win32 window with
+ * raw input handling.
+ */
 class Win32TargetWindow final : public TargetWindow {
 public:
+    Win32TargetWindow(std::string_view const app_name,
+                      Dimensions const &dimensions,
+                      Position const &position);
+    ~Win32TargetWindow() override;
+
     void show_window() override;
     void hide_window() override;
 
     void message_loop() override;
 
     ::HWND const & native() const override { return _window_handle; }
-
-    Win32TargetWindow(std::string_view const app_name,
-                      Dimensions const &dimensions,
-                      Position const &position);
-    ~Win32TargetWindow() override;
 
     Win32TargetWindow() = delete;
 
@@ -34,7 +47,7 @@ public:
     Win32TargetWindow & operator=(Win32TargetWindow const &) = delete;
 
 private:
-    // Win32 specifics
+    // win32 specifics
     ::LPCSTR _window_title;
     ::HWND   _window_handle;
     ::HDC    _device_context;

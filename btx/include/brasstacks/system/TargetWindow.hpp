@@ -1,27 +1,68 @@
+/**
+ * @file TargetWindow.hpp
+ * @brief The base class for a window that will be drawn to.
+ */
+
 #ifndef BRASSTACKS_SYSTEM_TARGETWINDOW_HPP
 #define BRASSTACKS_SYSTEM_TARGETWINDOW_HPP
 
 #include "brasstacks/pch.hpp"
 
 namespace btx {
+
+/**
+ * @brief The base class for a window that will be drawn to.
+ *
+ * TargetWindow is inherited from by X11TargetWindow, Win32TargetWindow, etc.
+ * The static create() function wraps the platform choice in preprocessor
+ * conditionals, allowing Application to just request a window agnostically.
+ */
 class TargetWindow {
 public:
+
+    /**
+     * @brief Used to describe the shape of a TargetWindow
+     */
     struct Dimensions final {
-        std::uint32_t width = 0;
-        std::uint32_t height = 0;
+        uint32_t width = 0;
+        uint32_t height = 0;
     };
 
+    /**
+     * @brief Used to describe the location of a TargetWindow
+     */
     struct Position final {
-        std::int32_t x = 0;
-        std::int32_t y = 0;
+        int32_t x = 0;
+        int32_t y = 0;
     };
 
+    /**
+     * @brief Called by Application to instantiate a TargetWindow.
+     * @param app_name User-provided name which is applied to window titles,
+     * driver hints, and so on.
+     * @param dimensions Desired window dimensions. Defaults to 75% of the
+     * primary display's non-scaled resolution.
+     * @param position Desired window position. Defaults to centered on the
+     * primary display.
+     * @return TargetWindow*
+     */
     static TargetWindow * create(std::string_view const app_name,
                                  Dimensions const &dimensions = { 0u, 0u},
                                  Position const &position = { 0, 0 });
 
+    /**
+     * @brief Make the window visible.
+     */
     virtual void show_window() = 0;
+
+    /**
+     * @brief Stop showing the window.
+     */
     virtual void hide_window() = 0;
+
+    /**
+     * @brief Run through and process messages from the operating system.
+     */
     virtual void message_loop() = 0;
 
 #if defined(BTX_LINUX)
@@ -30,6 +71,12 @@ public:
 
 #elif defined(BTX_WINDOWS)
 
+    /**
+     * @brief Return a native win32 window handle.
+     * @return ::HWND const &
+     *
+     * This function is used by Renderer to create a Vulkan surface.
+     */
     virtual ::HWND const & native() const = 0;
 
 #endif // BTX platform

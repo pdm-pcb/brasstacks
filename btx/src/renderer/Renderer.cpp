@@ -18,6 +18,111 @@
 namespace btx {
 
 // =============================================================================
+Renderer::Renderer(TargetWindow const &target_window) :
+    _instance           { new vkInstance() },
+    _image_acquire_sems { },
+    _frames             { },
+    _next_image_index   { std::numeric_limits<uint32_t>::max() }
+{
+
+    // First, acquire the details necessary to construct a Vulkan surface from
+    // the target window
+#if defined(BTX_LINUX)
+
+    vk::XlibSurfaceCreateInfoKHR const create_info {
+      .pNext = nullptr,
+      .flags = { },
+      .dpy = nullptr,
+      .window = { }
+    };
+
+#elif defined(BTX_WINDOWS)
+
+    vk::Win32SurfaceCreateInfoKHR const create_info {
+      .pNext = nullptr,
+      .flags = { },
+      .hinstance = nullptr,
+      .hwnd = target_window.native()
+    };
+
+#endif // BTX platform
+
+    _surface = new vkSurface(*_instance, create_info);
+
+    _physical_device = new vkPhysicalDevice(
+        *_instance,
+        *_surface,
+        {
+            vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
+            vkPhysicalDevice::Features::FILL_MODE_NONSOLID,
+        },
+        {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        }
+    );
+
+    _device = new vkDevice(
+        *_physical_device
+#ifdef BTX_DEBUG
+        , { "VK_LAYER_KHRONOS_validation", }
+#endif // BTX_DEBUG
+    );
+
+    _swapchain = new vkSwapchain(*_physical_device, *_surface, *_device);
+
+    _render_pass = new vkRenderPass(*_device, _swapchain->image_format());
+
+    _pipeline = new vkPipeline(*_device);
+    (*_pipeline)
+        .module_from_spirv("shaders/demo.vert",
+                           vk::ShaderStageFlagBits::eVertex)
+        .module_from_spirv("shaders/demo.frag",
+                           vk::ShaderStageFlagBits::eFragment)
+        .describe_vertex_input({ }, { })
+        .create(
+            *_render_pass,
+            {
+                .color_formats = {
+                    _swapchain->image_format()
+                },
+                .depth_format    = vk::Format::eUndefined,
+                .viewport_extent = _swapchain->extent(),
+                .viewport_offset = _swapchain->offset(),
+                .sample_flags    = vk::SampleCountFlagBits::e1,
+            }
+        );
+
+    _create_frame_data();
+}
+
+// =============================================================================
+Renderer::~Renderer() {
+    _device->wait_idle();
+
+    for(auto *frame : _frames) {
+        delete frame;
+    }
+
+    while(!_image_acquire_sems.empty()) {
+        auto const &sem = _image_acquire_sems.front();
+
+        BTX_TRACE("Destroying image acquire semaphore {:#x}",
+                  reinterpret_cast<uint64_t>(VkSemaphore(sem)));
+        _device->native().destroySemaphore(sem);
+
+        _image_acquire_sems.pop();
+    }
+
+    delete _pipeline;
+    delete _render_pass;
+    delete _swapchain;
+    delete _device;
+    delete _physical_device;
+    delete _surface;
+    delete _instance;
+}
+
+// =============================================================================
 void Renderer::acquire_next_frame() {
     if(_image_acquire_sems.empty()) {
         BTX_CRITICAL("Swapchain ran out of image acquire semaphores.");
@@ -111,108 +216,6 @@ void Renderer::submit_commands() {
 // =============================================================================
 void Renderer::present_image() {
     _swapchain->present(*_frames[_next_image_index], _next_image_index);
-}
-
-// =============================================================================
-Renderer::Renderer(TargetWindow const &target_window) :
-    _instance           { new vkInstance() },
-    _image_acquire_sems { },
-    _frames             { },
-    _next_image_index   { std::numeric_limits<uint32_t>::max() }
-{
-
-#if defined(BTX_LINUX)
-
-    vk::XlibSurfaceCreateInfoKHR const create_info {
-      .pNext = nullptr,
-      .flags = { },
-      .dpy = nullptr,
-      .window = { }
-    };
-
-#elif defined(BTX_WINDOWS)
-
-    vk::Win32SurfaceCreateInfoKHR const create_info {
-      .pNext = nullptr,
-      .flags = { },
-      .hinstance = nullptr,
-      .hwnd = target_window.native()
-    };
-
-#endif // BTX platform
-
-    _surface = new vkSurface(*_instance, create_info);
-
-    _adapter = new vkPhysicalDevice(
-        *_instance,
-        *_surface,
-        {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME
-        },
-        {
-            vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
-            vkPhysicalDevice::Features::FILL_MODE_NONSOLID,
-        },
-        true // Prefer dGPUs and more VRAM
-    );
-
-    _device = new vkDevice(
-        *_adapter
-#ifdef BTX_DEBUG
-        , { "VK_LAYER_KHRONOS_validation", }
-#endif // BTX_DEBUG
-    );
-
-    _swapchain = new vkSwapchain(*_adapter, *_surface, *_device);
-
-    _render_pass = new vkRenderPass(*_device, _swapchain->image_format());
-
-    _pipeline = new vkPipeline(*_device);
-    (*_pipeline)
-        .module_from_spirv("shaders/demo.vert",
-                           vk::ShaderStageFlagBits::eVertex)
-        .module_from_spirv("shaders/demo.frag",
-                           vk::ShaderStageFlagBits::eFragment)
-        .describe_vertex_input({ }, { })
-        .create(
-            *_render_pass,
-            {
-                .color_formats = {
-                    _swapchain->image_format()
-                },
-                .depth_format    = vk::Format::eUndefined,
-                .viewport_extent = _swapchain->extent(),
-                .viewport_offset = _swapchain->offset(),
-                .sample_flags    = vk::SampleCountFlagBits::e1,
-            }
-        );
-
-    _create_frame_data();
-}
-
-Renderer::~Renderer() {
-    _device->wait_idle();
-
-    for(auto *frame : _frames) {
-        delete frame;
-    }
-
-    while(!_image_acquire_sems.empty()) {
-        auto const &sem = _image_acquire_sems.front();
-
-        BTX_TRACE("Destroying image acquire semaphore {:#x}",
-                  reinterpret_cast<uint64_t>(VkSemaphore(sem)));
-        _device->native().destroySemaphore(sem);
-
-        _image_acquire_sems.pop();
-    }
-
-    delete _pipeline;
-    delete _render_pass;
-    delete _swapchain;
-    delete _device;
-    delete _surface;
-    delete _instance;
 }
 
 // =============================================================================

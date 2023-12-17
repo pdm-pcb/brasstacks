@@ -1,3 +1,8 @@
+/**
+ * @file ConsoleLog.hpp
+ * @brief A wrapper class for spdlog with a few customizations.
+ */
+
 #ifndef BRASSTACKS_TOOLS_CONSOLELOG_HPP
 #define BRASSTACKS_TOOLS_CONSOLELOG_HPP
 
@@ -6,13 +11,18 @@
 
 namespace btx {
 
+/**
+ * @brief A wrapper class for spdlog with a few customizations.
+ *
+ * ConsoleLog is the means by which to log to the console. =) The intended API
+ * is for everything to use the macros at the bottom of this file.
+ */
 class ConsoleLog final {
 public:
-    // -------------------------------------------------------------------------
-    // Setup
-	static void init();
-
-    enum class Level : std::uint8_t {
+    /**
+     * @brief The verbosity levels supported by ConsoleLog.
+     */
+    enum class Level : uint8_t {
         LOG_TRACE,
         LOG_INFO,
         LOG_WARN,
@@ -20,63 +30,108 @@ public:
         LOG_CRITICAL
     };
 
+    /**
+     * @brief Set the logger's verbosity.
+     * @param log_level The chosen level of verbosity
+     */
     static void set_level(Level log_level);
 
-    // -------------------------------------------------------------------------
-    // Library logging
+    /**
+     * @brief Log a trace level message.
+     * @param fmt Format string
+     * @param args Format string arguments
+     */
     template<typename ...T>
     static void btx_trace(std::format_string<T...> fmt, T&& ...args);
 
+    /**
+     * @brief Log a information level message.
+     * @param fmt Format string
+     * @param args Format string arguments
+     */
     template<typename ...T>
     static void btx_info(std::format_string<T...> fmt, T&& ...args);
 
+    /**
+     * @brief Log a warning level message.
+     * @param fmt Format string
+     * @param args Format string arguments
+     */
     template<typename ...T>
     static void btx_warn(std::format_string<T...> fmt, T&& ...args);
 
+    /**
+     * @brief Log an error level message.
+     * @param fmt Format string
+     * @param args Format string arguments
+     */
     template<typename ...T>
     static void btx_error(std::format_string<T...> fmt, T&& ...args);
 
+    /**
+     * @brief Log a critical level message. This will assert() in debug.
+     * @param fmt Format string
+     * @param args Format string arguments
+     */
     template<typename ...T>
     static void btx_critical(std::format_string<T...> fmt, T&& ...args);
 
-    // -------------------------------------------------------------------------
     ConsoleLog() = delete;
 
 private:
-    static std::shared_ptr<spdlog::logger> _logger;
+    /**
+     * @brief The logger instance
+     */
+    static spdlog::logger *_logger;
+
+    /**
+     * @brief Bring up the logger instance.
+     *
+     * This function contains a std::call_once()-controlled lambda to avoid
+     * duplicate calls.
+     */
+	static void _init();
 };
 
 // =============================================================================
-// Library logging
+// Implementations
+
 template<typename ...T>
 void ConsoleLog::btx_trace(std::format_string<T...> fmt, T&& ...args) {
+    _init();
     _logger->trace(fmt, std::forward<T>(args)...);
 }
 
 template<typename ...T>
 void ConsoleLog::btx_info(std::format_string<T...> fmt, T&& ...args) {
+    _init();
     _logger->info(fmt, std::forward<T>(args)...);
 }
 
 template<typename ...T>
 void ConsoleLog::btx_warn(std::format_string<T...> fmt, T&& ...args) {
+    _init();
     _logger->warn(fmt, std::forward<T>(args)...);
 }
 
 template<typename ...T>
 void ConsoleLog::btx_error(std::format_string<T...> fmt, T&& ...args) {
+    _init();
     _logger->error(fmt, std::forward<T>(args)...);
 }
 
 template<typename ...T>
 void ConsoleLog::btx_critical(std::format_string<T...> fmt, T&& ...args) {
+    _init();
     _logger->critical(fmt, std::forward<T>(args)...);
     assert(false);
 }
 
 } // namespace btx
 
+// =============================================================================
 // Convenience wrappers
+
 #define BTX_TRACE(...)    btx::ConsoleLog::btx_trace(__VA_ARGS__)
 #define BTX_INFO(...)     btx::ConsoleLog::btx_info(__VA_ARGS__)
 #define BTX_WARN(...)     btx::ConsoleLog::btx_warn(__VA_ARGS__)

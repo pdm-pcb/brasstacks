@@ -1,9 +1,13 @@
 .vs/
-.vscode/settings.json
+.vscode/
+!.vscode/launch.json
 
 build/
 debug/
 release/
+
+docs/
+!docs/custom.css
 
 **/version.hpp
 

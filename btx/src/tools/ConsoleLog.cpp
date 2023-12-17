@@ -4,31 +4,28 @@
 
 namespace btx {
 
-std::shared_ptr<spdlog::logger> ConsoleLog::_logger = nullptr;
+spdlog::logger *ConsoleLog::_logger = nullptr;
 
 // =============================================================================
-void ConsoleLog::init() {
+void ConsoleLog::_init() {
+    // Ensure the logger is only set up once
     static std::once_flag initialized;
+
     std::call_once(initialized, [] {
         // Grab a threadsafe logger that supports colorized output
-        _logger = spdlog::stdout_color_mt("btx_logger");
+        _logger = spdlog::stdout_color_mt("btx_logger").get();
 
         // Print with color, time with milliseconds, and thread ID
         _logger->set_pattern("%^[%T.%e][%t]: %v%$");
 
         // Default to everything
         _logger->set_level(spdlog::level::trace);
-
-        BTX_INFO("spdlog v{}.{}.{}", SPDLOG_VER_MAJOR,
-                                     SPDLOG_VER_MINOR,
-                                     SPDLOG_VER_PATCH);
     });
 }
 
 // =============================================================================
 void ConsoleLog::set_level(Level log_level) {
-    // Make sure we're set up
-    init();
+    _init(); // Make sure we're set up
 
     // Set the severity to print
     switch(log_level) {
