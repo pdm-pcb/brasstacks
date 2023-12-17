@@ -40,10 +40,15 @@ vkFrameSync::~vkFrameSync() {
 
 // =============================================================================
 void vkFrameSync::wait_and_reset() const {
+    // Wait for no more than one second
+    using namespace std::chrono_literals;
+    static auto const wait_period =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(1.0s).count();
+
     auto const result = _device.native().waitForFences(
-        _queue_fence,
-        VK_TRUE,
-        std::numeric_limits<uint64_t>::max()
+        _queue_fence,   // The fence(s) to wait on
+        VK_TRUE,        // Whether or not to wait on all provided fences
+        wait_period     // How long to wait for these fences
     );
 
     if(result != vk::Result::eSuccess) {

@@ -8,6 +8,36 @@
 namespace btx {
 
 // =============================================================================
+vkPipeline::vkPipeline(vkDevice const &device) :
+    _device               { device },
+    _shaders              { },
+    _shader_stages        { },
+    _viewport             { 0, 0 },
+    _scissor              {{ 0, 0 }},
+    _vert_input_info      { },
+    _assembly_info        { },
+    _viewport_info        { },
+    _raster_info          { },
+    _multisample_info     { },
+    _depth_stencil_info   { },
+    _blend_info           { },
+    _dynamic_states       { },
+    _dynamic_state_info   { },
+    _layout               { },
+    _handle               { nullptr }
+{ }
+
+// =============================================================================
+vkPipeline::~vkPipeline() {
+    BTX_TRACE("Destroying pipeline {:#x}, layout {:#x}",
+              reinterpret_cast<uint64_t>(VkPipeline(_handle)),
+              reinterpret_cast<uint64_t>(VkPipelineLayout(_layout)));
+
+    _device.native().destroy(_layout);
+    _device.native().destroy(_handle);
+}
+
+// =============================================================================
 void vkPipeline::create(vkRenderPass const &render_pass, Config const &config) {
     _init_assembly();
     _init_viewport(config);
@@ -146,35 +176,6 @@ void vkPipeline::update_dimensions(vk::Extent2D const &extent,
         _viewport.x,
         _viewport.y
     );
-}
-
-// =============================================================================
-vkPipeline::vkPipeline(vkDevice const &device) :
-    _device               { device },
-    _shaders              { },
-    _shader_stages        { },
-    _viewport             { 0, 0 },
-    _scissor              {{ 0, 0 }},
-    _vert_input_info      { },
-    _assembly_info        { },
-    _viewport_info        { },
-    _raster_info          { },
-    _multisample_info     { },
-    _depth_stencil_info   { },
-    _blend_info           { },
-    _dynamic_states       { },
-    _dynamic_state_info   { },
-    _layout               { },
-    _handle               { nullptr }
-{ }
-
-vkPipeline::~vkPipeline() {
-    BTX_TRACE("Destroying pipeline {:#x}, layout {:#x}",
-              reinterpret_cast<uint64_t>(VkPipeline(_handle)),
-              reinterpret_cast<uint64_t>(VkPipelineLayout(_layout)));
-
-    _device.native().destroy(_layout);
-    _device.native().destroy(_handle);
 }
 
 // =============================================================================

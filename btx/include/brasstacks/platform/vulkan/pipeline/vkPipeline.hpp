@@ -12,6 +12,10 @@ class vkCmdBuffer;
 
 class vkPipeline final {
 public:
+    explicit vkPipeline(vkDevice const &device);
+
+    ~vkPipeline();
+
     struct Config {
         // Attachment configuration
         std::vector<vk::Format> color_formats;
@@ -59,9 +63,6 @@ public:
     inline auto const& native()   const { return _handle; }
     inline auto const& viewport() const { return _viewport; }
     inline auto const& scissor()  const { return _scissor; }
-
-    explicit vkPipeline(vkDevice const &device);
-    ~vkPipeline();
 
     vkPipeline(vkPipeline &&) = delete;
     vkPipeline(const vkPipeline &) = delete;

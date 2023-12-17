@@ -69,14 +69,19 @@ vkSwapchain::~vkSwapchain() {
 uint32_t vkSwapchain::acquire_next_image_index(vk::Semaphore const &semaphore) {
     uint32_t next_image_index;
 
+    // Wait for no more than one second
+    using namespace std::chrono_literals;
+    static auto const wait_period =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(1.0s).count();
+
     // Request the next image index and signal the provided semaphore when the
     // acquisition is complete
     auto const result = _device.native().acquireNextImageKHR(
-        _handle,
-        std::numeric_limits<uint64_t>::max(),
-        semaphore,
-        VK_NULL_HANDLE,
-        &next_image_index
+        _handle,          // The swapchain we're trying to get an image from
+        wait_period,      // How long to wait for a new image
+        semaphore,        // A semaphore to signal when an image is released
+        VK_NULL_HANDLE,   // A fence to signal when an image is released
+        &next_image_index // The index of the next free image
     );
 
     if(result != vk::Result::eSuccess) {

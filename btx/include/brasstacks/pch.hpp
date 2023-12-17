@@ -70,6 +70,7 @@
 #include <filesystem>
 #include <fstream>
 #include <queue>
+#include <chrono>
 
 #if defined(BTX_DEBUG)
 static std::filesystem::path const BTX_ASSET_PATH("../../demo/assets");
