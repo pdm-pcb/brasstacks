@@ -24,6 +24,8 @@ class vkPipeline;
 class vkFrameSync;
 class vkFramebuffer;
 
+class vkBuffer;
+
 /**
  * @brief The Vulkan rendering backend.
  *
@@ -77,6 +79,8 @@ private:
     vkRenderPass     *_render_pass;
     vkDescriptorPool *_desc_pool;
     vkPipeline       *_pipeline;
+
+    vkBuffer *_vertex_buffer;
 
     /**
      * @brief A queue of semaphores for acquiring images from the swapchain.

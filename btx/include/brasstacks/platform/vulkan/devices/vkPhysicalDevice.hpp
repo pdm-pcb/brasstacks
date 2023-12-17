@@ -88,6 +88,12 @@ public:
      */
     inline auto const & native() const { return _chosen_device.handle; }
 
+    /**
+     * @brief Return the details of the chosen device's memory
+     * @return vk::PhysicalDeviceMemoryProperties const&
+     */
+    inline auto const & memory_props() const { return _chosen_device.memory; }
+
     vkPhysicalDevice() = delete;
 
     vkPhysicalDevice(vkPhysicalDevice &&) = delete;

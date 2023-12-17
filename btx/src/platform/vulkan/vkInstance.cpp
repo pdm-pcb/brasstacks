@@ -148,16 +148,15 @@ void vkInstance::_init_extensions() {
 
     // As with the last line, these features support our debugging efforts
     _validation_features = {
-        vk::ValidationFeatureEnableEXT::eGpuAssisted,
-        vk::ValidationFeatureEnableEXT::eGpuAssistedReserveBindingSlot,
+        // vk::ValidationFeatureEnableEXT::eGpuAssisted,
+        // vk::ValidationFeatureEnableEXT::eGpuAssistedReserveBindingSlot,
         vk::ValidationFeatureEnableEXT::eBestPractices,
-        vk::ValidationFeatureEnableEXT::eSynchronizationValidation
+        vk::ValidationFeatureEnableEXT::eSynchronizationValidation,
 
         // DebugPrintf and GpuAssisted are mutually exclusive. DebugPrintf is
         // very handy when used in conjucntion with RenderDoc, but I'm opting
         // for more self-contained guidance for now.
-
-        // vk::ValidationFeatureEnableEXT::eDebugPrintf,
+        vk::ValidationFeatureEnableEXT::eDebugPrintf,
     };
 
     _validation_extensions = {

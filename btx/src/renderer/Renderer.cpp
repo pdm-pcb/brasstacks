@@ -15,6 +15,7 @@
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
+#include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
 
 namespace btx {
 
@@ -87,7 +88,29 @@ Renderer::Renderer(TargetWindow const &target_window) :
                            vk::ShaderStageFlagBits::eVertex)
         .module_from_spirv("shaders/demo.frag",
                            vk::ShaderStageFlagBits::eFragment)
-        .describe_vertex_input({ }, { })
+        .describe_vertex_input(
+            {
+                {
+                    .binding   = 0u,
+                    .stride    = static_cast<uint32_t>(sizeof(float) * 6),
+                    .inputRate = vk::VertexInputRate::eVertex
+                }
+            },
+            {
+                {
+                    .location = 0u,
+                    .binding  = 0u,
+                    .format   = vk::Format::eR32G32B32A32Sfloat,
+                    .offset   = 0u,
+                },
+                {
+                    .location = 1u,
+                    .binding  = 0u,
+                    .format   = vk::Format::eR32G32B32A32Sfloat,
+                    .offset   = static_cast<uint32_t>(sizeof(float) * 3),
+                }
+            }
+        )
         .create(
             *_render_pass,
             {
@@ -99,6 +122,26 @@ Renderer::Renderer(TargetWindow const &target_window) :
             }
         );
 
+    std::vector<float> vertex_data {
+        // pos                  // color
+         0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,
+         0.0f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
+    };
+
+    _vertex_buffer = new vkBuffer(
+        *_device, sizeof(float) * vertex_data.size(),
+        vk::BufferUsageFlagBits::eVertexBuffer,
+        _physical_device->memory_props(),
+        (vk::MemoryPropertyFlagBits::eHostVisible |
+         vk::MemoryPropertyFlagBits::eHostCoherent)
+    );
+
+    _vertex_buffer->fill_buffer(
+        vertex_data.data(),
+        sizeof(float) * vertex_data.size()
+    );
+
     _create_frame_data();
 }
 
@@ -107,6 +150,8 @@ Renderer::~Renderer() {
     _device->wait_idle();
 
     _destroy_frame_data();
+
+    delete _vertex_buffer;
 
     delete _pipeline;
     delete _desc_pool;
@@ -173,6 +218,10 @@ void Renderer::record_commands() {
 
     _pipeline->bind(cmd_buffer);
 
+    vk::Buffer const vertex_buffers[] = { _vertex_buffer->native() };
+    vk::DeviceSize const offsets[] = { 0 };
+
+    cmd_buffer.native().bindVertexBuffers(0u, vertex_buffers, offsets);
     cmd_buffer.native().draw(3u, 1u, 0u, 0u);
 
     cmd_buffer.end_render_pass();
