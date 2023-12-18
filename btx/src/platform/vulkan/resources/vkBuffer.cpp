@@ -55,7 +55,7 @@ void vkBuffer::fill_buffer(void *data, size_t const size_bytes) {
     void *mapped_memory;
 
     _device.native().mapMemory(_memory, 0, size_bytes, { }, &mapped_memory);
-    ::memcpy(data, data, size_bytes);
+    ::memcpy(mapped_memory, data, size_bytes);
     _device.native().unmapMemory(_memory);
 }
 

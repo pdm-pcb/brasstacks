@@ -100,13 +100,13 @@ Renderer::Renderer(TargetWindow const &target_window) :
                 {
                     .location = 0u,
                     .binding  = 0u,
-                    .format   = vk::Format::eR32G32B32A32Sfloat,
-                    .offset   = 0u,
+                    .format   = vk::Format::eR32G32B32Sfloat,
+                    .offset   = static_cast<uint32_t>(sizeof(float) * 0),
                 },
                 {
                     .location = 1u,
                     .binding  = 0u,
-                    .format   = vk::Format::eR32G32B32A32Sfloat,
+                    .format   = vk::Format::eR32G32B32Sfloat,
                     .offset   = static_cast<uint32_t>(sizeof(float) * 3),
                 }
             }
