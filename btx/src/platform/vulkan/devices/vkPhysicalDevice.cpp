@@ -26,7 +26,7 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance    const &instance,
             continue;
         }
         BTX_TRACE("Queue index {} supports graphics and present commands.",
-                  device.queue_index);
+                  device.graphics_queue_index);
 
         // Check that the card supports all the features passed in
         if(_check_features(device, required_features) == false) {
@@ -125,7 +125,9 @@ bool vkPhysicalDevice::_check_queue_families(DeviceProps &device,
 
     for(uint32_t i = 0u; i < families.size(); ++i) {
         _print_family_flags(i, families[i].queueFlags);
+    }
 
+    for(uint32_t i = 0u; i < families.size(); ++i) {
         // The first check is if this queue family supports graphics commands
         if(families[i].queueFlags & vk::QueueFlagBits::eGraphics) {
             auto const present_support =
@@ -135,7 +137,7 @@ bool vkPhysicalDevice::_check_queue_families(DeviceProps &device,
             // we've been given
             if(present_support.result == vk::Result::eSuccess) {
                 found_unified_family = true;
-                device.queue_index = i;
+                device.graphics_queue_index = i;
                 break;
             }
         }
@@ -275,26 +277,30 @@ void vkPhysicalDevice::_store_device(vk::PhysicalDevice const &device) {
 void vkPhysicalDevice::_print_family_flags(uint32_t const family,
                                            vk::QueueFlags const flags)
 {
-    std::stringstream flags_stream;
-    flags_stream << family << ": ";
+    std::string flags_str;
+    flags_str.reserve(128);
+    flags_str = std::format("{}: ", family);
 
     if(flags & vk::QueueFlagBits::eGraphics) {
-        flags_stream << "Graphics       ";
+        flags_str += "Graphics       ";
     }
     if(flags & vk::QueueFlagBits::eCompute) {
-        flags_stream << "Compute        ";
+        flags_str += "Compute        ";
     }
     if(flags & vk::QueueFlagBits::eTransfer) {
-        flags_stream << "Transfer       ";
+        flags_str += "Transfer       ";
     }
     if(flags & vk::QueueFlagBits::eSparseBinding) {
-        flags_stream << "Sparse Binding ";
+        flags_str += "Sparse Binding ";
     }
     if(flags & vk::QueueFlagBits::eProtected) {
-        flags_stream << "Protected      ";
+        flags_str += "Protected      ";
+    }
+    if(flags & vk::QueueFlagBits::eVideoDecodeKHR) {
+        flags_str += "Video Decode   ";
     }
 
-    BTX_TRACE("    {}", flags_stream.str());
+    BTX_TRACE("    {}", flags_str);
 }
 
 } // namespace btx

@@ -51,7 +51,7 @@ public:
      * @brief Return the device queue
      * @return vkQueue const&
      */
-    inline auto const & graphics_queue()  const { return *_queue; }
+    inline auto const & graphics_queue()  const { return *_graphics_queue; }
 
     inline auto const & transient_pool() const { return *_transient_pool; }
 
@@ -72,7 +72,7 @@ private:
     /**
      * @brief The device's command queue
      */
-    vkQueue *_queue;
+    vkQueue *_graphics_queue;
 
     vkCmdPool *_transient_pool;
 };

@@ -64,7 +64,9 @@ public:
      * @brief Return the device queue family index.
      * @return uint32_t
      */
-    inline auto queue_index() const { return _chosen_device.queue_index; }
+    inline auto graphics_queue_index() const {
+        return _chosen_device.graphics_queue_index;
+    }
 
     /**
      * @brief Return a list of enabled device features.
@@ -112,7 +114,7 @@ private:
         std::string vkapi_version;
 
         size_t vram_bytes = 0;
-        uint32_t queue_index = std::numeric_limits<uint32_t>::max();
+        uint32_t graphics_queue_index = std::numeric_limits<uint32_t>::max();
 
         vk::PhysicalDevice handle = nullptr;
         vk::PhysicalDeviceType type = vk::PhysicalDeviceType::eOther;

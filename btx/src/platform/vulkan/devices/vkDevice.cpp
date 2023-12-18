@@ -10,7 +10,7 @@ namespace btx {
 vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
                    Layers const &layers) :
     _handle         { nullptr },
-    _queue          { nullptr },
+    _graphics_queue { nullptr },
     _transient_pool { nullptr }
 {
     // We only need one device queue, so only need to specify one priority
@@ -20,7 +20,7 @@ vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
     vk::DeviceQueueCreateInfo const queue_info[] {{
         .pNext = nullptr,
         .flags = { },
-        .queueFamilyIndex = physical_device.queue_index(),
+        .queueFamilyIndex = physical_device.graphics_queue_index(),
         .queueCount = static_cast<uint32_t>(std::size(queue_priorities)),
         .pQueuePriorities = queue_priorities,
     }};
@@ -58,19 +58,23 @@ vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
               reinterpret_cast<uint64_t>(::VkDevice(_handle)));
 
     // Retrieve the queue abstraction
-    _queue = new vkQueue(*this, physical_device.queue_index());
+    _graphics_queue =
+        new vkQueue(*this, physical_device.graphics_queue_index());
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-    _transient_pool = new vkCmdPool(*this, physical_device.queue_index(),
-                                    vk::CommandPoolCreateFlagBits::eTransient);
+    _transient_pool = new vkCmdPool(
+        *this,
+        physical_device.graphics_queue_index(),
+        vk::CommandPoolCreateFlagBits::eTransient
+    );
 }
 
 // =============================================================================
 vkDevice::~vkDevice() {
     delete _transient_pool;
-    delete _queue;
+    delete _graphics_queue;
 
     BTX_TRACE("Destroying logical device {:#x}",
               reinterpret_cast<uint64_t>(::VkDevice(_handle)));
