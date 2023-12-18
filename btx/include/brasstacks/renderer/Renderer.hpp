@@ -81,6 +81,7 @@ private:
     vkPipeline       *_pipeline;
 
     vkBuffer *_vertex_buffer;
+    vkBuffer *_index_buffer;
 
     /**
      * @brief A queue of semaphores for acquiring images from the swapchain.
@@ -88,8 +89,8 @@ private:
      * At most, this queue will be of size 1 + the number of images available
      * from the swapchain. Each time a new image is requested, a semaphore is
      * removed from the queue, provided to the swapchain, and then stored in a
-     * vkFrameSync object. If the vkFrameSync object being used already had an image
-     * acquire semaphore, the old one is returned to this queue.
+     * vkFrameSync object. If the vkFrameSync object being used already had an
+     * image acquire semaphore, the old one is returned to this queue.
      */
     std::queue<vk::Semaphore> _image_acquire_sems;
 

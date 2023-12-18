@@ -252,7 +252,7 @@ void vkPhysicalDevice::_store_device(vk::PhysicalDevice const &device) {
     store.type = device_props.deviceType;
     store.name = std::string(device_props.deviceName.data());
 
-    size_t vram_bytes = 0;
+    vk::DeviceSize vram_bytes = 0;
     for(uint32_t index = 0u; index < memory_props.memoryHeapCount; ++index) {
         auto const flags = memory_props.memoryHeaps[index].flags;
 

@@ -113,7 +113,7 @@ private:
         std::string driver_version;
         std::string vkapi_version;
 
-        size_t vram_bytes = 0;
+        vk::DeviceSize vram_bytes = 0;
         uint32_t graphics_queue_index = std::numeric_limits<uint32_t>::max();
 
         vk::PhysicalDevice handle = nullptr;

@@ -126,10 +126,11 @@ Renderer::Renderer(TargetWindow const &target_window) :
         );
 
     std::vector<float> vertex_data {
-        // pos                  // color
-         0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,
-         0.0f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
+        // pos                 // color
+         0.5f, -0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f, 0.0f,    0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f, 0.0f,    0.25f, 0.25f, 0.25f,
     };
 
     _vertex_buffer = new vkBuffer(
@@ -138,8 +139,19 @@ Renderer::Renderer(TargetWindow const &target_window) :
          vk::BufferUsageFlagBits::eTransferDst),
         vk::MemoryPropertyFlagBits::eDeviceLocal
     );
-
     _vertex_buffer->send_to_device(vertex_data.data());
+
+    std::vector<uint32_t> index_data {
+        0, 1, 2,    1, 3, 2
+    };
+
+    _index_buffer = new vkBuffer(
+        *_device, sizeof(float) * index_data.size(),
+        (vk::BufferUsageFlagBits::eIndexBuffer |
+         vk::BufferUsageFlagBits::eTransferDst),
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+    );
+    _index_buffer->send_to_device(index_data.data());
 
     _create_frame_data();
 }
@@ -150,6 +162,7 @@ Renderer::~Renderer() {
 
     _destroy_frame_data();
 
+    delete _index_buffer;
     delete _vertex_buffer;
 
     delete _pipeline;
@@ -221,7 +234,10 @@ void Renderer::record_commands() {
     vk::DeviceSize const offsets[] = { 0 };
 
     cmd_buffer.native().bindVertexBuffers(0u, vertex_buffers, offsets);
+    cmd_buffer.native().bindIndexBuffer(_index_buffer->native(), 0u,
+                                        vk::IndexType::eUint32);
     cmd_buffer.native().draw(3u, 1u, 0u, 0u);
+    cmd_buffer.native().drawIndexed(6u, 1u,  0u, 0u, 0u);
 
     cmd_buffer.end_render_pass();
     cmd_buffer.end_recording();

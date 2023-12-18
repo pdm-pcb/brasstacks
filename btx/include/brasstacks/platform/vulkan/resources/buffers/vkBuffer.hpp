@@ -9,7 +9,7 @@ class vkDevice;
 
 class vkBuffer {
 public:
-    vkBuffer(vkDevice const &device, size_t size_bytes,
+    vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
              vk::BufferUsageFlags const usage_flags,
              vk::MemoryPropertyFlags const memory_flags);
     ~vkBuffer();
@@ -37,7 +37,7 @@ private:
     static vk::PhysicalDeviceMemoryProperties _memory_props;
 
     vk::Buffer       _handle;
-    size_t           _size_bytes;
+    vk::DeviceSize   _size_bytes;
     vk::DeviceMemory _memory;
 
     void _allocate(vk::MemoryPropertyFlags const flags);

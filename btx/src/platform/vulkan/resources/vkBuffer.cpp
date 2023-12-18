@@ -8,7 +8,7 @@ namespace btx {
 vk::PhysicalDeviceMemoryProperties vkBuffer::_memory_props;
 
 // =============================================================================
-vkBuffer::vkBuffer(vkDevice const &device, size_t size_bytes,
+vkBuffer::vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
                    vk::BufferUsageFlags const usage_flags,
                    vk::MemoryPropertyFlags const memory_flags) :
     _device       { device },
