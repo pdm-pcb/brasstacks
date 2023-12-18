@@ -1,14 +1,17 @@
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
 namespace btx {
 
 // =============================================================================
 vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
                    Layers const &layers) :
-    _queue { nullptr },
-    _handle { nullptr }
+    _handle         { nullptr },
+    _queue          { nullptr },
+    _transient_pool { nullptr }
 {
     // We only need one device queue, so only need to specify one priority
     float const queue_priorities[] = { 1.0f };
@@ -59,10 +62,14 @@ vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
+
+    _transient_pool = new vkCmdPool(*this, physical_device.queue_index(),
+                                    vk::CommandPoolCreateFlagBits::eTransient);
 }
 
 // =============================================================================
 vkDevice::~vkDevice() {
+    delete _transient_pool;
     delete _queue;
 
     BTX_TRACE("Destroying logical device {:#x}",

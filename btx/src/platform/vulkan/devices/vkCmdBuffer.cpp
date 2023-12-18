@@ -1,6 +1,7 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
 namespace btx {
@@ -79,6 +80,22 @@ void vkCmdBuffer::begin_render_pass(vk::RenderPassBeginInfo const &info) const {
 // =============================================================================
 void vkCmdBuffer::end_render_pass() const {
     _handle.endRenderPass();
+}
+
+// =============================================================================
+void vkCmdBuffer::submit_and_wait_on_device() const {
+    vk::SubmitInfo const submit_info {
+        .pNext                = nullptr,
+        .waitSemaphoreCount   = 0u,
+        .pWaitSemaphores      = nullptr,
+        .pWaitDstStageMask    = nullptr,
+        .commandBufferCount   = 1u,
+        .pCommandBuffers      = &_handle,
+        .signalSemaphoreCount = 0u,
+        .pSignalSemaphores    = nullptr,
+    };
+    _device.graphics_queue().native().submit(submit_info);
+    _device.native().waitIdle();
 }
 
 } // namespace btx

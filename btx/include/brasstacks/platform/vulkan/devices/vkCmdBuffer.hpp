@@ -49,6 +49,8 @@ public:
      */
     void end_render_pass() const;
 
+    void submit_and_wait_on_device() const;
+
     /**
      * @brief Return the native Vulkan handle
      * @return vk::CommandBuffer const&

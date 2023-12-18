@@ -2,6 +2,7 @@
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
@@ -110,7 +111,8 @@ void vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index) 
         .pImageIndices   = &image_index,
     };
 
-    auto const result = _device.queue().native().presentKHR(present_info);
+    auto const result =
+        _device.graphics_queue().native().presentKHR(present_info);
 
     if(result != vk::Result::eSuccess) {
         if(result == vk::Result::eSuboptimalKHR ||

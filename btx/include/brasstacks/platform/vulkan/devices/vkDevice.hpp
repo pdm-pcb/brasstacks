@@ -7,11 +7,12 @@
 #define BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKDEVICE_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 
 namespace btx {
 
 class vkPhysicalDevice;
+class vkQueue;
+class vkCmdPool;
 
 /**
  * @brief A class wrapping the Vulkan concept of a logical device
@@ -41,16 +42,18 @@ public:
     void wait_idle() const;
 
     /**
-     * @brief Return the device queue
-     * @return vkQueue const&
-     */
-    inline auto const& queue()  const { return *_queue; }
-
-    /**
      * @brief Return the native Vulkan device handle
      * @return vk::Device const&
      */
-    inline auto const& native() const { return _handle; }
+    inline auto const & native() const { return _handle; }
+
+    /**
+     * @brief Return the device queue
+     * @return vkQueue const&
+     */
+    inline auto const & graphics_queue()  const { return *_queue; }
+
+    inline auto const & transient_pool() const { return *_transient_pool; }
 
     vkDevice() = delete;
 
@@ -62,14 +65,16 @@ public:
 
 private:
     /**
+     * @brief Native Vulkan device handle
+     */
+    vk::Device _handle;
+
+    /**
      * @brief The device's command queue
      */
     vkQueue *_queue;
 
-    /**
-     * @brief Native Vulkan device handle
-     */
-    vk::Device _handle;
+    vkCmdPool *_transient_pool;
 };
 
 } // namespace btx

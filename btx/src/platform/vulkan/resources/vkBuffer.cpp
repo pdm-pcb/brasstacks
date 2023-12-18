@@ -1,18 +1,24 @@
 #include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 namespace btx {
+
+vk::PhysicalDeviceMemoryProperties vkBuffer::_memory_props;
 
 // =============================================================================
 vkBuffer::vkBuffer(vkDevice const &device, size_t size_bytes,
                    vk::BufferUsageFlags const usage_flags,
-                   vk::PhysicalDeviceMemoryProperties const &memory_props,
                    vk::MemoryPropertyFlags const memory_flags) :
-    _device     { device },
-    _size_bytes { size_bytes }
+    _device       { device },
+    _size_bytes   { size_bytes }
 {
+    if(_memory_props.memoryHeapCount == 0) {
+        BTX_CRITICAL("vkBuffer::_memory_props must be set before creating a "
+                     "device buffer.");
+    }
+
     vk::BufferCreateInfo const create_info {
         .size        = _size_bytes,
         .usage       = usage_flags,
@@ -37,7 +43,7 @@ vkBuffer::vkBuffer(vkDevice const &device, size_t size_bytes,
     BTX_TRACE("Created buffer {:#x}",
               reinterpret_cast<uint64_t>(VkBuffer(_handle)));
 
-    _allocate(memory_props, memory_flags);
+    _allocate(memory_flags);
 }
 
 // =============================================================================
@@ -51,18 +57,60 @@ vkBuffer::~vkBuffer() {
 }
 
 // =============================================================================
-void vkBuffer::fill_buffer(void *data, size_t const size_bytes) {
+void
+vkBuffer::set_memory_props(vk::PhysicalDeviceMemoryProperties const &props) {
+    _memory_props = props;
+}
+
+// =============================================================================
+void vkBuffer::fill_buffer(void const *data) {
     void *mapped_memory;
 
-    _device.native().mapMemory(_memory, 0, size_bytes, { }, &mapped_memory);
-    ::memcpy(mapped_memory, data, size_bytes);
+    auto const result = _device.native().mapMemory(_memory, 0, VK_WHOLE_SIZE,
+                                                   { }, &mapped_memory);
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to map buffer {:#x} memory {:#x}",
+                     reinterpret_cast<uint64_t>(VkBuffer(_handle)),
+                     reinterpret_cast<uint64_t>(VkDeviceMemory(_memory)));
+    }
+
+    ::memcpy(mapped_memory, data, _size_bytes);
+
     _device.native().unmapMemory(_memory);
 }
 
 // =============================================================================
-void vkBuffer::_allocate(vk::PhysicalDeviceMemoryProperties const &props,
-                         vk::MemoryPropertyFlags const flags)
-{
+void vkBuffer::send_to_device(void const *data) {
+    vkBuffer staging_buffer(
+        _device, _size_bytes,
+        vk::BufferUsageFlagBits::eTransferSrc,
+        (vk::MemoryPropertyFlagBits::eHostVisible |
+         vk::MemoryPropertyFlagBits::eHostCoherent)
+    );
+
+    staging_buffer.fill_buffer(data);
+
+    vk::BufferCopy const copy_region {
+        .srcOffset = 0u,
+        .dstOffset = 0u,
+        .size = _size_bytes
+    };
+
+    vkCmdBuffer cmd_buffer(_device, _device.transient_pool());
+    cmd_buffer.begin_one_time_submit();
+
+        cmd_buffer.native().copyBuffer(
+            staging_buffer.native(),
+            _handle,
+            copy_region
+        );
+
+    cmd_buffer.end_recording();
+    cmd_buffer.submit_and_wait_on_device();
+}
+
+// =============================================================================
+void vkBuffer::_allocate(vk::MemoryPropertyFlags const flags) {
     // The first order of business is to query the logical device about what
     // available memory matches properties we've specified thus far. A zero-
     // initialized vk::MemoryRequirements structure indicates that the
@@ -74,7 +122,7 @@ void vkBuffer::_allocate(vk::PhysicalDeviceMemoryProperties const &props,
     // This function call will check the joint requirements of ourselves and
     // the logical device against the types of memory offered by the physical
     // device.
-    auto const type_index = _get_memory_type_index(props, flags, mem_reqs);
+    auto const type_index = _get_memory_type_index(flags, mem_reqs);
 
     // Once a suitable memory type (and its index) is located, we're ready to
     // actually allocate the buffer.
@@ -109,12 +157,10 @@ void vkBuffer::_allocate(vk::PhysicalDeviceMemoryProperties const &props,
 }
 
 // =============================================================================
-uint32_t vkBuffer::_get_memory_type_index(
-    vk::PhysicalDeviceMemoryProperties const &props,
-    vk::MemoryPropertyFlags const flags,
-    vk::MemoryRequirements const &reqs)
+uint32_t vkBuffer::_get_memory_type_index(vk::MemoryPropertyFlags const flags,
+                                          vk::MemoryRequirements const &reqs)
 {
-    auto const type_count = props.memoryTypeCount;
+    auto const type_count = _memory_props.memoryTypeCount;
 
     // This bit-rithmetic bears some explanation. We're checking two bit fields
     // against our requirements for the memory itself.
@@ -127,7 +173,7 @@ uint32_t vkBuffer::_get_memory_type_index(
             // The second check is against the memory properties. This can be
             // any combination of local to the CPU, local to the GPU, visible
             // to the CPU or not, and more.
-            if(props.memoryTypes[type_index].propertyFlags & flags) {
+            if(_memory_props.memoryTypes[type_index].propertyFlags & flags) {
                 return type_index;
             }
         }

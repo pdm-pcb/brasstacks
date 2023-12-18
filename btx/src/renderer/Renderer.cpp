@@ -7,6 +7,7 @@
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/resources/images/vkImage.hpp"
@@ -62,6 +63,8 @@ Renderer::Renderer(TargetWindow const &target_window) :
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         }
     );
+
+    vkBuffer::set_memory_props(_physical_device->memory_props());
 
     _device = new vkDevice(
         *_physical_device
@@ -131,16 +134,12 @@ Renderer::Renderer(TargetWindow const &target_window) :
 
     _vertex_buffer = new vkBuffer(
         *_device, sizeof(float) * vertex_data.size(),
-        vk::BufferUsageFlagBits::eVertexBuffer,
-        _physical_device->memory_props(),
-        (vk::MemoryPropertyFlagBits::eHostVisible |
-         vk::MemoryPropertyFlagBits::eHostCoherent)
+        (vk::BufferUsageFlagBits::eVertexBuffer |
+         vk::BufferUsageFlagBits::eTransferDst),
+        vk::MemoryPropertyFlagBits::eDeviceLocal
     );
 
-    _vertex_buffer->fill_buffer(
-        vertex_data.data(),
-        sizeof(float) * vertex_data.size()
-    );
+    _vertex_buffer->send_to_device(vertex_data.data());
 
     _create_frame_data();
 }
@@ -247,7 +246,7 @@ void Renderer::submit_commands() {
         .pSignalSemaphores    = &frame.cmds_complete_semaphore(),
     };
 
-    auto const result = _device->queue().native().submit(
+    auto const result = _device->graphics_queue().native().submit(
         1u,
         &submit_info,
         frame.queue_fence()

@@ -1,6 +1,7 @@
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
@@ -63,8 +64,8 @@ void vkFrameSync::wait_and_reset() const {
 
 // =============================================================================
 void vkFrameSync::_create_cmd_structures() {
-    _cmd_pool =
-        new vkCmdPool(_device, vk::CommandPoolCreateFlagBits::eTransient);
+    _cmd_pool = new vkCmdPool(_device, _device.graphics_queue().index(),
+                              vk::CommandPoolCreateFlagBits::eTransient);
 
     _cmd_buffer = new vkCmdBuffer(_device, *_cmd_pool);
 }

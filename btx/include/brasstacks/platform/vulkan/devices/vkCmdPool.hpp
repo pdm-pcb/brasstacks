@@ -21,9 +21,10 @@ public:
     /**
      * @brief Construct the vkCmdPool object.
      * @param device An established Vulkan logical device
+     * @param queue_index Index for the queue family this pool will belong to
      * @param flags Flags influencing the creation of this command pool
      */
-    vkCmdPool(vkDevice const &device,
+    vkCmdPool(vkDevice const &device, uint32_t const queue_index,
               vk::CommandPoolCreateFlags const flags = { });
 
     ~vkCmdPool();

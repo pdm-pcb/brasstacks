@@ -6,14 +6,14 @@
 namespace btx {
 
 // =============================================================================
-vkCmdPool::vkCmdPool(vkDevice const &device,
+vkCmdPool::vkCmdPool(vkDevice const &device, uint32_t const queue_index,
                      vk::CommandPoolCreateFlags const flags) :
     _device { device },
     _handle { }
 {
     vk::CommandPoolCreateInfo const pool_info {
         .flags = flags,
-        .queueFamilyIndex = _device.queue().index()
+        .queueFamilyIndex = queue_index,
     };
 
     auto const result = _device.native().createCommandPool(

@@ -6,17 +6,20 @@
 namespace btx {
 
 class vkDevice;
-class vkPhysicalDevice;
 
 class vkBuffer {
 public:
     vkBuffer(vkDevice const &device, size_t size_bytes,
              vk::BufferUsageFlags const usage_flags,
-             vk::PhysicalDeviceMemoryProperties const &memory_props,
              vk::MemoryPropertyFlags const memory_flags);
     ~vkBuffer();
 
-    void fill_buffer(void *data, size_t const size_bytes);
+    static void set_memory_props(
+        vk::PhysicalDeviceMemoryProperties const &props
+    );
+
+    void fill_buffer(void const *data);
+    void send_to_device(void const *data);
 
     inline auto const & native() const { return _handle; }
 
@@ -31,17 +34,16 @@ public:
 private:
     vkDevice const &_device;
 
+    static vk::PhysicalDeviceMemoryProperties _memory_props;
+
     vk::Buffer       _handle;
     size_t           _size_bytes;
     vk::DeviceMemory _memory;
 
-    void _allocate(vk::PhysicalDeviceMemoryProperties const &props,
-                   vk::MemoryPropertyFlags const flags);
+    void _allocate(vk::MemoryPropertyFlags const flags);
 
-    uint32_t _get_memory_type_index(
-        vk::PhysicalDeviceMemoryProperties const &props,
-        vk::MemoryPropertyFlags const flags,
-        vk::MemoryRequirements const &reqs);
+    uint32_t _get_memory_type_index(vk::MemoryPropertyFlags const flags,
+                                    vk::MemoryRequirements const &reqs);
 };
 
 } // namespace btx
