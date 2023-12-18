@@ -4,6 +4,8 @@
 #include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
 
 namespace btx {
 
@@ -111,6 +113,23 @@ void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) {
 }
 
 // =============================================================================
+void vkPipeline::bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
+                                     vkDescriptorSet const &set)
+{
+    auto const set_layout_key = reinterpret_cast<uint64_t>(
+        VkDescriptorSetLayout(set.layout().native())
+    );
+
+    cmd_buffer.native().bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        _layout,
+        _set_bind_points[set_layout_key],
+        1u, &(set.native()),
+        0u, nullptr
+    );
+}
+
+// =============================================================================
 vkPipeline & vkPipeline::module_from_spirv(std::string_view filepath,
                                            vk::ShaderStageFlagBits const stage,
                                            std::string_view entry_point)
@@ -148,6 +167,18 @@ vkPipeline & vkPipeline::describe_vertex_input(VertBindings const &bindings,
         .pVertexAttributeDescriptions   = attributes.data(),
     };
 
+    return *this;
+}
+
+// =============================================================================
+vkPipeline &
+vkPipeline::add_descriptor_set(vkDescriptorSetLayout const &layout) {
+    if(_handle) {
+        BTX_CRITICAL("Adding a descriptor set to a pipeline that's already "
+                     "been created.");
+    }
+
+    _set_layouts.push_back(layout.native());
     return *this;
 }
 
@@ -305,9 +336,19 @@ void vkPipeline::_init_dynamic_states() {
 
 // =============================================================================
 void vkPipeline::_init_layout() {
+    uint32_t set_binding_point = 0u;
+
+    for(auto const &layout : _set_layouts) {
+        auto const set_key = reinterpret_cast<uint64_t>(
+            VkDescriptorSetLayout(layout)
+        );
+
+        _set_bind_points[set_key] = set_binding_point++;
+    }
+
     const vk::PipelineLayoutCreateInfo layout_info {
-        .setLayoutCount         = 0u,
-        .pSetLayouts            = nullptr,
+        .setLayoutCount         = static_cast<uint32_t>(_set_layouts.size()),
+        .pSetLayouts            = _set_layouts.data(),
         .pushConstantRangeCount = 0u,
         .pPushConstantRanges    = nullptr,
     };

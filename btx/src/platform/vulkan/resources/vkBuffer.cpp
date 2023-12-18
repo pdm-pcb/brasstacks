@@ -11,8 +11,8 @@ vk::PhysicalDeviceMemoryProperties vkBuffer::_memory_props;
 vkBuffer::vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
                    vk::BufferUsageFlags const usage_flags,
                    vk::MemoryPropertyFlags const memory_flags) :
-    _device       { device },
-    _size_bytes   { size_bytes }
+    _device      { device },
+    _size_bytes  { size_bytes }
 {
     if(_memory_props.memoryHeapCount == 0) {
         BTX_CRITICAL("vkBuffer::_memory_props must be set before creating a "
@@ -63,7 +63,7 @@ vkBuffer::set_memory_props(vk::PhysicalDeviceMemoryProperties const &props) {
 }
 
 // =============================================================================
-void vkBuffer::fill_buffer(void const *data) {
+void vkBuffer::fill_buffer(void const *data) const {
     void *mapped_memory;
 
     auto const result = _device.native().mapMemory(_memory, 0, VK_WHOLE_SIZE,
@@ -80,7 +80,7 @@ void vkBuffer::fill_buffer(void const *data) {
 }
 
 // =============================================================================
-void vkBuffer::send_to_device(void const *data) {
+void vkBuffer::send_to_device(void const *data) const {
     vkBuffer staging_buffer(
         _device, _size_bytes,
         vk::BufferUsageFlagBits::eTransferSrc,

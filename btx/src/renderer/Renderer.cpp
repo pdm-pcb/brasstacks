@@ -14,6 +14,8 @@
 #include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
@@ -85,6 +87,8 @@ Renderer::Renderer(TargetWindow const &target_window) :
         }}
     );
 
+    _create_camera_ubos();
+
     _pipeline = new vkPipeline(*_device);
     (*_pipeline)
         .module_from_spirv("shaders/demo.vert",
@@ -114,6 +118,7 @@ Renderer::Renderer(TargetWindow const &target_window) :
                 }
             }
         )
+        .add_descriptor_set(*_camera_ubo_layout)
         .create(
             *_render_pass,
             {
@@ -161,6 +166,7 @@ Renderer::~Renderer() {
     _device->wait_idle();
 
     _destroy_frame_data();
+    _destroy_camera_ubos();
 
     delete _index_buffer;
     delete _vertex_buffer;
@@ -211,6 +217,8 @@ void Renderer::record_commands() {
     auto const &frame_sync = *_frame_sync[_next_image_index];
     auto const &cmd_buffer = frame_sync.cmd_buffer();
     auto const &framebuffer = *_framebuffers[_next_image_index];
+    auto const &camera_ubo = *_camera_ubos[_next_image_index];
+    auto const &camera_ubo_set = *_camera_ubo_sets[_next_image_index];
 
     static vk::ClearValue const clear_value {
         .color = { RenderConfig::clear_color }
@@ -228,7 +236,38 @@ void Renderer::record_commands() {
         }
     );
 
+    using Vec4 = std::array<float, 4>;
+    using Mat4 = std::array<Vec4, 4>;
+
+    Mat4 model_matrix {{
+        {{ 1.0f, 0.0f, 0.0f, 0.0f }},
+        {{ 0.0f, 1.0f, 0.0f, 0.0f }},
+        {{ 0.0f, 0.0f, 1.0f, 0.0f }},
+        {{ 0.0f, 0.0f, 0.0f, 1.0f }},
+    }};
+
+    Mat4 view_matrix {{
+        {{ 1.0f, 0.0f, 0.0f, 0.0f }},
+        {{ 0.0f, 1.0f, 0.0f, 0.0f }},
+        {{ 0.0f, 0.0f, 1.0f, 0.0f }},
+        {{ 0.0f, 0.0f, -2.0f, 1.0f }},
+    }};
+
+    Mat4 proj_matrix {{
+        {{ 1.358f, 0.0f, 0.0f, 0.0f }},
+        {{ 0.0f, 2.41421f, 0.0f, 0.0f }},
+        {{ 0.0f, 0.0f, -1.0202f, -1.0f }},
+        {{ 0.0f, 0.0f, -0.20202f, 0.0f }},
+    }};
+
+    std::array<Mat4, 3> const mvp = {{
+        model_matrix, view_matrix, proj_matrix
+    }};
+
+    camera_ubo.fill_buffer(mvp.data());
+
     _pipeline->bind(cmd_buffer);
+    _pipeline->bind_descriptor_set(cmd_buffer, camera_ubo_set);
 
     vk::Buffer const vertex_buffers[] = { _vertex_buffer->native() };
     vk::DeviceSize const offsets[] = { 0 };
@@ -236,7 +275,7 @@ void Renderer::record_commands() {
     cmd_buffer.native().bindVertexBuffers(0u, vertex_buffers, offsets);
     cmd_buffer.native().bindIndexBuffer(_index_buffer->native(), 0u,
                                         vk::IndexType::eUint32);
-    cmd_buffer.native().draw(3u, 1u, 0u, 0u);
+
     cmd_buffer.native().drawIndexed(6u, 1u,  0u, 0u, 0u);
 
     cmd_buffer.end_render_pass();
@@ -308,6 +347,37 @@ void Renderer::_create_frame_data() {
 }
 
 // =============================================================================
+void Renderer::_create_camera_ubos() {
+    for(uint32_t i = 0; i < _swapchain->images().size(); ++i) {
+        _camera_ubos.push_back(new vkBuffer(
+            *_device, sizeof(float) * 16 * 3,
+            vk::BufferUsageFlagBits::eUniformBuffer,
+            (vk::MemoryPropertyFlagBits::eHostVisible |
+             vk::MemoryPropertyFlagBits::eHostCoherent)
+        ));
+    }
+
+    _camera_ubo_layout = new vkDescriptorSetLayout(*_device);
+
+    (*_camera_ubo_layout)
+        .add_binding(vk::DescriptorType::eUniformBuffer,
+                     vk::ShaderStageFlagBits::eAll)
+        .create();
+
+    _camera_ubo_sets.resize(_swapchain->images().size());
+
+    for(uint32_t i = 0; i < _camera_ubo_sets.size(); ++i) {
+        _camera_ubo_sets[i] =
+            new vkDescriptorSet(*_device, *_desc_pool, *_camera_ubo_layout);
+
+        (*_camera_ubo_sets[i])
+            .allocate()
+            .add_buffer(*_camera_ubos[i], vk::DescriptorType::eUniformBuffer)
+            .write_set();
+    }
+}
+
+// =============================================================================
 void Renderer::_destroy_frame_data() {
     for(auto *framebuffer : _framebuffers) {
         delete framebuffer;
@@ -325,6 +395,17 @@ void Renderer::_destroy_frame_data() {
         _device->native().destroySemaphore(sem);
 
         _image_acquire_sems.pop();
+    }
+}
+
+// =============================================================================
+void Renderer::_destroy_camera_ubos() {
+    for(auto *set : _camera_ubo_sets) {
+        delete set;
+    }
+    delete _camera_ubo_layout;
+    for(auto *buffer : _camera_ubos) {
+        delete buffer;
     }
 }
 

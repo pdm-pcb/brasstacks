@@ -18,8 +18,8 @@ public:
         vk::PhysicalDeviceMemoryProperties const &props
     );
 
-    void fill_buffer(void const *data);
-    void send_to_device(void const *data);
+    void fill_buffer(void const *data) const;
+    void send_to_device(void const *data) const;
 
     inline auto const & native() const { return _handle; }
 

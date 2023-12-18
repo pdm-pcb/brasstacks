@@ -22,10 +22,8 @@ vkDescriptorSetLayout::add_binding(vk::DescriptorType const type,
                                    vk::ShaderStageFlags const stages,
                                    uint32_t const descriptor_count)
 {
-    auto const binding = static_cast<uint32_t>(_bindings.size());
-
     _bindings.emplace_back(vk::DescriptorSetLayoutBinding {
-        .binding         = binding,
+        .binding         = static_cast<uint32_t>(_bindings.size()),
         .descriptorType  = type,
         .descriptorCount = descriptor_count,
         .stageFlags      = stages,

@@ -18,14 +18,17 @@ public:
 
     ~vkDescriptorSet() = default;
 
-    vkDescriptorSet & add_buffer(vkBuffer const &buffer);
-    vkDescriptorSet & add_image(vkImage const &image);
+    vkDescriptorSet & add_buffer(vkBuffer const &buffer,
+                                 vk::DescriptorType const type);
+    vkDescriptorSet & add_image(vkImage const &image,
+                                 vk::DescriptorType const type);
 
     vkDescriptorSet & allocate();
 
     void write_set();
 
-    inline auto const& native() const { return _handle; }
+    inline auto const & native() const { return _handle; }
+    inline auto const & layout() const { return _layout; }
 
     vkDescriptorSet() = delete;
 
@@ -42,6 +45,10 @@ private:
 
     std::vector<vkBuffer> _buffers;
     std::vector<vkImage>  _images;
+
+    std::list<vk::DescriptorBufferInfo> _buffer_info;
+    std::list<vk::DescriptorImageInfo>  _image_info;
+    std::vector<vk::WriteDescriptorSet> _set_writes;
 
     vk::DescriptorSet _handle;
 };

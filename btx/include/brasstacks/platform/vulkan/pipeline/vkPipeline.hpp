@@ -9,6 +9,8 @@ class vkDevice;
 class vkShader;
 class vkRenderPass;
 class vkCmdBuffer;
+class vkDescriptorSet;
+class vkDescriptorSetLayout;
 
 class vkPipeline final {
 public:
@@ -47,6 +49,8 @@ public:
     void create(vkRenderPass const &render_pass, Config const &config);
 
     void bind(vkCmdBuffer const &cmd_buffer);
+    void bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
+                             vkDescriptorSet const &set);
 
     vkPipeline & module_from_spirv(std::string_view filepath,
                                    vk::ShaderStageFlagBits const stage,
@@ -56,6 +60,8 @@ public:
     using VertAttribs  = std::vector<vk::VertexInputAttributeDescription>;
     vkPipeline & describe_vertex_input(VertBindings const &bindings,
                                        VertAttribs const &attributes);
+
+    vkPipeline & add_descriptor_set(vkDescriptorSetLayout const &set_layout);
 
     void update_dimensions(vk::Extent2D const &extent,
                            vk::Offset2D const &offset);
@@ -91,6 +97,9 @@ private:
 
     std::vector<vk::DynamicState>            _dynamic_states;
     vk::PipelineDynamicStateCreateInfo       _dynamic_state_info;
+
+    std::vector<vk::DescriptorSetLayout>   _set_layouts;
+    std::unordered_map<uint64_t, uint32_t> _set_bind_points;
 
     vk::PipelineLayout _layout;
 

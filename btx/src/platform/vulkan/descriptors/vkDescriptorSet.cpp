@@ -16,23 +16,47 @@ vkDescriptorSet::vkDescriptorSet(vkDevice const &device,
 { }
 
 // =============================================================================
-vkDescriptorSet & vkDescriptorSet::add_buffer(vkBuffer const &buffer) {
-    // _buffers.push_back(buffer);
+vkDescriptorSet & vkDescriptorSet::add_buffer(vkBuffer const &buffer,
+                                              vk::DescriptorType const type)
+{
+    if(!_handle) {
+        BTX_CRITICAL("Must allocate set before adding descriptors.");
+    }
+
+    auto const *buffer_info =
+        &_buffer_info.emplace_back(vk::DescriptorBufferInfo {
+            .buffer = buffer.native(),
+            .offset = 0u,
+            .range  = VK_WHOLE_SIZE
+        });
+
+    _set_writes.emplace_back(vk::WriteDescriptorSet {
+        .dstSet           = _handle,
+        .dstBinding       = static_cast<uint32_t>(_set_writes.size()),
+        .dstArrayElement  = 0u,
+        .descriptorCount  = 1u,
+        .descriptorType   = type,
+        .pImageInfo       = nullptr,
+        .pBufferInfo      = buffer_info,
+        .pTexelBufferView = nullptr
+    });
+
     return *this;
 }
 
 // =============================================================================
-vkDescriptorSet & vkDescriptorSet::add_image(vkImage const &image) {
-    // _images.push_back(image);
+vkDescriptorSet & vkDescriptorSet::add_image(vkImage const &image,
+                                             vk::DescriptorType const type)
+{
     return *this;
 }
 
 // =============================================================================
 vkDescriptorSet & vkDescriptorSet::allocate() {
     const vk::DescriptorSetAllocateInfo alloc_info {
-        .descriptorPool = _pool.native(),
+        .descriptorPool     = _pool.native(),
         .descriptorSetCount = 1u,
-        .pSetLayouts = &_layout.native()
+        .pSetLayouts        = &_layout.native()
     };
 
     auto const result = _device.native().allocateDescriptorSets(
@@ -50,65 +74,16 @@ vkDescriptorSet & vkDescriptorSet::allocate() {
 
 // =============================================================================
 void vkDescriptorSet::write_set() {
-    std::vector<vk::DescriptorBufferInfo> buffer_info;
-    buffer_info.reserve(_buffers.size());
-
-    for(auto const& buffer : _buffers) {
-        buffer_info.push_back({
-            .buffer = buffer.native(),
-            .offset = 0u,
-            .range = VK_WHOLE_SIZE
-        });
+    if(_set_writes.empty()) {
+        BTX_ERROR("Trying to update descriptor set with no set writes.");
+        return;
     }
 
-    _buffers.clear();
+    _device.native().updateDescriptorSets(_set_writes, nullptr);
 
-    std::vector<vk::DescriptorImageInfo> image_info;
-    image_info.reserve(_images.size());
-
-    // for(auto const& image : _images) {
-    //     image_info.emplace_back(vk::DescriptorImageInfo {
-    //         .sampler     = image.sampler(),
-    //         .imageView   = image.view(),
-    //         .imageLayout = image.layout()
-    //     });
-    // }
-
-    _images.clear();
-
-    auto const buffer_count = static_cast<uint32_t>(buffer_info.size());
-    auto const image_count = static_cast<uint32_t>(image_info.size());
-
-    std::vector<vk::WriteDescriptorSet> set_writes;
-    set_writes.reserve(2);
-
-    if(buffer_count > 0) {
-        set_writes.emplace_back(vk::WriteDescriptorSet {
-            .dstSet = _handle,
-            .dstBinding = 0u,
-            .dstArrayElement = 0u,
-            .descriptorCount = buffer_count,
-            .descriptorType = vk::DescriptorType::eUniformBuffer,
-            .pImageInfo = nullptr,
-            .pBufferInfo = buffer_info.data(),
-            .pTexelBufferView = nullptr
-        });
-    }
-
-    if(image_count > 0) {
-        set_writes.emplace_back(vk::WriteDescriptorSet {
-            .dstSet = _handle,
-            .dstBinding = 0u,
-            .dstArrayElement = 0u,
-            .descriptorCount = image_count,
-            .descriptorType = vk::DescriptorType::eCombinedImageSampler,
-            .pImageInfo = image_info.data(),
-            .pBufferInfo = nullptr,
-            .pTexelBufferView = nullptr
-        });
-    }
-
-    _device.native().updateDescriptorSets(set_writes, nullptr);
+    _buffer_info.clear();
+    _image_info.clear();
+    _set_writes.clear();
 }
 
 } // namespace btx

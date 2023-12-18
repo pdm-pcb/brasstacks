@@ -19,6 +19,8 @@ class vkSurface;
 class vkSwapchain;
 class vkRenderPass;
 class vkDescriptorPool;
+class vkDescriptorSetLayout;
+class vkDescriptorSet;
 class vkPipeline;
 
 class vkFrameSync;
@@ -77,11 +79,16 @@ private:
     vkSurface        *_surface;
     vkSwapchain      *_swapchain;
     vkRenderPass     *_render_pass;
-    vkDescriptorPool *_desc_pool;
     vkPipeline       *_pipeline;
 
     vkBuffer *_vertex_buffer;
     vkBuffer *_index_buffer;
+
+    vkDescriptorPool *_desc_pool;
+
+    vkDescriptorSetLayout         *_camera_ubo_layout;
+    std::vector<vkDescriptorSet *> _camera_ubo_sets;
+    std::vector<vkBuffer *>        _camera_ubos;
 
     /**
      * @brief A queue of semaphores for acquiring images from the swapchain.
@@ -105,11 +112,6 @@ private:
     std::vector<vkFramebuffer *> _framebuffers;
 
     /**
-     * @brief A collection of descriptor sets to be used per-frame
-     */
-    // std::vector<vkDescriptorSet *> _desc_sets;
-
-    /**
      * @brief The index of the swapchain's next available image. This value is
      * also used to index Renderer's internal vkFrameSync objects.
      */
@@ -121,11 +123,14 @@ private:
      */
     void _create_frame_data();
 
+    void _create_camera_ubos();
+
     /**
-     * @brief Called from the destructor to destroy what was created in the last
-     * function
+     * @brief Called from the destructor
      */
     void _destroy_frame_data();
+
+    void _destroy_camera_ubos();
 };
 
 } // namespace btx
