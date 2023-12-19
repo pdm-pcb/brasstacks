@@ -73,6 +73,10 @@
 #include <chrono>
 #include <set>
 
+#include <imgui.h>
+#include <imgui_impl_vulkan.h>
+#include <imgui_impl_win32.h>
+
 #if defined(BTX_DEBUG)
 static std::filesystem::path const BTX_ASSET_PATH("../../demo/assets");
 static std::string           const BTX_SHADER_EXT("-debug.spv");

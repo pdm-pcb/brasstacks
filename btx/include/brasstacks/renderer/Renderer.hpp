@@ -28,6 +28,8 @@ class vkFramebuffer;
 
 class vkBuffer;
 
+class GUIOverlay;
+
 /**
  * @brief The Vulkan rendering backend.
  *
@@ -89,6 +91,8 @@ private:
     vkDescriptorSetLayout         *_camera_ubo_layout;
     std::vector<vkDescriptorSet *> _camera_ubo_sets;
     std::vector<vkBuffer *>        _camera_ubos;
+
+    GUIOverlay *_overlay;
 
     /**
      * @brief A queue of semaphores for acquiring images from the swapchain.

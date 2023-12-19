@@ -20,6 +20,8 @@
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
 
+#include "brasstacks/system/GUIOverlay.hpp"
+
 namespace btx {
 
 // =============================================================================
@@ -159,6 +161,12 @@ Renderer::Renderer(TargetWindow const &target_window) :
     _index_buffer->send_to_device(index_data.data());
 
     _create_frame_data();
+
+    _overlay = new GUIOverlay(
+        *_instance, *_physical_device, *_device, *_desc_pool,
+        static_cast<uint32_t>(_swapchain->images().size()),
+        target_window, *_render_pass
+    );
 }
 
 // =============================================================================
@@ -235,6 +243,8 @@ void Renderer::record_commands() {
             .pClearValues    = &clear_value,
         }
     );
+
+    _overlay->draw_ui();
 
     using Vec4 = std::array<float, 4>;
     using Mat4 = std::array<Vec4, 4>;

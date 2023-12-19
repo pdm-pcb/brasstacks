@@ -9,6 +9,8 @@ release/
 docs/
 !docs/custom.css
 
+imgui.ini
+
 **/version.hpp
 
 **/*.ilk

@@ -7,6 +7,11 @@
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT
+ImGui_ImplWin32_WndProcHandler(::HWND hWnd, ::UINT msg,
+                               ::WPARAM wParam, ::LPARAM lParam);
+
 namespace btx {
 
 // =============================================================================
@@ -343,6 +348,10 @@ void Win32TargetWindow::_size_and_place() {
 {
     // BTX_WARN("{}", _msg_map.translate(uMsg));
 
+    if(ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
+        return true;
+    }
+
     switch(uMsg) {
         case WM_INPUT: {
             // First call to GetRawInputData is just to get the size of the
@@ -397,12 +406,12 @@ void Win32TargetWindow::_size_and_place() {
         }
 
         case WM_ACTIVATE:
-            if(wParam == WA_INACTIVE) {
-                _release_cursor();
-            }
-            else {
-                _restrict_cursor();
-            }
+            // if(wParam == WA_INACTIVE) {
+            //     _release_cursor();
+            // }
+            // else {
+            //     _restrict_cursor();
+            // }
             break;
 
         // This is the first message received in window close cascade. Note the
