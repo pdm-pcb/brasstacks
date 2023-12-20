@@ -128,17 +128,14 @@ void FPSCamera::on_key_release(KeyReleaseEvent const &event) {
 
 // =============================================================================
 void FPSCamera::on_mouse_move(MouseMoveEvent const &event) {
-    float new_pitch = _state.pitch + -event.y_offset * _config.look_speed;
-    float new_yaw   = _state.yaw + event.x_offset * _config.look_speed;
+    _state.pitch += static_cast<float>(-event.y_offset) * _config.look_speed;
+    _state.yaw   += static_cast<float>(event.x_offset) * _config.look_speed;
 
-    if(new_pitch > 89.9f)       { new_pitch = 89.9f;  }
-    else if(new_pitch < -89.9f) { new_pitch = -89.9f; }
+    if(_state.pitch > 89.0f)       { _state.pitch = 89.0f;  }
+    else if(_state.pitch < -89.0f) { _state.pitch = -89.0f; }
 
-    if(new_yaw > 360.0f)    { new_yaw -= 360.0f; }
-    else if(new_yaw < 0.0f) { new_yaw += 360.0f; }
-
-    _state.pitch = new_pitch;
-    _state.yaw = new_yaw;
+    if(_state.yaw > 360.0f)    { _state.yaw -= 360.0f; }
+    else if(_state.yaw < 0.0f) { _state.yaw += 360.0f; }
 }
 
 // =============================================================================
