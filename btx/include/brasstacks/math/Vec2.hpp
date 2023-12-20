@@ -32,7 +32,7 @@ struct Vec2 {
     Vec2() = default;
     ~Vec2() = default;
 
-    Vec2(float x, float y);
+    Vec2(float const x_value, float const y_value);
 
     Vec2(Vec2 &&) = default;
     Vec2(Vec2 const &) = default;

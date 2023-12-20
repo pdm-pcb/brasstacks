@@ -80,6 +80,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
             "-Wno-c++98-compat-pedantic"
             "-Wno-c++20-compat" # We're targeting C++20
             "-Wno-newline-eof"
+            "-Wno-global-constructors"      # There are some statics I like
+            "-Wno-exit-time-destructors"    # Same as above
             "-fsafe-buffer-usage-suggestions"
         )
     endif()

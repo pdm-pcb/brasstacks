@@ -70,9 +70,9 @@ Vec2 operator/(Vec2 const &v, float scalar) {
 }
 
 // =============================================================================
-Vec2::Vec2(float x, float y) :
-    x { x },
-    y { y }
+Vec2::Vec2(float const x_value, float const y_value) :
+    x { x_value },
+    y { y_value }
 { }
 
 // =============================================================================

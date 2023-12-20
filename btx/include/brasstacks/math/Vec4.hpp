@@ -38,8 +38,9 @@ struct Vec4 {
     Vec4() = default;
     ~Vec4() = default;
 
-    Vec4(float const x, float const y, float const z, float const w);
-    Vec4(Vec3 const &v, float const w);
+    Vec4(float const x_value, float const y_value, float const z_value,
+         float const w_value);
+    Vec4(Vec3 const &v, float const w_value);
 
     Vec4(Vec4 &&) = default;
     Vec4(Vec4 const &) = default;

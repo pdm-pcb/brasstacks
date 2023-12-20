@@ -95,8 +95,15 @@ void vkCmdBuffer::submit_and_wait_on_device() const {
         .signalSemaphoreCount = 0u,
         .pSignalSemaphores    = nullptr,
     };
-    _device.graphics_queue().native().submit(submit_info);
-    _device.native().waitIdle();
+    auto result = _device.graphics_queue().native().submit(submit_info);
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to submit command buffer to device.");
+    }
+
+    result = _device.native().waitIdle();
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to wait on device idle.");
+    }
 }
 
 } // namespace btx

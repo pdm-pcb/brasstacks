@@ -4,13 +4,14 @@
 namespace btx::math {
 
 // =============================================================================
-Vec4::Vec4(float const x, float const y, float const z, float const w) :
-    x { x }, y { y }, z { z }, w { w }
+Vec4::Vec4(float const x_value, float const y_value, float const z_value,
+           float const w_value) :
+    x { x_value }, y { y_value }, z { z_value }, w { w_value }
 { }
 
 // =============================================================================
-Vec4::Vec4(Vec3 const &v, float const w) :
-    x { v.x }, y { v.y }, z { v.z }, w { w }
+Vec4::Vec4(Vec3 const &v, float const w_value) :
+    x { v.x }, y { v.y }, z { v.z }, w { w_value }
 { }
 
 // =============================================================================

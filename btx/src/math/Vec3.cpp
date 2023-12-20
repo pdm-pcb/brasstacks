@@ -4,8 +4,8 @@
 namespace btx::math {
 
 // =============================================================================
-Vec3::Vec3(float const x, float const y, float const z) :
-    x { x }, y { y }, z { z }
+Vec3::Vec3(float const x_value, float const y_value, float const z_value) :
+    x { x_value }, y { y_value }, z { z_value }
 { }
 
 // =============================================================================
