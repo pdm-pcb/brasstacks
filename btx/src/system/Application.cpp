@@ -1,3 +1,4 @@
+#include "brasstacks/core.hpp"
 #include "brasstacks/system/Application.hpp"
 
 #include "brasstacks/events/EventBroker.hpp"
@@ -38,14 +39,23 @@ void Application::run() {
     this->init();
 
     while(_running) {
+        // Tick the clock
+        Timekeeper::update();
+
         // Have the client do per-frame processing and submit draw calls
         this->update();
 
-        // Let the renderer go to town on a frame
-        _renderer->acquire_next_image();
-        _renderer->record_commands();
-        _renderer->submit_commands();
-        _renderer->present_image();
+        Timekeeper::frame_start();
+
+            // Let the renderer go to town on a frame
+            _renderer->acquire_next_image();
+            _renderer->record_commands();
+            _renderer->submit_commands();
+            _renderer->present_image();
+
+        Timekeeper::frame_end();
+
+        // Check for input and events from the OS
         _target_window->message_loop();
     }
 

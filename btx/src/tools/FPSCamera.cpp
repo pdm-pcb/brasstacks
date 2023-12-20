@@ -1,3 +1,4 @@
+#include "brasstacks/core.hpp"
 #include "brasstacks/tools/FPSCamera.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -40,7 +41,7 @@ FPSCamera::~FPSCamera() {
 }
 
 // =============================================================================
-void FPSCamera::update(float const frame_time) {
+void FPSCamera::update() {
     auto const cos_yaw   = std::cos(math::radians(_state.yaw));
     auto const sin_yaw   = std::sin(math::radians(_state.yaw));
     auto const cos_pitch = std::cos(math::radians(_state.pitch));
@@ -56,7 +57,7 @@ void FPSCamera::update(float const frame_time) {
     );
     _state.up = math::cross(_state.side, _state.forward);
 
-    auto move_speed = _config.move_speed * frame_time;
+    auto move_speed = _config.move_speed * Timekeeper::frame_time();
     if(_kb.lshift) {
         move_speed *= 2.0f;
     }

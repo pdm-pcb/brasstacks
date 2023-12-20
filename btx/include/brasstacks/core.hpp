@@ -3,6 +3,7 @@
 
 #include "brasstacks/version.hpp"
 #include "brasstacks/tools/ConsoleLog.hpp"
+#include "brasstacks/tools/Timekeeper.hpp"
 #include "brasstacks/math/math.hpp"
 
 #endif // BRASSTACKS_CORE_HPP

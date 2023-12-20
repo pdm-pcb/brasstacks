@@ -187,7 +187,7 @@ void Renderer::acquire_next_image() {
 
 // =============================================================================
 void Renderer::record_commands() {
-    _camera->update(0.016666666667f);
+    _camera->update();
 
     auto const &frame_sync = *_frame_sync[_next_image_index];
     auto const &cmd_buffer = frame_sync.cmd_buffer();

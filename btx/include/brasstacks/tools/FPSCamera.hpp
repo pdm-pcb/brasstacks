@@ -32,7 +32,7 @@ public:
               size_t const image_count, Orientation const &orientation);
     ~FPSCamera();
 
-    void update(float const frame_time);
+    void update();
     void send_buffer_data(uint32_t const image_index);
 
     void on_key_press(KeyPressEvent const &event);
