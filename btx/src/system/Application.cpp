@@ -4,7 +4,7 @@
 #include "brasstacks/events/keyboard_events.hpp"
 
 #include "brasstacks/system/TargetWindow.hpp"
-#include "brasstacks/renderer/Renderer.hpp"
+#include "brasstacks/rendering/Renderer.hpp"
 
 namespace btx {
 

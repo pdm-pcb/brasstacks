@@ -1,4 +1,4 @@
-#include "brasstacks/renderer/meshes/PlaneMesh.hpp"
+#include "brasstacks/rendering/meshes/PlaneMesh.hpp"
 
 namespace btx {
 

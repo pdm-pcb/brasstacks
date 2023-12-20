@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_RENDERER_MESHES_VERTEX_HPP
-#define BRASSTACKS_RENDERER_MESHES_VERTEX_HPP
+#ifndef BRASSTACKS_RENDERING_MESHES_VERTEX_HPP
+#define BRASSTACKS_RENDERING_MESHES_VERTEX_HPP
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/math/colors.hpp"
@@ -19,4 +19,4 @@ struct Vertex final {
 
 } // namespace btx
 
-#endif // BRASSTACKS_RENDERER_MESHES_VERTEX_HPP
+#endif // BRASSTACKS_RENDERING_MESHES_VERTEX_HPP

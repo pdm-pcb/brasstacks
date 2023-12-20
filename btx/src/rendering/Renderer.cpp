@@ -1,4 +1,4 @@
-#include "brasstacks/renderer/Renderer.hpp"
+#include "brasstacks/rendering/Renderer.hpp"
 
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
@@ -20,7 +20,7 @@
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 
 #include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
-#include "brasstacks/renderer/meshes/PlaneMesh.hpp"
+#include "brasstacks/rendering/meshes/CubeMesh.hpp"
 
 namespace btx {
 
@@ -105,7 +105,7 @@ Renderer::Renderer(TargetWindow const &target_window) :
             }
         );
 
-    _mesh = new PlaneMesh(
+    _mesh = new CubeMesh(
         *_device,
         0.5f,
         {{
@@ -113,6 +113,10 @@ Renderer::Renderer(TargetWindow const &target_window) :
             { 0.0f, 1.0f, 0.0f },
             { 0.0f, 0.0f, 1.0f },
             { 0.25f, 0.25f, 0.25f },
+            { 1.0f, 0.0f, 0.0f },
+            { 0.0f, 1.0f, 0.0f },
+            { 0.0f, 0.0f, 1.0f },
+            { 0.5f, 0.5f, 0.5f },
         }}
     );
 
@@ -193,16 +197,16 @@ void Renderer::record_commands() {
         }
     );
 
-    static auto const start = std::chrono::high_resolution_clock::now();
-    auto const now = std::chrono::high_resolution_clock::now();
-    auto const duration = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+    // static auto const start = std::chrono::high_resolution_clock::now();
+    // auto const now = std::chrono::high_resolution_clock::now();
+    // auto const duration = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+    // auto const model_matrix = math::rotate(math::Mat4::identity, 20.0f * duration, math::Vec3::unit_z) *
+    // math::rotate(math::Mat4::identity, 10.0f * duration, math::Vec3::unit_y);
 
-    auto const model_matrix = math::rotate(math::Mat4::identity, 20.0f * duration, math::Vec3::unit_z);
-
-    // auto const model_matrix = math::Mat4::identity;
+    auto const model_matrix = math::Mat4::identity;
 
     auto const view_matrix = math::look_at_rh(
-        { 0.0f, 0.0f, 2.0f },  // camera pos
+        { 0.0f, 0.0f, 4.0f },  // camera pos
         { 0.0f, 0.0f, 0.0f },  // camera target
         { 0.0f, 1.0f, 0.0f }   // up vector
     );

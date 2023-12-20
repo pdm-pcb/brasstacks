@@ -3,8 +3,8 @@
  * @brief The Vulkan rendering backend.
  */
 
-#ifndef BRASSTACKS_RENDERER_RENDERER_HPP
-#define BRASSTACKS_RENDERER_RENDERER_HPP
+#ifndef BRASSTACKS_RENDERING_RENDERER_HPP
+#define BRASSTACKS_RENDERING_RENDERER_HPP
 
 #include "brasstacks/pch.hpp"
 
@@ -27,7 +27,7 @@ class vkFrameSync;
 class vkFramebuffer;
 
 class vkBuffer;
-class PlaneMesh;
+class CubeMesh;
 
 /**
  * @brief The Vulkan rendering backend.
@@ -82,7 +82,7 @@ private:
     vkRenderPass     *_render_pass;
     vkPipeline       *_pipeline;
 
-    PlaneMesh *_mesh;
+    CubeMesh *_mesh;
 
     vkDescriptorPool *_desc_pool;
 
@@ -135,4 +135,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_RENDERER_RENDERER_HPP
+#endif // BRASSTACKS_RENDERING_RENDERER_HPP

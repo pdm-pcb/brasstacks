@@ -296,9 +296,15 @@ void vkPhysicalDevice::_print_family_flags(uint32_t const family,
     if(flags & vk::QueueFlagBits::eProtected) {
         flags_str += "Protected      ";
     }
+
+#ifdef VK_ENABLE_BETA_EXTENSIONS
     if(flags & vk::QueueFlagBits::eVideoDecodeKHR) {
         flags_str += "Video Decode   ";
     }
+    if(flags & vk::QueueFlagBits::eVideoEncodeKHR) {
+        flags_str += "Video Encode   ";
+    }
+#endif // VK_ENABLE_BETA_EXTENSIONS
 
     BTX_TRACE("    {}", flags_str);
 }
