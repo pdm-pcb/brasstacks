@@ -34,7 +34,7 @@ struct Vec3 {
     Vec3() = default;
     ~Vec3() = default;
 
-    Vec3(float x, float y, float z);
+    Vec3(float const x, float const y, float const z);
 
     Vec3(Vec3 &&) = default;
     Vec3(Vec3 const &) = default;

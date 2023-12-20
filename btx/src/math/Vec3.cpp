@@ -4,6 +4,11 @@
 namespace btx::math {
 
 // =============================================================================
+Vec3::Vec3(float const x, float const y, float const z) :
+    x { x }, y { y }, z { z }
+{ }
+
+// =============================================================================
 bool Vec3::operator==(const Vec3 &other) const {
     // If the absolute value of the difference between this.x and other.x is
     // less than the chosen float epsilon, then the x components of the two
@@ -73,13 +78,6 @@ Vec3 operator*(Vec3 const &v, float scalar) {
 Vec3 operator/(Vec3 const &v, float scalar) {
     return { v.x / scalar, v.y / scalar, v.z / scalar };
 }
-
-// =============================================================================
-Vec3::Vec3(float x, float y, float z) :
-    x { x },
-    y { y },
-    z { z }
-{ }
 
 // =============================================================================
 std::ostream & operator<<(std::ostream& out, Vec3 const& v) {

@@ -27,6 +27,12 @@ struct Mat4 {
     Mat4 & operator+=(Mat4 const &other);
     Mat4 & operator-=(Mat4 const &other);
 
+    Mat4 & Mat4::operator*=(Mat4 const &other);
+
+    Mat4 Mat4::operator*(Mat4 const &other) const;
+
+    Vec4 Mat4::operator*(Vec4 const &v) const;
+
 // =============================================================================
     Mat4() = default;
     ~Mat4() = default;

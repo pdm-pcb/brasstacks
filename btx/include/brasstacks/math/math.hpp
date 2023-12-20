@@ -92,7 +92,7 @@ template <typename Vector>
 // Matrix operations
 Mat4 transpose(Mat4 const &m);
 Mat4 translate(Mat4 const &m, Vec3 const &v);
-Mat4 rotate(Mat4 const &m, float const angle, Vec3 const &axis);
+Mat4 rotate(Mat4 const &m, float const angle_degrees, Vec3 const &axis);
 Mat4 scale(Mat4 const &m, float const &pct);
 
 // =============================================================================

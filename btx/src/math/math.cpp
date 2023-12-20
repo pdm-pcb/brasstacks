@@ -136,10 +136,10 @@ Mat4 translate(Mat4 const &m, Vec3 const &v) {
     return result;
 }
 
-Mat4 rotate(Mat4 const &m, float const angle, Vec3 const &axis) {
+Mat4 rotate(Mat4 const &m, float const angle_degrees, Vec3 const &axis) {
     Mat4 result { m.x, m.y, m.z, m.w, };
 
-    float const theta = radians(angle);
+    float const theta = radians(angle_degrees);
     float const cos_theta = std::cos(theta);
     float const sin_theta = std::sin(theta);
 

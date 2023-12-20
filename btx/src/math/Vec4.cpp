@@ -4,6 +4,16 @@
 namespace btx::math {
 
 // =============================================================================
+Vec4::Vec4(float const x, float const y, float const z, float const w) :
+    x { x }, y { y }, z { z }, w { w }
+{ }
+
+// =============================================================================
+Vec4::Vec4(Vec3 const &v, float const w) :
+    x { v.x }, y { v.y }, z { v.z }, w { w }
+{ }
+
+// =============================================================================
 bool Vec4::operator==(const Vec4 &other) const {
     // If the absolute value of the difference between this.x and other.x is
     // less than the chosen float epsilon, then the x components of the two
@@ -78,14 +88,6 @@ Vec4 operator*(Vec4 const &v, float scalar) {
 Vec4 operator/(Vec4 const &v, float scalar) {
     return { v.x / scalar, v.y / scalar, v.z / scalar, v.w / scalar };
 }
-
-// =============================================================================
-Vec4::Vec4(float x, float y, float z, float w) :
-    x { x },
-    y { y },
-    z { z },
-    w { w }
-{ }
 
 // =============================================================================
 std::ostream & operator<<(std::ostream& out, Vec4 const& v) {

@@ -18,9 +18,9 @@
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
-#include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
 
-#include "brasstacks/system/GUIOverlay.hpp"
+#include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
+#include "brasstacks/renderer/meshes/PlaneMesh.hpp"
 
 namespace btx {
 
@@ -92,29 +92,7 @@ Renderer::Renderer(TargetWindow const &target_window) :
                            vk::ShaderStageFlagBits::eVertex)
         .module_from_spirv("shaders/demo.frag",
                            vk::ShaderStageFlagBits::eFragment)
-        .describe_vertex_input(
-            {
-                {
-                    .binding   = 0u,
-                    .stride    = static_cast<uint32_t>(sizeof(float) * 6),
-                    .inputRate = vk::VertexInputRate::eVertex
-                }
-            },
-            {
-                {
-                    .location = 0u,
-                    .binding  = 0u,
-                    .format   = vk::Format::eR32G32B32Sfloat,
-                    .offset   = static_cast<uint32_t>(sizeof(float) * 0),
-                },
-                {
-                    .location = 1u,
-                    .binding  = 0u,
-                    .format   = vk::Format::eR32G32B32Sfloat,
-                    .offset   = static_cast<uint32_t>(sizeof(float) * 3),
-                }
-            }
-        )
+        .describe_vertex_input(Vertex::bindings, Vertex::attributes)
         .add_descriptor_set(*_camera_ubo_layout)
         .create(
             *_render_pass,
@@ -127,33 +105,16 @@ Renderer::Renderer(TargetWindow const &target_window) :
             }
         );
 
-    std::vector<float> vertex_data {
-        // pos                 // color
-         0.5f, -0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, 0.0f,    0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f, 0.0f,    0.25f, 0.25f, 0.25f,
-    };
-
-    _vertex_buffer = new vkBuffer(
-        *_device, sizeof(float) * vertex_data.size(),
-        (vk::BufferUsageFlagBits::eVertexBuffer |
-         vk::BufferUsageFlagBits::eTransferDst),
-        vk::MemoryPropertyFlagBits::eDeviceLocal
+    _mesh = new PlaneMesh(
+        *_device,
+        0.5f,
+        {{
+            { 1.0f, 0.0f, 0.0f },
+            { 0.0f, 1.0f, 0.0f },
+            { 0.0f, 0.0f, 1.0f },
+            { 0.25f, 0.25f, 0.25f },
+        }}
     );
-    _vertex_buffer->send_to_device(vertex_data.data());
-
-    std::vector<uint32_t> index_data {
-        0, 1, 2,    1, 3, 2
-    };
-
-    _index_buffer = new vkBuffer(
-        *_device, sizeof(float) * index_data.size(),
-        (vk::BufferUsageFlagBits::eIndexBuffer |
-         vk::BufferUsageFlagBits::eTransferDst),
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-    _index_buffer->send_to_device(index_data.data());
 
     _create_frame_data();
 }
@@ -165,8 +126,7 @@ Renderer::~Renderer() {
     _destroy_frame_data();
     _destroy_camera_ubos();
 
-    delete _index_buffer;
-    delete _vertex_buffer;
+    delete _mesh;
 
     delete _pipeline;
     delete _desc_pool;
@@ -233,11 +193,18 @@ void Renderer::record_commands() {
         }
     );
 
-    auto const model_matrix = math::Mat4::identity;
+    static auto const start = std::chrono::high_resolution_clock::now();
+    auto const now = std::chrono::high_resolution_clock::now();
+    auto const duration = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+
+    auto const model_matrix = math::rotate(math::Mat4::identity, 20.0f * duration, math::Vec3::unit_z);
+
+    // auto const model_matrix = math::Mat4::identity;
+
     auto const view_matrix = math::look_at_rh(
-        { 0.0f, 0.0f, 2.0f },
-        { 0.0f, 0.0f, 0.0f },
-        { 0.0f, 1.0f, 0.0f }
+        { 0.0f, 0.0f, 2.0f },  // camera pos
+        { 0.0f, 0.0f, 0.0f },  // camera target
+        { 0.0f, 1.0f, 0.0f }   // up vector
     );
     auto const proj_matrix = math::persp_proj_rh_no(
         45.0f,
@@ -255,14 +222,7 @@ void Renderer::record_commands() {
     _pipeline->bind(cmd_buffer);
     _pipeline->bind_descriptor_set(cmd_buffer, camera_ubo_set);
 
-    vk::Buffer const vertex_buffers[] = { _vertex_buffer->native() };
-    vk::DeviceSize const offsets[] = { 0 };
-
-    cmd_buffer.native().bindVertexBuffers(0u, vertex_buffers, offsets);
-    cmd_buffer.native().bindIndexBuffer(_index_buffer->native(), 0u,
-                                        vk::IndexType::eUint32);
-
-    cmd_buffer.native().drawIndexed(6u, 1u,  0u, 0u, 0u);
+    _mesh->draw_indexed(cmd_buffer);
 
     cmd_buffer.end_render_pass();
     cmd_buffer.end_recording();

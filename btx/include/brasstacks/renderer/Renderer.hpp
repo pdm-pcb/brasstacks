@@ -27,6 +27,7 @@ class vkFrameSync;
 class vkFramebuffer;
 
 class vkBuffer;
+class PlaneMesh;
 
 /**
  * @brief The Vulkan rendering backend.
@@ -81,8 +82,7 @@ private:
     vkRenderPass     *_render_pass;
     vkPipeline       *_pipeline;
 
-    vkBuffer *_vertex_buffer;
-    vkBuffer *_index_buffer;
+    PlaneMesh *_mesh;
 
     vkDescriptorPool *_desc_pool;
 

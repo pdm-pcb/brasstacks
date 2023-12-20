@@ -184,13 +184,13 @@ vkPipeline::add_descriptor_set(vkDescriptorSetLayout const &layout) {
 
 // =============================================================================
 void vkPipeline::update_dimensions(vk::Extent2D const &extent,
-                                 vk::Offset2D const &offset)
+                                   vk::Offset2D const &offset)
 {
     _viewport = vk::Viewport {
         .x         = static_cast<float>(offset.x),
-        .y         = static_cast<float>(offset.y),
+        .y         = static_cast<float>(extent.height),
         .width     = static_cast<float>(extent.width),
-        .height    = static_cast<float>(extent.height),
+        .height    = -static_cast<float>(extent.height),
         .minDepth  = 0.0f,
         .maxDepth  = 1.0f,
     };
