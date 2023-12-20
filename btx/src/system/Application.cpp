@@ -42,7 +42,7 @@ void Application::run() {
         this->update();
 
         // Let the renderer go to town on a frame
-        _renderer->acquire_next_frame();
+        _renderer->acquire_next_image();
         _renderer->record_commands();
         _renderer->submit_commands();
         _renderer->present_image();

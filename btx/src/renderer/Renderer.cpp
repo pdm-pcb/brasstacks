@@ -26,10 +26,8 @@ namespace btx {
 
 // =============================================================================
 Renderer::Renderer(TargetWindow const &target_window) :
-    _instance           { new vkInstance() },
-    _image_acquire_sems { },
-    _frame_sync         { },
-    _next_image_index   { std::numeric_limits<uint32_t>::max() }
+    _instance         { new vkInstance() },
+    _next_image_index { std::numeric_limits<uint32_t>::max() }
 {
 
     // First, acquire the details necessary to construct a Vulkan surface from
@@ -83,10 +81,7 @@ Renderer::Renderer(TargetWindow const &target_window) :
 
     _desc_pool = new vkDescriptorPool(*_device,
         100u,
-        {{
-            .type = vk::DescriptorType::eUniformBuffer,
-            .descriptorCount = 100u,
-        }}
+        {{ vk::DescriptorType::eUniformBuffer, 100u, }}
     );
 
     _create_camera_ubos();
@@ -161,12 +156,6 @@ Renderer::Renderer(TargetWindow const &target_window) :
     _index_buffer->send_to_device(index_data.data());
 
     _create_frame_data();
-
-    _overlay = new GUIOverlay(
-        *_instance, *_physical_device, *_device, *_desc_pool,
-        static_cast<uint32_t>(_swapchain->images().size()),
-        target_window, *_render_pass
-    );
 }
 
 // =============================================================================
@@ -190,7 +179,7 @@ Renderer::~Renderer() {
 }
 
 // =============================================================================
-void Renderer::acquire_next_frame() {
+void Renderer::acquire_next_image() {
     if(_image_acquire_sems.empty()) {
         BTX_CRITICAL("Swapchain ran out of image acquire semaphores.");
         return;
@@ -243,8 +232,6 @@ void Renderer::record_commands() {
             .pClearValues    = &clear_value,
         }
     );
-
-    _overlay->draw_ui();
 
     using Vec4 = std::array<float, 4>;
     using Mat4 = std::array<Vec4, 4>;
@@ -340,7 +327,7 @@ void Renderer::_create_frame_data() {
 
     // Create one extra semaphore because by the time the first n frames have
     // requested images from the swapchain, the queue of semaphores will be
-    // empty. And since the logic in acquire_next_frame() tries to get a new
+    // empty. And since the logic in acquire_next_image() tries to get a new
     // semaphore before releasing the old one for that frame, there has to be
     // one semaphore spare.
     auto result = _device->native().createSemaphore({ });

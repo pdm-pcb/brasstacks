@@ -67,12 +67,13 @@ private:
     Position   _window_pos;
 
     static void _register_class();
-    void _create_window();
-    void _destroy_window();
-    void _toggle_raw_input();
-    void _restrict_cursor();
-    void _release_cursor();
-    void _size_and_place();
+           void _create_window();
+           void _destroy_window();
+           void _register_raw_input();
+    static void _deregister_raw_input();
+           void _restrict_cursor();
+    static void _release_cursor();
+           void _size_and_place();
 
     // Static wndproc for Windows to call, per the Raymond Chen article:
     // https://devblogs.microsoft.com/oldnewthing/20140203-00/?p=1893

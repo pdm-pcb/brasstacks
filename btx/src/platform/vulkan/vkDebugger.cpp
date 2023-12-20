@@ -13,16 +13,16 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
         const ::VkDebugUtilsMessengerCallbackDataEXT *callback_data,
         [[maybe_unused]] void *user_data)
 {
-    if(severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+    if((severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) != 0) {
         BTX_TRACE("{}", callback_data->pMessage);
     }
-    if(severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+    if((severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) != 0) {
         BTX_INFO("{}", callback_data->pMessage);
     }
-    if(severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+    if((severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) != 0) {
         BTX_WARN("{}", callback_data->pMessage);
     }
-    if(severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+    if((severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0) {
         BTX_ERROR("\n{}\n", callback_data->pMessage);
     }
 

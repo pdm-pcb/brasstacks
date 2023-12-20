@@ -13,16 +13,19 @@ class vkDescriptorPool;
 class TargetWindow;
 class vkRenderPass;
 
-class GUIOverlay final {
-public:
-    GUIOverlay(vkInstance const &instance, vkPhysicalDevice const &physical_device,
-               vkDevice const &device, vkDescriptorPool const &descriptor_pool,
-               uint32_t const swapchain_image_count, TargetWindow const &window,
-               vkRenderPass const &render_pass);
-    ~GUIOverlay();
+// class GUIOverlay final {
+// public:
+//     GUIOverlay(vkInstance const &instance,
+//                vkPhysicalDevice const &physical_device, vkDevice const &device,
+//                uint32_t const swapchain_image_count, TargetWindow const &window,
+//                vkRenderPass const &render_pass);
+//     ~GUIOverlay();
 
-    void draw_ui();
-};
+//     void draw_ui();
+
+// private:
+//     vkDescriptorPool *_descriptor_pool;
+// };
 
 } // namespace btx
 

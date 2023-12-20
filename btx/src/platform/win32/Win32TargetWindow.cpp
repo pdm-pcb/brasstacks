@@ -7,11 +7,6 @@
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 
-// Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT
-ImGui_ImplWin32_WndProcHandler(::HWND hWnd, ::UINT msg,
-                               ::WPARAM wParam, ::LPARAM lParam);
-
 namespace btx {
 
 // =============================================================================
@@ -200,31 +195,23 @@ void Win32TargetWindow::_destroy_window() {
 }
 
 // =============================================================================
-void Win32TargetWindow::_toggle_raw_input() {
-    // Static bool to facilitate toggling behavior of this function
-    static bool enabled = false;
-
+void Win32TargetWindow::_register_raw_input() {
     // Below, we specify the keyboard and mouse as raw input devices. The
     // RIDEV_NOLEGACY flag tells Windows not to generate legacy messages, like
     // WM_KEYDOWN, while RIDEV_REMOVE unregisters the device from Windows' raw
     // input.
 
-    auto const dwFlags =
-        static_cast<::DWORD>(enabled ? RIDEV_REMOVE : RIDEV_NOLEGACY);
-
     std::array<::RAWINPUTDEVICE, 2> devices { };
 
-    // First, the keyboard
     devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
-    devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD;
-    devices[0].dwFlags     = dwFlags;
-    devices[0].hwndTarget  = (enabled ? nullptr : _window_handle);
+    devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD; // First, the keyboard
+    devices[0].dwFlags     = RIDEV_NOLEGACY;
+    devices[0].hwndTarget  = _window_handle;
 
-    // And then the mouse
     devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
-    devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE;
-    devices[1].dwFlags     = dwFlags;
-    devices[1].hwndTarget  = (enabled ? nullptr : _window_handle);
+    devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE; // And then the mouse
+    devices[1].dwFlags     = RIDEV_NOLEGACY;
+    devices[1].hwndTarget  = _window_handle;
 
     // Attempt to register
     auto const result = ::RegisterRawInputDevices(
@@ -233,23 +220,53 @@ void Win32TargetWindow::_toggle_raw_input() {
         sizeof(::RAWINPUTDEVICE)
     );
 
-    // If it failed... just drop out
     if(result == FALSE) {
         auto const error = ::GetLastError();
-        BTX_CRITICAL("Failed to register for raw win32 input with error: '{}'",
+        BTX_CRITICAL("Failed to register raw win32 input with error: '{}'",
                      std::system_category().message(static_cast<int>(error)));
-        return;
     }
+    else {
+        BTX_TRACE("Registered win32 raw input");
+    }
+}
 
-    // But if it succeeded, flip the toggle flag
-    enabled = !enabled;
+// =============================================================================
+void Win32TargetWindow::_deregister_raw_input() {
+    // All of this is the same as in _register_raw_input()(), except RIDEV_NOLEGACY
+    // is exchanged for RIDEV_REMOVE and provide nullptr instead of the window
+    // handle
+
+    std::array<::RAWINPUTDEVICE, 2> devices { };
+
+    devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+    devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD; // The keyboard
+    devices[0].dwFlags     = RIDEV_REMOVE;
+    devices[0].hwndTarget  = nullptr;
+
+    devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
+    devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE; // And the mouse
+    devices[1].dwFlags     = RIDEV_REMOVE;
+    devices[1].hwndTarget  = nullptr;
+
+    // Attempt to deregister
+    auto const result = ::RegisterRawInputDevices(
+        devices.data(),
+        static_cast<::UINT>(devices.size()),
+        sizeof(::RAWINPUTDEVICE)
+    );
+
+    if(result == FALSE) {
+        auto const error = ::GetLastError();
+        BTX_CRITICAL("Failed to deregister raw input with error: '{}'",
+                     std::system_category().message(static_cast<int>(error)));
+    }
+    else {
+        BTX_TRACE("Deregistered win32 raw input");
+    }
 }
 
 // =============================================================================
 void Win32TargetWindow::_restrict_cursor() {
-    // Activate raw input
-    _toggle_raw_input();
-
     // Retrieve the window's drawable surface
 	::RECT client_area;
 	::GetClientRect(_window_handle, &client_area);
@@ -272,9 +289,6 @@ void Win32TargetWindow::_restrict_cursor() {
 
 // =============================================================================
 void Win32TargetWindow::_release_cursor() {
-    // Deactivate raw input
-    _toggle_raw_input();
-
     // Allow the cursor to travel outside the client space
     ::ClipCursor(nullptr);
 
@@ -313,15 +327,12 @@ void Win32TargetWindow::_size_and_place() {
     if(uMsg == WM_NCCREATE) {
         // Recover the "this" pointer which was passed as a parameter
         // to CreateWindow
-        ::LPCREATESTRUCT lpcs = reinterpret_cast<::LPCREATESTRUCT>(lParam);
+        auto const *lpcs = reinterpret_cast<::LPCREATESTRUCT>(lParam);
         target = static_cast<Win32TargetWindow *>(lpcs->lpCreateParams);
 
         // Put the value in a safe place for future use
-        ::SetWindowLongPtrA(
-            hWnd,
-            GWLP_USERDATA,
-            reinterpret_cast<::LONG_PTR>(target)
-        );
+        ::SetWindowLongPtrA(hWnd, GWLP_USERDATA,
+                            reinterpret_cast<::LONG_PTR>(target));
     }
     else {
         // Recover the "this" pointer from where our WM_NCCREATE handler
@@ -347,10 +358,6 @@ void Win32TargetWindow::_size_and_place() {
                                            ::WPARAM wParam, ::LPARAM lParam)
 {
     // BTX_WARN("{}", _msg_map.translate(uMsg));
-
-    if(ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
-        return true;
-    }
 
     switch(uMsg) {
         case WM_INPUT: {
@@ -406,12 +413,14 @@ void Win32TargetWindow::_size_and_place() {
         }
 
         case WM_ACTIVATE:
-            // if(wParam == WA_INACTIVE) {
-            //     _release_cursor();
-            // }
-            // else {
-            //     _restrict_cursor();
-            // }
+            if(wParam == WA_INACTIVE) {
+                _deregister_raw_input();
+                // _release_cursor();
+            }
+            else {
+                _register_raw_input();
+                // _restrict_cursor();
+            }
             break;
 
         // This is the first message received in window close cascade. Note the
@@ -425,7 +434,6 @@ void Win32TargetWindow::_size_and_place() {
         // handle explicitly.
         case WM_DESTROY:
             ::PostQuitMessage(0);
-            _release_cursor();
             return 0;
 
         default: break;

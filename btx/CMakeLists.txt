@@ -4,9 +4,6 @@ CheckCompilerVersions()
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FetchDeps.cmake")
 FetchDeps()
 
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/BuildImGUI.cmake")
-BuildImGUI()
-
 set(TARGET_NAME "brasstacks")
 
 add_library(${TARGET_NAME} STATIC)
@@ -39,7 +36,6 @@ target_link_libraries(
     ${TARGET_NAME} PUBLIC
     spdlog::spdlog
     Vulkan::Vulkan
-    imgui
 )
 
 if(LINUX)
