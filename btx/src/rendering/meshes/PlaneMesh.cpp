@@ -1,5 +1,7 @@
 #include "brasstacks/rendering/meshes/PlaneMesh.hpp"
 
+#include "brasstacks/math/math.hpp"
+
 namespace btx {
 
 PlaneMesh::PlaneMesh(vkDevice const &device, float const scale,

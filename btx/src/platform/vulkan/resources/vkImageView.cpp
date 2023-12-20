@@ -1,3 +1,4 @@
+#include "brasstacks/core.hpp"
 #include "brasstacks/platform/vulkan/resources/images/vkImageView.hpp"
 
 #include "brasstacks/platform/vulkan/resources/images/vkImage.hpp"

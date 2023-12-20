@@ -97,8 +97,6 @@ Mat4 scale(Mat4 const &m, float const &pct);
 
 // =============================================================================
 // Camera math
-Mat4 look_at_rh(Vec3 const &position, Vec3 const &target, Vec3 const &up);
-
 Mat4 orient_view_rh(Vec3 const &position, Vec3 const &forward,
                     Vec3 const &side, Vec3 const &up);
 

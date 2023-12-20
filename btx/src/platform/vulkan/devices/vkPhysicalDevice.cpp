@@ -1,3 +1,4 @@
+#include "brasstacks/core.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"

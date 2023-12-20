@@ -1,4 +1,5 @@
 #include "Demo.hpp"
+#include "brasstacks/core.hpp"
 
 void Demo::init() {
     BTX_TRACE("client app init");

@@ -1,4 +1,6 @@
+#include "brasstacks/core.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
+
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 namespace btx {

@@ -1,5 +1,6 @@
 #ifdef BTX_WINDOWS
 
+#include "brasstacks/core.hpp"
 #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
 #include "brasstacks/events/EventBroker.hpp"

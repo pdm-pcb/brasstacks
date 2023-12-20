@@ -3,6 +3,7 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/system/input/btx_keycodes.hpp"
+#include "brasstacks/tools/ConsoleLog.hpp"
 
 namespace btx {
 

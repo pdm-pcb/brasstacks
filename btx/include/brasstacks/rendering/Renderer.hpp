@@ -28,6 +28,7 @@ class vkFramebuffer;
 
 class vkBuffer;
 class CubeMesh;
+class FPSCamera;
 
 /**
  * @brief The Vulkan rendering backend.
@@ -83,12 +84,9 @@ private:
     vkPipeline       *_pipeline;
 
     CubeMesh *_mesh;
+    FPSCamera *_camera;
 
     vkDescriptorPool *_desc_pool;
-
-    vkDescriptorSetLayout         *_camera_ubo_layout;
-    std::vector<vkDescriptorSet *> _camera_ubo_sets;
-    std::vector<vkBuffer *>        _camera_ubos;
 
     /**
      * @brief A queue of semaphores for acquiring images from the swapchain.
@@ -123,14 +121,10 @@ private:
      */
     void _create_frame_data();
 
-    void _create_camera_ubos();
-
     /**
      * @brief Called from the destructor
      */
     void _destroy_frame_data();
-
-    void _destroy_camera_ubos();
 };
 
 } // namespace btx

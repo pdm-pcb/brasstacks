@@ -1,3 +1,4 @@
+#include "brasstacks/core.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"

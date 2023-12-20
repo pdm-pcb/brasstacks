@@ -2,6 +2,7 @@
 #define BRASSTACKS_MATH_COLORS_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/math/Vec3.hpp"
 
 namespace btx::colors {
 

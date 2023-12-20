@@ -1,5 +1,7 @@
 #include "brasstacks/rendering/meshes/CubeMesh.hpp"
 
+#include "brasstacks/math/math.hpp"
+
 namespace btx {
 
 CubeMesh::CubeMesh(vkDevice const &device, float const scale,

@@ -2,6 +2,7 @@
 #define BRASSTACKS_PLATFORM_WIN32_WIN32MSGTOSTR_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/tools/ConsoleLog.hpp"
 
 namespace btx {
 

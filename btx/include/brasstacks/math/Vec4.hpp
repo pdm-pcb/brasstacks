@@ -5,6 +5,8 @@
 
 namespace btx::math {
 
+struct Vec3;
+
 struct Vec4 {
     static Vec4 const zero;
     static Vec4 const unit_x;

@@ -6,6 +6,7 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/events/EventCallbacks.hpp"
+#include "brasstacks/tools/ConsoleLog.hpp"
 
 namespace btx {
 

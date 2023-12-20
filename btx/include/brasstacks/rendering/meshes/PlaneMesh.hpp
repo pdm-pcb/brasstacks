@@ -3,6 +3,7 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/rendering/meshes/Mesh.hpp"
+#include "brasstacks/math/colors.hpp"
 
 namespace btx {
 

@@ -82,8 +82,4 @@ static std::filesystem::path const BTX_ASSET_PATH("assets");
 static std::string           const BTX_SHADER_EXT("-release.spv");
 #endif // BTX build config
 
-#include "brasstacks/version.hpp"
-#include "brasstacks/tools/ConsoleLog.hpp"
-#include "brasstacks/math/math.hpp"
-
 #endif // BRASSTACKS_PCH_HPP
