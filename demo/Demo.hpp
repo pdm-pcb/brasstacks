@@ -9,7 +9,7 @@ namespace btx {
 
 class Demo final : public btx::Application {
 public:
-    void init() override;
+    void init(btx::Renderer &renderer) override;
     void shutdown() override;
     void update() override;
 

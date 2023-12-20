@@ -16,6 +16,8 @@ Application::Application(std::string_view const app_name) :
     // Events can start firing potentially as soon as we let TargetWindow run
     // its message loop
     EventBroker::init();
+    // Application uses key releases to controll its running state
+    EventBroker::subscribe<KeyReleaseEvent>(this, &Application::on_key_release);
 
     // Instantiate the platform window and renderer backend
     _target_window = TargetWindow::create(app_name);
@@ -32,11 +34,8 @@ Application::~Application() {
 
 // =============================================================================
 void Application::run() {
-    // Application uses key releases to controll its running state
-    EventBroker::subscribe<KeyReleaseEvent>(this, &Application::on_key_release);
-
     // Give the user a chance to bring up their data
-    this->init();
+    this->init(*_renderer);
 
     while(_running) {
         // Tick the clock

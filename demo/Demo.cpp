@@ -1,7 +1,8 @@
 #include "Demo.hpp"
-#include "brasstacks/core.hpp"
+#include "brasstacks/tools/ConsoleLog.hpp"
+// #include "brasstacks/rendering/Renderer.hpp"
 
-void Demo::init() {
+void Demo::init(btx::Renderer &renderer) {
     BTX_TRACE("client app init");
 }
 

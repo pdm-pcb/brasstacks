@@ -81,13 +81,14 @@ Renderer::Renderer(TargetWindow const &target_window) :
 
     _render_pass = new vkRenderPass(*_device, _swapchain->image_format());
 
-    _desc_pool = new vkDescriptorPool(*_device,
-        100u,
-        {{ vk::DescriptorType::eUniformBuffer, 100u, }}
+    _descriptor_pool = new vkDescriptorPool(
+        *_device,
+        1000u,
+        {{ vk::DescriptorType::eUniformBuffer, 1000u, }}
     );
 
     _camera = new FPSCamera(
-        *_device, *_desc_pool, _swapchain->images().size(),
+        *_device, *_descriptor_pool, _swapchain->images().size(),
         {
             .position = { 0.0f, 0.0f, 4.0f },
             .forward  = { 0.0f, 0.0f, 0.0f },
@@ -145,7 +146,7 @@ Renderer::~Renderer() {
     delete _mesh;
 
     delete _pipeline;
-    delete _desc_pool;
+    delete _descriptor_pool;
     delete _render_pass;
     delete _swapchain;
     delete _device;

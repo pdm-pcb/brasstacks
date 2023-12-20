@@ -42,6 +42,7 @@ public:
      * @param target_window Used to create a rendering surface.
      */
     explicit Renderer(TargetWindow const &target_window);
+
     ~Renderer();
 
     void request_draw() { }
@@ -66,6 +67,12 @@ public:
      */
     void present_image();
 
+    inline auto const & device() const { return *_device; }
+    inline auto const & swapchain() const { return *_swapchain; }
+    inline auto const & descriptor_pool() const {
+        return *_descriptor_pool;
+    }
+
     Renderer() = delete;
 
     Renderer(Renderer &&) = delete;
@@ -86,7 +93,7 @@ private:
     CubeMesh *_mesh;
     FPSCamera *_camera;
 
-    vkDescriptorPool *_desc_pool;
+    vkDescriptorPool *_descriptor_pool;
 
     /**
      * @brief A queue of semaphores for acquiring images from the swapchain.
