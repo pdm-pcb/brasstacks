@@ -36,6 +36,7 @@ target_link_libraries(
     ${TARGET_NAME} PUBLIC
     spdlog::spdlog
     Vulkan::Vulkan
+    # glm
 )
 
 if(LINUX)

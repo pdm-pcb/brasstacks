@@ -72,6 +72,7 @@
 #include <queue>
 #include <chrono>
 #include <set>
+#include <numbers>
 
 #if defined(BTX_DEBUG)
 static std::filesystem::path const BTX_ASSET_PATH("../../demo/assets");
@@ -83,5 +84,6 @@ static std::string           const BTX_SHADER_EXT("-release.spv");
 
 #include "brasstacks/version.hpp"
 #include "brasstacks/tools/ConsoleLog.hpp"
+#include "brasstacks/math/math.hpp"
 
 #endif // BRASSTACKS_PCH_HPP

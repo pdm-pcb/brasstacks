@@ -65,6 +65,12 @@ public:
     inline auto const & images() const { return _images; }
 
     /**
+     * @brief Return the images' aspect ratio
+     * @return float
+     */
+    inline auto aspect_ratio() const { return _aspect_ratio; }
+
+    /**
      * @brief Return the swapchain render area's (x,y) dimensions
      * @return vk::Extent2D const&
      */
@@ -122,6 +128,10 @@ private:
      */
     std::vector<vkImage *> _images;
 
+    /**
+     * @brief Ratio of the swapchain images' width to height
+     */
+    float _aspect_ratio;
 
     /**
      * @brief Query various surface capabilities, like supported image counts,

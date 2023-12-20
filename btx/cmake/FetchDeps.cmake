@@ -15,14 +15,14 @@ function(FetchDeps)
 
     FetchContent_MakeAvailable(spdlog)
 
-    # ==========================================================================
-    message(STATUS "${PROJECT_NAME}: Fetching Dear ImGui...")
-    FetchContent_Declare(
-        imgui SYSTEM
-        GIT_REPOSITORY https://github.com/ocornut/imgui
-        GIT_TAG b81bd7ed984ce095c20a059dd0f4d527e006998f # 2023-11-15
-        FIND_PACKAGE_ARGS 1.90
-    )
+    # # ==========================================================================
+    # message(STATUS "${PROJECT_NAME}: Fetching glm...")
+    # FetchContent_Declare(
+    #     glm SYSTEM
+    #     GIT_REPOSITORY https://github.com/g-truc/glm/
+    #     GIT_TAG bf71a834948186f4097caa076cd2663c69a10e1e # 2020-04-13
+    #     FIND_PACKAGE_ARGS 0.9.9.8
+    # )
 
-    FetchContent_MakeAvailable(imgui)
+    # FetchContent_MakeAvailable(glm)
 endfunction()

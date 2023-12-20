@@ -162,6 +162,11 @@ void vkSwapchain::_query_surface_capabilities(
     // We intend to draw to the whole surface
     _render_area.extent = capabilities.currentExtent;
 
+    // Update the aspect ratio
+    _aspect_ratio =
+        static_cast<float>(_render_area.extent.width) /
+        static_cast<float>(_render_area.extent.height);
+
     // TODO: this merits some actual rationale
     _images.resize(capabilities.minImageCount + 1);
 }
@@ -357,6 +362,10 @@ void vkSwapchain::_get_swapchain_images() {
     BTX_TRACE("Acquired {} swapchain images", swapchain_images.size());
 
     for(uint32_t i = 0u; i < _images.size(); ++i) {
+        if(_images[i] != nullptr) {
+            delete _images[i];
+        }
+
         _images[i] = new vkImage(
             _device,
             swapchain_images[i],

@@ -233,31 +233,20 @@ void Renderer::record_commands() {
         }
     );
 
-    using Vec4 = std::array<float, 4>;
-    using Mat4 = std::array<Vec4, 4>;
+    auto const model_matrix = math::Mat4::identity;
+    auto const view_matrix = math::look_at_rh(
+        { 0.0f, 0.0f, 2.0f },
+        { 0.0f, 0.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f }
+    );
+    auto const proj_matrix = math::persp_proj_rh_no(
+        45.0f,
+        _swapchain->aspect_ratio(),
+        0.1f,
+        10.0f
+    );
 
-    Mat4 model_matrix {{
-        {{ 1.0f, 0.0f, 0.0f, 0.0f }},
-        {{ 0.0f, 1.0f, 0.0f, 0.0f }},
-        {{ 0.0f, 0.0f, 1.0f, 0.0f }},
-        {{ 0.0f, 0.0f, 0.0f, 1.0f }},
-    }};
-
-    Mat4 view_matrix {{
-        {{ 1.0f, 0.0f, 0.0f, 0.0f }},
-        {{ 0.0f, 1.0f, 0.0f, 0.0f }},
-        {{ 0.0f, 0.0f, 1.0f, 0.0f }},
-        {{ 0.0f, 0.0f, -2.0f, 1.0f }},
-    }};
-
-    Mat4 proj_matrix {{
-        {{ 1.358f, 0.0f, 0.0f, 0.0f }},
-        {{ 0.0f, 2.41421f, 0.0f, 0.0f }},
-        {{ 0.0f, 0.0f, -1.0202f, -1.0f }},
-        {{ 0.0f, 0.0f, -0.20202f, 0.0f }},
-    }};
-
-    std::array<Mat4, 3> const mvp = {{
+    std::array<math::Mat4, 3> const mvp {{
         model_matrix, view_matrix, proj_matrix
     }};
 

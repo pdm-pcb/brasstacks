@@ -415,11 +415,11 @@ void Win32TargetWindow::_size_and_place() {
         case WM_ACTIVATE:
             if(wParam == WA_INACTIVE) {
                 _deregister_raw_input();
-                // _release_cursor();
+                _release_cursor();
             }
             else {
                 _register_raw_input();
-                // _restrict_cursor();
+                _restrict_cursor();
             }
             break;
 
