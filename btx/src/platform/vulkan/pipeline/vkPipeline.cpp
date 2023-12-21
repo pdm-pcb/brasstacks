@@ -27,6 +27,8 @@ vkPipeline::vkPipeline(vkDevice const &device) :
     _dynamic_states       { },
     _dynamic_state_info   { },
     _layout               { },
+    _push_constants       { },
+    _push_constant_offset { 0 },
     _handle               { nullptr }
 { }
 
@@ -184,6 +186,22 @@ vkPipeline::add_descriptor_set(vkDescriptorSetLayout const &layout) {
 }
 
 // =============================================================================
+vkPipeline &
+vkPipeline::add_push_constant(vk::ShaderStageFlags const stage_flags,
+                              size_t const size_bytes)
+{
+    _push_constants.push_back({
+        .stageFlags = stage_flags,
+        .offset = static_cast<uint32_t>(_push_constant_offset),
+        .size = static_cast<uint32_t>(size_bytes)
+    });
+
+    _push_constant_offset += size_bytes;
+
+    return *this;
+}
+
+// =============================================================================
 void vkPipeline::update_dimensions(vk::Extent2D const &extent,
                                    vk::Offset2D const &offset)
 {
@@ -202,7 +220,7 @@ void vkPipeline::update_dimensions(vk::Extent2D const &extent,
     };
 
     BTX_TRACE(
-        "Pipeline viewport updated: {:.02f}x{:.02f} ({:.02f}, {:.02f}) ",
+        "Pipeline viewport updated: {:.02f} x {:.02f} ({:.02f}, {:.02f}) ",
         _viewport.width,
         _viewport.height,
         _viewport.x,
@@ -350,8 +368,8 @@ void vkPipeline::_init_layout() {
     const vk::PipelineLayoutCreateInfo layout_info {
         .setLayoutCount         = static_cast<uint32_t>(_set_layouts.size()),
         .pSetLayouts            = _set_layouts.data(),
-        .pushConstantRangeCount = 0u,
-        .pPushConstantRanges    = nullptr,
+        .pushConstantRangeCount = static_cast<uint32_t>(_push_constants.size()),
+        .pPushConstantRanges    = _push_constants.data()
     };
 
     auto const result = _device.native().createPipelineLayout(layout_info);

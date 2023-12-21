@@ -179,6 +179,12 @@ void Renderer::acquire_next_image() {
 void Renderer::record_commands() {
     _camera->update();
 
+    std::array<math::Mat4, 2> const vp {{
+        _camera->view_matrix(), _camera->proj_matrix()
+    }};
+
+    _camera_ubos[_next_image_index]->fill_buffer(vp.data());
+
     auto const model_matrix =
         math::rotate(math::Mat4::identity,
                      20.0f * Timekeeper::run_time(),
@@ -188,12 +194,6 @@ void Renderer::record_commands() {
                      math::Vec3::unit_y);
 
     // auto const model_matrix = math::Mat4::identity;
-
-    std::array<math::Mat4, 3> const mvp {{
-        model_matrix, _camera->view_matrix(), _camera->proj_matrix()
-    }};
-
-    _camera_ubos[_next_image_index]->fill_buffer(mvp.data());
 
     auto const &frame_sync = *_frame_sync[_next_image_index];
     auto const &cmd_buffer = frame_sync.cmd_buffer();
@@ -205,6 +205,7 @@ void Renderer::record_commands() {
     auto const &framebuffer = *_framebuffers[_next_image_index];
 
     cmd_buffer.begin_one_time_submit();
+
     cmd_buffer.begin_render_pass(
         vk::RenderPassBeginInfo {
             .pNext           = nullptr,
@@ -217,8 +218,17 @@ void Renderer::record_commands() {
     );
 
     _pipeline->bind(cmd_buffer);
+
     _pipeline->bind_descriptor_set(cmd_buffer,
                                    *_camera_ubo_sets[_next_image_index]);
+
+    _push_constants(cmd_buffer, {
+        PushConstant {
+            .stage_flags = vk::ShaderStageFlagBits::eVertex,
+            .size_bytes = sizeof(math::Mat4),
+            .data = &model_matrix,
+        }
+    });
 
     _mesh->draw_indexed(cmd_buffer);
 
@@ -307,7 +317,7 @@ void Renderer::_destroy_frame_data() {
 void Renderer::_create_camera_resources() {
     for(uint32_t i = 0; i < _swapchain->images().size(); ++i) {
         _camera_ubos.push_back(new vkBuffer(
-            *_device, sizeof(float) * 16 * 3,
+            *_device, 2 * sizeof(math::Mat4),
             vk::BufferUsageFlagBits::eUniformBuffer,
             (vk::MemoryPropertyFlagBits::eHostVisible |
              vk::MemoryPropertyFlagBits::eHostCoherent)
@@ -361,6 +371,10 @@ void Renderer::_create_render_pass() {
                            vk::ShaderStageFlagBits::eFragment)
         .describe_vertex_input(btx::Vertex::bindings, btx::Vertex::attributes)
         .add_descriptor_set(*_camera_ubo_layout)
+        .add_push_constant(
+            vk::ShaderStageFlagBits::eVertex,
+            sizeof(math::Mat4)
+        )
         .create(
             *_render_pass,
             {
@@ -388,6 +402,24 @@ void Renderer::_destroy_render_pass() {
 
     delete _pipeline;
     delete _render_pass;
+}
+
+// =============================================================================
+void Renderer::_push_constants(vkCmdBuffer const &cmd_buffer,
+                               std::vector<PushConstant> const &push_constants)
+{
+    size_t offset = 0u;
+    for(auto const& push_constant : push_constants) {
+        cmd_buffer.native().pushConstants(
+            _pipeline->layout(),
+            push_constant.stage_flags,
+            static_cast<uint32_t>(offset),
+            static_cast<uint32_t>(push_constant.size_bytes),
+            push_constant.data
+        );
+
+        offset += push_constant.size_bytes;
+    }
 }
 
 } // namespace btx

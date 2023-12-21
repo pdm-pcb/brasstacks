@@ -63,12 +63,16 @@ public:
 
     vkPipeline & add_descriptor_set(vkDescriptorSetLayout const &layout);
 
+    vkPipeline & add_push_constant(vk::ShaderStageFlags const stage_flags,
+                                   size_t const size_bytes);
+
     void update_dimensions(vk::Extent2D const &extent,
                            vk::Offset2D const &offset);
 
-    inline auto const& native()   const { return _handle; }
-    inline auto const& viewport() const { return _viewport; }
-    inline auto const& scissor()  const { return _scissor; }
+    inline auto const & native()   const { return _handle; }
+    inline auto const & viewport() const { return _viewport; }
+    inline auto const & scissor()  const { return _scissor; }
+    inline auto const & layout()   const { return _layout; }
 
     vkPipeline(vkPipeline &&) = delete;
     vkPipeline(const vkPipeline &) = delete;
@@ -100,6 +104,9 @@ private:
 
     std::vector<vk::DescriptorSetLayout>   _set_layouts;
     std::unordered_map<uint64_t, uint32_t> _set_bind_points;
+
+    std::vector<vk::PushConstantRange> _push_constants;
+    size_t _push_constant_offset;
 
     vk::PipelineLayout _layout;
 

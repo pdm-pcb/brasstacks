@@ -19,6 +19,7 @@ class vkSurface;
 class vkSwapchain;
 class vkDescriptorPool;
 class vkFrameSync;
+class vkCmdBuffer;
 
 class CubeMesh;
 
@@ -91,6 +92,12 @@ private:
     vkPipeline                  *_pipeline;
     std::vector<vkFramebuffer *> _framebuffers;
 
+    struct PushConstant {
+        vk::ShaderStageFlags const stage_flags = vk::ShaderStageFlagBits::eAll;
+        size_t               const size_bytes  = 0;
+        void                 const *data       = nullptr;
+    };
+
     CubeMesh *_mesh;
 
     FPSCamera                     *_camera;
@@ -136,6 +143,9 @@ private:
 
     void _create_render_pass();
     void _destroy_render_pass();
+
+    void _push_constants(vkCmdBuffer const &cmd_buffer,
+                         std::vector<PushConstant> const &push_constants);
 };
 
 } // namespace btx
