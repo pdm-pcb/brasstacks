@@ -78,7 +78,7 @@ Renderer::Renderer(TargetWindow const &target_window) :
 
     _swapchain = new vkSwapchain(*_physical_device, *_surface, *_device);
 
-    _create_frame_data();
+    _create_frame_sync();
 
     _descriptor_pool = new vkDescriptorPool(
         *_device,
@@ -135,7 +135,7 @@ Renderer::~Renderer() {
 
     delete _descriptor_pool;
 
-    _destroy_frame_data();
+    _destroy_frame_sync();
 
     delete _swapchain;
     delete _device;
@@ -185,24 +185,23 @@ void Renderer::record_commands() {
 
     _camera_ubos[_next_image_index]->fill_buffer(vp.data());
 
-    auto const model_matrix =
-        math::rotate(math::Mat4::identity,
-                     20.0f * Timekeeper::run_time(),
-                     math::Vec3::unit_z) *
-        math::rotate(math::Mat4::identity,
-                     10.0f * Timekeeper::run_time(),
-                     math::Vec3::unit_y);
+    // auto const model_matrix =
+    //     math::rotate(math::Mat4::identity,
+    //                  20.0f * Timekeeper::run_time(),
+    //                  math::Vec3::unit_z) *
+    //     math::rotate(math::Mat4::identity,
+    //                  10.0f * Timekeeper::run_time(),
+    //                  math::Vec3::unit_y);
 
-    // auto const model_matrix = math::Mat4::identity;
+    auto const model_matrix = math::Mat4::identity;
 
-    auto const &frame_sync = *_frame_sync[_next_image_index];
-    auto const &cmd_buffer = frame_sync.cmd_buffer();
+    auto const &frame_sync  = *_frame_sync[_next_image_index];
+    auto const &cmd_buffer  = frame_sync.cmd_buffer();
+    auto const &framebuffer = *_framebuffers[_next_image_index];
 
     static vk::ClearValue const clear_value {
         .color = { RenderConfig::clear_color }
     };
-
-    auto const &framebuffer = *_framebuffers[_next_image_index];
 
     cmd_buffer.begin_one_time_submit();
 
@@ -273,7 +272,7 @@ void Renderer::present_image() {
 }
 
 // =============================================================================
-void Renderer::_create_frame_data() {
+void Renderer::_create_frame_sync() {
     for(uint32_t i = 0; i < _swapchain->images().size(); ++i) {
         _frame_sync.push_back(new vkFrameSync(*_device));
     }
@@ -297,7 +296,7 @@ void Renderer::_create_frame_data() {
 }
 
 // =============================================================================
-void Renderer::_destroy_frame_data() {
+void Renderer::_destroy_frame_sync() {
     for(auto *frame : _frame_sync) {
         delete frame;
     }

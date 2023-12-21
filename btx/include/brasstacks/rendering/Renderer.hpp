@@ -131,12 +131,12 @@ private:
      * @brief Create the structures to synchronize commands with swapchain
      * images as well as the framebuffers
      */
-    void _create_frame_data();
+    void _create_frame_sync();
 
     /**
      * @brief Called from the destructor
      */
-    void _destroy_frame_data();
+    void _destroy_frame_sync();
 
     void _create_camera_resources();
     void _destroy_camera_resources();
