@@ -31,7 +31,7 @@ namespace btx {
 // =============================================================================
 Renderer::Renderer(TargetWindow const &target_window) :
     _instance         { new vkInstance() },
-    _next_image_index { std::numeric_limits<uint32_t>::max() }
+    _image_index { std::numeric_limits<uint32_t>::max() }
 {
     // First, acquire the details necessary to construct a Vulkan surface from
     // the target window
@@ -93,21 +93,21 @@ Renderer::~Renderer() {
 }
 
 // =============================================================================
-uint32_t Renderer::acquire_next_image() { BTX_TRACE("acquire_next_image");
+uint32_t Renderer::acquire_next_image() {
     if(_image_acquire_sems.empty()) {
         BTX_CRITICAL("Swapchain ran out of image acquire semaphores.");
         return std::numeric_limits<uint32_t>::max();
     }
 
     // Grab the first available semaphore
-    auto acquire_sem = _image_acquire_sems.front();
+    auto const acquire_sem = _image_acquire_sems.front();
     _image_acquire_sems.pop();
 
     // And ask the swapchain which index comes next
-    _next_image_index = _swapchain->acquire_next_image_index(acquire_sem);
+    _image_index = _swapchain->acquire_image_index(acquire_sem);
 
     // Wrap the corresponding frame's data for convenience
-    auto &frame = *_frame_sync[_next_image_index];
+    auto &frame = *_frame_sync[_image_index];
 
     // Wait on this frame's queue fence, which should always be signaled by
     // the time we get here. After waiting, reset the submit fence and
@@ -122,12 +122,12 @@ uint32_t Renderer::acquire_next_image() { BTX_TRACE("acquire_next_image");
 
     frame.image_acquire_semaphore() = acquire_sem;
 
-    return _next_image_index;
+    return _image_index;
 }
 
 // =============================================================================
-vkCmdBuffer const & Renderer::begin_recording() { BTX_TRACE("begin_recording {}", _next_image_index);
-    auto const &frame_sync  = *_frame_sync[_next_image_index];
+vkCmdBuffer const & Renderer::begin_recording() {
+    auto &frame_sync  = *_frame_sync[_image_index];
     auto const &cmd_buffer  = frame_sync.cmd_buffer();
 
     cmd_buffer.begin_one_time_submit();
@@ -136,16 +136,15 @@ vkCmdBuffer const & Renderer::begin_recording() { BTX_TRACE("begin_recording {}"
 }
 
 // =============================================================================
-void Renderer::end_recording() { BTX_TRACE("end_recording {}", _next_image_index);
-    auto const &frame_sync  = *_frame_sync[_next_image_index];
+void Renderer::end_recording() {
+    auto &frame_sync  = *_frame_sync[_image_index];
     auto const &cmd_buffer  = frame_sync.cmd_buffer();
-
     cmd_buffer.end_recording();
 }
 
 // =============================================================================
-void Renderer::submit_commands() { BTX_TRACE("submit_commands {}", _next_image_index);
-    auto &frame = *_frame_sync[_next_image_index];
+void Renderer::submit_commands() {
+    auto &frame_sync = *_frame_sync[_image_index];
 
     static vk::PipelineStageFlags const wait_stage {
         vk::PipelineStageFlagBits::eColorAttachmentOutput
@@ -154,18 +153,18 @@ void Renderer::submit_commands() { BTX_TRACE("submit_commands {}", _next_image_i
     vk::SubmitInfo const submit_info {
         .pNext                = nullptr,
         .waitSemaphoreCount   = 1u,
-        .pWaitSemaphores      = &frame.image_acquire_semaphore(),
+        .pWaitSemaphores      = &frame_sync.image_acquire_semaphore(),
         .pWaitDstStageMask    = &wait_stage,
         .commandBufferCount   = 1u,
-        .pCommandBuffers      = &frame.cmd_buffer().native(),
+        .pCommandBuffers      = &frame_sync.cmd_buffer().native(),
         .signalSemaphoreCount = 1u,
-        .pSignalSemaphores    = &frame.cmds_complete_semaphore(),
+        .pSignalSemaphores    = &frame_sync.cmds_complete_semaphore(),
     };
 
     auto const result = _device->graphics_queue().native().submit(
         1u,
         &submit_info,
-        frame.queue_fence()
+        frame_sync.queue_fence()
     );
 
     if(result != vk::Result::eSuccess) {
@@ -175,8 +174,9 @@ void Renderer::submit_commands() { BTX_TRACE("submit_commands {}", _next_image_i
 }
 
 // =============================================================================
-void Renderer::present_image() { BTX_TRACE("present_image {}", _next_image_index);
-    _swapchain->present(*_frame_sync[_next_image_index], _next_image_index);
+void Renderer::present_image() {
+    auto &frame_sync = *_frame_sync[_image_index];
+    _swapchain->present(frame_sync, _image_index);
 }
 
 // =============================================================================
@@ -203,7 +203,7 @@ void Renderer::_create_frame_sync() {
     }
 
     BTX_TRACE("Created image acquire semaphore {:#x}",
-                reinterpret_cast<uint64_t>(VkSemaphore(result.value)));
+              reinterpret_cast<uint64_t>(VkSemaphore(result.value)));
 
     _image_acquire_sems.push(result.value);
 }

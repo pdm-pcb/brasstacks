@@ -50,9 +50,10 @@ void Application::run() {
             uint32_t const image_index = _renderer->acquire_next_image();
             vkCmdBuffer const &cmd_buffer = _renderer->begin_recording();
 
-            // this->record_commands(cmd_buffer, image_index);
+            this->record_commands(cmd_buffer, image_index);
 
             _renderer->end_recording();
+            _renderer->submit_commands();
             _renderer->present_image();
 
         Timekeeper::frame_end();

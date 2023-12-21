@@ -81,7 +81,7 @@ private:
      * @brief The index of the swapchain's next available image. This value is
      * also used to index Renderer's internal vkFrameSync objects.
      */
-    uint32_t _next_image_index;
+    uint32_t _image_index;
 
     /**
      * @brief Create the structures to synchronize commands with swapchain

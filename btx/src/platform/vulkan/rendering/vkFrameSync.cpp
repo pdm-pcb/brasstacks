@@ -107,8 +107,10 @@ void vkFrameSync::_create_sync_primitives() {
 
     BTX_TRACE("\nCreated frame sync primitives:"
               "\n\tdevice queue fence          {:#x}"
+              "\n\timage acquire semaphore     {:#x}"
               "\n\tcommands complete semaphore {:#x}",
               reinterpret_cast<uint64_t>(VkFence(_queue_fence)),
+              reinterpret_cast<uint64_t>(VkSemaphore(_image_acquire_sem)),
               reinterpret_cast<uint64_t>(VkSemaphore(_cmds_complete_sem)));
 }
 

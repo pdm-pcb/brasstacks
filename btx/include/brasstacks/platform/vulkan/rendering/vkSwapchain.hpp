@@ -42,7 +42,7 @@ public:
      * @param semaphore The semaphore to be signaled once the image is acquired
      * @return uint32_t The index of the acquired image
      */
-    uint32_t acquire_next_image_index(vk::Semaphore const &semaphore);
+    uint32_t acquire_image_index(vk::Semaphore const &semaphore);
 
     /**
      * @brief Ask the swapchain to queue a given image for presentation
