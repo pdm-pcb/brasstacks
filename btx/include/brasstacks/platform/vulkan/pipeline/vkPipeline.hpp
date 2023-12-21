@@ -48,9 +48,9 @@ public:
 
     void create(vkRenderPass const &render_pass, Config const &config);
 
-    void bind(vkCmdBuffer const &cmd_buffer);
+    void bind(vkCmdBuffer const &cmd_buffer) const;
     void bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
-                             vkDescriptorSet const &set);
+                             vkDescriptorSet const &set) const;
 
     vkPipeline & module_from_spirv(std::string_view filepath,
                                    vk::ShaderStageFlagBits const stage,

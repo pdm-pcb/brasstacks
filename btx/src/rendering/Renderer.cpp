@@ -12,17 +12,19 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/resources/images/vkImage.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
-#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
+#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
+
+#include "brasstacks/rendering/meshes/CubeMesh.hpp"
+
+#include "brasstacks/tools/FPSCamera.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
-
 #include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
-#include "brasstacks/rendering/meshes/CubeMesh.hpp"
-#include "brasstacks/tools/FPSCamera.hpp"
+#include "brasstacks/rendering/RenderPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 
 namespace btx {
 
@@ -31,7 +33,6 @@ Renderer::Renderer(TargetWindow const &target_window) :
     _instance         { new vkInstance() },
     _next_image_index { std::numeric_limits<uint32_t>::max() }
 {
-
     // First, acquire the details necessary to construct a Vulkan surface from
     // the target window
 #if defined(BTX_LINUX)
@@ -68,8 +69,6 @@ Renderer::Renderer(TargetWindow const &target_window) :
         }
     );
 
-    vkBuffer::set_memory_props(_physical_device->memory_props());
-
     _device = new vkDevice(
         *_physical_device
 #ifdef BTX_DEBUG
@@ -79,6 +78,8 @@ Renderer::Renderer(TargetWindow const &target_window) :
 
     _swapchain = new vkSwapchain(*_physical_device, *_surface, *_device);
 
+    _create_frame_data();
+
     _descriptor_pool = new vkDescriptorPool(
         *_device,
         1000u,
@@ -86,37 +87,23 @@ Renderer::Renderer(TargetWindow const &target_window) :
     );
 
     _camera = new FPSCamera(
-        *_device, *_descriptor_pool, _swapchain->images().size(),
-        {
+       {
             .position = { 0.0f, 0.0f, 4.0f },
             .forward  = { 0.0f, 0.0f, 0.0f },
             .up       = { 0.0f, 1.0f, 0.0f },
 
             .pitch = 0.0f,
             .yaw = -90.0f,
+        },
+        {
+            .vfov_degrees = 45.0f,
+            .aspect_ratio = _swapchain->aspect_ratio(),
+            .near_plane = 0.1f,
+            .far_plane = 1000.0f,
         }
     );
 
-    _render_pass = new vkRenderPass(*_device, _swapchain->image_format());
-
-    _pipeline = new vkPipeline(*_device);
-    (*_pipeline)
-        .module_from_spirv("shaders/demo.vert",
-                           vk::ShaderStageFlagBits::eVertex)
-        .module_from_spirv("shaders/demo.frag",
-                           vk::ShaderStageFlagBits::eFragment)
-        .describe_vertex_input(Vertex::bindings, Vertex::attributes)
-        .add_descriptor_set(_camera->desc_layout())
-        .create(
-            *_render_pass,
-            {
-                .color_formats = { _swapchain->image_format() },
-                .depth_format    = vk::Format::eUndefined,
-                .viewport_extent = _swapchain->extent(),
-                .viewport_offset = _swapchain->offset(),
-                .sample_flags    = vk::SampleCountFlagBits::e1,
-            }
-        );
+    _create_camera_resources();
 
     _mesh = new CubeMesh(
         *_device,
@@ -133,21 +120,23 @@ Renderer::Renderer(TargetWindow const &target_window) :
         }}
     );
 
-    _create_frame_data();
+    _create_render_pass();
 }
 
 // =============================================================================
 Renderer::~Renderer() {
     _device->wait_idle();
 
+    _destroy_render_pass();
+    _destroy_camera_resources();
+
+    delete _mesh;
+    delete _camera;
+
+    delete _descriptor_pool;
+
     _destroy_frame_data();
 
-    delete _camera;
-    delete _mesh;
-
-    delete _pipeline;
-    delete _descriptor_pool;
-    delete _render_pass;
     delete _swapchain;
     delete _device;
     delete _physical_device;
@@ -190,13 +179,30 @@ void Renderer::acquire_next_image() {
 void Renderer::record_commands() {
     _camera->update();
 
+    auto const model_matrix =
+        math::rotate(math::Mat4::identity,
+                     20.0f * Timekeeper::run_time(),
+                     math::Vec3::unit_z) *
+        math::rotate(math::Mat4::identity,
+                     10.0f * Timekeeper::run_time(),
+                     math::Vec3::unit_y);
+
+    // auto const model_matrix = math::Mat4::identity;
+
+    std::array<math::Mat4, 3> const mvp {{
+        model_matrix, _camera->view_matrix(), _camera->proj_matrix()
+    }};
+
+    _camera_ubos[_next_image_index]->fill_buffer(mvp.data());
+
     auto const &frame_sync = *_frame_sync[_next_image_index];
     auto const &cmd_buffer = frame_sync.cmd_buffer();
-    auto const &framebuffer = *_framebuffers[_next_image_index];
 
     static vk::ClearValue const clear_value {
         .color = { RenderConfig::clear_color }
     };
+
+    auto const &framebuffer = *_framebuffers[_next_image_index];
 
     cmd_buffer.begin_one_time_submit();
     cmd_buffer.begin_render_pass(
@@ -210,10 +216,9 @@ void Renderer::record_commands() {
         }
     );
 
-    _camera->send_buffer_data(_next_image_index);
     _pipeline->bind(cmd_buffer);
     _pipeline->bind_descriptor_set(cmd_buffer,
-                                   _camera->desc_set(_next_image_index));
+                                   *_camera_ubo_sets[_next_image_index]);
 
     _mesh->draw_indexed(cmd_buffer);
 
@@ -259,12 +264,8 @@ void Renderer::present_image() {
 
 // =============================================================================
 void Renderer::_create_frame_data() {
-    for(auto const *image : _swapchain->images()) {
+    for(uint32_t i = 0; i < _swapchain->images().size(); ++i) {
         _frame_sync.push_back(new vkFrameSync(*_device));
-        _framebuffers.push_back(new vkFramebuffer(*_device,
-                                                  *_render_pass,
-                                                  _swapchain->extent(),
-                                                  *image));
     }
 
     // Create one extra semaphore because by the time the first n frames have
@@ -287,10 +288,6 @@ void Renderer::_create_frame_data() {
 
 // =============================================================================
 void Renderer::_destroy_frame_data() {
-    for(auto *framebuffer : _framebuffers) {
-        delete framebuffer;
-    }
-
     for(auto *frame : _frame_sync) {
         delete frame;
     }
@@ -304,6 +301,93 @@ void Renderer::_destroy_frame_data() {
 
         _image_acquire_sems.pop();
     }
+}
+
+// =============================================================================
+void Renderer::_create_camera_resources() {
+    for(uint32_t i = 0; i < _swapchain->images().size(); ++i) {
+        _camera_ubos.push_back(new vkBuffer(
+            *_device, sizeof(float) * 16 * 3,
+            vk::BufferUsageFlagBits::eUniformBuffer,
+            (vk::MemoryPropertyFlagBits::eHostVisible |
+             vk::MemoryPropertyFlagBits::eHostCoherent)
+        ));
+    }
+
+    _camera_ubo_layout = new vkDescriptorSetLayout(*_device);
+
+    (*_camera_ubo_layout)
+        .add_binding(vk::DescriptorType::eUniformBuffer,
+                     vk::ShaderStageFlagBits::eAll)
+        .create();
+
+    _camera_ubo_sets.resize(_swapchain->images().size());
+
+    for(uint32_t i = 0; i < _swapchain->images().size(); ++i) {
+        _camera_ubo_sets[i] =
+            new vkDescriptorSet(
+                *_device,
+                *_descriptor_pool,
+                *_camera_ubo_layout
+            );
+
+        (*_camera_ubo_sets[i])
+            .allocate()
+            .add_buffer(*_camera_ubos[i], vk::DescriptorType::eUniformBuffer)
+            .write_set();
+    }
+}
+
+// =============================================================================
+void Renderer::_destroy_camera_resources() {
+    for(auto *set : _camera_ubo_sets) {
+        delete set;
+    }
+    delete _camera_ubo_layout;
+    for(auto *buffer : _camera_ubos) {
+        delete buffer;
+    }
+}
+
+// =============================================================================
+void Renderer::_create_render_pass() {
+    _render_pass = new vkRenderPass(*_device, _swapchain->image_format());
+
+    _pipeline = new vkPipeline(*_device);
+    (*_pipeline)
+        .module_from_spirv("shaders/demo.vert",
+                           vk::ShaderStageFlagBits::eVertex)
+        .module_from_spirv("shaders/demo.frag",
+                           vk::ShaderStageFlagBits::eFragment)
+        .describe_vertex_input(btx::Vertex::bindings, btx::Vertex::attributes)
+        .add_descriptor_set(*_camera_ubo_layout)
+        .create(
+            *_render_pass,
+            {
+                .color_formats = { _swapchain->image_format() },
+                .depth_format    = vk::Format::eUndefined,
+                .viewport_extent = _swapchain->extent(),
+                .viewport_offset = _swapchain->offset(),
+                .sample_flags    = vk::SampleCountFlagBits::e1,
+            }
+        );
+
+    for(auto const *image : _swapchain->images()) {
+        _framebuffers.push_back(
+            new vkFramebuffer(*_device, *_render_pass, _swapchain->extent(),
+                              *image)
+        );
+    }
+}
+
+// =============================================================================
+void Renderer::_destroy_render_pass() {
+    for(auto *framebuffer : _framebuffers) {
+        delete framebuffer;
+    }
+
+    delete _pipeline;
+    delete _render_pass;
 }
 
 } // namespace btx

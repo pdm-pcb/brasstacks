@@ -6,13 +6,6 @@
 
 namespace btx {
 
-class vkDevice;
-class vkDescriptorPool;
-class vkDescriptorSetLayout;
-class vkDescriptorSet;
-class vkBuffer;
-class vkCmdBuffer;
-
 struct KeyPressEvent;
 struct KeyReleaseEvent;
 struct MouseMoveEvent;
@@ -28,39 +21,43 @@ public:
         float yaw = -90.0f;
     };
 
-    FPSCamera(vkDevice const &device, vkDescriptorPool const &descriptor_pool,
-              size_t const image_count, Orientation const &orientation);
-    ~FPSCamera();
+    struct PerspectiveParams {
+        float vfov_degrees = 45.0f;
+        float aspect_ratio = 1.777777778f;
+        float near_plane = 0.1f;
+        float far_plane = 1000.0f;
+    };
+
+    FPSCamera(Orientation const &orientation,
+              PerspectiveParams const &persp_params);
+    ~FPSCamera() = default;
 
     void update();
-    void send_buffer_data(uint32_t const image_index);
 
     void on_key_press(KeyPressEvent const &event);
     void on_key_release(KeyReleaseEvent const &event);
     void on_mouse_move(MouseMoveEvent const &event);
 
-    inline auto const & desc_layout() const { return *_camera_ubo_layout; }
-    inline auto const & desc_set(uint32_t const image_index) const {
-        return *_camera_ubo_sets[image_index];
-    }
+    void set_perspective_proj(PerspectiveParams const &persp_params);
+
+    inline auto const & view_matrix() const { return _view_matrix; }
+    inline auto const & proj_matrix() const { return _proj_matrix; }
+
+    FPSCamera() = delete;
+
+    FPSCamera(FPSCamera &&) = delete;
+    FPSCamera(FPSCamera const &) = delete;
+
+    FPSCamera & operator=(FPSCamera &&) = delete;
+    FPSCamera & operator=(FPSCamera const &) = delete;
 
 private:
-    vkDevice const &_device;
-
-    vkDescriptorSetLayout         *_camera_ubo_layout;
-    std::vector<vkDescriptorSet *> _camera_ubo_sets;
-    std::vector<vkBuffer *>        _camera_ubos;
-
     math::Mat4 _view_matrix;
     math::Mat4 _proj_matrix;
 
     struct CameraConfig {
         float move_speed   = 1.0f;
         float look_speed   = 0.075f;
-        float vfov_degrees = 45.0f;
-        float aspect_ratio = 16.0f / 9.0f;
-        float near_plane   = 0.1f;
-        float far_plane    = 1000.0f;
     } _config;
 
     struct KeyboardState {
@@ -83,10 +80,7 @@ private:
         float yaw   = -90.0f;
     } _state;
 
-void _allocate_descriptors(vkDescriptorPool const &descriptor_pool,
-                           size_t const image_count);
-
-void _register_callbacks();
+    void _register_callbacks();
 };
 
 } // namespace btx

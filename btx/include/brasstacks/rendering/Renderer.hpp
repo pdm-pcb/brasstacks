@@ -17,18 +17,22 @@ class vkPhysicalDevice;
 class vkDevice;
 class vkSurface;
 class vkSwapchain;
-class vkRenderPass;
+class vkDescriptorPool;
+class vkFrameSync;
+
+class CubeMesh;
+
+class FPSCamera;
+class vkDevice;
 class vkDescriptorPool;
 class vkDescriptorSetLayout;
 class vkDescriptorSet;
-class vkPipeline;
-
-class vkFrameSync;
-class vkFramebuffer;
-
 class vkBuffer;
-class CubeMesh;
-class FPSCamera;
+
+class RenderPass;
+class vkRenderPass;
+class vkPipeline;
+class vkFramebuffer;
 
 /**
  * @brief The Vulkan rendering backend.
@@ -81,13 +85,18 @@ private:
     vkDevice         *_device;
     vkSurface        *_surface;
     vkSwapchain      *_swapchain;
-    vkRenderPass     *_render_pass;
-    vkPipeline       *_pipeline;
+    vkDescriptorPool *_descriptor_pool;
+
+    vkRenderPass                *_render_pass;
+    vkPipeline                  *_pipeline;
+    std::vector<vkFramebuffer *> _framebuffers;
 
     CubeMesh *_mesh;
-    FPSCamera *_camera;
 
-    vkDescriptorPool *_descriptor_pool;
+    FPSCamera                     *_camera;
+    vkDescriptorSetLayout         *_camera_ubo_layout;
+    std::vector<vkDescriptorSet *> _camera_ubo_sets;
+    std::vector<vkBuffer *>        _camera_ubos;
 
     /**
      * @brief A queue of semaphores for acquiring images from the swapchain.
@@ -106,11 +115,6 @@ private:
     std::vector<vkFrameSync *> _frame_sync;
 
     /**
-     * @brief A collection of framebuffers associated with swapchain images
-     */
-    std::vector<vkFramebuffer *> _framebuffers;
-
-    /**
      * @brief The index of the swapchain's next available image. This value is
      * also used to index Renderer's internal vkFrameSync objects.
      */
@@ -126,6 +130,12 @@ private:
      * @brief Called from the destructor
      */
     void _destroy_frame_data();
+
+    void _create_camera_resources();
+    void _destroy_camera_resources();
+
+    void _create_render_pass();
+    void _destroy_render_pass();
 };
 
 } // namespace btx

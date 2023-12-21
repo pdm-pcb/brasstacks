@@ -4,6 +4,7 @@
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/system/TargetWindow.hpp"
+#include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
 
 namespace btx {
 
@@ -54,6 +55,8 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance    const &instance,
     }
 
     BTX_INFO("Selected {}", _chosen_device.name);
+
+    vkBuffer::set_memory_props(_chosen_device.memory);
 }
 
 // =============================================================================

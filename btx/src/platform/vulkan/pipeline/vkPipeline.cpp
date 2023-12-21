@@ -104,7 +104,7 @@ void vkPipeline::create(vkRenderPass const &render_pass, Config const &config) {
 }
 
 // =============================================================================
-void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) {
+void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) const {
     cmd_buffer.native().bindPipeline(
         vk::PipelineBindPoint::eGraphics,
         _handle
@@ -115,7 +115,7 @@ void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) {
 
 // =============================================================================
 void vkPipeline::bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
-                                     vkDescriptorSet const &set)
+                                     vkDescriptorSet const &set) const
 {
     auto const set_layout_key = reinterpret_cast<uint64_t>(
         VkDescriptorSetLayout(set.layout().native())
@@ -124,7 +124,7 @@ void vkPipeline::bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
     cmd_buffer.native().bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics,
         _layout,
-        _set_bind_points[set_layout_key],
+        _set_bind_points.at(set_layout_key),
         1u, &(set.native()),
         0u, nullptr
     );
