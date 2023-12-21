@@ -1,5 +1,5 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
+#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"

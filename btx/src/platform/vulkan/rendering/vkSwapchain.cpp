@@ -7,7 +7,7 @@
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/vulkan/resources/images/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources//vkImage.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
 namespace btx {

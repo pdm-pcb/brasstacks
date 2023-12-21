@@ -2,8 +2,8 @@
 #define BRASSTACKS_PLATFORM_VULKAN_DESCRIPTORS_VKDESCRIPTORSET_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
-#include "brasstacks/platform/vulkan/resources/images/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
+#include "brasstacks/platform/vulkan/resources//vkImage.hpp"
 
 namespace btx {
 

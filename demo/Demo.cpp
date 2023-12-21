@@ -9,7 +9,7 @@
 #include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
-#include "brasstacks/platform/vulkan/resources/buffers/vkBuffer.hpp"
+#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 #include "brasstacks/rendering/RenderPass.hpp"
 
 #include "brasstacks/rendering/meshes/CubeMesh.hpp"

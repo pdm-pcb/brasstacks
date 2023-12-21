@@ -2,7 +2,7 @@
 #define BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGE_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/resources/images/vkImageView.hpp"
+#include "brasstacks/platform/vulkan/resources//vkImageView.hpp"
 
 namespace btx {
 

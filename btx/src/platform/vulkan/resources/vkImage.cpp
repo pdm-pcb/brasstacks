@@ -1,5 +1,5 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/resources/images/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources//vkImage.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
