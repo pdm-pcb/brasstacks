@@ -26,9 +26,9 @@ vkPipeline::vkPipeline(vkDevice const &device) :
     _blend_info           { },
     _dynamic_states       { },
     _dynamic_state_info   { },
-    _layout               { },
     _push_constants       { },
     _push_constant_offset { 0 },
+    _layout               { },
     _handle               { nullptr }
 { }
 
