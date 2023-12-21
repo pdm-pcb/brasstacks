@@ -7,6 +7,7 @@
 #define BRASSTACKS_SYSTEM_TARGETWINDOW_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -21,22 +22,6 @@ class TargetWindow {
 public:
 
     /**
-     * @brief Used to describe the shape of a TargetWindow
-     */
-    struct Dimensions final {
-        uint32_t width = 0;
-        uint32_t height = 0;
-    };
-
-    /**
-     * @brief Used to describe the location of a TargetWindow
-     */
-    struct Position final {
-        int32_t x = 0;
-        int32_t y = 0;
-    };
-
-    /**
      * @brief Called by Application to instantiate a TargetWindow.
      * @param app_name User-provided name which is applied to window titles,
      * driver hints, and so on.
@@ -46,9 +31,10 @@ public:
      * primary display.
      * @return TargetWindow*
      */
-    static TargetWindow * create(std::string_view const app_name,
-                                 Dimensions const &dimensions = { 0u, 0u},
-                                 Position const &position = { 0, 0 });
+    static TargetWindow * create(
+        std::string_view const app_name,
+        RenderConfig::SurfaceDimensions const &dimensions = { 0u, 0u},
+        RenderConfig::SurfacePosition const &position = { 0, 0 });
 
     /**
      * @brief Make the window visible.

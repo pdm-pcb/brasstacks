@@ -4,15 +4,18 @@
 
 namespace btx {
 
-TargetWindow * TargetWindow::create(std::string_view const app_name,
-                                    Dimensions const &dimensions,
-                                    Position const &position)
+TargetWindow * TargetWindow::create(
+    std::string_view const app_name,
+    RenderConfig::SurfaceDimensions const &dimensions,
+    RenderConfig::SurfacePosition const &position)
 {
+    RenderConfig::target_window_size = dimensions;
+    RenderConfig::target_window_position = position;
 
 #if defined(BTX_LINUX)
     return new X11TargetWindow(app_name);
 #elif defined(BTX_WINDOWS)
-    return new Win32TargetWindow(app_name, dimensions, position);
+    return new Win32TargetWindow(app_name);
 #endif // BTX platform
 
 }

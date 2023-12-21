@@ -17,7 +17,6 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &physical_device,
                          vkSurface const &surface,
                          vkDevice const &device) :
     _device          { device },
-    _render_area     { },
     _image_format    { },
     _present_mode    { },
     _handle          { nullptr },
@@ -91,7 +90,7 @@ uint32_t vkSwapchain::acquire_next_image_index(vk::Semaphore const &semaphore) {
             BTX_CRITICAL("Recreate swapchain: {}", vk::to_string(result));
         }
         else {
-            BTX_CRITICAL("Could not acquire next swapchain image: '{}",
+            BTX_CRITICAL("Could not acquire next swapchain image: '{}'",
                          vk::to_string(result));
         }
     }
@@ -161,15 +160,17 @@ void vkSwapchain::_query_surface_capabilities(
     );
 
     // We intend to draw to the whole surface
-    _render_area.extent = capabilities.currentExtent;
+    RenderConfig::swapchain_image_size.width = capabilities.currentExtent.width;
+    RenderConfig::swapchain_image_size.height = capabilities.currentExtent.height;
 
     // Update the aspect ratio
-    _aspect_ratio =
-        static_cast<float>(_render_area.extent.width) /
-        static_cast<float>(_render_area.extent.height);
+    RenderConfig::swapchain_aspect_ratio =
+        static_cast<float>(RenderConfig::swapchain_image_size.width) /
+        static_cast<float>(RenderConfig::swapchain_image_size.height);
 
     // TODO: this merits some actual rationale
-    _images.resize(capabilities.minImageCount + 1);
+    RenderConfig::swapchain_image_count = capabilities.minImageCount + 1;
+    _images.resize(RenderConfig::swapchain_image_count);
 }
 
 // =============================================================================
@@ -291,8 +292,10 @@ vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
         "\n    Format:       {}"
         "\n    Color Space:  {}"
         "\n    Present Mode: {}",
-        _render_area.extent.width, _render_area.extent.height,
-        _render_area.offset.x, _render_area.offset.y,
+        RenderConfig::swapchain_image_size.width,
+        RenderConfig::swapchain_image_size.height,
+        RenderConfig::swapchain_image_offset.x,
+        RenderConfig::swapchain_image_offset.y,
         _images.size(),
         vk::to_string(_image_format.format),
         vk::to_string(_image_format.colorSpace),
@@ -304,7 +307,10 @@ vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
         .minImageCount   = static_cast<uint32_t>(_images.size()),
         .imageFormat     = _image_format.format,
         .imageColorSpace = _image_format.colorSpace,
-        .imageExtent     = _render_area.extent,
+        .imageExtent     = {
+            .width  = RenderConfig::swapchain_image_size.width,
+            .height = RenderConfig::swapchain_image_size.height
+        },
 
         // Image array layers will always be one, except in the case of a
         // device with multiple displays interested in the same swapchain, like

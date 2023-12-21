@@ -2,6 +2,7 @@
 #define BRASSTACKS_RENDERING_RENDERPASS_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -32,6 +33,9 @@ private:
     vkPipeline                  *_pipeline;
     std::vector<vkFramebuffer *> _framebuffers;
     vk::Rect2D                   _render_area;
+
+    RenderConfig::SurfaceDimensions _render_extent;
+    RenderConfig::SurfacePosition   _render_offset;
 };
 
 } // namespace btx

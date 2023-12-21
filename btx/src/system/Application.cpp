@@ -35,7 +35,7 @@ Application::~Application() {
 // =============================================================================
 void Application::run() {
     // Give the user a chance to bring up their data
-    this->init();
+    this->init(_renderer->device(), _renderer->swapchain());
 
     while(_running) {
         // Tick the clock
@@ -47,9 +47,12 @@ void Application::run() {
         Timekeeper::frame_start();
 
             // Let the renderer go to town on a frame
-            _renderer->acquire_next_image();
-            _renderer->record_commands();
-            _renderer->submit_commands();
+            uint32_t const image_index = _renderer->acquire_next_image();
+            vkCmdBuffer const &cmd_buffer = _renderer->begin_recording();
+
+            // this->record_commands(cmd_buffer, image_index);
+
+            _renderer->end_recording();
             _renderer->present_image();
 
         Timekeeper::frame_end();
@@ -57,6 +60,8 @@ void Application::run() {
         // Check for input and events from the OS
         _target_window->message_loop();
     }
+
+    _renderer->wait_device_idle();
 
     // Give the user a chance to clean up
     this->shutdown();
@@ -68,12 +73,6 @@ void Application::on_key_release(KeyReleaseEvent const &event) {
     if(event.code == BTX_KB_ESCAPE) {
         _running = false;
     }
-}
-
-// =============================================================================
-void Application::request_draw() {
-    // A simple passthrough until things get more configurable
-    _renderer->request_draw();
 }
 
 } // namespace btx

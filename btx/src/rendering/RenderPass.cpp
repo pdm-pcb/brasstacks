@@ -14,7 +14,8 @@ namespace btx {
 // =============================================================================
 RenderPass::RenderPass(vkDevice const &device, vkSwapchain const &swapchain,
                        vkDescriptorSetLayout const &layout) :
-    _render_area { swapchain.render_area() }
+    _render_extent { RenderConfig::swapchain_image_size },
+    _render_offset { RenderConfig::swapchain_image_offset }
 {
     _render_pass = new vkRenderPass(device, swapchain.image_format());
 
@@ -31,15 +32,29 @@ RenderPass::RenderPass(vkDevice const &device, vkSwapchain const &swapchain,
             {
                 .color_formats = { swapchain.image_format() },
                 .depth_format    = vk::Format::eUndefined,
-                .viewport_extent = swapchain.extent(),
-                .viewport_offset = swapchain.offset(),
+                .viewport_extent = {
+                    .width  = _render_extent.width,
+                    .height = _render_extent.height
+                },
+                .viewport_offset = {
+                    .x = _render_offset.x,
+                    .y = _render_offset.y
+                },
                 .sample_flags    = vk::SampleCountFlagBits::e1,
             }
         );
 
     for(auto const *image : swapchain.images()) {
         _framebuffers.push_back(
-            new vkFramebuffer(device, *_render_pass, swapchain.extent(), *image)
+            new vkFramebuffer(
+                device,
+                *_render_pass,
+                {
+                    .width  = _render_extent.width,
+                    .height = _render_extent.height
+                },
+                *image
+            )
         );
     }
 }

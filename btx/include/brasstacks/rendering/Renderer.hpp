@@ -17,23 +17,8 @@ class vkPhysicalDevice;
 class vkDevice;
 class vkSurface;
 class vkSwapchain;
-class vkDescriptorPool;
 class vkFrameSync;
 class vkCmdBuffer;
-
-class CubeMesh;
-
-class FPSCamera;
-class vkDevice;
-class vkDescriptorPool;
-class vkDescriptorSetLayout;
-class vkDescriptorSet;
-class vkBuffer;
-
-class RenderPass;
-class vkRenderPass;
-class vkPipeline;
-class vkFramebuffer;
 
 /**
  * @brief The Vulkan rendering backend.
@@ -50,27 +35,16 @@ public:
 
     ~Renderer();
 
-    void request_draw() { }
-
-    /**
-     * @brief Request the next image from the swapchain.
-     */
-    void acquire_next_image();
-
-    /**
-     * @brief Record received GPU commands to a command buffer.
-     */
-    void record_commands();
-
-    /**
-     * @brief Submit the recorded commands to the device queue.
-     */
+    uint32_t acquire_next_image();
+    vkCmdBuffer const & begin_recording();
+    void end_recording();
     void submit_commands();
-
-    /**
-     * @brief Request that the swapchain present the current image.
-     */
     void present_image();
+
+    void wait_device_idle();
+
+    inline auto const & device() const { return *_device; }
+    inline auto const & swapchain() const { return *_swapchain; }
 
     Renderer() = delete;
 
@@ -86,24 +60,6 @@ private:
     vkDevice         *_device;
     vkSurface        *_surface;
     vkSwapchain      *_swapchain;
-    vkDescriptorPool *_descriptor_pool;
-
-    vkRenderPass                *_render_pass;
-    vkPipeline                  *_pipeline;
-    std::vector<vkFramebuffer *> _framebuffers;
-
-    struct PushConstant {
-        vk::ShaderStageFlags const stage_flags = vk::ShaderStageFlagBits::eAll;
-        size_t               const size_bytes  = 0;
-        void                 const *data       = nullptr;
-    };
-
-    CubeMesh *_mesh;
-
-    FPSCamera                     *_camera;
-    vkDescriptorSetLayout         *_camera_ubo_layout;
-    std::vector<vkDescriptorSet *> _camera_ubo_sets;
-    std::vector<vkBuffer *>        _camera_ubos;
 
     /**
      * @brief A queue of semaphores for acquiring images from the swapchain.
@@ -137,15 +93,6 @@ private:
      * @brief Called from the destructor
      */
     void _destroy_frame_sync();
-
-    void _create_camera_resources();
-    void _destroy_camera_resources();
-
-    void _create_render_pass();
-    void _destroy_render_pass();
-
-    void _push_constants(vkCmdBuffer const &cmd_buffer,
-                         std::vector<PushConstant> const &push_constants);
 };
 
 } // namespace btx

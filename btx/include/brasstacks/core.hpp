@@ -5,5 +5,6 @@
 #include "brasstacks/tools/ConsoleLog.hpp"
 #include "brasstacks/tools/Timekeeper.hpp"
 #include "brasstacks/math/math.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
 
 #endif // BRASSTACKS_CORE_HPP

@@ -64,31 +64,6 @@ public:
      */
     inline auto const & images() const { return _images; }
 
-    /**
-     * @brief Return the images' aspect ratio
-     * @return float
-     */
-    inline auto aspect_ratio() const { return _aspect_ratio; }
-
-    /**
-     * @brief Return the swapchain render area's (x,y) dimensions
-     * @return vk::Extent2D const&
-     */
-    inline auto const & extent() const { return _render_area.extent; }
-
-    /**
-     * @brief Return the swpachain render area's (x,y) offset
-     * @return vk::Offset2D const&
-     */
-    inline auto const & offset() const { return _render_area.offset; }
-
-    /**
-     * @brief Return the swapchain's render area, which is comprised of its
-     * extent and offset.
-     * @return vk::Rect2D const&
-     */
-    inline auto const & render_area() const { return _render_area; }
-
     vkSwapchain() = delete;
 
     vkSwapchain(vkSwapchain &&) = delete;
@@ -102,11 +77,6 @@ private:
      * @brief The Vulkan logical device from which this swapchain was created
      */
     vkDevice const &_device;
-
-    /**
-     * @brief The swapchain's render area, or its extent and offset
-     */
-    vk::Rect2D _render_area;
 
     /**
      * @brief The swapchain images have the same format as the related surface
@@ -127,11 +97,6 @@ private:
      * @brief A list of images from this swapchain
      */
     std::vector<vkImage *> _images;
-
-    /**
-     * @brief Ratio of the swapchain images' width to height
-     */
-    float _aspect_ratio;
 
     /**
      * @brief Query various surface capabilities, like supported image counts,

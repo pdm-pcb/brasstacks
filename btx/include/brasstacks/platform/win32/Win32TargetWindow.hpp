@@ -26,9 +26,7 @@ namespace btx {
  */
 class Win32TargetWindow final : public TargetWindow {
 public:
-    Win32TargetWindow(std::string_view const app_name,
-                      Dimensions const &dimensions,
-                      Position const &position);
+    Win32TargetWindow(std::string_view const app_name);
     ~Win32TargetWindow() override;
 
     void show_window() override;
@@ -61,10 +59,8 @@ private:
     Win32ToBTXKeys const _keymap;
 
     // Details for later
-    Dimensions _screen_size;
-    Dimensions _window_size;
-    Position   _screen_center;
-    Position   _window_pos;
+    RenderConfig::SurfaceDimensions _screen_size;
+    RenderConfig::SurfacePosition   _screen_center;
 
     static void _register_class();
            void _create_window();

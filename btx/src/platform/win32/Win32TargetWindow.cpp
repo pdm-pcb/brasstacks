@@ -11,9 +11,7 @@
 namespace btx {
 
 // =============================================================================
-Win32TargetWindow::Win32TargetWindow(std::string_view const app_name,
-                                     Dimensions const &dimensions,
-                                     Position const &position) :
+Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _window_title   { app_name.data() },
     _window_handle  { nullptr },
     _device_context { nullptr },
@@ -21,9 +19,7 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name,
     _msg_map        { },
     _keymap         { },
     _screen_size    { 0u, 0u },
-    _window_size    { dimensions },
-    _screen_center  { 0, 0 },
-    _window_pos     { position }
+    _screen_center  { 0, 0 }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -138,25 +134,32 @@ void Win32TargetWindow::_register_class() {
 
 // =============================================================================
 void Win32TargetWindow::_create_window() {
-    // If width and height aren't provided by Application, then just opt for
-    // three-quarters of the available real estate
-    if(_window_size.width == 0u || _window_size.height == 0u) {
+    // If width and height aren't preconfigured, then just opt for most of the
+    // available real estate
+    if(RenderConfig::target_window_size.width == 0u ||
+       RenderConfig::target_window_size.height == 0u)
+    {
         auto const w = static_cast<float>(_screen_size.width);
         auto const h = static_cast<float>(_screen_size.height);
 
-        _window_size = {
+        RenderConfig::target_window_size = {
             static_cast<uint32_t>(w * 0.75f),
             static_cast<uint32_t>(h * 0.75f)
         };
     }
 
     // Default to a centered window
-    if(_window_pos.x == 0 || _window_pos.y == 0) {
-        auto const half_width = static_cast<int32_t>(_window_size.width) / 2;
-        auto const half_height = static_cast<int32_t>(_window_size.height) / 2;
+    if(RenderConfig::target_window_position.x == 0 ||
+       RenderConfig::target_window_position.y == 0)
+    {
+        auto const &size = RenderConfig::target_window_size;
+        auto const half_width = static_cast<int32_t>(size.width) / 2;
+        auto const half_height = static_cast<int32_t>(size.height) / 2;
 
-        _window_pos = { _screen_center.x - half_width,
-                        _screen_center.y - half_height };
+        RenderConfig::target_window_position = {
+            .x = _screen_center.x - half_width,
+            .y = _screen_center.y - half_height
+        };
     }
 
     // Create!
@@ -299,16 +302,20 @@ void Win32TargetWindow::_release_cursor() {
 
 // =============================================================================
 void Win32TargetWindow::_size_and_place() {
-    BTX_TRACE("Target window size: {}x{}, position: {}x{}",
-              _window_size.width, _window_size.height,
-              _window_pos.x, _window_pos.y);
+    auto const &size = RenderConfig::target_window_size;
+    auto const &position = RenderConfig::target_window_position;
+
+    BTX_TRACE("Target window size: {}x{}, position: {}x{}", size.width,
+                                                            size.height,
+                                                            position.x,
+                                                            position.y);
 
     auto const result = ::SetWindowPos(
         _window_handle, nullptr,
-        static_cast<int>(_window_pos.x),
-        static_cast<int>(_window_pos.y),
-        static_cast<int>(_window_size.width),
-        static_cast<int>(_window_size.height),
+        static_cast<int>(position.x),
+        static_cast<int>(position.y),
+        static_cast<int>(size.width),
+        static_cast<int>(size.height),
         0
     );
 
