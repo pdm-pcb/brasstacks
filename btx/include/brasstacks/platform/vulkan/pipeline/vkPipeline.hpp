@@ -61,7 +61,7 @@ public:
     vkPipeline & describe_vertex_input(VertBindings const &bindings,
                                        VertAttribs const &attributes);
 
-    vkPipeline & add_descriptor_set(vkDescriptorSetLayout const &set_layout);
+    vkPipeline & add_descriptor_set(vkDescriptorSetLayout const &layout);
 
     void update_dimensions(vk::Extent2D const &extent,
                            vk::Offset2D const &offset);

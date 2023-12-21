@@ -17,7 +17,7 @@ struct KeyPressEvent;
 struct KeyReleaseEvent;
 struct MouseMoveEvent;
 
-class FPSCamera {
+class FPSCamera final {
 public:
     struct Orientation {
         math::Vec3 position = math::Vec3::zero;

@@ -6,11 +6,11 @@
 
 namespace btx {
 
-struct KeyPressEvent {
+struct KeyPressEvent final {
     Keycode code;
 };
 
-struct KeyReleaseEvent {
+struct KeyReleaseEvent final {
     Keycode code;
 };
 

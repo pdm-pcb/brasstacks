@@ -6,20 +6,20 @@
 
 namespace btx {
 
-struct MouseMoveEvent {
+struct MouseMoveEvent final {
     int32_t x_offset = 0;
     int32_t y_offset = 0;
 };
 
-struct MouseButtonPressEvent {
+struct MouseButtonPressEvent final {
     Keycode code;
 };
 
-struct MouseButtonReleaseEvent {
+struct MouseButtonReleaseEvent final {
     Keycode code;
 };
 
-struct MouseScrollEvent {
+struct MouseScrollEvent final {
     int32_t vert_offset = 0;
     int32_t horiz_offset = 0;
 };

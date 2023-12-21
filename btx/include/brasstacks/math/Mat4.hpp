@@ -6,7 +6,7 @@
 
 namespace btx::math {
 
-struct Mat4 {
+struct Mat4 final {
     static Mat4 const zero;
     static Mat4 const identity;
 

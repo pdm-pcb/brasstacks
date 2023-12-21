@@ -10,7 +10,7 @@
 
 namespace btx {
 
-class EventBroker {
+class EventBroker final {
 public:
     // =========================================================================
     template<typename Event, typename Listener, typename Callback>

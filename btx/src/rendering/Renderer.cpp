@@ -79,8 +79,6 @@ Renderer::Renderer(TargetWindow const &target_window) :
 
     _swapchain = new vkSwapchain(*_physical_device, *_surface, *_device);
 
-    _render_pass = new vkRenderPass(*_device, _swapchain->image_format());
-
     _descriptor_pool = new vkDescriptorPool(
         *_device,
         1000u,
@@ -98,6 +96,8 @@ Renderer::Renderer(TargetWindow const &target_window) :
             .yaw = -90.0f,
         }
     );
+
+    _render_pass = new vkRenderPass(*_device, _swapchain->image_format());
 
     _pipeline = new vkPipeline(*_device);
     (*_pipeline)

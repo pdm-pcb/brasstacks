@@ -8,7 +8,7 @@ namespace btx {
 
 class vkDevice;
 
-class vkImage final {
+class vkImage {
 public:
     vkImage(vkDevice const &device, vk::Image const &handle,
             vk::Format const format);

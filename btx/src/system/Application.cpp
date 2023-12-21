@@ -35,7 +35,7 @@ Application::~Application() {
 // =============================================================================
 void Application::run() {
     // Give the user a chance to bring up their data
-    this->init(*_renderer);
+    this->init();
 
     while(_running) {
         // Tick the clock

@@ -60,7 +60,7 @@ protected:
      * The overridden function is called after other systems are online, just
      * before the main application loop begins.
      */
-    virtual void init(Renderer &renderer) = 0;
+    virtual void init()     = 0;
     /**
      * @brief A chance for the user to do any cleanup.
      *
@@ -74,7 +74,7 @@ protected:
      * The overridden function is called once per frame. The user should call
      * Application::request_draw() to submit draw calls to the renderer here.
      */
-    virtual void update() = 0;
+    virtual void update()   = 0;
 
     /**
      * @brief An interface between the user and Renderer.

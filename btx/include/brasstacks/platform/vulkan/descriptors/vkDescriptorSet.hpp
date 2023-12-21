@@ -11,7 +11,7 @@ class vkDevice;
 class vkDescriptorPool;
 class vkDescriptorSetLayout;
 
-class vkDescriptorSet {
+class vkDescriptorSet final {
 public:
     vkDescriptorSet(vkDevice const &device, vkDescriptorPool const &pool,
                     vkDescriptorSetLayout const &layout);

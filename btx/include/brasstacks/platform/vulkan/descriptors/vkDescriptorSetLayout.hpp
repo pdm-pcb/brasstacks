@@ -7,7 +7,7 @@ namespace btx {
 
 class vkDevice;
 
-class vkDescriptorSetLayout {
+class vkDescriptorSetLayout final {
 public:
     explicit vkDescriptorSetLayout(vkDevice const &device);
     ~vkDescriptorSetLayout();

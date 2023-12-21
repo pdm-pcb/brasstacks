@@ -5,7 +5,7 @@
 
 namespace btx::math {
 
-struct Vec3 {
+struct Vec3 final {
     static Vec3 const zero;
     static Vec3 const unit_x;
     static Vec3 const unit_y;

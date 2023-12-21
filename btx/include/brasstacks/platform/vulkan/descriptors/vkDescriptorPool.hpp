@@ -7,7 +7,7 @@ namespace btx {
 
 class vkDevice;
 
-class vkDescriptorPool {
+class vkDescriptorPool final {
 public:
     using PoolSizes = std::set<vk::DescriptorPoolSize>;
     vkDescriptorPool(vkDevice const &device, uint32_t const max_sets,

@@ -6,7 +6,7 @@
 namespace btx {
 
 // Empty struct to carry the signal
-struct WindowCloseEvent { };
+struct WindowCloseEvent final { };
 
 } //namespace btx
 

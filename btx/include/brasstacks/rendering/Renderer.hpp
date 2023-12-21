@@ -35,7 +35,7 @@ class FPSCamera;
  *
  * Renderer manages everything Vulkan-specific.
  */
-class Renderer {
+class Renderer final{
 public:
     /**
      * @brief Construct the Renderer object.
@@ -66,12 +66,6 @@ public:
      * @brief Request that the swapchain present the current image.
      */
     void present_image();
-
-    inline auto const & device() const { return *_device; }
-    inline auto const & swapchain() const { return *_swapchain; }
-    inline auto const & descriptor_pool() const {
-        return *_descriptor_pool;
-    }
 
     Renderer() = delete;
 

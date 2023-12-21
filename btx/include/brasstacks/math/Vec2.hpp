@@ -5,7 +5,7 @@
 
 namespace btx::math {
 
-struct Vec2 {
+struct Vec2 final {
     static Vec2 const zero;
     static Vec2 const unit_x;
     static Vec2 const unit_y;
