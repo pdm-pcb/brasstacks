@@ -11,7 +11,8 @@ class vkRenderPass {
 public:
     auto const & native() const { return _handle; }
 
-    vkRenderPass(vkDevice const &device, vk::Format const format);
+    vkRenderPass(vkDevice const &device, vk::Format const format,
+                 vk::SampleCountFlagBits const msaa_samples);
     ~vkRenderPass();
 
     vkRenderPass() = delete;

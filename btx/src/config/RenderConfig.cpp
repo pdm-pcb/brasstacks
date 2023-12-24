@@ -15,4 +15,8 @@ bool RenderConfig::vsync_on = true;
 
 std::array<float, 4> RenderConfig::clear_color { 0.04f, 0.04f, 0.08f, 1.0f };
 
+float RenderConfig::anisotropy = 1.0f;
+
+uint32_t RenderConfig::msaa_samples = 1u;
+
 } // namespace btx

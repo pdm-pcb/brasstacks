@@ -4,6 +4,9 @@
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
+#include "brasstacks/platform/vulkan/resources/vkSampler.hpp"
 
 namespace btx {
 
@@ -21,11 +24,11 @@ vkDescriptorSet & vkDescriptorSet::add_buffer(vkBuffer const &buffer,
                                               vk::DescriptorType const type)
 {
     if(!_handle) {
-        BTX_CRITICAL("Must allocate set before adding descriptors.");
+        BTX_CRITICAL("Must allocate descriptor set before adding buffers.");
     }
 
-    auto const *buffer_info =
-        &_buffer_info.emplace_back(vk::DescriptorBufferInfo {
+    auto const *buffer_info = &_buffer_info.emplace_back(
+        vk::DescriptorBufferInfo {
             .buffer = buffer.native(),
             .offset = 0u,
             .range  = VK_WHOLE_SIZE
@@ -49,6 +52,28 @@ vkDescriptorSet & vkDescriptorSet::add_buffer(vkBuffer const &buffer,
 vkDescriptorSet & vkDescriptorSet::add_image(vkImage const &image,
                                              vk::DescriptorType const type)
 {
+    if(!_handle) {
+        BTX_CRITICAL("Must allocate descriptor set before adding images.");
+    }
+
+    auto const *image_info =  &_image_info.emplace_back(
+        vk::DescriptorImageInfo {
+            .sampler = image.sampler().native(),
+            .imageView = image.view().native(),
+            .imageLayout = image.layout(),
+        });
+
+    _set_writes.emplace_back(vk::WriteDescriptorSet {
+        .dstSet           = _handle,
+        .dstBinding       = static_cast<uint32_t>(_set_writes.size()),
+        .dstArrayElement  = 0u,
+        .descriptorCount  = 1u,
+        .descriptorType   = type,
+        .pImageInfo       = image_info,
+        .pBufferInfo      = nullptr,
+        .pTexelBufferView = nullptr
+    });
+
     return *this;
 }
 

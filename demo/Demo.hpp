@@ -8,7 +8,7 @@ namespace btx {
 
 class vkDevice;
 
-class RenderPass;
+// class RenderPass;
 class vkRenderPass;
 class vkPipeline;
 class vkFramebuffer;
@@ -16,8 +16,10 @@ class vkFramebuffer;
 class vkDescriptorPool;
 class vkDescriptorSetLayout;
 class vkDescriptorSet;
-class FPSCamera;
 class vkBuffer;
+class vkImage;
+class FPSCamera;
+class PlaneMesh;
 class CubeMesh;
 
 } // namespace btx
@@ -33,7 +35,7 @@ public:
                          uint32_t const image_index) override;
 
     Demo();
-    ~Demo() override;
+    ~Demo() override = default;
 
 private:
     struct PushConstant {
@@ -44,20 +46,30 @@ private:
 
     btx::vkDescriptorPool *_descriptor_pool;
 
-    btx::vkRenderPass                *_render_pass;
-    btx::vkPipeline                  *_pipeline;
-    std::vector<btx::vkFramebuffer *> _framebuffers;
+    btx::FPSCamera *_camera;
+    std::vector<btx::vkBuffer *> _camera_ubos;
+    btx::vkDescriptorSetLayout *_camera_ubo_layout;
+    std::vector<btx::vkDescriptorSet *> _camera_ubo_sets;
 
-    btx::CubeMesh  *_cube_mesh;
+    btx::PlaneMesh *_plane_mesh;
+    btx::math::Mat4 _plane_mat;
+
+    btx::CubeMesh *_cube_mesh;
     btx::math::Mat4 _cube_mat;
 
-    btx::FPSCamera                     *_camera;
-    btx::vkDescriptorSetLayout         *_camera_ubo_layout;
-    std::vector<btx::vkDescriptorSet *> _camera_ubo_sets;
-    std::vector<btx::vkBuffer *>        _camera_ubos;
+    btx::vkImage *_texture;
+    btx::vkDescriptorSetLayout *_texture_set_layout;
+    btx::vkDescriptorSet *_texture_set;
 
-    void _create_camera_resources(btx::vkDevice const &device);
-    void _destroy_camera_resources();
+    btx::vkRenderPass *_render_pass;
+    btx::vkPipeline *_pipeline;
+    std::vector<btx::vkFramebuffer *> _framebuffers;
+
+    void _create_camera(btx::vkDevice const &device);
+    void _destroy_camera();
+
+    void _create_texture(btx::vkDevice const &device);
+    void _destroy_texture();
 
     void _create_render_pass(btx::vkDevice const &device,
                              btx::vkSwapchain const &swapchain);

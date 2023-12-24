@@ -34,9 +34,15 @@ target_precompile_headers(
 
 target_link_libraries(
     ${TARGET_NAME} PUBLIC
+    third_party
     spdlog::spdlog
     Vulkan::Vulkan
     # glm
+)
+
+target_include_directories(
+    ${TARGET_NAME} PRIVATE
+    ${STB_INCLUDE_DIR}
 )
 
 if(LINUX)
@@ -170,10 +176,4 @@ set_target_properties(
 	CXX_STANDARD 20
 	CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
-
-	ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/debug/lib"
-    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/debug/lib"
-
-	ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/release/lib"
-	LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/release/lib"
 )

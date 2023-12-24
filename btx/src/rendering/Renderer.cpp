@@ -11,7 +11,7 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/resources//vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"

@@ -7,7 +7,7 @@ namespace btx {
 
 class vkDevice;
 
-class vkBuffer {
+class vkBuffer final {
 public:
     vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
              vk::BufferUsageFlags const usage_flags,
@@ -34,11 +34,11 @@ public:
 private:
     vkDevice const &_device;
 
-    static vk::PhysicalDeviceMemoryProperties _memory_props;
-
     vk::Buffer       _handle;
     vk::DeviceSize   _size_bytes;
     vk::DeviceMemory _memory;
+
+    static vk::PhysicalDeviceMemoryProperties _memory_props;
 
     void _allocate(vk::MemoryPropertyFlags const flags);
 

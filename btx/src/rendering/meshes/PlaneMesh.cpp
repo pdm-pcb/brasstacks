@@ -9,11 +9,10 @@ PlaneMesh::PlaneMesh(vkDevice const &device, float const scale,
     Mesh(device)
 {
     Mesh::_set_vertices({
-        {{ -scale, -scale, 0.0f }, color[0] },
-        {{ -scale,  scale, 0.0f }, color[1] },
-        {{  scale,  scale, 0.0f }, color[2] },
-        {{  scale, -scale, 0.0f }, color[3] },
-
+        {{ -scale, -scale, 0.0f }, color[0], { 0.0f, 0.0f } },
+        {{ -scale,  scale, 0.0f }, color[1], { 0.0f, 1.0f } },
+        {{  scale,  scale, 0.0f }, color[2], { 1.0f, 1.0f } },
+        {{  scale, -scale, 0.0f }, color[3], { 1.0f, 0.0f } },
     });
 
     Mesh::_set_indices({ 0, 1, 2,  0, 2, 3 });

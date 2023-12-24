@@ -3,7 +3,7 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
-#include "brasstacks/platform/vulkan/resources//vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 
 namespace btx {
 

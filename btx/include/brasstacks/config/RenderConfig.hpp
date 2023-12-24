@@ -27,6 +27,10 @@ struct RenderConfig final {
     static bool vsync_on;
 
     static std::array<float, 4> clear_color;
+
+    static float anisotropy;
+
+    static uint32_t msaa_samples;
 };
 
 } // namespace btx

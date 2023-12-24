@@ -48,6 +48,8 @@ public:
 
     void create(vkRenderPass const &render_pass, Config const &config);
 
+    static vk::SampleCountFlagBits samples_to_flag(uint32_t const samples);
+
     void bind(vkCmdBuffer const &cmd_buffer) const;
     void bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
                              vkDescriptorSet const &set) const;

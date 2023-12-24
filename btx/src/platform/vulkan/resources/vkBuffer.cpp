@@ -165,16 +165,20 @@ uint32_t vkBuffer::_get_memory_type_index(vk::MemoryPropertyFlags const flags,
 
     // This bit-rithmetic bears some explanation. We're checking two bit fields
     // against our requirements for the memory itself.
+
     for(uint32_t type_index = 0u; type_index < type_count; ++type_index) {
+        auto const type = _memory_props.memoryTypes[type_index];
 
         // Each type index is actually a field in memoryTypeBits. If the index
         // we're currently on is enabled, that means we've found a matching
         // memory type.
+
         if((reqs.memoryTypeBits & (1u << type_index)) != 0u) {
             // The second check is against the memory properties. This can be
             // any combination of local to the CPU, local to the GPU, visible
             // to the CPU or not, and more.
-            if(_memory_props.memoryTypes[type_index].propertyFlags & flags) {
+
+            if(type.propertyFlags & flags) {
                 return type_index;
             }
         }

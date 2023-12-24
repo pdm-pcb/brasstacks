@@ -44,15 +44,15 @@ void Mesh::_set_indices(std::vector<Index> const &indices) {
 
 void Mesh::draw_indexed(vkCmdBuffer const &cmd_buffer) const {
     cmd_buffer.native().bindVertexBuffers(
-        0u,
-        1u,
-        &_vertex_buffer->native(),
-        _vertex_offsets.data()
+        0u,                        // First binding
+        1u,                        // Binding count
+        &_vertex_buffer->native(), // Buffers
+        _vertex_offsets.data()     // Offsets
     );
     cmd_buffer.native().bindIndexBuffer(
-        _index_buffer->native(),
-        0u,
-        INDEX_TYPE
+        _index_buffer->native(), // Buffer
+        0u,                      // Offset
+        INDEX_TYPE               // Index type
     );
     cmd_buffer.native().drawIndexed(
         static_cast<uint32_t>(_index_data.size()),

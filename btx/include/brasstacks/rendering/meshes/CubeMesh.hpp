@@ -11,13 +11,11 @@ class vkDevice;
 class CubeMesh final : public Mesh {
 public:
     CubeMesh(vkDevice const &device,
-              float const scale = 1.0f,
-              std::array<math::Vec3, 8> const &corner_colors =
-                  {
-                    colors::white, colors::white, colors::white, colors::white,
-                    colors::white, colors::white, colors::white, colors::white,
-                  }
-             );
+             float const scale = 1.0f,
+             std::array<math::Vec3, 8> const &corner_colors = {
+                 colors::white, colors::white, colors::white, colors::white,
+                 colors::white, colors::white, colors::white, colors::white,
+            });
 
     ~CubeMesh() = default;
 

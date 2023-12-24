@@ -5,7 +5,8 @@
 
 namespace btx {
 
-vkRenderPass::vkRenderPass(vkDevice const &device, vk::Format const format) :
+vkRenderPass::vkRenderPass(vkDevice const &device, vk::Format const format,
+                           vk::SampleCountFlagBits const msaa_samples) :
     _device { device }
 {
     // Describe the color buffer attachment
@@ -15,8 +16,8 @@ vkRenderPass::vkRenderPass(vkDevice const &device, vk::Format const format) :
         // Format of the back buffer
         .format = format,
 
-        // No multisampling
-        .samples = vk::SampleCountFlagBits::e1,
+        // Configured multisampling
+        .samples = msaa_samples,
 
         // When starting the frame, we want tiles to be cleared
         .loadOp = vk::AttachmentLoadOp::eClear,

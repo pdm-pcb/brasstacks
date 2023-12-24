@@ -106,6 +106,21 @@ void vkPipeline::create(vkRenderPass const &render_pass, Config const &config) {
 }
 
 // =============================================================================
+vk::SampleCountFlagBits vkPipeline::samples_to_flag(uint32_t const samples) {
+    if(samples == 64u) { return vk::SampleCountFlagBits::e64; }
+    if(samples == 32u) { return vk::SampleCountFlagBits::e32; }
+    if(samples == 16u) { return vk::SampleCountFlagBits::e16; }
+    if(samples == 8u)  { return vk::SampleCountFlagBits::e8;  }
+    if(samples == 4u)  { return vk::SampleCountFlagBits::e4;  }
+    if(samples == 2u)  { return vk::SampleCountFlagBits::e2;  }
+    if(samples == 1u)  { return vk::SampleCountFlagBits::e1;  }
+
+    BTX_CRITICAL("Unsupported MSAA sample count {}", samples);
+
+    return { };
+}
+
+// =============================================================================
 void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) const {
     cmd_buffer.native().bindPipeline(
         vk::PipelineBindPoint::eGraphics,

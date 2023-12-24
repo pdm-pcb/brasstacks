@@ -17,7 +17,7 @@ RenderPass::RenderPass(vkDevice const &device, vkSwapchain const &swapchain,
     _render_extent { RenderConfig::swapchain_image_size },
     _render_offset { RenderConfig::swapchain_image_offset }
 {
-    _render_pass = new vkRenderPass(device, swapchain.image_format());
+    // _render_pass = new vkRenderPass(device, swapchain.image_format());
 
     _pipeline = new vkPipeline(device);
     (*_pipeline)

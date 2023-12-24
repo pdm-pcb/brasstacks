@@ -5,6 +5,7 @@
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 
 namespace btx {
 
@@ -57,6 +58,33 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance    const &instance,
     BTX_INFO("Selected {}", _chosen_device.name);
 
     vkBuffer::set_memory_props(_chosen_device.memory);
+    vkImage::set_memory_props(_chosen_device.memory);
+
+    RenderConfig::anisotropy = _chosen_device.max_aniso;
+
+    // switch(_chosen_device.max_samples) {
+    //     case vk::SampleCountFlagBits::e64:
+    //         RenderConfig::msaa_samples = 64;
+    //         break;
+    //     case vk::SampleCountFlagBits::e32:
+    //         RenderConfig::msaa_samples = 32;
+    //         break;
+    //     case vk::SampleCountFlagBits::e16:
+    //         RenderConfig::msaa_samples = 16;
+    //         break;
+    //     case vk::SampleCountFlagBits::e8:
+    //         RenderConfig::msaa_samples = 8;
+    //         break;
+    //     case vk::SampleCountFlagBits::e4:
+    //         RenderConfig::msaa_samples = 4;
+    //         break;
+    //     case vk::SampleCountFlagBits::e2:
+    //         RenderConfig::msaa_samples = 2;
+    //         break;
+    //     case vk::SampleCountFlagBits::e1:
+    //         RenderConfig::msaa_samples = 1;
+    //         break;
+    // }
 }
 
 // =============================================================================
@@ -254,7 +282,6 @@ void vkPhysicalDevice::_store_device(vk::PhysicalDevice const &device) {
     store.handle = device;
     store.memory = memory_props;
     store.type = device_props.deviceType;
-    store.name = std::string(device_props.deviceName.data());
 
     vk::DeviceSize vram_bytes = 0;
     for(uint32_t index = 0u; index < memory_props.memoryHeapCount; ++index) {
@@ -267,14 +294,36 @@ void vkPhysicalDevice::_store_device(vk::PhysicalDevice const &device) {
     }
     store.vram_bytes = vram_bytes;
 
+    store.name = std::string(device_props.deviceName.data());
     store.driver_version = std::string(driver_props.driverInfo.data());
-
     store.vkapi_version = std::format(
         "{}.{}.{}",
         VK_API_VERSION_MAJOR(device_props.apiVersion),
         VK_API_VERSION_MINOR(device_props.apiVersion),
         VK_API_VERSION_PATCH(device_props.apiVersion)
     );
+
+    auto const sample_counts = device_props.limits.framebufferColorSampleCounts;
+    if(sample_counts & vk::SampleCountFlagBits::e64) {
+        store.max_samples = vk::SampleCountFlagBits::e64;
+    }
+    else if(sample_counts & vk::SampleCountFlagBits::e32) {
+        store.max_samples = vk::SampleCountFlagBits::e32;
+    }
+    else if(sample_counts & vk::SampleCountFlagBits::e16) {
+        store.max_samples = vk::SampleCountFlagBits::e16;
+    }
+    else if(sample_counts & vk::SampleCountFlagBits::e8) {
+        store.max_samples = vk::SampleCountFlagBits::e8;
+    }
+    else if(sample_counts & vk::SampleCountFlagBits::e4) {
+        store.max_samples = vk::SampleCountFlagBits::e4;
+    }
+    else if(sample_counts & vk::SampleCountFlagBits::e2) {
+        store.max_samples = vk::SampleCountFlagBits::e2;
+    }
+
+    store.max_aniso = device_props.limits.maxSamplerAnisotropy;
 }
 
 // =============================================================================
