@@ -14,7 +14,7 @@ public:
                      PoolSizes const &sizes);
     ~vkDescriptorPool();
 
-    inline auto const& native() const { return _pool; }
+    inline auto const& native() const { return _handle; }
 
     vkDescriptorPool() = delete;
 
@@ -26,7 +26,7 @@ public:
 
 private:
     vkDevice const &_device;
-    vk::DescriptorPool _pool;
+    vk::DescriptorPool _handle;
 };
 
 } // namespace btx

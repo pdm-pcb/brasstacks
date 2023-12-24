@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/resources/vkSampler.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -38,14 +39,14 @@ vkSampler::vkSampler(vkDevice const &device,
 
     _handle = result.value;
     BTX_TRACE(
-        "\nCreated image sampler {:#x}"
+        "\nCreated image sampler {}"
         "\n\tMag Filter: {}"
         "\n\tMin Filter: {}"
         "\n\tMip Mode:   {}"
         "\n\tAddress U:  {}"
         "\n\tAddress V:  {}"
         "\n\tAnisotropy: {}",
-        reinterpret_cast<uint64_t>(::VkSampler(_handle)),
+        _handle,
         to_string(create_info.magFilter),
         to_string(create_info.minFilter),
         to_string(create_info.mipmapMode),
@@ -57,8 +58,7 @@ vkSampler::vkSampler(vkDevice const &device,
 
 // =============================================================================
 vkSampler::~vkSampler() {
-    BTX_TRACE("Destroying image sampler {:#x}",
-              reinterpret_cast<uint64_t>(::VkSampler(_handle)));
+    BTX_TRACE("Destroying image sampler {}", _handle);
 
     _device.native().destroySampler(_handle);
 }

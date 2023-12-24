@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -26,27 +27,19 @@ vkCmdBuffer::vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool) :
     );
 
     if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL(
-            "Failed to llocated command buffer from pool {:#x}: '{}'",
-            reinterpret_cast<uint64_t>(VkCommandPool(buffer_info.commandPool)),
-            vk::to_string(result)
-        );
-
+        BTX_CRITICAL("Failed to allocate command buffer from pool {}: '{}'",
+                     buffer_info.commandPool, vk::to_string(result));
         return;
     }
 
-    BTX_TRACE(
-        "Allocated command buffer {:#x} from pool {:#x}",
-        reinterpret_cast<uint64_t>(VkCommandBuffer(_handle)),
-        reinterpret_cast<uint64_t>(VkCommandPool(buffer_info.commandPool))
-    );
+    BTX_TRACE("Allocated command buffer {} from pool {}",
+              _handle, buffer_info.commandPool);
 }
 
 // =============================================================================
 vkCmdBuffer::~vkCmdBuffer() {
     if(_handle) {
-        BTX_TRACE("Freeing command buffer {:#x}",
-                  reinterpret_cast<uint64_t>(VkCommandBuffer(_handle)));
+        BTX_TRACE("Freeing command buffer {}", _handle);
 
         _device.native().freeCommandBuffers(_pool.native(), { _handle });
         _handle = nullptr;

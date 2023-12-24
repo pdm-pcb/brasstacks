@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -31,17 +32,14 @@ vkDescriptorPool::vkDescriptorPool(vkDevice const &device,
         return;
     }
 
-    _pool = result.value;
-    BTX_TRACE("Created descriptor pool {:#x}",
-              reinterpret_cast<uint64_t>(VkDescriptorPool(_pool)));
+    _handle = result.value;
+    BTX_TRACE("Created descriptor pool {}", _handle);
 }
 
 // =============================================================================
 vkDescriptorPool::~vkDescriptorPool() {
-    BTX_TRACE("Destroying descriptor pool {:#x}",
-              reinterpret_cast<uint64_t>(VkDescriptorPool(_pool)));
-    _device.native().destroyDescriptorPool(_pool);
-    _pool = nullptr;
+    BTX_TRACE("Destroying descriptor pool {}", _handle);
+    _device.native().destroyDescriptorPool(_handle);
 }
 
 } // namespace btx

@@ -11,10 +11,9 @@
 namespace btx {
 
 class vkDevice;
-class vkRenderPass;
+class vkColorDepthPass;
 class vkCmdPool;
 class vkCmdBuffer;
-class vkFramebuffer;
 
 /**
  * @brief A container for various frame-related data
@@ -84,7 +83,7 @@ private:
      * @brief A fence that's signaled when this frame's command buffer has
      * completed its work
      */
-    vk::Fence     _queue_fence;
+    vk::Fence _queue_fence;
 
     /**
      * @brief A semaphore that's signaled when the swapchain fulfills an image
@@ -105,7 +104,7 @@ private:
     /**
      * @brief This frame's command pool, created with the transient bit
      */
-    vkCmdPool   *_cmd_pool;
+    vkCmdPool *_cmd_pool;
 
     /**
      * @brief This frame's command buffer, used exclusively for one-time

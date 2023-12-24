@@ -11,6 +11,7 @@
 namespace btx {
 
 class vkDevice;
+class vkImage;
 
 /**
  * @brief A wrapper class for Vulkan image views
@@ -26,7 +27,7 @@ public:
      * @param type The image type, eg 2D, 3D, Cube
      * @param aspect_flags Image flags, eg color, depth, stencil
      */
-    vkImageView(vkDevice const &device, vk::Image const &image,
+    vkImageView(vkDevice const &device, vkImage const &image,
                 vk::Format const format, vk::ImageViewType const type,
                 vk::ImageAspectFlags const aspect_flags);
 

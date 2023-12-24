@@ -6,7 +6,7 @@
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
@@ -242,7 +242,6 @@ void Demo::_create_camera(btx::vkDevice const &device) {
                                                         *_camera_ubo_layout);
 
         (*_camera_ubo_sets[i])
-            .allocate()
             .add_buffer(*_camera_ubos[i], vk::DescriptorType::eUniformBuffer)
             .write_set();
     }
@@ -294,11 +293,10 @@ void Demo::_create_texture(btx::vkDevice const &device) {
 
     // for(uint32_t i = 0; i < btx::RenderConfig::swapchain_image_count; ++i) {
         _texture_set =  new btx::vkDescriptorSet(device,
-                                                     *_descriptor_pool,
-                                                     *_texture_set_layout);
+                                                 *_descriptor_pool,
+                                                 *_texture_set_layout);
 
         (*_texture_set)
-            .allocate()
             .add_image(*_texture, vk::DescriptorType::eCombinedImageSampler)
             .write_set();
     // }
@@ -322,7 +320,7 @@ void Demo::_create_render_pass(btx::vkDevice const &device,
     auto const msaa_samples =
         btx::vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples);
 
-    _render_pass = new btx::vkRenderPass(device, swapchain.image_format(),
+    _render_pass = new btx::vkColorDepthPass(device, swapchain.image_format(),
                                          msaa_samples);
 
     _pipeline = new btx::vkPipeline(device);

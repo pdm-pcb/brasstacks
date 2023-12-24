@@ -9,7 +9,7 @@ namespace btx {
 class vkDevice;
 
 // class RenderPass;
-class vkRenderPass;
+class vkColorDepthPass;
 class vkPipeline;
 class vkFramebuffer;
 
@@ -61,7 +61,7 @@ private:
     btx::vkDescriptorSetLayout *_texture_set_layout;
     btx::vkDescriptorSet *_texture_set;
 
-    btx::vkRenderPass *_render_pass;
+    btx::vkColorDepthPass *_render_pass;
     btx::vkPipeline *_pipeline;
     std::vector<btx::vkFramebuffer *> _framebuffers;
 

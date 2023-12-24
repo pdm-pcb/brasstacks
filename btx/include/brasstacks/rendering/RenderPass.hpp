@@ -6,37 +6,37 @@
 
 namespace btx {
 
-class vkDevice;
-class vkSwapchain;
-class vkDescriptorSetLayout;
-class vkDescriptorSet;
-class vkRenderPass;
-class vkPipeline;
-class vkFramebuffer;
-class vkCmdBuffer;
+// class vkDevice;
+// class vkSwapchain;
+// class vkDescriptorSetLayout;
+// class vkDescriptorSet;
+// class vkColorDepthPass;
+// class vkPipeline;
+// class vkFramebuffer;
+// class vkCmdBuffer;
 
-class RenderPass {
-public:
-    RenderPass(vkDevice const &device, vkSwapchain const &swapchain,
-               vkDescriptorSetLayout const &layout);
+// class RenderPass {
+// public:
+//     RenderPass(vkDevice const &device, vkSwapchain const &swapchain,
+//                vkDescriptorSetLayout const &layout);
 
-    ~RenderPass();
+//     ~RenderPass();
 
-    void begin(vkCmdBuffer const &cmd_buffer, uint32_t const image_index) const;
-    void bind(vkCmdBuffer const &cmd_buffer,
-              vkDescriptorSet const &descriptor_set) const;
+//     void begin(vkCmdBuffer const &cmd_buffer, uint32_t const image_index) const;
+//     void bind(vkCmdBuffer const &cmd_buffer,
+//               vkDescriptorSet const &descriptor_set) const;
 
-    RenderPass() = delete;
+//     RenderPass() = delete;
 
-private:
-    vkRenderPass                *_render_pass;
-    vkPipeline                  *_pipeline;
-    std::vector<vkFramebuffer *> _framebuffers;
-    vk::Rect2D                   _render_area;
+// private:
+//     vkColorDepthPass                *_render_pass;
+//     vkPipeline                  *_pipeline;
+//     std::vector<vkFramebuffer *> _framebuffers;
+//     vk::Rect2D                   _render_area;
 
-    RenderConfig::SurfaceDimensions _render_extent;
-    RenderConfig::SurfacePosition   _render_offset;
-};
+//     RenderConfig::SurfaceDimensions _render_extent;
+//     RenderConfig::SurfacePosition   _render_offset;
+// };
 
 } // namespace btx
 

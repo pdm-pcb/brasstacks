@@ -4,6 +4,7 @@
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -23,8 +24,7 @@
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 #include "brasstacks/rendering/RenderPass.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 
 namespace btx {
 
@@ -202,9 +202,7 @@ void Renderer::_create_frame_sync() {
         return;
     }
 
-    BTX_TRACE("Created image acquire semaphore {:#x}",
-              reinterpret_cast<uint64_t>(VkSemaphore(result.value)));
-
+    BTX_TRACE("Created image acquire semaphore {}", result.value);
     _image_acquire_sems.push(result.value);
 }
 
@@ -217,8 +215,7 @@ void Renderer::_destroy_frame_sync() {
     while(!_image_acquire_sems.empty()) {
         auto const sem = _image_acquire_sems.front();
 
-        BTX_TRACE("Destroying image acquire semaphore {:#x}",
-                  reinterpret_cast<uint64_t>(VkSemaphore(sem)));
+        BTX_TRACE("Destroying image acquire semaphore {}", sem);
         _device->native().destroySemaphore(sem);
 
         _image_acquire_sems.pop();

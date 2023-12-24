@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -29,14 +30,12 @@ vkCmdPool::vkCmdPool(vkDevice const &device, uint32_t const queue_index,
         return;
     }
 
-    BTX_TRACE("Created command pool {:#x}.",
-                reinterpret_cast<uint64_t>(::VkCommandPool(_handle)));
+    BTX_TRACE("Created command pool {}", _handle);
 }
 
 // =============================================================================
 vkCmdPool::~vkCmdPool() {
-    BTX_TRACE("Destroying command pool {:#x}.",
-                reinterpret_cast<uint64_t>(::VkCommandPool(_handle)));
+    BTX_TRACE("Destroying command pool {}", _handle);
 
     _device.native().destroyCommandPool(_handle);
     _handle = nullptr;

@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -55,8 +56,7 @@ vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
         return;
     }
 
-    BTX_TRACE("Created logical device {:#x}",
-              reinterpret_cast<uint64_t>(::VkDevice(_handle)));
+    BTX_TRACE("Created logical device {}", _handle);
 
     // Retrieve the queue abstraction
     _graphics_queue =
@@ -77,8 +77,7 @@ vkDevice::~vkDevice() {
     delete _transient_pool;
     delete _graphics_queue;
 
-    BTX_TRACE("Destroying logical device {:#x}",
-              reinterpret_cast<uint64_t>(::VkDevice(_handle)));
+    BTX_TRACE("Destroying logical device {}", _handle);
     _handle.destroy();
 }
 

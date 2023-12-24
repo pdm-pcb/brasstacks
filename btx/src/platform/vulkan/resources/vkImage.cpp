@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -31,7 +32,7 @@ vkImage::vkImage(vkDevice  const &device, vk::Image const &handle,
 {
     _view = new vkImageView(
             _device,
-            _handle,
+            *this,
             format,
             vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor
@@ -66,13 +67,8 @@ vkImage::vkImage(vkDevice const &device, std::string_view const filename,
 
 // =============================================================================
 vkImage::~vkImage() {
-    if(_sampler != nullptr) {
-        delete _sampler;
-    }
-
-    if(_view != nullptr) {
-        delete _view;
-    }
+    delete _sampler;
+    delete _view;
 
     if(!_is_swapchain && _handle) {
         _device.native().destroyImage(_handle);
@@ -134,15 +130,14 @@ void vkImage::create(vk::ImageType const type,
     }
 
     _handle = result.value;
-    BTX_TRACE("Created image {:#x}",
-              reinterpret_cast<uint64_t>(::VkImage(_handle)));
+    BTX_TRACE("Created image {}", _handle);
 
     _allocate(memory_flags);
     _send_to_device();
 
     _view = new vkImageView(
             _device,
-            _handle,
+            *this,
             _format,
             vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor
@@ -221,26 +216,20 @@ void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
 
     auto const alloc_result = _device.native().allocateMemory(alloc_info);
     if(alloc_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create device memory for image {:#x}: '{}'",
-                     reinterpret_cast<uint64_t>(VkImage(_handle)),
-                     vk::to_string(alloc_result.result));
+        BTX_CRITICAL("Failed to create device memory for image {}: '{}'",
+                     _handle, vk::to_string(alloc_result.result));
     }
 
     _memory = alloc_result.value;
-    BTX_TRACE("Allocated {} bytes {:#x} for image {:#x}",
-              mem_reqs.size,
-              reinterpret_cast<uint64_t>(VkDeviceMemory(_memory)),
-              reinterpret_cast<uint64_t>(VkImage(_handle))
-    );
+    BTX_TRACE("Allocated {} bytes {} for image {}",
+              mem_reqs.size, _memory, _handle);
 
     auto const bind_result =
         _device.native().bindImageMemory(_handle, _memory, 0u);
 
     if(bind_result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to bind device memory {:#x} to image {:#x}: '{}'",
-                     reinterpret_cast<uint64_t>(VkDeviceMemory(_memory)),
-                     reinterpret_cast<uint64_t>(VkImage(_handle)),
-                     vk::to_string(bind_result));
+        BTX_CRITICAL("Failed to bind device memory {} to image {}: '{}'",
+                     _memory, _handle, vk::to_string(bind_result));
     }
 }
 
@@ -425,8 +414,8 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
     };
 
     BTX_TRACE(
-        "Image {:#x}, mip {} ({}), layer {} ({}): '{}' -> '{}'",
-        reinterpret_cast<uint64_t>(VkImage(_handle)),
+        "Image {}, mip {} ({}), layer {} ({}): '{}' -> '{}'",
+        _handle,
         base_mip_level, _mip_levels,
         base_array_layer, _array_layers,
         to_string(barrier.oldLayout),

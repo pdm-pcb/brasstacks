@@ -1,7 +1,7 @@
 #include "brasstacks/system/GUIOverlay.hpp"
 
 #include "brasstacks/system/TargetWindow.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -16,7 +16,7 @@ namespace btx {
 //                        vkDevice const &device,
 //                        uint32_t const swapchain_image_count,
 //                        TargetWindow const &window,
-//                        vkRenderPass const &render_pass)
+//                        vkColorDepthPass const &render_pass)
 // {
 //     _descriptor_pool = new vkDescriptorPool(
 //         device,

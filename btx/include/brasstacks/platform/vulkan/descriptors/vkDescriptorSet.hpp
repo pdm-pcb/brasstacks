@@ -23,8 +23,6 @@ public:
     vkDescriptorSet & add_image(vkImage const &image,
                                  vk::DescriptorType const type);
 
-    vkDescriptorSet & allocate();
-
     void write_set();
 
     inline auto const & native() const { return _handle; }

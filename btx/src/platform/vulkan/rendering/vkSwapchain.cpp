@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -45,8 +46,7 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &physical_device,
     }
 
     _handle = result.value;
-    BTX_TRACE("Created swapchain {:#x}",
-              reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle)));
+    BTX_TRACE("Created swapchain {}", _handle);
 
     // Now that we've got the swapchain itself, we'll need its images
     _get_swapchain_images();
@@ -58,8 +58,7 @@ vkSwapchain::~vkSwapchain() {
         delete image;
     }
 
-    BTX_TRACE("Destroying swapchain {:#x}",
-              reinterpret_cast<uint64_t>(::VkSwapchainKHR(_handle)));
+    BTX_TRACE("Destroying swapchain {}", _handle);
 
     _device.native().destroy(_handle);
 }

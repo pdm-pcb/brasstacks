@@ -1,5 +1,7 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
+
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 namespace btx {
@@ -21,17 +23,13 @@ vkShader::vkShader(vkDevice const &device, std::string_view filepath) :
     }
 
     _handle = result.value;
-    BTX_TRACE("Created vkShader module {:#x} from '{}'",
-              reinterpret_cast<uint64_t>(VkShaderModule(_handle)), filepath);
+    BTX_TRACE("Created vkShader module {} from '{}'", _handle, filepath);
 }
 
 // =============================================================================
 vkShader::~vkShader() {
-    BTX_TRACE("Destroying shader module {:#x}",
-              reinterpret_cast<uint64_t>(VkShaderModule(_handle)));
-
+    BTX_TRACE("Destroying shader module {}", _handle);
     _device.native().destroyShaderModule(_handle);
-    _handle = nullptr;
 }
 
 // =============================================================================
@@ -69,11 +67,7 @@ vkShader::BinaryData vkShader::_spirv_to_binary(std::string_view filepath) {
     // Then copy the character array into an integer array to provide Vulkan
     // with the binary data in the size and configuration it expects.
     BinaryData shader_binary(shader_string.size() / sizeof(uint32_t));
-    std::memcpy(
-        shader_binary.data(),
-        shader_string.data(),
-        shader_string.size()
-    );
+    ::memcpy(shader_binary.data(), shader_string.data(), shader_string.size());
 
     return shader_binary;
 }

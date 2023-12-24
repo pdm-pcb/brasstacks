@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -41,17 +42,14 @@ vkBuffer::vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
     }
 
     _handle = result.value;
-    BTX_TRACE("Created buffer {:#x}",
-              reinterpret_cast<uint64_t>(VkBuffer(_handle)));
+    BTX_TRACE("Created buffer {}", _handle);
 
     _allocate(memory_flags);
 }
 
 // =============================================================================
 vkBuffer::~vkBuffer() {
-    BTX_TRACE("Freeing memory {:#x} and destroying buffer {:#x}",
-              reinterpret_cast<uint64_t>(VkDeviceMemory(_memory)),
-              reinterpret_cast<uint64_t>(VkBuffer(_handle)));
+    BTX_TRACE("Freeing memory {} and destroying buffer {}", _memory, _handle);
 
     _device.native().destroyBuffer(_handle);
     _device.native().freeMemory(_memory);
@@ -70,9 +68,7 @@ void vkBuffer::fill_buffer(void const *data) const {
     auto const result = _device.native().mapMemory(_memory, 0, VK_WHOLE_SIZE,
                                                    { }, &mapped_memory);
     if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to map buffer {:#x} memory {:#x}",
-                     reinterpret_cast<uint64_t>(VkBuffer(_handle)),
-                     reinterpret_cast<uint64_t>(VkDeviceMemory(_memory)));
+        BTX_CRITICAL("Failed to map buffer {} memory {}", _handle, _memory);
     }
 
     ::memcpy(mapped_memory, data, _size_bytes);
@@ -82,7 +78,7 @@ void vkBuffer::fill_buffer(void const *data) const {
 
 // =============================================================================
 void vkBuffer::send_to_device(void const *data) const {
-    vkBuffer staging_buffer(
+    vkBuffer const staging_buffer(
         _device, _size_bytes,
         vk::BufferUsageFlagBits::eTransferSrc,
         (vk::MemoryPropertyFlagBits::eHostVisible |
@@ -97,7 +93,7 @@ void vkBuffer::send_to_device(void const *data) const {
         .size = _size_bytes
     };
 
-    vkCmdBuffer cmd_buffer(_device, _device.transient_pool());
+    vkCmdBuffer const cmd_buffer(_device, _device.transient_pool());
     cmd_buffer.begin_one_time_submit();
 
         cmd_buffer.native().copyBuffer(
@@ -134,27 +130,22 @@ void vkBuffer::_allocate(vk::MemoryPropertyFlags const flags) {
 
     auto const alloc_result = _device.native().allocateMemory(alloc_info);
     if(alloc_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to allocate {} bytes for buffer {:#x}: '{}'",
-                     _size_bytes, reinterpret_cast<uint64_t>(VkBuffer(_handle)),
-                     vk::to_string(alloc_result.result));
+        BTX_CRITICAL("Failed to allocate {} bytes for buffer {}: '{}'",
+                     _size_bytes, _handle, vk::to_string(alloc_result.result));
         return;
     }
 
     _memory = alloc_result.value;
-    BTX_TRACE("\n\tAllocated {} bytes: Device memory {:#x}"
-              "\n\tFor buffer {:#x}",
-              _size_bytes,
-              reinterpret_cast<uint64_t>(VkDeviceMemory(_memory)),
-              reinterpret_cast<uint64_t>(VkBuffer(_handle)));
+    BTX_TRACE("\n\tAllocated {} bytes: Device memory {}"
+              "\n\tFor buffer {}",
+              _size_bytes, _memory, _handle);
 
     auto const bind_result = _device.native().bindBufferMemory(_handle,
                                                                _memory, 0u);
     if(bind_result != vk::Result::eSuccess) {
-        BTX_TRACE("Failed to bind device memory {:#x} to buffer {:#x}: '{}'",
-                  reinterpret_cast<uint64_t>(VkDeviceMemory(_memory)),
-                  reinterpret_cast<uint64_t>(VkBuffer(_handle)),
-                  vk::to_string(bind_result));
-        }
+        BTX_TRACE("Failed to bind device memory {} to buffer {}: '{}'",
+                  _memory, _handle, vk::to_string(bind_result));
+    }
 }
 
 // =============================================================================

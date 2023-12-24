@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/vkDebugger.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
@@ -64,23 +65,13 @@ void vkDebugger::init(vk::Instance &instance) {
                      vk::to_string(result));
     }
     else {
-        BTX_TRACE(
-            "Created vkDebugger messenger {:#x}",
-            reinterpret_cast<uint64_t>(
-                ::VkDebugUtilsMessengerEXT(_debug_messenger)
-            )
-        );
+        BTX_TRACE("Created vkDebugger messenger {}", _debug_messenger);
     }
 }
 
 // =============================================================================
 void vkDebugger::shutdown(vk::Instance &instance) {
-    BTX_TRACE(
-        "Destroying vkDebugger messenger {:#x}",
-            reinterpret_cast<uint64_t>(
-                ::VkDebugUtilsMessengerEXT(_debug_messenger)
-            )
-    );
+    BTX_TRACE("Destroying vkDebugger messenger {}", _debug_messenger);
     instance.destroy(_debug_messenger);
 }
 

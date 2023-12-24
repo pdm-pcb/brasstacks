@@ -1,8 +1,9 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
@@ -10,7 +11,7 @@ namespace btx {
 
 // =============================================================================
 vkFramebuffer::vkFramebuffer(vkDevice const &device,
-                             vkRenderPass const &render_pass,
+                             vkColorDepthPass const &render_pass,
                              vk::Extent2D const &extent,
                              vkImage const &image) :
     _device { device }
@@ -34,14 +35,12 @@ vkFramebuffer::vkFramebuffer(vkDevice const &device,
     }
 
     _handle = result.value;
-    BTX_TRACE("Created framebuffer {:#x}",
-              reinterpret_cast<uint64_t>(VkFramebuffer(_handle)));
+    BTX_TRACE("Created framebuffer {}", _handle);
 }
 
 // =============================================================================
 vkFramebuffer::~vkFramebuffer() {
-    BTX_TRACE("Destroying framebuffer {:#x}",
-              reinterpret_cast<uint64_t>(VkFramebuffer(_handle)));
+    BTX_TRACE("Destroying framebuffer {}", _handle);
 
     _device.native().destroyFramebuffer(_handle);
 }

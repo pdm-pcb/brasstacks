@@ -1,4 +1,5 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -17,7 +18,22 @@ vkDescriptorSet::vkDescriptorSet(vkDevice const &device,
     _device { device },
     _pool   { pool },
     _layout { layout }
-{ }
+{
+    const vk::DescriptorSetAllocateInfo alloc_info {
+        .descriptorPool     = _pool.native(),
+        .descriptorSetCount = 1u,
+        .pSetLayouts        = &_layout.native()
+    };
+
+    auto const result = _device.native().allocateDescriptorSets(alloc_info);
+    if(result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Could not allocate descriptor sets: '{}'",
+                     vk::to_string(result.result));
+    }
+
+    _handle = result.value.front();
+    BTX_TRACE("Allocated descriptor set {}", _handle);
+}
 
 // =============================================================================
 vkDescriptorSet & vkDescriptorSet::add_buffer(vkBuffer const &buffer,
@@ -73,27 +89,6 @@ vkDescriptorSet & vkDescriptorSet::add_image(vkImage const &image,
         .pBufferInfo      = nullptr,
         .pTexelBufferView = nullptr
     });
-
-    return *this;
-}
-
-// =============================================================================
-vkDescriptorSet & vkDescriptorSet::allocate() {
-    const vk::DescriptorSetAllocateInfo alloc_info {
-        .descriptorPool     = _pool.native(),
-        .descriptorSetCount = 1u,
-        .pSetLayouts        = &_layout.native()
-    };
-
-    auto const result = _device.native().allocateDescriptorSets(
-        &alloc_info,
-        &_handle
-    );
-
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not allocate descriptor sets: '{}'",
-                     vk::to_string(result));
-    }
 
     return *this;
 }

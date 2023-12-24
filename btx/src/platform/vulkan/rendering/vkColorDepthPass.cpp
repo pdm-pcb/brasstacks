@@ -1,45 +1,32 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 namespace btx {
 
-vkRenderPass::vkRenderPass(vkDevice const &device, vk::Format const format,
-                           vk::SampleCountFlagBits const msaa_samples) :
+vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
+                                   vk::Format const format,
+                                   vk::SampleCountFlagBits const msaa_samples) :
     _device { device }
 {
     // Describe the color buffer attachment
-    vk::AttachmentDescription color_buffer_desc {
-        .flags = { },
-
-        // Format of the back buffer
-        .format = format,
-
-        // Configured multisampling
-        .samples = msaa_samples,
-
-        // When starting the frame, we want tiles to be cleared
-        .loadOp = vk::AttachmentLoadOp::eClear,
-
-        // When ending the frame, we want tiles to be written out
-        .storeOp = vk::AttachmentStoreOp::eStore,
-
-        // Don't care about stencil since we're not using it
+    vk::AttachmentDescription const color_buffer_desc {
+        .flags          = { },
+        .format         = format,
+        .samples        = msaa_samples,
+        .loadOp         = vk::AttachmentLoadOp::eClear,
+        .storeOp        = vk::AttachmentStoreOp::eStore,
         .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
         .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-
-        // The image layout will be undefined when the render pass begins
-        .initialLayout = vk::ImageLayout::eUndefined,
-
-        // After the render pass is complete, we want to presnt
-        .finalLayout = vk::ImageLayout::ePresentSrcKHR,
+        .initialLayout  = vk::ImageLayout::eUndefined,
+        .finalLayout    = vk::ImageLayout::ePresentSrcKHR,
     };
 
 	// We have one subpass. This subpass has one color attachment. While
     // executing this subpass, the attachment will be in attachment optimal
     // layout.
-    vk::AttachmentReference color_buffer_ref {
+    vk::AttachmentReference const color_buffer_ref {
         .attachment = 0,
         .layout = vk::ImageLayout::eColorAttachmentOptimal,
     };
@@ -50,7 +37,7 @@ vkRenderPass::vkRenderPass(vkDevice const &device, vk::Format const format,
 	// The final layout in the render pass attachment states ePresentSrcKHR, so
 	// we will get a final transition from eColorAttachmentOptimal to
     // ePresetSrcKHR.
-    vk::SubpassDescription subpass_desc {
+    vk::SubpassDescription const subpass_desc {
         .flags                   = { },
         .pipelineBindPoint       = vk::PipelineBindPoint::eGraphics,
         .inputAttachmentCount    = 0u,
@@ -67,7 +54,7 @@ vkRenderPass::vkRenderPass(vkDevice const &device, vk::Format const format,
 	// We need to wait for the WSI semaphore to signal.
 	// Only pipeline stages which depend on eColorAttachmentOutput will
 	// actually wait for the semaphore, so we must also wait for that pipeline stage.
-    vk::SubpassDependency subpass_dep {
+    vk::SubpassDependency const subpass_dep {
         .srcSubpass   = VK_SUBPASS_EXTERNAL,
         .dstSubpass   = 0u,
         .srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
@@ -82,7 +69,7 @@ vkRenderPass::vkRenderPass(vkDevice const &device, vk::Format const format,
     };
 
 	// Finally, create the renderpass.
-	vk::RenderPassCreateInfo render_pass_info {
+	vk::RenderPassCreateInfo const render_pass_info {
         .pNext           = nullptr,
         .flags           = { },
         .attachmentCount = 1u,
@@ -103,7 +90,7 @@ vkRenderPass::vkRenderPass(vkDevice const &device, vk::Format const format,
     _handle = result.value;
 }
 
-vkRenderPass::~vkRenderPass() {
+vkColorDepthPass::~vkColorDepthPass() {
     _device.native().destroyRenderPass(_handle);
 }
 

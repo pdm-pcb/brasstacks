@@ -1,9 +1,10 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
@@ -34,16 +35,14 @@ vkPipeline::vkPipeline(vkDevice const &device) :
 
 // =============================================================================
 vkPipeline::~vkPipeline() {
-    BTX_TRACE("Destroying pipeline {:#x}, layout {:#x}",
-              reinterpret_cast<uint64_t>(VkPipeline(_handle)),
-              reinterpret_cast<uint64_t>(VkPipelineLayout(_layout)));
+    BTX_TRACE("Destroying pipeline {}, layout {}", _handle, _layout);
 
     _device.native().destroy(_layout);
     _device.native().destroy(_handle);
 }
 
 // =============================================================================
-void vkPipeline::create(vkRenderPass const &render_pass, Config const &config) {
+void vkPipeline::create(vkColorDepthPass const &render_pass, Config const &config) {
     _init_assembly();
     _init_viewport(config);
     _init_raster(config);
@@ -96,8 +95,7 @@ void vkPipeline::create(vkRenderPass const &render_pass, Config const &config) {
     }
 
     _handle = pipeline_result.value;
-    BTX_TRACE("Created Vulkan pipeline {:#x}",
-              reinterpret_cast<uint64_t>(VkPipeline(_handle)));
+    BTX_TRACE("Created Vulkan pipeline {}", _handle);
 
     // Destroy the shader modules now that the pipeline is baked
     for(auto *shader : _shaders) {
@@ -395,8 +393,7 @@ void vkPipeline::_init_layout() {
     }
 
     _layout = result.value;
-    BTX_TRACE("Created pipeline layout {:#x}",
-              reinterpret_cast<uint64_t>(VkPipelineLayout(_layout)));
+    BTX_TRACE("Created pipeline layout {}", _layout);
 }
 
 

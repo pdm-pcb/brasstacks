@@ -42,8 +42,8 @@ private:
 
     void _allocate(vk::MemoryPropertyFlags const flags);
 
-    uint32_t _get_memory_type_index(vk::MemoryPropertyFlags const flags,
-                                    vk::MemoryRequirements const &reqs);
+    static uint32_t _get_memory_type_index(vk::MemoryPropertyFlags const flags,
+                                           vk::MemoryRequirements const &reqs);
 };
 
 } // namespace btx

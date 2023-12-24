@@ -1,5 +1,7 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
+
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 namespace btx {
@@ -11,9 +13,7 @@ vkDescriptorSetLayout::vkDescriptorSetLayout(vkDevice const &device) :
 
 // =============================================================================
 vkDescriptorSetLayout::~vkDescriptorSetLayout() {
-    BTX_TRACE("Destroying descriptor set layout {:#x}",
-              reinterpret_cast<uint64_t>(VkDescriptorSetLayout(_handle)));
-
+    BTX_TRACE("Destroying descriptor set layout {}", _handle);
     _device.native().destroyDescriptorSetLayout(_handle);
 }
 
@@ -54,8 +54,7 @@ void vkDescriptorSetLayout::create() {
                      vk::to_string(result));
     }
 
-    BTX_TRACE("Created descriptor set layout {:#x}",
-              reinterpret_cast<uint64_t>(VkDescriptorSetLayout(_handle)));
+    BTX_TRACE("Created descriptor set layout {}", _handle);
 }
 
 } // namespace btx

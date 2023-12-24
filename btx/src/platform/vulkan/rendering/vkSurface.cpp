@@ -1,5 +1,7 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
+
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 
 namespace btx {
@@ -18,13 +20,11 @@ _instance { instance }
 
     // And assign
     _handle = result.value;
-    BTX_TRACE("Created Vulkan surface {:#x}",
-              reinterpret_cast<uint64_t>(::VkSurfaceKHR(_handle)));
+    BTX_TRACE("Created Vulkan surface {}", _handle);
 }
 
 vkSurface::~vkSurface() {
-    BTX_TRACE("Destroying Vulkan surface {:#x}",
-              reinterpret_cast<uint64_t>(::VkSurfaceKHR(_handle)));
+    BTX_TRACE("Destroying Vulkan surface {}", _handle);
 
     _instance.native().destroy(_handle);
 }

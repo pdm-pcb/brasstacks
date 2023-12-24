@@ -1,11 +1,11 @@
 #include "brasstacks/core.hpp"
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 
 namespace btx {
 
@@ -28,12 +28,10 @@ vkFrameSync::~vkFrameSync() {
     delete _cmd_pool;
 
     BTX_TRACE("\nDestroying frame sync primitives:"
-              "\n\tdevice queue fence          {:#x}"
-              "\n\timage acquire semaphore     {:#x}"
-              "\n\tcommands complete semaphore {:#x}",
-              reinterpret_cast<uint64_t>(VkFence(_queue_fence)),
-              reinterpret_cast<uint64_t>(VkSemaphore(_image_acquire_sem)),
-              reinterpret_cast<uint64_t>(VkSemaphore(_cmds_complete_sem)));
+              "\n\tdevice queue fence          {}"
+              "\n\timage acquire semaphore     {}"
+              "\n\tcommands complete semaphore {}",
+              _queue_fence, _image_acquire_sem, _cmds_complete_sem);
 
     _device.native().destroyFence(_queue_fence);
     _device.native().destroySemaphore(_image_acquire_sem);
@@ -106,12 +104,10 @@ void vkFrameSync::_create_sync_primitives() {
     _cmds_complete_sem = cmd_sem_result.value;
 
     BTX_TRACE("\nCreated frame sync primitives:"
-              "\n\tdevice queue fence          {:#x}"
-              "\n\timage acquire semaphore     {:#x}"
-              "\n\tcommands complete semaphore {:#x}",
-              reinterpret_cast<uint64_t>(VkFence(_queue_fence)),
-              reinterpret_cast<uint64_t>(VkSemaphore(_image_acquire_sem)),
-              reinterpret_cast<uint64_t>(VkSemaphore(_cmds_complete_sem)));
+              "\n\tdevice queue fence          {}"
+              "\n\timage acquire semaphore     {}"
+              "\n\tcommands complete semaphore {}",
+              _queue_fence, _image_acquire_sem, _cmds_complete_sem);
 }
 
 } // namespace btx

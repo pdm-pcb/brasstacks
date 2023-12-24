@@ -11,7 +11,7 @@
 namespace btx {
 
 class vkDevice;
-class vkRenderPass;
+class vkColorDepthPass;
 class vkImage;
 
 /**
@@ -27,7 +27,7 @@ public:
      * @param extent Drawable dimensions of this framebuffer
      * @param image The image this framebuffer will represent
      */
-    vkFramebuffer(vkDevice const &device, vkRenderPass const &render_pass,
+    vkFramebuffer(vkDevice const &device, vkColorDepthPass const &render_pass,
                   vk::Extent2D const &extent, vkImage const &image);
 
     ~vkFramebuffer();

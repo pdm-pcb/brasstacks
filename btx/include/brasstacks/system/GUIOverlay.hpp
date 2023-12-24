@@ -11,14 +11,14 @@ class vkDevice;
 class vkQueue;
 class vkDescriptorPool;
 class TargetWindow;
-class vkRenderPass;
+class vkColorDepthPass;
 
 // class GUIOverlay final {
 // public:
 //     GUIOverlay(vkInstance const &instance,
 //                vkPhysicalDevice const &physical_device, vkDevice const &device,
 //                uint32_t const swapchain_image_count, TargetWindow const &window,
-//                vkRenderPass const &render_pass);
+//                vkColorDepthPass const &render_pass);
 //     ~GUIOverlay();
 
 //     void draw_ui();
