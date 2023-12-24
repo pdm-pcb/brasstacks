@@ -33,7 +33,7 @@ Demo::Demo() :
     _texture            { nullptr },
     _texture_set_layout { nullptr },
     _texture_set        { nullptr },
-    _render_pass        { nullptr },
+    _color_depth_pass   { nullptr },
     _pipeline           { nullptr },
     _framebuffers       { }
 
@@ -148,7 +148,7 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
     cmd_buffer.begin_render_pass(
         vk::RenderPassBeginInfo {
             .pNext           = nullptr,
-            .renderPass      = _render_pass->native(),
+            .renderPass      = _color_depth_pass->native(),
             .framebuffer     = framebuffer.native(),
             .renderArea      = render_area,
             .clearValueCount = 1u,
@@ -320,8 +320,9 @@ void Demo::_create_render_pass(btx::vkDevice const &device,
     auto const msaa_samples =
         btx::vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples);
 
-    _render_pass = new btx::vkColorDepthPass(device, swapchain.image_format(),
-                                         msaa_samples);
+    _color_depth_pass = new btx::vkColorDepthPass(device,
+                                                  swapchain.image_format(),
+                                                  msaa_samples);
 
     _pipeline = new btx::vkPipeline(device);
     (*_pipeline)
@@ -337,7 +338,7 @@ void Demo::_create_render_pass(btx::vkDevice const &device,
             sizeof(btx::math::Mat4)
         )
         .create(
-            *_render_pass,
+            *_color_depth_pass,
             {
                 .color_formats = { swapchain.image_format() },
                 .depth_format = vk::Format::eUndefined,
@@ -356,7 +357,7 @@ void Demo::_create_render_pass(btx::vkDevice const &device,
     for(auto const *image : swapchain.images()) {
         _framebuffers.push_back(new btx::vkFramebuffer(
             device,
-            *_render_pass,
+            *_color_depth_pass,
             {
                 .width  = btx::RenderConfig::swapchain_image_size.width,
                 .height = btx::RenderConfig::swapchain_image_size.height,
@@ -373,5 +374,5 @@ void Demo::_destroy_render_pass() {
     }
 
     delete _pipeline;
-    delete _render_pass;
+    delete _color_depth_pass;
 }

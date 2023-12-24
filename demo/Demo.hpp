@@ -61,7 +61,7 @@ private:
     btx::vkDescriptorSetLayout *_texture_set_layout;
     btx::vkDescriptorSet *_texture_set;
 
-    btx::vkColorDepthPass *_render_pass;
+    btx::vkColorDepthPass *_color_depth_pass;
     btx::vkPipeline *_pipeline;
     std::vector<btx::vkFramebuffer *> _framebuffers;
 
