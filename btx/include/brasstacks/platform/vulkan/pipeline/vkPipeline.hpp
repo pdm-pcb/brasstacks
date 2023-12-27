@@ -7,7 +7,7 @@ namespace btx {
 
 class vkDevice;
 class vkShader;
-class vkColorDepthPass;
+class vkRenderPass;
 class vkCmdBuffer;
 class vkDescriptorSet;
 class vkDescriptorSetLayout;
@@ -46,7 +46,7 @@ public:
         uint32_t subpass_index = 0u;
     };
 
-    void create(vkColorDepthPass const &render_pass, Config const &config);
+    void create(vkRenderPass const &render_pass, Config const &config);
 
     static vk::SampleCountFlagBits samples_to_flag(uint32_t const samples);
 

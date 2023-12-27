@@ -4,7 +4,7 @@
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
@@ -42,7 +42,7 @@ vkPipeline::~vkPipeline() {
 }
 
 // =============================================================================
-void vkPipeline::create(vkColorDepthPass const &render_pass, Config const &config) {
+void vkPipeline::create(vkRenderPass const &render_pass, Config const &config) {
     _init_assembly();
     _init_viewport(config);
     _init_raster(config);

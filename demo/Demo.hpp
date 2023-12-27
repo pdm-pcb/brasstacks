@@ -9,7 +9,7 @@ namespace btx {
 class vkPhysicalDevice;
 class vkDevice;
 
-class vkColorDepthPass;
+class vkColorPass;
 class vkPipeline;
 class vkFramebuffer;
 
@@ -67,8 +67,8 @@ private:
     btx::vkDescriptorSetLayout *_texture_set_layout;
     btx::vkDescriptorSet *_texture_set;
 
-    btx::vkColorDepthPass *_color_depth_pass;
-    btx::vkPipeline *_pipeline;
+    btx::vkColorPass *_color_pass;
+    btx::vkPipeline *_color_pipeline;
     std::vector<btx::vkFramebuffer *> _framebuffers;
 
     void _create_camera(btx::vkDevice const &device);

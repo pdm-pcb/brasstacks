@@ -6,7 +6,7 @@
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorPass.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
@@ -35,8 +35,8 @@ Demo::Demo() :
     _texture_sampler    { nullptr },
     _texture_set_layout { nullptr },
     _texture_set        { nullptr },
-    _color_depth_pass   { nullptr },
-    _pipeline           { nullptr },
+    _color_pass   { nullptr },
+    _color_pipeline           { nullptr },
     _framebuffers       { }
 
 { }
@@ -151,7 +151,7 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
     cmd_buffer.begin_render_pass(
         vk::RenderPassBeginInfo {
             .pNext           = nullptr,
-            .renderPass      = _color_depth_pass->native(),
+            .renderPass      = _color_pass->native(),
             .framebuffer     = framebuffer.native(),
             .renderArea      = render_area,
             .clearValueCount = 1u,
@@ -159,9 +159,9 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
         }
     );
 
-    _pipeline->bind(cmd_buffer);
-    _pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
-    _pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
+    _color_pipeline->bind(cmd_buffer);
+    _color_pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
+    _color_pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
 
     _send_push_constants(cmd_buffer, {
         PushConstant {
@@ -191,7 +191,7 @@ void Demo::_send_push_constants(btx::vkCmdBuffer const &cmd_buffer,
     size_t offset = 0u;
     for(auto const& push_constant : push_constants) {
         cmd_buffer.native().pushConstants(
-            _pipeline->layout(),
+            _color_pipeline->layout(),
             push_constant.stage_flags,
             static_cast<uint32_t>(offset),
             static_cast<uint32_t>(push_constant.size_bytes),
@@ -328,13 +328,11 @@ void Demo::_create_render_pass(btx::vkPhysicalDevice const &physical_device,
     auto const msaa_samples =
         btx::vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples);
 
-    _color_depth_pass = new btx::vkColorDepthPass(physical_device,
-                                                  device,
-                                                  swapchain.image_format(),
-                                                  msaa_samples);
+    _color_pass = new btx::vkColorPass(device, swapchain.image_format(),
+                                             msaa_samples);
 
-    _pipeline = new btx::vkPipeline(device);
-    (*_pipeline)
+    _color_pipeline = new btx::vkPipeline(device);
+    (*_color_pipeline)
         .module_from_spirv("shaders/demo.vert",
                            vk::ShaderStageFlagBits::eVertex)
         .module_from_spirv("shaders/demo.frag",
@@ -347,7 +345,7 @@ void Demo::_create_render_pass(btx::vkPhysicalDevice const &physical_device,
             sizeof(btx::math::Mat4)
         )
         .create(
-            *_color_depth_pass,
+            *_color_pass,
             {
                 .color_formats = { swapchain.image_format() },
                 .depth_format = vk::Format::eUndefined,
@@ -366,7 +364,7 @@ void Demo::_create_render_pass(btx::vkPhysicalDevice const &physical_device,
     for(auto const *view : swapchain.image_views()) {
         _framebuffers.push_back(new btx::vkFramebuffer(
             device,
-            *_color_depth_pass,
+            *_color_pass,
             {
                 .width  = btx::RenderConfig::swapchain_image_size.width,
                 .height = btx::RenderConfig::swapchain_image_size.height,
@@ -382,6 +380,6 @@ void Demo::_destroy_render_pass() {
         delete framebuffer;
     }
 
-    delete _pipeline;
-    delete _color_depth_pass;
+    delete _color_pipeline;
+    delete _color_pass;
 }
