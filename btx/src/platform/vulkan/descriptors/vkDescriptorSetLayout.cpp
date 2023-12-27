@@ -1,5 +1,5 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
+
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"

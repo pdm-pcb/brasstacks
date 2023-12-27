@@ -1,5 +1,5 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
+
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -9,6 +9,7 @@
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
 namespace btx {
@@ -56,6 +57,10 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &physical_device,
 vkSwapchain::~vkSwapchain() {
     for(auto *image : _images) {
         delete image;
+    }
+
+    for(auto *view : _image_views) {
+        delete view;
     }
 
     BTX_TRACE("Destroying swapchain {}", _handle);
@@ -170,6 +175,7 @@ void vkSwapchain::_query_surface_capabilities(
     // TODO: this merits some actual rationale
     RenderConfig::swapchain_image_count = capabilities.minImageCount + 1;
     _images.resize(RenderConfig::swapchain_image_count);
+    _image_views.resize(RenderConfig::swapchain_image_count);
 }
 
 // =============================================================================
@@ -376,6 +382,13 @@ void vkSwapchain::_get_swapchain_images() {
             _device,
             swapchain_images[i],
             _image_format.format
+        );
+
+        _image_views[i] = new vkImageView(
+            _device,
+            *_images[i],
+            vk::ImageViewType::e2D,
+            vk::ImageAspectFlagBits::eColor
         );
     }
 }

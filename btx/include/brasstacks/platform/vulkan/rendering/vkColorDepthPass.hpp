@@ -2,18 +2,21 @@
 #define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORDEPTHPASS_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
 
 namespace btx {
 
+class vkPhysicalDevice;
 class vkDevice;
+class vkImage;
 
-class vkColorDepthPass {
+class vkColorDepthPass final : public vkRenderPass {
 public:
-    auto const & native() const { return _handle; }
-
-    vkColorDepthPass(vkDevice const &device, vk::Format const format,
+    vkColorDepthPass(vkPhysicalDevice const &physical_device,
+                     vkDevice const &device, vk::Format const format,
                      vk::SampleCountFlagBits const msaa_samples);
-    ~vkColorDepthPass();
+
+    ~vkColorDepthPass() = default;
 
     vkColorDepthPass() = delete;
 
@@ -24,9 +27,14 @@ public:
     vkColorDepthPass & operator=(vkColorDepthPass const &) = delete;
 
 private:
-    vkDevice const &_device;
+    vk::Format _depth_format;
 
-    vk::RenderPass _handle;
+    vkImage *_color_buffer;
+    vkImage *_depth_buffer;
+
+    void _find_depth_stencil_format(vkPhysicalDevice const &physical_device);
+    void _init_color_buffer(vk::Format const format, vk::Extent2D const extent,
+                            vk::SampleCountFlagBits const samples);
 };
 
 } // namespace btx

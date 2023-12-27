@@ -4,7 +4,7 @@
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 
-#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
+
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"

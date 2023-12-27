@@ -7,4 +7,6 @@
 #include "brasstacks/math/math.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
+
 #endif // BRASSTACKS_CORE_HPP

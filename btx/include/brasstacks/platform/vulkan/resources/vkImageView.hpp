@@ -3,8 +3,8 @@
  * @brief A wrapper class for Vulkan image views
  */
 
-#ifndef BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGEVIEW_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGEVIEW_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGEVIEW_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGEVIEW_HPP
 
 #include "brasstacks/pch.hpp"
 
@@ -28,7 +28,7 @@ public:
      * @param aspect_flags Image flags, eg color, depth, stencil
      */
     vkImageView(vkDevice const &device, vkImage const &image,
-                vk::Format const format, vk::ImageViewType const type,
+                vk::ImageViewType const type,
                 vk::ImageAspectFlags const aspect_flags);
 
     ~vkImageView();
@@ -61,4 +61,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGE_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGE_HPP

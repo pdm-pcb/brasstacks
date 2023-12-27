@@ -35,7 +35,8 @@ Application::~Application() {
 // =============================================================================
 void Application::run() {
     // Give the user a chance to bring up their data
-    this->init(_renderer->device(), _renderer->swapchain());
+    this->init(_renderer->physical_device(), _renderer->device(),
+               _renderer->swapchain());
 
     while(_running) {
         // Tick the clock

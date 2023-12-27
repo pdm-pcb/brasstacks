@@ -14,6 +14,7 @@ class vkPhysicalDevice;
 class vkSurface;
 class vkDevice;
 class vkImage;
+class vkImageView;
 class vkFrameSync;
 
 /**
@@ -64,6 +65,12 @@ public:
      */
     inline auto const & images() const { return _images; }
 
+    /**
+     * @brief Return a vector of image views for the images from this swapchain
+     * @return std::vector<vkImageView *> const&
+     */
+    inline auto const & image_views() const { return _image_views; }
+
     vkSwapchain() = delete;
 
     vkSwapchain(vkSwapchain &&) = delete;
@@ -97,6 +104,11 @@ private:
      * @brief A list of images from this swapchain
      */
     std::vector<vkImage *> _images;
+
+    /**
+     * @brief A list of image views for the images from this swapchain
+     */
+    std::vector<vkImageView *> _image_views;
 
     /**
      * @brief Query various surface capabilities, like supported image counts,

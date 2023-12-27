@@ -4,12 +4,17 @@
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
+#include "brasstacks/platform/vulkan/resources/vkSampler.hpp"
 
 namespace btx {
 
 class vkDevice;
 class vkDescriptorPool;
 class vkDescriptorSetLayout;
+
+class vkImageView;
+class vkSampler;
 
 class vkDescriptorSet final {
 public:
@@ -20,8 +25,10 @@ public:
 
     vkDescriptorSet & add_buffer(vkBuffer const &buffer,
                                  vk::DescriptorType const type);
-    vkDescriptorSet & add_image(vkImage const &image,
-                                 vk::DescriptorType const type);
+
+    vkDescriptorSet & add_image(vkImage const &image, vkImageView const &view,
+                                vkSampler const &sampler,
+                                vk::DescriptorType const type);
 
     void write_set();
 

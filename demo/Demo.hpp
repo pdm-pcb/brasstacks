@@ -6,9 +6,9 @@
 
 namespace btx {
 
+class vkPhysicalDevice;
 class vkDevice;
 
-// class RenderPass;
 class vkColorDepthPass;
 class vkPipeline;
 class vkFramebuffer;
@@ -18,6 +18,9 @@ class vkDescriptorSetLayout;
 class vkDescriptorSet;
 class vkBuffer;
 class vkImage;
+class vkImageView;
+class vkSampler;
+
 class FPSCamera;
 class PlaneMesh;
 class CubeMesh;
@@ -26,7 +29,8 @@ class CubeMesh;
 
 class Demo final : public btx::Application {
 public:
-    void init(btx::vkDevice const &device,
+    void init(btx::vkPhysicalDevice const &physical_device,
+              btx::vkDevice const &device,
               btx::vkSwapchain const &swapchain) override;
     void shutdown() override;
 
@@ -58,6 +62,8 @@ private:
     btx::math::Mat4 _cube_mat;
 
     btx::vkImage *_texture;
+    btx::vkImageView *_texture_view;
+    btx::vkSampler *_texture_sampler;
     btx::vkDescriptorSetLayout *_texture_set_layout;
     btx::vkDescriptorSet *_texture_set;
 
@@ -71,7 +77,8 @@ private:
     void _create_texture(btx::vkDevice const &device);
     void _destroy_texture();
 
-    void _create_render_pass(btx::vkDevice const &device,
+    void _create_render_pass(btx::vkPhysicalDevice const &physical_device,
+                             btx::vkDevice const &device,
                              btx::vkSwapchain const &swapchain);
     void _destroy_render_pass();
 

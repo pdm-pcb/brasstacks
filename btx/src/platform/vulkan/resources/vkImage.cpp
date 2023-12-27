@@ -1,5 +1,4 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -20,7 +19,6 @@ vkImage::vkImage(vkDevice  const &device, vk::Image const &handle,
     _device       { device },
     _handle       { handle },
     _memory       { nullptr },
-    _sampler      { nullptr },
     _format       { format },
     _layout       { vk::ImageLayout::eUndefined },
     _extent       { },
@@ -30,21 +28,19 @@ vkImage::vkImage(vkDevice  const &device, vk::Image const &handle,
     _raw_data     { nullptr },
     _is_swapchain { true }
 {
-    _view = new vkImageView(
-            _device,
-            *this,
-            format,
-            vk::ImageViewType::e2D,
-            vk::ImageAspectFlagBits::eColor
-        );
+    // _view = new vkImageView(
+    //         _device,
+    //         *this,
+    //         format,
+    //         vk::ImageViewType::e2D,
+    //         vk::ImageAspectFlagBits::eColor
+    //     );
 }
 
 // =============================================================================
 vkImage::vkImage(vkDevice const &device, std::string_view const filename,
                  uint32_t const array_layers):
     _device       { device },
-    _view         { nullptr },
-    _sampler      { nullptr },
     _layout       { vk::ImageLayout::eUndefined },
     _array_layers { array_layers },
     _is_swapchain { false }
@@ -67,9 +63,6 @@ vkImage::vkImage(vkDevice const &device, std::string_view const filename,
 
 // =============================================================================
 vkImage::~vkImage() {
-    delete _sampler;
-    delete _view;
-
     if(!_is_swapchain && _handle) {
         _device.native().destroyImage(_handle);
     }
@@ -135,25 +128,25 @@ void vkImage::create(vk::ImageType const type,
     _allocate(memory_flags);
     _send_to_device();
 
-    _view = new vkImageView(
-            _device,
-            *this,
-            _format,
-            vk::ImageViewType::e2D,
-            vk::ImageAspectFlagBits::eColor
-        );
+    // _view = new vkImageView(
+    //         _device,
+    //         *this,
+    //         _format,
+    //         vk::ImageViewType::e2D,
+    //         vk::ImageAspectFlagBits::eColor
+    //     );
 }
 
 // =============================================================================
-void vkImage::create_sampler(vk::Filter const min_filter,
-                             vk::Filter const mag_filter,
-                             vk::SamplerMipmapMode const mip_filter,
-                             vk::SamplerAddressMode const mode_u,
-                             vk::SamplerAddressMode const mode_v)
-{
-    _sampler = new vkSampler(_device, min_filter, mag_filter, mip_filter,
-                             mode_u, mode_v);
-}
+// void vkImage::create_sampler(vk::Filter const min_filter,
+//                              vk::Filter const mag_filter,
+//                              vk::SamplerMipmapMode const mip_filter,
+//                              vk::SamplerAddressMode const mode_u,
+//                              vk::SamplerAddressMode const mode_v)
+// {
+//     _sampler = new vkSampler(_device, min_filter, mag_filter, mip_filter,
+//                              mode_u, mode_v);
+// }
 
 // =============================================================================
 void * vkImage::_load_from_file(std::string_view const filename) {
@@ -266,7 +259,7 @@ uint32_t vkImage::_find_memory_type(vk::MemoryPropertyFlags const flags,
 
 // =============================================================================
 void vkImage::_send_to_device() {
-    vkBuffer staging_buffer(
+    vkBuffer const staging_buffer(
         _device, _size_bytes,
         vk::BufferUsageFlagBits::eTransferSrc,
         (vk::MemoryPropertyFlagBits::eHostVisible |
@@ -293,7 +286,7 @@ void vkImage::_send_to_device() {
         .imageExtent = _extent
     };
 
-    vkCmdBuffer cmd_buffer(_device, _device.transient_pool());
+    vkCmdBuffer const cmd_buffer(_device, _device.transient_pool());
     cmd_buffer.begin_one_time_submit();
 
         _transition_layout(cmd_buffer,

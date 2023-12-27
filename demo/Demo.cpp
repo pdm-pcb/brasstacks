@@ -31,6 +31,8 @@ Demo::Demo() :
     _cube_mesh          { nullptr },
     _cube_mat           { btx::math::Mat4::identity },
     _texture            { nullptr },
+    _texture_view       { nullptr },
+    _texture_sampler    { nullptr },
     _texture_set_layout { nullptr },
     _texture_set        { nullptr },
     _color_depth_pass   { nullptr },
@@ -40,7 +42,8 @@ Demo::Demo() :
 { }
 
 // =============================================================================
-void Demo::init(btx::vkDevice const &device, btx::vkSwapchain const &swapchain)
+void Demo::init(btx::vkPhysicalDevice const &physical_device,
+                btx::vkDevice const &device, btx::vkSwapchain const &swapchain)
 {
     BTX_TRACE("client app init");
 
@@ -83,7 +86,7 @@ void Demo::init(btx::vkDevice const &device, btx::vkSwapchain const &swapchain)
 
     _create_texture(device);
 
-    _create_render_pass(device, swapchain);
+    _create_render_pass(physical_device, device, swapchain);
 }
 
 // =============================================================================
@@ -268,19 +271,20 @@ void Demo::_create_texture(btx::vkDevice const &device) {
 
     _texture->create(vk::ImageType::e2D,
                      vk::SampleCountFlagBits::e1,
-                      // We'll sample this texture
                      (vk::ImageUsageFlagBits::eSampled |
-                      // To receive from a staging buffer
                       vk::ImageUsageFlagBits::eTransferDst |
-                      // To generate mipmaps
                       vk::ImageUsageFlagBits::eTransferSrc),
                      vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    _texture->create_sampler(vk::Filter::eLinear,
-                             vk::Filter::eLinear,
-                             vk::SamplerMipmapMode::eLinear,
-                             vk::SamplerAddressMode::eRepeat,
-                             vk::SamplerAddressMode::eRepeat);
+    _texture_view = new btx::vkImageView(device, *_texture,
+                                         vk::ImageViewType::e2D,
+                                         vk::ImageAspectFlagBits::eColor);
+
+    _texture_sampler = new btx::vkSampler(device, vk::Filter::eLinear,
+                                          vk::Filter::eLinear,
+                                          vk::SamplerMipmapMode::eLinear,
+                                          vk::SamplerAddressMode::eRepeat,
+                                          vk::SamplerAddressMode::eRepeat);
 
     _texture_set_layout = new btx::vkDescriptorSetLayout(device);
 
@@ -297,7 +301,8 @@ void Demo::_create_texture(btx::vkDevice const &device) {
                                                  *_texture_set_layout);
 
         (*_texture_set)
-            .add_image(*_texture, vk::DescriptorType::eCombinedImageSampler)
+            .add_image(*_texture, *_texture_view, *_texture_sampler,
+                       vk::DescriptorType::eCombinedImageSampler)
             .write_set();
     // }
 }
@@ -310,17 +315,21 @@ void Demo::_destroy_texture() {
 
     delete _texture_set_layout;
 
+    delete _texture_sampler;
+    delete _texture_view;
     delete _texture;
 }
 
 // =============================================================================
-void Demo::_create_render_pass(btx::vkDevice const &device,
+void Demo::_create_render_pass(btx::vkPhysicalDevice const &physical_device,
+                               btx::vkDevice const &device,
                                btx::vkSwapchain const &swapchain)
 {
     auto const msaa_samples =
         btx::vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples);
 
-    _color_depth_pass = new btx::vkColorDepthPass(device,
+    _color_depth_pass = new btx::vkColorDepthPass(physical_device,
+                                                  device,
                                                   swapchain.image_format(),
                                                   msaa_samples);
 
@@ -354,7 +363,7 @@ void Demo::_create_render_pass(btx::vkDevice const &device,
             }
         );
 
-    for(auto const *image : swapchain.images()) {
+    for(auto const *view : swapchain.image_views()) {
         _framebuffers.push_back(new btx::vkFramebuffer(
             device,
             *_color_depth_pass,
@@ -362,7 +371,7 @@ void Demo::_create_render_pass(btx::vkDevice const &device,
                 .width  = btx::RenderConfig::swapchain_image_size.width,
                 .height = btx::RenderConfig::swapchain_image_size.height,
             },
-            *image
+            *view
         ));
     }
 }

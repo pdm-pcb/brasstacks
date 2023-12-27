@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGE_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGE_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGE_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGE_HPP
 
 #include "brasstacks/pch.hpp"
 
@@ -21,6 +21,10 @@ public:
     vkImage(vkDevice const &device, std::string_view const filename,
             uint32_t const array_layers = 1u);
 
+    // For render targets, eg color buffer
+    vkImage(vkDevice const &device, vk::Extent2D const &extent,
+            vk::Format const format);
+
     ~vkImage();
 
     static void set_memory_props(
@@ -32,15 +36,7 @@ public:
                 vk::ImageUsageFlags const usage_flags,
                 vk::MemoryPropertyFlags const memory_flags);
 
-    void create_sampler(vk::Filter const min_filter,
-                        vk::Filter const mag_filter,
-                        vk::SamplerMipmapMode const mip_filter,
-                        vk::SamplerAddressMode const mode_u,
-                        vk::SamplerAddressMode const mode_v);
-
     inline auto const & native()  const { return _handle;   }
-    inline auto const & view()    const { return *_view;    }
-    inline auto const & sampler() const { return *_sampler; }
     inline auto format()          const { return _format;   }
     inline auto layout()          const { return _layout;   }
 
@@ -57,8 +53,6 @@ private:
 
     vk::Image        _handle;
     vk::DeviceMemory _memory;
-    vkImageView     *_view;
-    vkSampler       *_sampler;
     vk::Format       _format;
     vk::ImageLayout  _layout;
     vk::Extent3D     _extent;
@@ -97,4 +91,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_RESOURCES_IMAGES_VKIMAGE_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGE_HPP

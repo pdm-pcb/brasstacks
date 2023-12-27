@@ -43,6 +43,7 @@ public:
 
     void wait_device_idle();
 
+    inline auto const & physical_device() const { return *_physical_device; }
     inline auto const & device() const { return *_device; }
     inline auto const & swapchain() const { return *_swapchain; }
 

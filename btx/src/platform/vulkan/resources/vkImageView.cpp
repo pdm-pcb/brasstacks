@@ -1,5 +1,5 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
+
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
@@ -9,14 +9,14 @@ namespace btx {
 
 // =============================================================================
 vkImageView::vkImageView(vkDevice const &device, vkImage const &image,
-                         vk::Format const format, vk::ImageViewType const type,
+                         vk::ImageViewType const type,
                          vk::ImageAspectFlags const aspect_flags) :
     _device { device }
 {
     vk::ImageViewCreateInfo const view_info {
         .image    = image.native(),
         .viewType = type,
-        .format   = format,
+        .format   = image.format(),
         .components = {
             .r = vk::ComponentSwizzle::eR,  // If color channel values are
             .g = vk::ComponentSwizzle::eG,  // swapped for some reason, these

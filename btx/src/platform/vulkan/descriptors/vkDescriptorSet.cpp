@@ -1,5 +1,5 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
+
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -66,6 +66,8 @@ vkDescriptorSet & vkDescriptorSet::add_buffer(vkBuffer const &buffer,
 
 // =============================================================================
 vkDescriptorSet & vkDescriptorSet::add_image(vkImage const &image,
+                                             vkImageView const &view,
+                                             vkSampler const &sampler,
                                              vk::DescriptorType const type)
 {
     if(!_handle) {
@@ -74,8 +76,8 @@ vkDescriptorSet & vkDescriptorSet::add_image(vkImage const &image,
 
     auto const *image_info =  &_image_info.emplace_back(
         vk::DescriptorImageInfo {
-            .sampler = image.sampler().native(),
-            .imageView = image.view().native(),
+            .sampler = sampler.native(),
+            .imageView = view.native(),
             .imageLayout = image.layout(),
         });
 

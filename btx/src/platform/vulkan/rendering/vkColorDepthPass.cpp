@@ -1,15 +1,23 @@
 #include "brasstacks/core.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 
+#include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 
 namespace btx {
 
-vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
+vkColorDepthPass::vkColorDepthPass(vkPhysicalDevice const &physical_device,
+                                   vkDevice const &device,
                                    vk::Format const format,
                                    vk::SampleCountFlagBits const msaa_samples) :
-    _device { device }
+    vkRenderPass { device },
+    _depth_format { vk::Format::eUndefined },
+    _color_buffer { nullptr },
+    _depth_buffer { nullptr }
 {
+    _find_depth_stencil_format(physical_device);
+
     // Describe the color buffer attachment
     vk::AttachmentDescription const color_buffer_desc {
         .flags          = { },
@@ -69,7 +77,7 @@ vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
     };
 
 	// Finally, create the renderpass.
-	vk::RenderPassCreateInfo const render_pass_info {
+	vk::RenderPassCreateInfo const create_info {
         .pNext           = nullptr,
         .flags           = { },
         .attachmentCount = 1u,
@@ -80,18 +88,55 @@ vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
         .pDependencies   = &subpass_dep,
     };
 
-    auto const result = _device.native().createRenderPass(render_pass_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create render pass: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
+    this->create(create_info);
 }
 
-vkColorDepthPass::~vkColorDepthPass() {
-    _device.native().destroyRenderPass(_handle);
+// =============================================================================
+void vkColorDepthPass::_find_depth_stencil_format(
+    vkPhysicalDevice const &physical_device)
+{
+    const std::vector<vk::Format> depth_options {
+        vk::Format::eD32Sfloat,
+        vk::Format::eD32SfloatS8Uint,
+        vk::Format::eD24UnormS8Uint
+    };
+
+    for(auto const& option : depth_options) {
+        auto props = physical_device.native().getFormatProperties(option);
+        if(props.optimalTilingFeatures &
+           vk::FormatFeatureFlagBits::eDepthStencilAttachment)
+        {
+            BTX_TRACE("Using depth stencil format {}", vk::to_string(option));
+            _depth_format = option;
+            return;
+        }
+    }
+
+    BTX_CRITICAL("Unable to find suitable depth stencil format");
+}
+
+// =============================================================================
+void
+vkColorDepthPass::_init_color_buffer(vk::Format const format,
+                                     vk::Extent2D const extent,
+                                     vk::SampleCountFlagBits const samples)
+{
+    // _color_buffer = new vkImage(_device, extent, format);
+    // _color_buffer->create(
+    //     vk::ImageType::e2D,
+    //     samples,
+    //     (
+    //         vk::ImageUsageFlagBits::eColorAttachment |
+    //         vk::ImageUsageFlagBits::eTransientAttachment // ??????????????????????????????????????????????????????????????????
+    //     ),
+    //     vk::MemoryPropertyFlagBits::eDeviceLocal
+    // );
+
+    // ImageTools::create_view(
+    //     _color_buffer,
+    //     vk::ImageViewType::e2D,
+    //     vk::ImageAspectFlagBits::eColor
+    // );
 }
 
 } // namespace btx

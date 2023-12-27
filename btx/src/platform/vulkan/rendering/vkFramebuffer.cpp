@@ -1,19 +1,18 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
+
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
 
 // =============================================================================
 vkFramebuffer::vkFramebuffer(vkDevice const &device,
-                             vkColorDepthPass const &render_pass,
+                             vkRenderPass const &render_pass,
                              vk::Extent2D const &extent,
-                             vkImage const &image) :
+                             vkImageView const &view) :
     _device { device }
 {
     vk::FramebufferCreateInfo const create_info {
@@ -21,7 +20,7 @@ vkFramebuffer::vkFramebuffer(vkDevice const &device,
         .flags           = { },
         .renderPass      = render_pass.native(),
         .attachmentCount = 1u,
-        .pAttachments    = &image.view().native(),
+        .pAttachments    = &view.native(),
         .width           = extent.width,
         .height          = extent.height,
         .layers          = 1u,
