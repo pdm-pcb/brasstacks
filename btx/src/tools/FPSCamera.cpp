@@ -101,7 +101,7 @@ void FPSCamera::on_mouse_move(MouseMoveEvent const &event) {
 
 // =============================================================================
 void FPSCamera::set_perspective_proj(PerspectiveParams const &persp_params) {
-    _proj_matrix = math::persp_proj_rh_no(
+    _proj_matrix = math::persp_proj_rh_zo(
         persp_params.vfov_degrees,
         persp_params.aspect_ratio,
         persp_params.near_plane,

@@ -100,18 +100,22 @@ Mat4 scale(Mat4 const &m, float const &pct);
 Mat4 orient_view_rh(Vec3 const &position, Vec3 const &forward,
                     Vec3 const &side, Vec3 const &up);
 
+Mat4 ortho_proj_rh_zo(float const left, float const right,
+                      float const bottom, float const top,
+                      float const near_plane, float const far_plane);
+
+Mat4 persp_proj_rh_zo(float const vfov_degrees, float const aspect_ratio,
+                      float const near_plane, float const far_plane);
+
 Mat4 persp_proj_rh_no(float const vfov_degrees, float const aspect_ratio,
                       float const near_plane, float const far_plane);
 
-Mat4 ortho_proj_rh_zo(float const near_plane, float const far_plane,
-                      float const left, float const right,
-                      float const bottom, float const top);
+Mat4 persp_proj_rh_zo_inf(float const vfov_degrees, float const aspect_ratio,
+                          float const near_plane);
 
-Mat4 persp_proj_rh_zo_inf(float const near_plane, float const vfov_degrees,
-                          float const aspect_ratio);
 
-Mat4 persp_proj_rh_oz_inf(float const near_plane, float const vfov_degrees,
-                          float const aspect_ratio);
+Mat4 persp_proj_rh_oz_inf(float const vfov_degrees, float const aspect_ratio,
+                          float const near_plane);
 
 } // namespace btx::math
 

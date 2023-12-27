@@ -194,26 +194,9 @@ Mat4 orient_view_rh(Vec3 const &position, Vec3 const &forward,
     return result;
 }
 
-Mat4 persp_proj_rh_no(float const vfov_degrees, float const aspect_ratio,
+Mat4 ortho_proj_rh_zo(float const left, float const right,
+                      float const bottom, float const top,
                       float const near_plane, float const far_plane)
-{
-    auto result = Mat4::zero;
-
-    float const fov_rad = math::radians(vfov_degrees);
-    float const half_angle = std::tan(fov_rad * 0.5f);
-
-    result.x.x = 1.0f / (aspect_ratio * half_angle);
-    result.y.y = 1.0f / half_angle;
-    result.z.z = -(near_plane + far_plane) / (far_plane - near_plane);
-    result.z.w = -1.0f;
-    result.w.z = -(2.0f * far_plane * near_plane) / (far_plane - near_plane);
-
-    return result;
-}
-
-Mat4 ortho_proj_rh_zo(float const near_plane, float const far_plane,
-                      float const left, float const right,
-                      float const bottom, float const top)
 {
     auto result = Mat4::identity;
 
@@ -231,8 +214,42 @@ Mat4 ortho_proj_rh_zo(float const near_plane, float const far_plane,
     return result;
 }
 
-Mat4 persp_proj_rh_zo_inf(float const near_plane, float const vfov_degrees,
-                          float const aspect_ratio)
+Mat4 persp_proj_rh_no(float const vfov_degrees, float const aspect_ratio,
+                      float const near_plane, float const far_plane)
+{
+    auto result = Mat4::zero;
+
+    float const fov_rad = math::radians(vfov_degrees);
+    float const half_angle = std::tan(fov_rad * 0.5f);
+
+    result.x.x = 1.0f / (aspect_ratio * half_angle);
+    result.y.y = 1.0f / half_angle;
+    result.z.z = -(near_plane + far_plane) / (far_plane - near_plane);
+    result.z.w = -1.0f;
+    result.w.z = -(2.0f * far_plane * near_plane) / (far_plane - near_plane);
+
+    return result;
+}
+
+Mat4 persp_proj_rh_zo(float const vfov_degrees, float const aspect_ratio,
+                      float const near_plane, float const far_plane)
+{
+    auto result = Mat4::zero;
+
+    float const fov_rad = math::radians(vfov_degrees);
+    float const half_angle = std::tan(fov_rad * 0.5f);
+
+    result.x.x = 1.0f / (aspect_ratio * half_angle);
+    result.y.y = 1.0f / (half_angle);
+    result.z.z = far_plane / (near_plane - far_plane);
+    result.z.w = -1.0f;
+    result.w.z = -(far_plane * near_plane) / (far_plane - near_plane);
+
+    return result;
+}
+
+Mat4 persp_proj_rh_zo_inf(float const vfov_degrees, float const aspect_ratio,
+                          float const near_plane)
 {
     auto result = Mat4::zero;
 
@@ -240,17 +257,17 @@ Mat4 persp_proj_rh_zo_inf(float const near_plane, float const vfov_degrees,
     auto const half_angle = std::tan(fov_rad * 0.5f);
     auto const half_angle_recip = 1.0f / half_angle;
 
-    result.x.x = half_angle_recip / aspect_ratio;
-    result.y.y = -half_angle_recip;
+    result.x.x = half_angle_recip;
+    result.y.y = half_angle_recip / aspect_ratio;
     result.z.z = -1.0f;
     result.z.w = -1.0f;
-    result.w.z = -near_plane;
+    result.w.z = -2.0f * near_plane;
 
     return result;
 }
 
-Mat4 persp_proj_rh_oz_inf(float const near_plane, float const vfov_degrees,
-                          float const aspect_ratio)
+Mat4 persp_proj_rh_oz_inf(float const vfov_degrees, float const aspect_ratio,
+                          float const near_plane)
 {
     auto result = Mat4::zero;
 
