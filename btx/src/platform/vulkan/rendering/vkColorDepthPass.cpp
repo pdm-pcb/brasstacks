@@ -116,7 +116,7 @@ void vkColorDepthPass::_create_color_buffer() {
         );
     }
 
-    BTX_TRACE("Created color buffers");
+    BTX_TRACE("Created color/depth color buffers");
 }
 
 // =============================================================================
@@ -144,7 +144,7 @@ void vkColorDepthPass::_create_depth_buffer() {
         );
     }
 
-    BTX_TRACE("Created depth stencil buffers");
+    BTX_TRACE("Created color/depth depth buffers");
 }
 
 // =============================================================================

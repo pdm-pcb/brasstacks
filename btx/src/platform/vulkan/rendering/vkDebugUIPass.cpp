@@ -73,7 +73,7 @@ void vkDebugUIPass::_create_color_buffer() {
         );
     }
 
-    BTX_TRACE("Created color buffers");
+    BTX_TRACE("Created debug UI color buffers");
 }
 
 // =============================================================================
