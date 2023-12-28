@@ -11,6 +11,7 @@ class vkDevice;
 
 class vkColorPass;
 class vkColorDepthPass;
+class vkDebugUIPass;
 class vkPipeline;
 class vkFramebuffer;
 
@@ -68,15 +69,17 @@ private:
     btx::vkDescriptorSetLayout *_texture_set_layout;
     btx::vkDescriptorSet *_texture_set;
 
-    btx::vkColorPass *_color_pass;
-    btx::vkPipeline *_color_pipeline;
-
+    btx::vkColorPass                 *_color_pass;
+    btx::vkPipeline                  *_color_pipeline;
     std::vector<btx::vkFramebuffer *> _color_framebuffers;
 
-    btx::vkColorDepthPass *_color_depth_pass;
-    btx::vkPipeline *_color_depth_pipeline;
-
+    btx::vkColorDepthPass            *_color_depth_pass;
+    btx::vkPipeline                  *_color_depth_pipeline;
     std::vector<btx::vkFramebuffer *> _color_depth_framebuffers;
+
+    btx::vkDebugUIPass               *_debug_ui_pass;
+    btx::vkPipeline                  *_debug_ui_pipeline;
+    std::vector<btx::vkFramebuffer *> _debug_ui_framebuffers;
 
     void _create_camera(btx::vkDevice const &device);
     void _destroy_camera();

@@ -41,7 +41,10 @@ Demo::Demo() :
     _color_framebuffers       { },
     _color_depth_pass         { nullptr },
     _color_depth_pipeline     { nullptr },
-    _color_depth_framebuffers { }
+    _color_depth_framebuffers { },
+    _debug_ui_pass            { nullptr },
+    _debug_ui_pipeline        { nullptr },
+    _debug_ui_framebuffers    { }
 
 { }
 
@@ -553,4 +556,10 @@ void Demo::_destroy_render_passes() {
     }
     delete _color_depth_pipeline;
     delete _color_depth_pass;
+
+    for(auto *framebuffer : _debug_ui_framebuffers) {
+        delete framebuffer;
+    }
+    delete _debug_ui_pipeline;
+    delete _debug_ui_pass;
 }
