@@ -10,6 +10,7 @@ class vkPhysicalDevice;
 class vkDevice;
 
 class vkColorPass;
+class vkColorDepthPass;
 class vkPipeline;
 class vkFramebuffer;
 
@@ -69,20 +70,27 @@ private:
 
     btx::vkColorPass *_color_pass;
     btx::vkPipeline *_color_pipeline;
+
+    btx::vkColorDepthPass *_color_depth_pass;
+    btx::vkPipeline *_color_depth_pipeline;
+
     std::vector<btx::vkFramebuffer *> _framebuffers;
 
     void _create_camera(btx::vkDevice const &device);
     void _destroy_camera();
 
-    void _create_texture(btx::vkDevice const &device,
-                         vk::SampleCountFlagBits const samples);
+    void _create_texture(btx::vkDevice const &device);
     void _destroy_texture();
 
-    void _create_render_pass(btx::vkPhysicalDevice const &physical_device,
-                             btx::vkDevice const &device,
-                             btx::vkSwapchain const &swapchain,
-                             vk::SampleCountFlagBits const samples);
-    void _destroy_render_pass();
+    void _create_color_pass(btx::vkDevice const &device,
+                            btx::vkSwapchain const &swapchain);
+
+    void _create_color_depth_pass(btx::vkPhysicalDevice const &physical_device,
+                                  btx::vkDevice const &device,
+                                  btx::vkSwapchain const &swapchain,
+                                  vk::SampleCountFlagBits const samples);
+
+    void _destroy_render_passes();
 
     using PushConstants = std::vector<PushConstant>;
     void _send_push_constants(btx::vkCmdBuffer const &cmd_buffer,

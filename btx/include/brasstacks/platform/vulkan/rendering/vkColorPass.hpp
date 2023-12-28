@@ -12,8 +12,7 @@ class vkImage;
 
 class vkColorPass final : public vkRenderPass {
 public:
-    vkColorPass(vkDevice const &device, vk::Format const format,
-                vk::SampleCountFlagBits const msaa_samples);
+    vkColorPass(vkDevice const &device, vk::Format const format);
 
     ~vkColorPass() override = default;
 

@@ -30,7 +30,7 @@ public:
 
     // For render targets, eg color buffer
     vkImage(vkDevice const &device, vk::Extent2D const &extent,
-            vk::Format const format, ImageInfo const &create_info);
+            vk::Format const format, ImageInfo const &image_info);
 
     ~vkImage();
 

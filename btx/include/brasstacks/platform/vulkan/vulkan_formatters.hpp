@@ -142,21 +142,6 @@ template <> struct std::formatter<vk::Semaphore> {
     }
 };
 
-template <> struct std::formatter<vk::Framebuffer> {
-    constexpr auto parse(std::format_parse_context &ctx) {
-        return ctx.begin();
-    }
-
-    auto format(vk::Framebuffer const &framebuffer,
-                std::format_context &ctx) const
-    {
-        return std::format_to(
-            ctx.out(), "{:#x}",
-            reinterpret_cast<uint64_t>(VkFramebuffer(framebuffer))
-        );
-    }
-};
-
 template <> struct std::formatter<vk::Buffer> {
     constexpr auto parse(std::format_parse_context &ctx) {
         return ctx.begin();
@@ -251,6 +236,20 @@ template <> struct std::formatter<vk::DescriptorSet> {
     }
 };
 
+template <> struct std::formatter<vk::RenderPass> {
+    constexpr auto parse(std::format_parse_context &ctx) {
+        return ctx.begin();
+    }
+
+    auto format(vk::RenderPass const &render_pass, std::format_context &ctx)
+    const {
+        return std::format_to(
+            ctx.out(), "{:#x}",
+            reinterpret_cast<uint64_t>(VkRenderPass(render_pass))
+        );
+    }
+};
+
 template <> struct std::formatter<vk::Pipeline> {
     constexpr auto parse(std::format_parse_context &ctx) {
         return ctx.begin();
@@ -289,6 +288,21 @@ template <> struct std::formatter<vk::ShaderModule> {
         return std::format_to(
             ctx.out(), "{:#x}",
             reinterpret_cast<uint64_t>(VkShaderModule(shader))
+        );
+    }
+};
+
+template <> struct std::formatter<vk::Framebuffer> {
+    constexpr auto parse(std::format_parse_context &ctx) {
+        return ctx.begin();
+    }
+
+    auto format(vk::Framebuffer const &framebuffer,
+                std::format_context &ctx) const
+    {
+        return std::format_to(
+            ctx.out(), "{:#x}",
+            reinterpret_cast<uint64_t>(VkFramebuffer(framebuffer))
         );
     }
 };

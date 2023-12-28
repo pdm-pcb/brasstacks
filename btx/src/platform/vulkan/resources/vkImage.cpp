@@ -23,25 +23,22 @@ vkImage::vkImage(vkDevice  const &device, vk::Image const &handle,
     _layout       { vk::ImageLayout::eUndefined },
     _extent       { },
     _size_bytes   { 0 },
-    _mip_levels   { 0u },
+    _mip_levels   { 1u },
     _array_layers { 1u },
     _raw_data     { nullptr },
     _is_swapchain { true }
-{
-    // _view = new vkImageView(
-    //         _device,
-    //         *this,
-    //         format,
-    //         vk::ImageViewType::e2D,
-    //         vk::ImageAspectFlagBits::eColor
-    //     );
-}
+{ }
 
 // =============================================================================
 vkImage::vkImage(vkDevice const &device, std::string_view const filename,
                  ImageInfo const &image_info, uint32_t const array_layers):
     _device       { device },
+    _memory       { nullptr },
+    _format       { vk::Format::eUndefined },
     _layout       { vk::ImageLayout::eUndefined },
+    _extent       { },
+    _size_bytes   { 0u },
+    _mip_levels   { 1u },
     _array_layers { array_layers },
     _is_swapchain { false }
 {
@@ -90,6 +87,53 @@ vkImage::vkImage(vkDevice const &device, std::string_view const filename,
 
     _allocate(image_info.memory_flags);
     _send_to_device();
+}
+
+// =============================================================================
+vkImage::vkImage(vkDevice const &device, vk::Extent2D const &extent,
+                 vk::Format const format, ImageInfo const &image_info) :
+    _device       { device },
+    _handle       { },
+    _memory       { },
+    _format       { format },
+    _layout       { },
+    _extent       { extent.height, extent.width, 1u },
+    _size_bytes   { 0u },
+    _mip_levels   { 1u },
+    _array_layers { 1u },
+    _raw_data     { nullptr },
+    _is_swapchain { false }
+{
+    vk::ImageCreateInfo const create_info {
+        .pNext = nullptr,
+        .flags = { },
+        .imageType = image_info.type,
+        .format = _format,
+        .extent = _extent,
+        .mipLevels = _mip_levels,
+        .arrayLayers = _array_layers,
+        .samples = image_info.samples,
+        .tiling = vk::ImageTiling::eOptimal,
+        .usage = image_info.usage_flags,
+        .sharingMode = vk::SharingMode::eExclusive,
+        .queueFamilyIndexCount = 0u,
+        .pQueueFamilyIndices = nullptr,
+        .initialLayout = vk::ImageLayout::eUndefined,
+    };
+
+    auto const result = _device.native().createImage(create_info);
+
+    if(result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to create image: '{}'",
+                     vk::to_string(result.result));
+        return;
+    }
+
+    _handle = result.value;
+    BTX_TRACE("Created image {} with extent {}x{}, samples {}", _handle,
+              extent.width, extent.height, vk::to_string(image_info.samples));
+
+    _allocate(image_info.memory_flags);
 }
 
 // =============================================================================

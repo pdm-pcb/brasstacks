@@ -60,31 +60,26 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance    const &instance,
     vkBuffer::set_memory_props(_chosen_device.memory);
     vkImage::set_memory_props(_chosen_device.memory);
 
-    RenderConfig::anisotropy = _chosen_device.max_aniso;
+    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e64) {
+        RenderConfig::msaa_samples = 64;
+    }
+    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e32) {
+        RenderConfig::msaa_samples = 32;
+    }
+    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e16) {
+        RenderConfig::msaa_samples = 16;
+    }
+    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e8) {
+        RenderConfig::msaa_samples = 8;
+    }
+    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e4) {
+        RenderConfig::msaa_samples = 4;
+    }
+    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e2) {
+        RenderConfig::msaa_samples = 2;
+    }
 
-    // switch(_chosen_device.max_samples) {
-    //     case vk::SampleCountFlagBits::e64:
-    //         RenderConfig::msaa_samples = 64;
-    //         break;
-    //     case vk::SampleCountFlagBits::e32:
-    //         RenderConfig::msaa_samples = 32;
-    //         break;
-    //     case vk::SampleCountFlagBits::e16:
-    //         RenderConfig::msaa_samples = 16;
-    //         break;
-    //     case vk::SampleCountFlagBits::e8:
-    //         RenderConfig::msaa_samples = 8;
-    //         break;
-    //     case vk::SampleCountFlagBits::e4:
-    //         RenderConfig::msaa_samples = 4;
-    //         break;
-    //     case vk::SampleCountFlagBits::e2:
-    //         RenderConfig::msaa_samples = 2;
-    //         break;
-    //     case vk::SampleCountFlagBits::e1:
-    //         RenderConfig::msaa_samples = 1;
-    //         break;
-    // }
+    RenderConfig::anisotropy = _chosen_device.max_aniso;
 }
 
 // =============================================================================
@@ -276,12 +271,12 @@ void vkPhysicalDevice::_store_device(vk::PhysicalDevice const &device) {
     device.getProperties2(&physical_props2);
 
     // Time to start filling things in
-    _available_devices.emplace_back(DeviceProps { });
+    _available_devices.emplace_back(DeviceProps {
+        .handle = device,
+        .memory = memory_props,
+        .type = device_props.deviceType,
+    });
     auto &store = _available_devices.back();
-
-    store.handle = device;
-    store.memory = memory_props;
-    store.type = device_props.deviceType;
 
     vk::DeviceSize vram_bytes = 0;
     for(uint32_t index = 0u; index < memory_props.memoryHeapCount; ++index) {
@@ -323,6 +318,7 @@ void vkPhysicalDevice::_store_device(vk::PhysicalDevice const &device) {
         store.max_samples = vk::SampleCountFlagBits::e2;
     }
 
+    store.max_samples = device_props.limits.framebufferColorSampleCounts;
     store.max_aniso = device_props.limits.maxSamplerAnisotropy;
 }
 

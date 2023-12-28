@@ -113,7 +113,7 @@ private:
         std::string driver_version;
         std::string vkapi_version;
 
-        vk::SampleCountFlagBits max_samples = vk::SampleCountFlagBits::e1;
+        vk::SampleCountFlags max_samples = vk::SampleCountFlagBits::e1;
         float max_aniso = 0.0f;
 
         uint32_t graphics_queue_index = std::numeric_limits<uint32_t>::max();

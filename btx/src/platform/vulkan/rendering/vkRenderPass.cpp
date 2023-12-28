@@ -20,10 +20,12 @@ void vkRenderPass::create(vk::RenderPassCreateInfo const &create_info) {
     }
 
     _handle = result.value;
+    BTX_TRACE("Created render pass {}", _handle);
 }
 
 // =============================================================================
 vkRenderPass::~vkRenderPass() {
+    BTX_TRACE("Destroying render pass {}", _handle);
     _device.native().destroyRenderPass(_handle);
 }
 

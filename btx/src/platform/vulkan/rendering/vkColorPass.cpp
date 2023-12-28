@@ -7,8 +7,7 @@
 
 namespace btx {
 
-vkColorPass::vkColorPass(vkDevice const &device, vk::Format const format,
-                         vk::SampleCountFlagBits const msaa_samples) :
+vkColorPass::vkColorPass(vkDevice const &device, vk::Format const format) :
     vkRenderPass { device }
 {
 
@@ -16,7 +15,7 @@ vkColorPass::vkColorPass(vkDevice const &device, vk::Format const format,
     vk::AttachmentDescription const color_buffer_desc {
         .flags          = { },
         .format         = format,
-        .samples        = msaa_samples,
+        .samples        = vk::SampleCountFlagBits::e1,
         .loadOp         = vk::AttachmentLoadOp::eClear,
         .storeOp        = vk::AttachmentStoreOp::eStore,
         .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
