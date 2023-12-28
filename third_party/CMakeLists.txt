@@ -21,9 +21,11 @@ target_include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/"
 )
 
+target_link_libraries(${TARGET_NAME} PUBLIC Vulkan::Vulkan)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
    CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(${TARGET_NAME} PRIVATE "-w")
+    target_compile_options(${TARGET_NAME} PRIVATE "-w") # Disable warnings
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
         target_compile_options(
@@ -51,7 +53,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         _CRT_SECURE_NO_WARNINGS # Do not warn about C string functions
     )
 
-    target_compile_options(${TARGET_NAME} PRIVATE "/w")
+    target_compile_options(${TARGET_NAME} PRIVATE "/w") # Disable warnings
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64")
         target_compile_options(

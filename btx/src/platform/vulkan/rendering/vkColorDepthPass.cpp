@@ -170,7 +170,7 @@ void vkColorDepthPass::_init_attachments() {
         .initialLayout  = vk::ImageLayout::eUndefined,
         .finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
     },
-    {   // final presentation attachment
+    {   // final presentation/resolve attachment
         .format         = _color_format,
         .samples        = vk::SampleCountFlagBits::e1,
         .loadOp         = vk::AttachmentLoadOp::eDontCare,
