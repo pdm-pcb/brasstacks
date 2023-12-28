@@ -148,7 +148,8 @@ private:
      * @return false If the device does not support graphics and present
      * commands within a single queue family
      */
-    bool _check_queue_families(DeviceProps &device, vkSurface const &surface);
+    static bool _check_queue_families(DeviceProps &device,
+                                      vkSurface const &surface);
 
     /**
      * @brief Check if a device supports a given list of features
@@ -157,8 +158,8 @@ private:
      * @return true If the device supports all of the features
      * @return false If the device does not support all of the features
      */
-    bool _check_features(DeviceProps &device,
-                         FeatureList const &required_features);
+    static bool _check_features(DeviceProps &device,
+                                FeatureList const &required_features);
 
     /**
      * @brief Check if a device supports a given list of extensions
@@ -167,8 +168,8 @@ private:
      * @return true If the device supports all of the extensions
      * @return false If the device does not support all of the extensions
      */
-    bool _check_extensions(DeviceProps &device,
-                           ExtensionList const &required_extensions);
+    static bool _check_extensions(DeviceProps &device,
+                                  ExtensionList const &required_extensions);
 
     /**
      * @brief Populate a DeviceProps struct and add it to _available_devices
@@ -181,7 +182,8 @@ private:
      * @param family Queue family index
      * @param flags Flags indicating this queue family's abilites
      */
-    void _print_family_flags(uint32_t const family, vk::QueueFlags const flags);
+    static void _print_family_flags(uint32_t const family,
+                                    vk::QueueFlags const flags);
 };
 
 } // namespace btx

@@ -74,12 +74,14 @@ private:
     void _create_camera(btx::vkDevice const &device);
     void _destroy_camera();
 
-    void _create_texture(btx::vkDevice const &device);
+    void _create_texture(btx::vkDevice const &device,
+                         vk::SampleCountFlagBits const samples);
     void _destroy_texture();
 
     void _create_render_pass(btx::vkPhysicalDevice const &physical_device,
                              btx::vkDevice const &device,
-                             btx::vkSwapchain const &swapchain);
+                             btx::vkSwapchain const &swapchain,
+                             vk::SampleCountFlagBits const samples);
     void _destroy_render_pass();
 
     using PushConstants = std::vector<PushConstant>;

@@ -84,9 +84,12 @@ void Demo::init(btx::vkPhysicalDevice const &physical_device,
         // }}
     );
 
-    _create_texture(device);
+    auto const msaa_samples =
+        btx::vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples);
 
-    _create_render_pass(physical_device, device, swapchain);
+    _create_texture(device, msaa_samples);
+
+    _create_render_pass(physical_device, device, swapchain, msaa_samples);
 }
 
 // =============================================================================
@@ -266,15 +269,19 @@ void Demo::_destroy_camera() {
 }
 
 // =============================================================================
-void Demo::_create_texture(btx::vkDevice const &device) {
-    _texture = new btx::vkImage(device, "textures/woodfloor_051_d.jpg");
-
-    _texture->create(vk::ImageType::e2D,
-                     vk::SampleCountFlagBits::e1,
-                     (vk::ImageUsageFlagBits::eSampled |
-                      vk::ImageUsageFlagBits::eTransferDst |
-                      vk::ImageUsageFlagBits::eTransferSrc),
-                     vk::MemoryPropertyFlagBits::eDeviceLocal);
+void Demo::_create_texture(btx::vkDevice const &device,
+                           vk::SampleCountFlagBits const samples)
+{
+    btx::vkImage::ImageInfo const image_info {
+        .type = vk::ImageType::e2D,
+        .samples = samples,
+        .usage_flags =  (vk::ImageUsageFlagBits::eSampled |
+                         vk::ImageUsageFlagBits::eTransferDst |
+                         vk::ImageUsageFlagBits::eTransferSrc),
+        .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal
+    };
+    _texture = new btx::vkImage(device, "textures/woodfloor_051_d.jpg",
+                                image_info);
 
     _texture_view = new btx::vkImageView(device, *_texture,
                                          vk::ImageViewType::e2D,
@@ -323,13 +330,11 @@ void Demo::_destroy_texture() {
 // =============================================================================
 void Demo::_create_render_pass(btx::vkPhysicalDevice const &physical_device,
                                btx::vkDevice const &device,
-                               btx::vkSwapchain const &swapchain)
+                               btx::vkSwapchain const &swapchain,
+                               vk::SampleCountFlagBits const samples)
 {
-    auto const msaa_samples =
-        btx::vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples);
-
     _color_pass = new btx::vkColorPass(device, swapchain.image_format(),
-                                             msaa_samples);
+                                       samples);
 
     _color_pipeline = new btx::vkPipeline(device);
     (*_color_pipeline)
@@ -357,7 +362,7 @@ void Demo::_create_render_pass(btx::vkPhysicalDevice const &physical_device,
                     .x = btx::RenderConfig::swapchain_image_offset.x,
                     .y = btx::RenderConfig::swapchain_image_offset.y,
                 },
-                .sample_flags = msaa_samples,
+                .sample_flags = samples,
             }
         );
 

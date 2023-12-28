@@ -39,7 +39,7 @@ vkImage::vkImage(vkDevice  const &device, vk::Image const &handle,
 
 // =============================================================================
 vkImage::vkImage(vkDevice const &device, std::string_view const filename,
-                 uint32_t const array_layers):
+                 ImageInfo const &image_info, uint32_t const array_layers):
     _device       { device },
     _layout       { vk::ImageLayout::eUndefined },
     _array_layers { array_layers },
@@ -59,6 +59,37 @@ vkImage::vkImage(vkDevice const &device, std::string_view const filename,
         _mip_levels,
         _array_layers
     );
+
+    vk::ImageCreateInfo const create_info {
+        .pNext = nullptr,
+        .flags = { },
+        .imageType = image_info.type,
+        .format = _format,
+        .extent = _extent,
+        .mipLevels = _mip_levels,
+        .arrayLayers = _array_layers,
+        .samples = image_info.samples,
+        .tiling = vk::ImageTiling::eOptimal,
+        .usage = image_info.usage_flags,
+        .sharingMode = vk::SharingMode::eExclusive,
+        .queueFamilyIndexCount = 0u,
+        .pQueueFamilyIndices = nullptr,
+        .initialLayout = vk::ImageLayout::eUndefined,
+    };
+
+    auto const result = _device.native().createImage(create_info);
+
+    if(result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to create image: '{}'",
+                     vk::to_string(result.result));
+        return;
+    }
+
+    _handle = result.value;
+    BTX_TRACE("Created image {}", _handle);
+
+    _allocate(image_info.memory_flags);
+    _send_to_device();
 }
 
 // =============================================================================
@@ -81,72 +112,6 @@ void vkImage::set_memory_props(vk::PhysicalDeviceMemoryProperties const &props)
 {
     _memory_props = props;
 }
-
-// =============================================================================
-void vkImage::create(vk::ImageType const type,
-                     vk::SampleCountFlagBits const samples,
-                     vk::ImageUsageFlags const usage_flags,
-                     vk::MemoryPropertyFlags const memory_flags)
-{
-    if(_handle) {
-        BTX_CRITICAL("Image cannot be created twice.");
-        return;
-    }
-    if(_format == vk::Format::eUndefined) {
-        BTX_CRITICAL("Cannot create image with undefined format.");
-        return;
-    }
-
-    vk::ImageCreateInfo const create_info {
-        .pNext = nullptr,
-        .flags = { },
-        .imageType = type,
-        .format = _format,
-        .extent = _extent,
-        .mipLevels = _mip_levels,
-        .arrayLayers = _array_layers,
-        .samples = samples,
-        .tiling = vk::ImageTiling::eOptimal,
-        .usage = usage_flags,
-        .sharingMode = vk::SharingMode::eExclusive,
-        .queueFamilyIndexCount = 0u,
-        .pQueueFamilyIndices = nullptr,
-        .initialLayout = vk::ImageLayout::eUndefined,
-    };
-
-    auto const result = _device.native().createImage(create_info);
-
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create image: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
-    BTX_TRACE("Created image {}", _handle);
-
-    _allocate(memory_flags);
-    _send_to_device();
-
-    // _view = new vkImageView(
-    //         _device,
-    //         *this,
-    //         _format,
-    //         vk::ImageViewType::e2D,
-    //         vk::ImageAspectFlagBits::eColor
-    //     );
-}
-
-// =============================================================================
-// void vkImage::create_sampler(vk::Filter const min_filter,
-//                              vk::Filter const mag_filter,
-//                              vk::SamplerMipmapMode const mip_filter,
-//                              vk::SamplerAddressMode const mode_u,
-//                              vk::SamplerAddressMode const mode_v)
-// {
-//     _sampler = new vkSampler(_device, min_filter, mag_filter, mip_filter,
-//                              mode_u, mode_v);
-// }
 
 // =============================================================================
 void * vkImage::_load_from_file(std::string_view const filename) {

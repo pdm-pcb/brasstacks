@@ -9,6 +9,7 @@ namespace btx {
 class vkPhysicalDevice;
 class vkDevice;
 class vkImage;
+class vkImageView;
 
 class vkColorDepthPass final : public vkRenderPass {
 public:
@@ -16,7 +17,7 @@ public:
                      vkDevice const &device, vk::Format const format,
                      vk::SampleCountFlagBits const msaa_samples);
 
-    ~vkColorDepthPass() = default;
+    ~vkColorDepthPass() override = default;
 
     vkColorDepthPass() = delete;
 
@@ -30,6 +31,8 @@ private:
     vk::Format _depth_format;
 
     vkImage *_color_buffer;
+    vkImageView *_color_view;
+
     vkImage *_depth_buffer;
 
     void _find_depth_stencil_format(vkPhysicalDevice const &physical_device);

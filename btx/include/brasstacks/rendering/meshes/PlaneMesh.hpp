@@ -20,6 +20,12 @@ public:
     ~PlaneMesh() = default;
 
     PlaneMesh() = delete;
+
+    PlaneMesh(PlaneMesh &&) = delete;
+    PlaneMesh(PlaneMesh const &) = delete;
+
+    PlaneMesh & operator=(PlaneMesh &&) = delete;
+    PlaneMesh & operator=(PlaneMesh const &) = delete;
 };
 
 } // namespace btx

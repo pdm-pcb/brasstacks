@@ -17,24 +17,26 @@ public:
     vkImage(vkDevice const &device, vk::Image const &handle,
             vk::Format const format);
 
+    struct ImageInfo final {
+        vk::ImageType type = { };
+        vk::SampleCountFlagBits samples = { };
+        vk::ImageUsageFlags usage_flags = { };
+        vk::MemoryPropertyFlags memory_flags = { };
+    };
+
     // For reading texture data from a file
     vkImage(vkDevice const &device, std::string_view const filename,
-            uint32_t const array_layers = 1u);
+            ImageInfo const &image_info, uint32_t const array_layers = 1u);
 
     // For render targets, eg color buffer
     vkImage(vkDevice const &device, vk::Extent2D const &extent,
-            vk::Format const format);
+            vk::Format const format, ImageInfo const &create_info);
 
     ~vkImage();
 
     static void set_memory_props(
         vk::PhysicalDeviceMemoryProperties const &props
     );
-
-    void create(vk::ImageType const type,
-                vk::SampleCountFlagBits const samples,
-                vk::ImageUsageFlags const usage_flags,
-                vk::MemoryPropertyFlags const memory_flags);
 
     inline auto const & native()  const { return _handle;   }
     inline auto format()          const { return _format;   }

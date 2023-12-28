@@ -20,6 +20,12 @@ public:
     ~CubeMesh() = default;
 
     CubeMesh() = delete;
+
+    CubeMesh(CubeMesh &&) = delete;
+    CubeMesh(CubeMesh const &) = delete;
+
+    CubeMesh & operator=(CubeMesh &&) = delete;
+    CubeMesh & operator=(CubeMesh const &) = delete;
 };
 
 } // namespace btx

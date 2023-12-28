@@ -26,6 +26,8 @@ protected:
 
     void create(vk::RenderPassCreateInfo const &create_info);
 
+    auto const & device() const { return _device; }
+
 private:
     vkDevice const &_device;
     vk::RenderPass _handle;

@@ -4,6 +4,7 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
 
@@ -121,7 +122,10 @@ vkColorDepthPass::_init_color_buffer(vk::Format const format,
                                      vk::Extent2D const extent,
                                      vk::SampleCountFlagBits const samples)
 {
-    // _color_buffer = new vkImage(_device, extent, format);
+    // _color_buffer = new vkImage(this->device(), extent, format);
+    // _color_view = new vkImageView(this->device(), *_color_buffer,
+    //                               vk::ImageViewType::e2D,
+    //                               vk::ImageAspectFlagBits::eColor);
     // _color_buffer->create(
     //     vk::ImageType::e2D,
     //     samples,

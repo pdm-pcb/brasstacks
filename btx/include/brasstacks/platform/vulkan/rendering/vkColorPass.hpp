@@ -15,7 +15,7 @@ public:
     vkColorPass(vkDevice const &device, vk::Format const format,
                 vk::SampleCountFlagBits const msaa_samples);
 
-    ~vkColorPass() = default;
+    ~vkColorPass() override = default;
 
     vkColorPass() = delete;
 
