@@ -48,6 +48,14 @@ vkColorDepthPass::vkColorDepthPass(vkPhysicalDevice const &physical_device,
 }
 
 // =============================================================================
+vkColorDepthPass::~vkColorDepthPass() {
+    delete _depth_view;
+    delete _depth_buffer;
+    delete _color_view;
+    delete _color_buffer;
+}
+
+// =============================================================================
 void vkColorDepthPass::_find_depth_stencil_format(
     vkPhysicalDevice const &physical_device)
 {
@@ -76,10 +84,8 @@ void vkColorDepthPass::_create_color_buffer() {
     vkImage::ImageInfo const color_buffer_info {
         .type = vk::ImageType::e2D,
         .samples = _msaa_samples,
-        .usage_flags = (
-            vk::ImageUsageFlagBits::eColorAttachment |
-            vk::ImageUsageFlagBits::eTransientAttachment
-        ),
+        .usage_flags = (vk::ImageUsageFlagBits::eColorAttachment |
+                        vk::ImageUsageFlagBits::eTransientAttachment),
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
     };
 
@@ -105,9 +111,9 @@ void vkColorDepthPass::_create_depth_buffer() {
     _depth_buffer = new vkImage(this->device(), _extent, _depth_format,
                                 depth_stencil_info);
 
-    _depth_view = new vkImageView(this->device(), *_color_buffer,
+    _depth_view = new vkImageView(this->device(), *_depth_buffer,
                                   vk::ImageViewType::e2D,
-                                  vk::ImageAspectFlagBits::eColor);
+                                  vk::ImageAspectFlagBits::eDepth);
 
     BTX_TRACE("Created depth stencil buffer");
 }

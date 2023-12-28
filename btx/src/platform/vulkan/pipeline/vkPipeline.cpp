@@ -228,8 +228,8 @@ void vkPipeline::update_dimensions(vk::Extent2D const &extent,
     };
 
     _scissor = vk::Rect2D {
-        .offset = { offset.x, offset.y },
-        .extent = { extent.width, extent.height },
+        .offset = { .x = offset.x, .y = offset.y },
+        .extent = { .width = extent.width, .height = extent.height },
     };
 
     BTX_TRACE(

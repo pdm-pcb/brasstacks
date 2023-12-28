@@ -74,8 +74,8 @@ private:
 
     void _allocate(vk::MemoryPropertyFlags const memory_flags);
 
-    uint32_t _find_memory_type(vk::MemoryPropertyFlags const flags,
-                               vk::MemoryRequirements const reqs);
+    static uint32_t _memory_type_index(vk::MemoryPropertyFlags const flags,
+                                       vk::MemoryRequirements const reqs);
 
     void _send_to_device();
 

@@ -18,7 +18,7 @@ public:
                      vk::Extent2D const &extent,
                      vk::SampleCountFlagBits const msaa_samples);
 
-    ~vkColorDepthPass() override = default;
+    ~vkColorDepthPass() override;
 
     auto const & color_view() const { return *_color_view; }
     auto const & depth_view() const { return *_depth_view; }

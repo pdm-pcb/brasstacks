@@ -92,8 +92,8 @@ void Demo::init(btx::vkPhysicalDevice const &physical_device,
 
     _create_texture(device);
 
-    _create_color_pass(device, swapchain);
-    // _create_color_depth_pass(physical_device, device, swapchain, msaa_samples);
+    // _create_color_pass(device, swapchain);
+    _create_color_depth_pass(physical_device, device, swapchain, msaa_samples);
 }
 
 // =============================================================================
@@ -140,19 +140,19 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
 
     auto const &framebuffer = *_framebuffers[image_index];
 
-    static std::array<vk::ClearValue, 1> const clear_values = {{
-        { .color { btx::RenderConfig::clear_color }},
-    }};
-
-    // static std::array<vk::ClearValue, 2> const clear_values = {{
+    // static std::array<vk::ClearValue, 1> const clear_values = {{
     //     { .color { btx::RenderConfig::clear_color }},
-    //     { .depthStencil
-    //         {
-    //             .depth = 1.0f,
-    //             .stencil = 1u,
-    //         }
-    //     }
     // }};
+
+    static std::array<vk::ClearValue, 2> const clear_values = {{
+        { .color { btx::RenderConfig::clear_color }},
+        { .depthStencil
+            {
+                .depth = 1.0f,
+                .stencil = 1u,
+            }
+        }
+    }};
 
     vk::Rect2D const render_area = {
         .offset {
@@ -168,8 +168,8 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
     cmd_buffer.begin_render_pass(
         vk::RenderPassBeginInfo {
             .pNext           = nullptr,
-            .renderPass      = _color_pass->native(),
-            // .renderPass      = _color_depth_pass->native(),
+            // .renderPass      = _color_pass->native(),
+            .renderPass      = _color_depth_pass->native(),
             .framebuffer     = framebuffer.native(),
             .renderArea      = render_area,
             .clearValueCount = static_cast<uint32_t>(clear_values.size()),
@@ -177,9 +177,13 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
         }
     );
 
-    _color_pipeline->bind(cmd_buffer);
-    _color_pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
-    _color_pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
+    // _color_pipeline->bind(cmd_buffer);
+    // _color_pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
+    // _color_pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
+
+    _color_depth_pipeline->bind(cmd_buffer);
+    _color_depth_pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
+    _color_depth_pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
 
     _send_push_constants(cmd_buffer, {
         PushConstant {
@@ -209,7 +213,8 @@ void Demo::_send_push_constants(btx::vkCmdBuffer const &cmd_buffer,
     size_t offset = 0u;
     for(auto const& push_constant : push_constants) {
         cmd_buffer.native().pushConstants(
-            _color_pipeline->layout(),
+            // _color_pipeline->layout(),
+            _color_depth_pipeline->layout(),
             push_constant.stage_flags,
             static_cast<uint32_t>(offset),
             static_cast<uint32_t>(push_constant.size_bytes),

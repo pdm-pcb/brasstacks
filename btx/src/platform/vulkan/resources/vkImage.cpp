@@ -97,7 +97,11 @@ vkImage::vkImage(vkDevice const &device, vk::Extent2D const &extent,
     _memory       { },
     _format       { format },
     _layout       { },
-    _extent       { extent.height, extent.width, 1u },
+    _extent       {
+        .width = extent.width,
+        .height = extent.height,
+        .depth = 1u
+    },
     _size_bytes   { 0u },
     _mip_levels   { 1u },
     _array_layers { 1u },
@@ -209,7 +213,7 @@ void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
 
     _device.native().getImageMemoryRequirements(_handle, &mem_reqs);
 
-    auto type_index = _find_memory_type(memory_flags, mem_reqs);
+    auto type_index = _memory_type_index(memory_flags, mem_reqs);
 
     vk::MemoryAllocateInfo const alloc_info {
         .allocationSize  = mem_reqs.size,
@@ -236,8 +240,8 @@ void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
 }
 
 // =============================================================================
-uint32_t vkImage::_find_memory_type(vk::MemoryPropertyFlags const flags,
-                                    vk::MemoryRequirements const reqs)
+uint32_t vkImage::_memory_type_index(vk::MemoryPropertyFlags const flags,
+                                     vk::MemoryRequirements const reqs)
 {
     auto const type_count = _memory_props.memoryTypeCount;
 
@@ -416,12 +420,12 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
     };
 
     BTX_TRACE(
-        "Image {}, mip {} ({}), layer {} ({}): '{}' -> '{}'",
+        "Image {}, mip {} ({}), layer {} ({}): '{:s}' -> '{:s}'",
         _handle,
         base_mip_level, _mip_levels,
         base_array_layer, _array_layers,
-        to_string(barrier.oldLayout),
-        to_string(barrier.newLayout)
+        vk::to_string(barrier.oldLayout),
+        vk::to_string(barrier.newLayout)
     );
 
     vk::PipelineStageFlags src_stage = vk::PipelineStageFlagBits::eNone;
