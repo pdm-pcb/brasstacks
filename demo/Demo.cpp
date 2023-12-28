@@ -22,25 +22,26 @@
 // =============================================================================
 Demo::Demo() :
     btx::Application("Demo"),
-    _descriptor_pool      { nullptr },
-    _camera               { nullptr },
-    _camera_ubos          { },
-    _camera_ubo_layout    { nullptr },
-    _camera_ubo_sets      { },
-    _plane_mesh           { nullptr },
-    _plane_mat            { btx::math::Mat4::identity },
-    _cube_mesh            { nullptr },
-    _cube_mat             { btx::math::Mat4::identity },
-    _texture              { nullptr },
-    _texture_view         { nullptr },
-    _texture_sampler      { nullptr },
-    _texture_set_layout   { nullptr },
-    _texture_set          { nullptr },
-    _color_pass           { nullptr },
-    _color_pipeline       { nullptr },
-    _color_depth_pass     { nullptr },
-    _color_depth_pipeline { nullptr },
-    _framebuffers         { }
+    _descriptor_pool          { nullptr },
+    _camera                   { nullptr },
+    _camera_ubos              { },
+    _camera_ubo_layout        { nullptr },
+    _camera_ubo_sets          { },
+    _plane_mesh               { nullptr },
+    _plane_mat                { btx::math::Mat4::identity },
+    _cube_mesh                { nullptr },
+    _cube_mat                 { btx::math::Mat4::identity },
+    _texture                  { nullptr },
+    _texture_view             { nullptr },
+    _texture_sampler          { nullptr },
+    _texture_set_layout       { nullptr },
+    _texture_set              { nullptr },
+    _color_pass               { nullptr },
+    _color_pipeline           { nullptr },
+    _color_framebuffers       { },
+    _color_depth_pass         { nullptr },
+    _color_depth_pipeline     { nullptr },
+    _color_depth_framebuffers { }
 
 { }
 
@@ -92,7 +93,7 @@ void Demo::init(btx::vkPhysicalDevice const &physical_device,
 
     _create_texture(device);
 
-    // _create_color_pass(device, swapchain);
+    _create_color_pass(device, swapchain);
     _create_color_depth_pass(physical_device, device, swapchain, msaa_samples);
 }
 
@@ -129,8 +130,17 @@ void Demo::update() {
                                      btx::math::Vec3::unit_x);
 }
 
+// =============================================================================
 void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
                            uint32_t const image_index)
+{
+    // _record_color_commands(cmd_buffer, image_index);
+    _record_color_depth_commands(cmd_buffer, image_index);
+}
+
+// =============================================================================
+void Demo::_record_color_commands(btx::vkCmdBuffer const &cmd_buffer,
+                                  uint32_t const image_index)
 {
     std::array<btx::math::Mat4, 2> const vp {{
         _camera->view_matrix(), _camera->proj_matrix()
@@ -138,11 +148,70 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
 
     _camera_ubos[image_index]->fill_buffer(vp.data());
 
-    auto const &framebuffer = *_framebuffers[image_index];
+    static std::array<vk::ClearValue, 1> const clear_values = {{
+        { .color { btx::RenderConfig::clear_color }},
+    }};
 
-    // static std::array<vk::ClearValue, 1> const clear_values = {{
-    //     { .color { btx::RenderConfig::clear_color }},
-    // }};
+    vk::Rect2D const render_area = {
+        .offset {
+            .x = btx::RenderConfig::swapchain_image_offset.x,
+            .y = btx::RenderConfig::swapchain_image_offset.y,
+        },
+        .extent {
+            .width  = btx::RenderConfig::swapchain_image_size.width,
+            .height = btx::RenderConfig::swapchain_image_size.height,
+        }
+    };
+
+    auto const &framebuffer = *_color_framebuffers[image_index];
+
+    cmd_buffer.begin_render_pass(
+        vk::RenderPassBeginInfo {
+            .pNext           = nullptr,
+            .renderPass      = _color_pass->native(),
+            .framebuffer     = framebuffer.native(),
+            .renderArea      = render_area,
+            .clearValueCount = static_cast<uint32_t>(clear_values.size()),
+            .pClearValues    = clear_values.data(),
+        }
+    );
+
+    _color_pipeline->bind(cmd_buffer);
+    _color_pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
+    _color_pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
+
+    _send_color_push_constants(cmd_buffer, {
+        PushConstant {
+            .stage_flags = vk::ShaderStageFlagBits::eVertex,
+            .size_bytes = sizeof(btx::math::Mat4),
+            .data = &_plane_mat,
+        }
+    });
+    _plane_mesh->draw_indexed(cmd_buffer);
+
+    _send_color_push_constants(cmd_buffer, {
+        PushConstant {
+            .stage_flags = vk::ShaderStageFlagBits::eVertex,
+            .size_bytes = sizeof(btx::math::Mat4),
+            .data = &_cube_mat,
+        }
+    });
+    _cube_mesh->draw_indexed(cmd_buffer);
+
+    cmd_buffer.end_render_pass();
+}
+
+// =============================================================================
+void Demo::_record_color_depth_commands(btx::vkCmdBuffer const &cmd_buffer,
+                                        uint32_t const image_index)
+{
+    std::array<btx::math::Mat4, 2> const vp {{
+        _camera->view_matrix(), _camera->proj_matrix()
+    }};
+
+    _camera_ubos[image_index]->fill_buffer(vp.data());
+
+    auto const &framebuffer = *_color_depth_framebuffers[image_index];
 
     static std::array<vk::ClearValue, 2> const clear_values = {{
         { .color { btx::RenderConfig::clear_color }},
@@ -168,7 +237,6 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
     cmd_buffer.begin_render_pass(
         vk::RenderPassBeginInfo {
             .pNext           = nullptr,
-            // .renderPass      = _color_pass->native(),
             .renderPass      = _color_depth_pass->native(),
             .framebuffer     = framebuffer.native(),
             .renderArea      = render_area,
@@ -177,15 +245,11 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
         }
     );
 
-    // _color_pipeline->bind(cmd_buffer);
-    // _color_pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
-    // _color_pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
-
     _color_depth_pipeline->bind(cmd_buffer);
     _color_depth_pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
     _color_depth_pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
 
-    _send_push_constants(cmd_buffer, {
+    _send_color_depth_push_constants(cmd_buffer, {
         PushConstant {
             .stage_flags = vk::ShaderStageFlagBits::eVertex,
             .size_bytes = sizeof(btx::math::Mat4),
@@ -194,7 +258,7 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
     });
     _plane_mesh->draw_indexed(cmd_buffer);
 
-    _send_push_constants(cmd_buffer, {
+    _send_color_depth_push_constants(cmd_buffer, {
         PushConstant {
             .stage_flags = vk::ShaderStageFlagBits::eVertex,
             .size_bytes = sizeof(btx::math::Mat4),
@@ -207,13 +271,30 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
 }
 
 // =============================================================================
-void Demo::_send_push_constants(btx::vkCmdBuffer const &cmd_buffer,
-                                PushConstants const &push_constants)
+void Demo::_send_color_push_constants(btx::vkCmdBuffer const &cmd_buffer,
+                                      PushConstants const &push_constants)
 {
     size_t offset = 0u;
     for(auto const& push_constant : push_constants) {
         cmd_buffer.native().pushConstants(
-            // _color_pipeline->layout(),
+            _color_pipeline->layout(),
+            push_constant.stage_flags,
+            static_cast<uint32_t>(offset),
+            static_cast<uint32_t>(push_constant.size_bytes),
+            push_constant.data
+        );
+
+        offset += push_constant.size_bytes;
+    }
+}
+
+// =============================================================================
+void Demo::_send_color_depth_push_constants(btx::vkCmdBuffer const &cmd_buffer,
+                                            PushConstants const &push_constants)
+{
+    size_t offset = 0u;
+    for(auto const& push_constant : push_constants) {
+        cmd_buffer.native().pushConstants(
             _color_depth_pipeline->layout(),
             push_constant.stage_flags,
             static_cast<uint32_t>(offset),
@@ -382,7 +463,7 @@ void Demo::_create_color_pass(btx::vkDevice const &device,
         );
 
     for(auto const *view : swapchain.image_views()) {
-        _framebuffers.emplace_back(new btx::vkFramebuffer(
+        _color_framebuffers.emplace_back(new btx::vkFramebuffer(
             device,
             *_color_pass,
             {
@@ -442,8 +523,8 @@ void Demo::_create_color_depth_pass(
             }
         );
 
-    for(auto const *view : swapchain.image_views()) {
-        _framebuffers.emplace_back(new btx::vkFramebuffer(
+    for(size_t i = 0; i < btx::RenderConfig::swapchain_image_count; ++i) {
+        _color_depth_framebuffers.emplace_back(new btx::vkFramebuffer(
             device,
             *_color_depth_pass,
             {
@@ -451,9 +532,9 @@ void Demo::_create_color_depth_pass(
                 .height = btx::RenderConfig::swapchain_image_size.height,
             },
             {{
-                _color_depth_pass->color_view().native(),
-                _color_depth_pass->depth_view().native(),
-                view->native()
+                _color_depth_pass->color_views()[i]->native(),
+                _color_depth_pass->depth_views()[i]->native(),
+                swapchain.image_views()[i]->native()
             }}
         ));
     }
@@ -461,13 +542,15 @@ void Demo::_create_color_depth_pass(
 
 // =============================================================================
 void Demo::_destroy_render_passes() {
-    for(auto *framebuffer : _framebuffers) {
+    for(auto *framebuffer : _color_framebuffers) {
         delete framebuffer;
     }
-
     delete _color_pipeline;
     delete _color_pass;
 
+    for(auto *framebuffer : _color_depth_framebuffers) {
+        delete framebuffer;
+    }
     delete _color_depth_pipeline;
     delete _color_depth_pass;
 }

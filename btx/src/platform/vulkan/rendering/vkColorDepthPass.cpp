@@ -13,15 +13,15 @@ vkColorDepthPass::vkColorDepthPass(vkPhysicalDevice const &physical_device,
                                    vk::Format const format,
                                    vk::Extent2D const &extent,
                                    vk::SampleCountFlagBits const msaa_samples) :
-    vkRenderPass  { device },
-    _extent       { extent },
-    _msaa_samples { msaa_samples },
-    _color_format { format },
-    _depth_format { vk::Format::eUndefined },
-    _color_buffer { nullptr },
-    _color_view   { nullptr },
-    _depth_buffer { nullptr },
-    _depth_view   { nullptr },
+    vkRenderPass   { device },
+    _extent        { extent },
+    _msaa_samples  { msaa_samples },
+    _color_format  { format },
+    _depth_format  { vk::Format::eUndefined },
+    _color_buffers {  },
+    _color_views   {  },
+    _depth_buffers {  },
+    _depth_views   {  },
     _attachment_descriptions { },
     _color_attachments       { },
     _depth_attachment        { },
@@ -49,10 +49,21 @@ vkColorDepthPass::vkColorDepthPass(vkPhysicalDevice const &physical_device,
 
 // =============================================================================
 vkColorDepthPass::~vkColorDepthPass() {
-    delete _depth_view;
-    delete _depth_buffer;
-    delete _color_view;
-    delete _color_buffer;
+    for(auto *view : _depth_views) {
+        delete view;
+    }
+
+    for(auto *buffer : _depth_buffers) {
+        delete buffer;
+    }
+
+    for(auto *view : _color_views) {
+        delete view;
+    }
+
+    for(auto *buffer : _color_buffers) {
+        delete buffer;
+    }
 }
 
 // =============================================================================
@@ -89,14 +100,23 @@ void vkColorDepthPass::_create_color_buffer() {
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
     };
 
-    _color_buffer = new vkImage(this->device(), _extent, _color_format,
-                                color_buffer_info);
+    for(size_t i = 0; i < RenderConfig::swapchain_image_count; ++i) {
+        _color_buffers.emplace_back(
+            new vkImage(this->device(),
+                        _extent,
+                        _color_format,
+                        color_buffer_info)
+        );
 
-    _color_view = new vkImageView(this->device(), *_color_buffer,
-                                  vk::ImageViewType::e2D,
-                                  vk::ImageAspectFlagBits::eColor);
+        _color_views.emplace_back(
+            new vkImageView(this->device(),
+                            *_color_buffers.back(),
+                            vk::ImageViewType::e2D,
+                            vk::ImageAspectFlagBits::eColor)
+        );
+    }
 
-    BTX_TRACE("Created color buffer");
+    BTX_TRACE("Created color buffers");
 }
 
 // =============================================================================
@@ -108,14 +128,23 @@ void vkColorDepthPass::_create_depth_buffer() {
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
     };
 
-    _depth_buffer = new vkImage(this->device(), _extent, _depth_format,
-                                depth_stencil_info);
+    for(size_t i = 0; i < RenderConfig::swapchain_image_count; ++i) {
+        _depth_buffers.emplace_back(
+            new vkImage(this->device(),
+                        _extent,
+                        _depth_format,
+                        depth_stencil_info)
+        );
 
-    _depth_view = new vkImageView(this->device(), *_depth_buffer,
-                                  vk::ImageViewType::e2D,
-                                  vk::ImageAspectFlagBits::eDepth);
+        _depth_views.emplace_back(
+            new vkImageView(this->device(),
+                            *_depth_buffers.back(),
+                            vk::ImageViewType::e2D,
+                            vk::ImageAspectFlagBits::eDepth)
+        );
+    }
 
-    BTX_TRACE("Created depth stencil buffer");
+    BTX_TRACE("Created depth stencil buffers");
 }
 
 // =============================================================================

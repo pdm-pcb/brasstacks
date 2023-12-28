@@ -20,8 +20,8 @@ public:
 
     ~vkColorDepthPass() override;
 
-    auto const & color_view() const { return *_color_view; }
-    auto const & depth_view() const { return *_depth_view; }
+    auto const & color_views() const { return _color_views; }
+    auto const & depth_views() const { return _depth_views; }
 
     vkColorDepthPass() = delete;
 
@@ -37,11 +37,10 @@ private:
     vk::Format _color_format;
     vk::Format _depth_format;
 
-    vkImage *_color_buffer;
-    vkImageView *_color_view;
-
-    vkImage *_depth_buffer;
-    vkImageView *_depth_view;
+    std::vector<vkImage *>     _color_buffers;
+    std::vector<vkImageView *> _color_views;
+    std::vector<vkImage *>     _depth_buffers;
+    std::vector<vkImageView *> _depth_views;
 
     std::vector<vk::AttachmentDescription> _attachment_descriptions;
     std::vector<vk::AttachmentReference>   _color_attachments;

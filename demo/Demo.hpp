@@ -71,10 +71,12 @@ private:
     btx::vkColorPass *_color_pass;
     btx::vkPipeline *_color_pipeline;
 
+    std::vector<btx::vkFramebuffer *> _color_framebuffers;
+
     btx::vkColorDepthPass *_color_depth_pass;
     btx::vkPipeline *_color_depth_pipeline;
 
-    std::vector<btx::vkFramebuffer *> _framebuffers;
+    std::vector<btx::vkFramebuffer *> _color_depth_framebuffers;
 
     void _create_camera(btx::vkDevice const &device);
     void _destroy_camera();
@@ -92,9 +94,17 @@ private:
 
     void _destroy_render_passes();
 
+    void _record_color_commands(btx::vkCmdBuffer const &cmd_buffer,
+                                uint32_t const image_index);
+
+    void _record_color_depth_commands(btx::vkCmdBuffer const &cmd_buffer,
+                                      uint32_t const image_index);
+
     using PushConstants = std::vector<PushConstant>;
-    void _send_push_constants(btx::vkCmdBuffer const &cmd_buffer,
-                              PushConstants const &push_constants);
+    void _send_color_push_constants(btx::vkCmdBuffer const &cmd_buffer,
+                                    PushConstants const &push_constants);
+    void _send_color_depth_push_constants(btx::vkCmdBuffer const &cmd_buffer,
+                                          PushConstants const &push_constants);
 };
 
 #endif // DEMO_HPP
