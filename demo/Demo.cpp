@@ -438,6 +438,7 @@ void Demo::_create_color_depth_pass(
                     .y = btx::RenderConfig::swapchain_image_offset.y,
                 },
                 .sample_flags = samples,
+                .enable_depth_test = VK_TRUE,
             }
         );
 
