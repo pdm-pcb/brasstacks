@@ -53,8 +53,6 @@ struct Vec4 final {
 [[nodiscard]] Vec4 operator*(Vec4 const &v, float scalar);
 [[nodiscard]] Vec4 operator/(Vec4 const &v, float scalar);
 
-std::ostream & operator<<(std::ostream& out, Vec4 const& v);
-
 } // namespace btx::math
 
 #endif // BRASSTACKS_MATH_VEC4_HPP

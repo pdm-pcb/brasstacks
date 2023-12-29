@@ -45,8 +45,6 @@ struct Vec2 final {
 [[nodiscard]] Vec2 operator*(Vec2 const &v, float scalar);
 [[nodiscard]] Vec2 operator/(Vec2 const &v, float scalar);
 
-std::ostream & operator<<(std::ostream& out, Vec2 const& v);
-
 } // namespace btx::math
 
 #endif // BRASSTACKS_MATH_VEC2_HPP

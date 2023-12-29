@@ -47,8 +47,6 @@ struct Vec3 final {
 [[nodiscard]] Vec3 operator*(Vec3 const &v, float scalar);
 [[nodiscard]] Vec3 operator/(Vec3 const &v, float scalar);
 
-std::ostream & operator<<(std::ostream& out, Vec3 const& v);
-
 } // namespace btx::math
 
 #endif // BRASSTACKS_MATH_VEC3_HPP
