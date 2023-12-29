@@ -34,10 +34,6 @@ public:
 
     ~vkImage();
 
-    static void set_memory_props(
-        vk::PhysicalDeviceMemoryProperties const &props
-    );
-
     inline auto const & native()  const { return _handle;   }
     inline auto format()          const { return _format;   }
     inline auto layout()          const { return _layout;   }
@@ -65,8 +61,6 @@ private:
     void *_raw_data;
 
     bool const _is_swapchain;
-
-    static vk::PhysicalDeviceMemoryProperties _memory_props;
 
     void * _load_from_file(std::string_view const filename);
 

@@ -15,9 +15,7 @@
 namespace btx {
 
 // =============================================================================
-vkSwapchain::vkSwapchain(vkPhysicalDevice const &physical_device,
-                         vkSurface const &surface,
-                         vkDevice const &device) :
+vkSwapchain::vkSwapchain(vkDevice const &device, vkSurface const &surface) :
     _device          { device },
     _image_format    { },
     _present_mode    { },
@@ -25,15 +23,15 @@ vkSwapchain::vkSwapchain(vkPhysicalDevice const &physical_device,
     _images          { }
 {
     // Grab the supported image counts, resolutions, etc from the surface
-    _query_surface_capabilities(physical_device.native(), surface.native());
+    _query_surface_capabilities(surface.native());
 
     // This swapchain's images will have the same formatting as the provided
     // surface
-    _query_surface_format(physical_device.native(), surface.native());
+    _query_surface_format(surface.native());
 
     // The surface also determines the presentation engine modes we can choose
     // from
-    _query_surface_present_modes(physical_device.native(), surface.native());
+    _query_surface_present_modes(surface.native());
 
     // Build out the create info struct
     auto const create_info = _populate_create_info(surface.native());
@@ -132,11 +130,9 @@ void vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index) 
 }
 
 // =============================================================================
-void vkSwapchain::_query_surface_capabilities(
-    vk::PhysicalDevice const &physical_device,
-    vk::SurfaceKHR const &surface)
-{
-    auto const result = physical_device.getSurfaceCapabilitiesKHR(surface);
+void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
+    auto const result =
+        vkPhysicalDevice::native().getSurfaceCapabilitiesKHR(surface);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not get surface capabilities: '{}'",
                      vk::to_string(result.result));
@@ -179,11 +175,9 @@ void vkSwapchain::_query_surface_capabilities(
 }
 
 // =============================================================================
-void vkSwapchain::_query_surface_format(
-    vk::PhysicalDevice const &physical_device,
-    vk::SurfaceKHR const &surface)
-{
-    auto const result = physical_device.getSurfaceFormatsKHR(surface);
+void vkSwapchain::_query_surface_format(vk::SurfaceKHR const &surface) {
+    auto const result =
+        vkPhysicalDevice::native().getSurfaceFormatsKHR(surface);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not get surface formats: '{}'",
                       vk::to_string(result.result));
@@ -232,11 +226,9 @@ void vkSwapchain::_query_surface_format(
 }
 
 // =============================================================================
-void vkSwapchain::_query_surface_present_modes(
-    vk::PhysicalDevice const &physical_device,
-    vk::SurfaceKHR const &surface)
-{
-    auto const result = physical_device.getSurfacePresentModesKHR(surface);
+void vkSwapchain::_query_surface_present_modes(vk::SurfaceKHR const &surface) {
+    auto const result =
+        vkPhysicalDevice::native().getSurfacePresentModesKHR(surface);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Could not query surface present modes: '{}'",
                      vk::to_string(result.result));

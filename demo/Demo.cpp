@@ -49,8 +49,7 @@ Demo::Demo() :
 { }
 
 // =============================================================================
-void Demo::init(btx::vkPhysicalDevice const &physical_device,
-                btx::vkDevice const &device, btx::vkSwapchain const &swapchain)
+void Demo::init(btx::vkDevice const &device, btx::vkSwapchain const &swapchain)
 {
     BTX_TRACE("client app init");
 
@@ -97,7 +96,7 @@ void Demo::init(btx::vkPhysicalDevice const &physical_device,
     _create_texture(device);
 
     _create_color_pass(device, swapchain);
-    _create_color_depth_pass(physical_device, device, swapchain, msaa_samples);
+    _create_color_depth_pass(device, swapchain, msaa_samples);
 }
 
 // =============================================================================
@@ -479,13 +478,12 @@ void Demo::_create_color_pass(btx::vkDevice const &device,
 }
 
 // =============================================================================
-void Demo::_create_color_depth_pass(
-    btx::vkPhysicalDevice const &physical_device, btx::vkDevice const &device,
-    btx::vkSwapchain const &swapchain, vk::SampleCountFlagBits const samples)
+void Demo::_create_color_depth_pass(btx::vkDevice const &device,
+                                    btx::vkSwapchain const &swapchain,
+                                    vk::SampleCountFlagBits const samples)
 {
     _color_depth_pass =
         new btx::vkColorDepthPass(
-            physical_device,
             device,
             swapchain.image_format(),
             {

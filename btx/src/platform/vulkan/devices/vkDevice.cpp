@@ -9,8 +9,7 @@
 namespace btx {
 
 // =============================================================================
-vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
-                   Layers const &layers) :
+vkDevice::vkDevice(Layers const &layers) :
     _handle         { nullptr },
     _graphics_queue { nullptr },
     _transient_pool { nullptr }
@@ -22,14 +21,14 @@ vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
     vk::DeviceQueueCreateInfo const queue_info[] {{
         .pNext = nullptr,
         .flags = { },
-        .queueFamilyIndex = physical_device.graphics_queue_index(),
+        .queueFamilyIndex = vkPhysicalDevice::graphics_queue_index(),
         .queueCount = static_cast<uint32_t>(std::size(queue_priorities)),
         .pQueuePriorities = queue_priorities,
     }};
 
     // The logical device wants to know what the physical device has enabled
-    auto const &extensions = physical_device.extensions();
-    auto const *features   = &(physical_device.features());
+    auto const &extensions = vkPhysicalDevice::extensions();
+    auto const *features   = &(vkPhysicalDevice::features());
 
     // Now populate the device's create struct
     const vk::DeviceCreateInfo device_info {
@@ -43,7 +42,7 @@ vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
     };
 
     // And try to create it
-    auto const result = physical_device.native().createDevice(
+    auto const result = vkPhysicalDevice::native().createDevice(
         &device_info,   // Create info
         nullptr,        // Allocator
         &_handle        // Destination handle
@@ -60,14 +59,14 @@ vkDevice::vkDevice(vkPhysicalDevice const &physical_device,
 
     // Retrieve the queue abstraction
     _graphics_queue =
-        new vkQueue(*this, physical_device.graphics_queue_index());
+        new vkQueue(*this, vkPhysicalDevice::graphics_queue_index());
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
     _transient_pool = new vkCmdPool(
         *this,
-        physical_device.graphics_queue_index(),
+        vkPhysicalDevice::graphics_queue_index(),
         vk::CommandPoolCreateFlagBits::eTransient
     );
 }
@@ -79,6 +78,7 @@ vkDevice::~vkDevice() {
 
     BTX_TRACE("Destroying logical device {}", _handle);
     _handle.destroy();
+    _handle = nullptr;
 }
 
 // =============================================================================

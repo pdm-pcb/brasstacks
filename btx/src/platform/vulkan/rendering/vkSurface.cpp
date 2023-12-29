@@ -1,17 +1,13 @@
 #include "brasstacks/core.hpp"
-
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 
 namespace btx {
 
-vkSurface::vkSurface(vkInstance const &instance,
-                     vk::Win32SurfaceCreateInfoKHR const &create_info) :
-_instance { instance }
-{
+vkSurface::vkSurface(vk::Win32SurfaceCreateInfoKHR const &create_info) {
     // Attempt to create, then check
-    auto const result = _instance.native().createWin32SurfaceKHR(create_info);
+    auto const result = vkInstance::native().createWin32SurfaceKHR(create_info);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Unable to create Win32 KHR surface: '{}'",
                      vk::to_string(result.result));
@@ -25,8 +21,8 @@ _instance { instance }
 
 vkSurface::~vkSurface() {
     BTX_TRACE("Destroying Vulkan surface {}", _handle);
-
-    _instance.native().destroy(_handle);
+    vkInstance::native().destroy(_handle);
+    _handle = nullptr;
 }
 
 } // namespace btx

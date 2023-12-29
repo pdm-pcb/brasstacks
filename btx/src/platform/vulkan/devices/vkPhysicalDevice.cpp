@@ -9,16 +9,17 @@
 
 namespace btx {
 
+vkPhysicalDevice::Devices vkPhysicalDevice::_available_devices = { };
+vkPhysicalDevice::DeviceProps vkPhysicalDevice::_chosen_device = { };
+
 // =============================================================================
-vkPhysicalDevice::vkPhysicalDevice(vkInstance    const &instance,
-                                   vkSurface     const &surface,
-                                   FeatureList   const &required_features,
-                                   ExtensionList const &required_extensions) :
-    _available_devices  { },
-    _chosen_device      { }
+void vkPhysicalDevice::select(vkSurface     const &surface,
+                              FeatureList   const &required_features,
+                              ExtensionList const &required_extensions)
+
 {
     // Populate a list of devices we can choose from and sort by "performance"
-    _enumerate_and_sort(instance);
+    _enumerate_and_sort(vkInstance::native());
 
     for(auto &device : _available_devices) {
         // Check that the card supports receiving graphics and presentation
@@ -57,9 +58,6 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance    const &instance,
 
     BTX_INFO("Selected {}", _chosen_device.name);
 
-    vkBuffer::set_memory_props(_chosen_device.memory);
-    vkImage::set_memory_props(_chosen_device.memory);
-
     if(_chosen_device.max_samples & vk::SampleCountFlagBits::e64) {
         RenderConfig::msaa_samples = 64;
     }
@@ -83,9 +81,9 @@ vkPhysicalDevice::vkPhysicalDevice(vkInstance    const &instance,
 }
 
 // =============================================================================
-void vkPhysicalDevice::_enumerate_and_sort(vkInstance const &instance) {
+void vkPhysicalDevice::_enumerate_and_sort(vk::Instance const &instance) {
     // Populate the list of physical devices
-    auto const result = instance.native().enumeratePhysicalDevices();
+    auto const result = instance.enumeratePhysicalDevices();
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to enumerate physical devices.");
         return;

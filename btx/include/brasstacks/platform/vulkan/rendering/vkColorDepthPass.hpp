@@ -6,15 +6,13 @@
 
 namespace btx {
 
-class vkPhysicalDevice;
 class vkDevice;
 class vkImage;
 class vkImageView;
 
 class vkColorDepthPass final : public vkRenderPass {
 public:
-    vkColorDepthPass(vkPhysicalDevice const &physical_device,
-                     vkDevice const &device, vk::Format const format,
+    vkColorDepthPass(vkDevice const &device, vk::Format const format,
                      vk::Extent2D const &extent,
                      vk::SampleCountFlagBits const msaa_samples);
 
@@ -49,7 +47,7 @@ private:
     std::vector<vk::SubpassDescription>    _subpasses;
     std::vector<vk::SubpassDependency>     _subpass_dependencies;
 
-    void _find_depth_stencil_format(vkPhysicalDevice const &physical_device);
+    void _find_depth_stencil_format();
     void _create_color_buffer();
     void _create_depth_buffer();
     void _init_attachments();

@@ -10,7 +10,6 @@
 
 namespace btx {
 
-class vkInstance;
 class vkSurface;
 
 /**
@@ -45,26 +44,25 @@ public:
     using ExtensionList = std::vector<std::string_view>;
 
     /**
-     * @brief Construct the vk Physical Device object.
+     * @brief Selects a physical device based on surface capabilities, required
+     * features, and required extensions
      * @param instance An established Vulkan instance
      * @param surface An established Vulkan surface
      * @param required_features A list of features the selected device must
      * support
      * @param required_extensions A list of extensions the selected device must
      * support
+     * @return void
      */
-    vkPhysicalDevice(vkInstance    const &instance,
-                     vkSurface     const &surface,
-                     FeatureList   const &required_features,
-                     ExtensionList const &required_extensions);
-
-    ~vkPhysicalDevice() = default;
+    static void select(vkSurface     const &surface,
+                       FeatureList   const &required_features,
+                       ExtensionList const &required_extensions);
 
     /**
      * @brief Return the device queue family index.
      * @return uint32_t
      */
-    inline auto graphics_queue_index() const {
+    static inline auto graphics_queue_index() {
         return _chosen_device.graphics_queue_index;
     }
 
@@ -72,7 +70,7 @@ public:
      * @brief Return a list of enabled device features.
      * @return struct vk::PhysicalDeviceFeatures const&
      */
-    inline auto const & features() const {
+    static inline auto const & features() {
         return _chosen_device.enabled_features;
     }
 
@@ -80,17 +78,22 @@ public:
      * @brief Return a list of enabled device features.
      * @return struct vk::PhysicalDeviceFeatures const&
      */
-    inline auto const & extensions() const {
+    static inline auto const & extensions() {
         return _chosen_device.enabled_extensions;
+    }
+
+    static inline auto const & memory_properties() {
+        return _chosen_device.memory;
     }
 
     /**
      * @brief Return the native Vulkan handle.
      * @return vk::PhysicalDevice const&
      */
-    inline auto const & native() const { return _chosen_device.handle; }
+    static inline auto const & native() { return _chosen_device.handle; }
 
     vkPhysicalDevice() = delete;
+    ~vkPhysicalDevice() = delete;
 
     vkPhysicalDevice(vkPhysicalDevice &&) = delete;
     vkPhysicalDevice(const vkPhysicalDevice &) = delete;
@@ -122,21 +125,22 @@ private:
         std::vector<char const *> enabled_extensions;
     };
 
+    using Devices = std::vector<DeviceProps>;
     /**
      * @brief A list of devices to choose from
      */
-    std::vector<DeviceProps> _available_devices;
+    static Devices _available_devices;
 
     /**
      * @brief The details of the device that supported provided requirements
      */
-    DeviceProps _chosen_device;
+    static DeviceProps _chosen_device;
 
     /**
      * @brief Make a list of phsyical devices available via this instance
      * @param instance An established Vulkan instance
      */
-    void _enumerate_and_sort(vkInstance const &instance);
+    static void _enumerate_and_sort(vk::Instance const &instance);
 
     /**
      * @brief Check if a device supports graphics and present commands within
@@ -175,7 +179,7 @@ private:
      * @brief Populate a DeviceProps struct and add it to _available_devices
      * @param device The native Vulkan device handle
      */
-    void _store_device(vk::PhysicalDevice const &device);
+    static void _store_device(vk::PhysicalDevice const &device);
 
     /**
      * @brief Log queue family capabilities

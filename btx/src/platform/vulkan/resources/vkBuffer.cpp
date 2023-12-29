@@ -2,12 +2,11 @@
 
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 
+#include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 namespace btx {
-
-vk::PhysicalDeviceMemoryProperties vkBuffer::_memory_props;
 
 // =============================================================================
 vkBuffer::vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
@@ -16,11 +15,6 @@ vkBuffer::vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
     _device      { device },
     _size_bytes  { size_bytes }
 {
-    if(_memory_props.memoryHeapCount == 0) {
-        BTX_CRITICAL("vkBuffer::_memory_props must be set before creating a "
-                     "device buffer.");
-    }
-
     vk::BufferCreateInfo const create_info {
         .size        = _size_bytes,
         .usage       = usage_flags,
@@ -53,12 +47,6 @@ vkBuffer::~vkBuffer() {
 
     _device.native().destroyBuffer(_handle);
     _device.native().freeMemory(_memory);
-}
-
-// =============================================================================
-void
-vkBuffer::set_memory_props(vk::PhysicalDeviceMemoryProperties const &props) {
-    _memory_props = props;
 }
 
 // =============================================================================
@@ -152,13 +140,14 @@ void vkBuffer::_allocate(vk::MemoryPropertyFlags const flags) {
 uint32_t vkBuffer::_get_memory_type_index(vk::MemoryPropertyFlags const flags,
                                           vk::MemoryRequirements const &reqs)
 {
-    auto const type_count = _memory_props.memoryTypeCount;
+    auto const &memory_props = vkPhysicalDevice::memory_properties();
+    auto const type_count = memory_props.memoryTypeCount;
 
     // This bit-rithmetic bears some explanation. We're checking two bit fields
     // against our requirements for the memory itself.
 
     for(uint32_t type_index = 0u; type_index < type_count; ++type_index) {
-        auto const type = _memory_props.memoryTypes[type_index];
+        auto const type = memory_props.memoryTypes[type_index];
 
         // Each type index is actually a field in memoryTypeBits. If the index
         // we're currently on is enabled, that means we've found a matching

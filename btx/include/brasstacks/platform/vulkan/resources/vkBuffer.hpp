@@ -14,10 +14,6 @@ public:
              vk::MemoryPropertyFlags const memory_flags);
     ~vkBuffer();
 
-    static void set_memory_props(
-        vk::PhysicalDeviceMemoryProperties const &props
-    );
-
     void fill_buffer(void const *data) const;
     void send_to_device(void const *data) const;
 
@@ -37,8 +33,6 @@ private:
     vk::Buffer       _handle;
     vk::DeviceSize   _size_bytes;
     vk::DeviceMemory _memory;
-
-    static vk::PhysicalDeviceMemoryProperties _memory_props;
 
     void _allocate(vk::MemoryPropertyFlags const flags);
 

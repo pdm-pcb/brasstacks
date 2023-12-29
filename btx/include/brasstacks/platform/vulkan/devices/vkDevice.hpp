@@ -10,7 +10,6 @@
 
 namespace btx {
 
-class vkPhysicalDevice;
 class vkQueue;
 class vkCmdPool;
 
@@ -31,8 +30,7 @@ public:
      * @param layers A list of string literals corresponding to logical device
      * layers to enable
      */
-    explicit vkDevice(vkPhysicalDevice const &physical_device,
-                      Layers const &layers = { });
+    explicit vkDevice(Layers const &layers = { });
 
     ~vkDevice();
 

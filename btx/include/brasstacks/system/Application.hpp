@@ -14,7 +14,6 @@ struct KeyReleaseEvent;
 class TargetWindow;
 class Renderer;
 
-class vkPhysicalDevice;
 class vkDevice;
 class vkSwapchain;
 class vkCmdBuffer;
@@ -65,8 +64,7 @@ protected:
      * The overridden function is called after other systems are online, just
      * before the main application loop begins.
      */
-    virtual void init(vkPhysicalDevice const &physical_device,
-                      vkDevice const &device, vkSwapchain const &swapchain) = 0;
+    virtual void init(vkDevice const &device, vkSwapchain const &swapchain) = 0;
     /**
      * @brief A chance for the user to do any cleanup.
      *

@@ -9,12 +9,25 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace btx {
 
+vk::DynamicLoader         vkInstance::_loader = { };
+uint32_t                  vkInstance::_target_api_version = { };
+vk::ApplicationInfo       vkInstance::_app_info = { };
+std::vector<char const *> vkInstance::_enabled_layers = { };
+std::vector<char const *> vkInstance::_enabled_extensions = { };
+
+#ifdef BTX_DEBUG
+    vkInstance::ValidationFeatures vkInstance::_validation_features = { };
+    vk::ValidationFeaturesEXT      vkInstance::_validation_extensions = { };
+#endif // BTX_DEBUG
+
+vk::Instance vkInstance::_handle = nullptr;
+
 // =============================================================================
-vkInstance::vkInstance(uint32_t const api_version) :
-    _target_api_version { api_version }
-{
+void vkInstance::create(uint32_t const api_version) {
     static std::once_flag initialized;
     std::call_once(initialized, [&] {
+        _target_api_version = api_version;
+
         _init_dynamic_loader(); // The first step for using the dynamic loader
         _init_app_info();       // Provide hints about this app to the driver
         _init_layers();         // Init the validation layer, if we're in debug
@@ -88,12 +101,13 @@ vkInstance::vkInstance(uint32_t const api_version) :
 }
 
 // =============================================================================
-vkInstance::~vkInstance() {
+void vkInstance::destroy() {
 #ifdef BTX_DEBUG
     vkDebugger::shutdown(_handle);
 #endif // BTX_DEBUG
 
     _handle.destroy();
+    _handle = nullptr;
 }
 
 // =============================================================================

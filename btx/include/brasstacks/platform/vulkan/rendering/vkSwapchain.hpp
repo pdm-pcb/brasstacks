@@ -10,7 +10,6 @@
 
 namespace btx {
 
-class vkPhysicalDevice;
 class vkSurface;
 class vkDevice;
 class vkImage;
@@ -32,8 +31,7 @@ public:
      * @param surface The surface about which this swapchain is concerned
      * @param device An established Vulkan logical device
      */
-    vkSwapchain(vkPhysicalDevice const &physical_device,
-                vkSurface const &surface, vkDevice const &device);
+    vkSwapchain(vkDevice const &device, vkSurface const &surface);
 
     ~vkSwapchain();
 
@@ -113,27 +111,21 @@ private:
     /**
      * @brief Query various surface capabilities, like supported image counts,
      * resolutions, and array layers
-     * @param physical_device An established Vulkan physical device
      * @param surface The associated Vulkan surface
      */
-    void _query_surface_capabilities(vk::PhysicalDevice const &physical_device,
-                                     vk::SurfaceKHR const &surface);
+    void _query_surface_capabilities(vk::SurfaceKHR const &surface);
 
     /**
      * @brief Query for the surface's image format and color space
-     * @param physical_device An established Vulkan physical device
      * @param surface The associated Vulkan surface
      */
-    void _query_surface_format(vk::PhysicalDevice const &physical_device,
-                               vk::SurfaceKHR const &surface);
+    void _query_surface_format(vk::SurfaceKHR const &surface);
 
     /**
      * @brief Query for supported presentation engine modes
-     * @param physical_device An established Vulkan physical device
      * @param surface The associated Vulkan surface
      */
-    void _query_surface_present_modes(vk::PhysicalDevice const &physical_device,
-                                      vk::SurfaceKHR const &surface);
+    void _query_surface_present_modes(vk::SurfaceKHR const &surface);
 
     /**
      * @brief Fill and return a Vulkan swapchain create info structure

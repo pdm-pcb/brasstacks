@@ -12,10 +12,8 @@ namespace btx {
 
 class TargetWindow;
 
-class vkInstance;
-class vkPhysicalDevice;
-class vkDevice;
 class vkSurface;
+class vkDevice;
 class vkSwapchain;
 class vkFrameSync;
 class vkCmdBuffer;
@@ -43,7 +41,6 @@ public:
 
     void wait_device_idle();
 
-    inline auto const & physical_device() const { return *_physical_device; }
     inline auto const & device() const { return *_device; }
     inline auto const & swapchain() const { return *_swapchain; }
 
@@ -56,11 +53,9 @@ public:
     Renderer & operator=(const Renderer &) = delete;
 
 private:
-    vkInstance       *_instance;
-    vkPhysicalDevice *_physical_device;
-    vkDevice         *_device;
-    vkSurface        *_surface;
-    vkSwapchain      *_swapchain;
+    vkDevice    *_device;
+    vkSurface   *_surface;
+    vkSwapchain *_swapchain;
 
     /**
      * @brief A queue of semaphores for acquiring images from the swapchain.

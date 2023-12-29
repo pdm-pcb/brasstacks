@@ -31,8 +31,7 @@ class CubeMesh;
 
 class Demo final : public btx::Application {
 public:
-    void init(btx::vkPhysicalDevice const &physical_device,
-              btx::vkDevice const &device,
+    void init(btx::vkDevice const &device,
               btx::vkSwapchain const &swapchain) override;
     void shutdown() override;
 
@@ -90,8 +89,7 @@ private:
     void _create_color_pass(btx::vkDevice const &device,
                             btx::vkSwapchain const &swapchain);
 
-    void _create_color_depth_pass(btx::vkPhysicalDevice const &physical_device,
-                                  btx::vkDevice const &device,
+    void _create_color_depth_pass(btx::vkDevice const &device,
                                   btx::vkSwapchain const &swapchain,
                                   vk::SampleCountFlagBits const samples);
 

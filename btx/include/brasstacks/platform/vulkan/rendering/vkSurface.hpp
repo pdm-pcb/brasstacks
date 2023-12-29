@@ -10,8 +10,6 @@
 
 namespace btx {
 
-class vkInstance;
-
 /**
  * @brief A wrapper class for a Vulkan surface.
  *
@@ -26,8 +24,7 @@ public:
      * @param instance An established Vulkan instance
      * @param create_info Surface creation details
      */
-    vkSurface(vkInstance const &instance,
-              vk::XlibSurfaceCreatInfoKHR const &create_info);
+    vkSurface(vk::XlibSurfaceCreatInfoKHR const &create_info);
 
 #elif defined(BTX_WINDOWS)
     /**
@@ -35,8 +32,7 @@ public:
      * @param instance An established Vulkan instance
      * @param create_info Surface creation details
      */
-    vkSurface(vkInstance const &instance,
-              vk::Win32SurfaceCreateInfoKHR const &create_info);
+    vkSurface(vk::Win32SurfaceCreateInfoKHR const &create_info);
 
 #endif // BTX platform
 
@@ -57,11 +53,6 @@ public:
     vkSurface & operator=(const vkSurface &) = delete;
 
 private:
-    /**
-     * @brief The Vulkan instance that created this surface.
-     */
-    vkInstance const &_instance;
-
     /**
      * @brief The native Vulkan handle for this surface.
      */

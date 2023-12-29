@@ -30,9 +30,10 @@ namespace btx {
 
 // =============================================================================
 Renderer::Renderer(TargetWindow const &target_window) :
-    _instance         { new vkInstance() },
     _image_index { std::numeric_limits<uint32_t>::max() }
 {
+    vkInstance::create();
+
     // First, acquire the details necessary to construct a Vulkan surface from
     // the target window
 #if defined(BTX_LINUX)
@@ -55,10 +56,9 @@ Renderer::Renderer(TargetWindow const &target_window) :
 
 #endif // BTX platform
 
-    _surface = new vkSurface(*_instance, create_info);
+    _surface = new vkSurface(create_info);
 
-    _physical_device = new vkPhysicalDevice(
-        *_instance,
+    vkPhysicalDevice::select(
         *_surface,
         {
             vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
@@ -70,13 +70,12 @@ Renderer::Renderer(TargetWindow const &target_window) :
     );
 
     _device = new vkDevice(
-        *_physical_device
 #ifdef BTX_DEBUG
-        , { "VK_LAYER_KHRONOS_validation", }
+        { "VK_LAYER_KHRONOS_validation", }
 #endif // BTX_DEBUG
     );
 
-    _swapchain = new vkSwapchain(*_physical_device, *_surface, *_device);
+    _swapchain = new vkSwapchain(*_device, *_surface);
 
     _create_frame_sync();
 }
@@ -87,9 +86,7 @@ Renderer::~Renderer() {
 
     delete _swapchain;
     delete _device;
-    delete _physical_device;
     delete _surface;
-    delete _instance;
 }
 
 // =============================================================================

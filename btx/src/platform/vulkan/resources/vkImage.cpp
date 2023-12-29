@@ -1,6 +1,7 @@
 #include "brasstacks/core.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 
+#include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
@@ -10,8 +11,6 @@
 #include <stb/stb_image.h>
 
 namespace btx {
-
-vk::PhysicalDeviceMemoryProperties vkImage::_memory_props;
 
 // =============================================================================
 vkImage::vkImage(vkDevice  const &device, vk::Image const &handle,
@@ -156,12 +155,6 @@ vkImage::~vkImage() {
 }
 
 // =============================================================================
-void vkImage::set_memory_props(vk::PhysicalDeviceMemoryProperties const &props)
-{
-    _memory_props = props;
-}
-
-// =============================================================================
 void * vkImage::_load_from_file(std::string_view const filename) {
     auto const filepath = BTX_ASSET_PATH / filename;
 
@@ -243,13 +236,14 @@ void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
 uint32_t vkImage::_memory_type_index(vk::MemoryPropertyFlags const flags,
                                      vk::MemoryRequirements const reqs)
 {
-    auto const type_count = _memory_props.memoryTypeCount;
+    auto const &memory_props = vkPhysicalDevice::memory_properties();
+    auto const type_count = memory_props.memoryTypeCount;
 
     // This bit-rithmetic bears some explanation. We're checking two bit fields
     // against our requirements for the memory itself.
 
     for(uint32_t type_index = 0u; type_index < type_count; ++type_index) {
-        auto const type = _memory_props.memoryTypes[type_index];
+        auto const type = memory_props.memoryTypes[type_index];
 
         // Each type index is actually a field in memoryTypeBits. If the index
         // we're currently on is enabled, that means we've found a matching

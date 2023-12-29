@@ -8,8 +8,7 @@
 
 namespace btx {
 
-vkColorDepthPass::vkColorDepthPass(vkPhysicalDevice const &physical_device,
-                                   vkDevice const &device,
+vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
                                    vk::Format const format,
                                    vk::Extent2D const &extent,
                                    vk::SampleCountFlagBits const msaa_samples) :
@@ -29,7 +28,7 @@ vkColorDepthPass::vkColorDepthPass(vkPhysicalDevice const &physical_device,
     _subpasses               { },
     _subpass_dependencies    { }
 {
-    _find_depth_stencil_format(physical_device);
+    _find_depth_stencil_format();
     _create_color_buffer();
     _create_depth_buffer();
     _init_attachments();
@@ -67,9 +66,7 @@ vkColorDepthPass::~vkColorDepthPass() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_find_depth_stencil_format(
-    vkPhysicalDevice const &physical_device)
-{
+void vkColorDepthPass::_find_depth_stencil_format() {
     const std::vector<vk::Format> depth_options {
         vk::Format::eD32Sfloat,
         vk::Format::eD32SfloatS8Uint,
@@ -77,7 +74,7 @@ void vkColorDepthPass::_find_depth_stencil_format(
     };
 
     for(auto const& option : depth_options) {
-        auto props = physical_device.native().getFormatProperties(option);
+        auto props = vkPhysicalDevice::native().getFormatProperties(option);
         if(props.optimalTilingFeatures &
            vk::FormatFeatureFlagBits::eDepthStencilAttachment)
         {
