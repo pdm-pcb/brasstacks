@@ -369,12 +369,16 @@ void Win32TargetWindow::_size_and_place() {
 
     switch(uMsg) {
         case WM_KEYDOWN: {
-            auto const translated = _keymap.translate(wParam);
+            auto const translated = _keymap.translate(
+                static_cast<const ::USHORT>(wParam)
+            );
             EventBroker::emit<KeyPressEvent>(translated);
             break;
         }
         case WM_KEYUP: {
-            auto const translated = _keymap.translate(wParam);
+            auto const translated = _keymap.translate(
+                static_cast<const ::USHORT>(wParam)
+            );
             EventBroker::emit<KeyReleaseEvent>(translated);
             break;
         }
@@ -432,11 +436,11 @@ void Win32TargetWindow::_size_and_place() {
 
         case WM_ACTIVATE:
             if(wParam == WA_INACTIVE) {
-                _deregister_raw_input();
+                // _deregister_raw_input();
                 // _release_cursor();
             }
             else {
-                _register_raw_input();
+                // _register_raw_input();
                 // _restrict_cursor();
             }
             break;
