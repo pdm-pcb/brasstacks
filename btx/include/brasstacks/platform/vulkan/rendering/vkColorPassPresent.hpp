@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORDEPTHPASS_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORDEPTHPASS_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORPASSPRESENT_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORPASSPRESENT_HPP
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
@@ -10,24 +10,24 @@ class vkDevice;
 class vkImage;
 class vkImageView;
 
-class vkColorDepthPass final : public vkRenderPass {
+class vkColorPassPresent final : public vkRenderPass {
 public:
-    vkColorDepthPass(vkDevice const &device, vk::Format const format,
+    vkColorPassPresent(vkDevice const &device, vk::Format const format,
                      vk::Extent2D const &extent,
                      vk::SampleCountFlagBits const msaa_samples);
 
-    ~vkColorDepthPass() override;
+    ~vkColorPassPresent() override;
 
     auto const & color_views() const { return _color_views; }
     auto const & depth_views() const { return _depth_views; }
 
-    vkColorDepthPass() = delete;
+    vkColorPassPresent() = delete;
 
-    vkColorDepthPass(vkColorDepthPass &&) = delete;
-    vkColorDepthPass(vkColorDepthPass const &) = delete;
+    vkColorPassPresent(vkColorPassPresent &&) = delete;
+    vkColorPassPresent(vkColorPassPresent const &) = delete;
 
-    vkColorDepthPass & operator=(vkColorDepthPass &&) = delete;
-    vkColorDepthPass & operator=(vkColorDepthPass const &) = delete;
+    vkColorPassPresent & operator=(vkColorPassPresent &&) = delete;
+    vkColorPassPresent & operator=(vkColorPassPresent const &) = delete;
 
 private:
     vk::Extent2D _extent;
@@ -56,4 +56,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORDEPTHPASS_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORPASSPRESENT_HPP

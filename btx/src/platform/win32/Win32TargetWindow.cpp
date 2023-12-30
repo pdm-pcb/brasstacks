@@ -368,6 +368,16 @@ void Win32TargetWindow::_size_and_place() {
     // BTX_WARN("{}", _msg_map.translate(uMsg));
 
     switch(uMsg) {
+        case WM_KEYDOWN: {
+            auto const translated = _keymap.translate(wParam);
+            EventBroker::emit<KeyPressEvent>(translated);
+            break;
+        }
+        case WM_KEYUP: {
+            auto const translated = _keymap.translate(wParam);
+            EventBroker::emit<KeyReleaseEvent>(translated);
+            break;
+        }
         case WM_INPUT: {
             // First call to GetRawInputData is just to get the size of the
             // message so we can check it later
@@ -423,11 +433,11 @@ void Win32TargetWindow::_size_and_place() {
         case WM_ACTIVATE:
             if(wParam == WA_INACTIVE) {
                 _deregister_raw_input();
-                _release_cursor();
+                // _release_cursor();
             }
             else {
                 _register_raw_input();
-                _restrict_cursor();
+                // _restrict_cursor();
             }
             break;
 

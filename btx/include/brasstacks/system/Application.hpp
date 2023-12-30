@@ -83,14 +83,6 @@ protected:
     virtual void record_commands(vkCmdBuffer const &cmd_buffer,
                                  uint32_t const image_index) = 0;
 
-    /**
-     * @brief An interface between the user and Renderer.
-     *
-     * The user must call this function in order to submit draw calls to the
-     * Renderer backend.
-     */
-    void request_draw();
-
 private:
     /**
      * @brief Controls whether the application's main loop continues.

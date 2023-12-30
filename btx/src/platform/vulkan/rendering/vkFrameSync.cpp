@@ -63,7 +63,7 @@ void vkFrameSync::wait_and_reset() const {
 
 // =============================================================================
 void vkFrameSync::_create_cmd_structures() {
-    _cmd_pool = new vkCmdPool(_device, _device.graphics_queue().index(),
+    _cmd_pool = new vkCmdPool(_device, _device.graphics_queue().family_index(),
                               vk::CommandPoolCreateFlagBits::eTransient);
 
     _cmd_buffer = new vkCmdBuffer(_device, *_cmd_pool);

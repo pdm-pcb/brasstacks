@@ -10,8 +10,9 @@ class vkDevice;
 class vkDescriptorPool final {
 public:
     using PoolSizes = std::set<vk::DescriptorPoolSize>;
-    vkDescriptorPool(vkDevice const &device, uint32_t const max_sets,
-                     PoolSizes const &sizes);
+    vkDescriptorPool(vkDevice const &device,
+                     vk::DescriptorPoolCreateFlags const flags,
+                     uint32_t const max_sets, PoolSizes const &sizes);
     ~vkDescriptorPool();
 
     inline auto const& native() const { return _handle; }

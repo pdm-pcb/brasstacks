@@ -1,5 +1,5 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorPassPresent.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -8,7 +8,7 @@
 
 namespace btx {
 
-vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
+vkColorPassPresent::vkColorPassPresent(vkDevice const &device,
                                    vk::Format const format,
                                    vk::Extent2D const &extent,
                                    vk::SampleCountFlagBits const msaa_samples) :
@@ -47,7 +47,7 @@ vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
 }
 
 // =============================================================================
-vkColorDepthPass::~vkColorDepthPass() {
+vkColorPassPresent::~vkColorPassPresent() {
     for(auto *view : _depth_views) {
         delete view;
     }
@@ -66,7 +66,7 @@ vkColorDepthPass::~vkColorDepthPass() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_find_depth_stencil_format() {
+void vkColorPassPresent::_find_depth_stencil_format() {
     const std::vector<vk::Format> depth_options {
         vk::Format::eD32Sfloat,
         vk::Format::eD32SfloatS8Uint,
@@ -88,7 +88,7 @@ void vkColorDepthPass::_find_depth_stencil_format() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_create_color_buffer() {
+void vkColorPassPresent::_create_color_buffer() {
     vkImage::ImageInfo const color_buffer_info {
         .type = vk::ImageType::e2D,
         .samples = _msaa_samples,
@@ -117,7 +117,7 @@ void vkColorDepthPass::_create_color_buffer() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_create_depth_buffer() {
+void vkColorPassPresent::_create_depth_buffer() {
     vkImage::ImageInfo const depth_stencil_info {
         .type = vk::ImageType::e2D,
         .samples = _msaa_samples,
@@ -145,7 +145,7 @@ void vkColorDepthPass::_create_depth_buffer() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_init_attachments() {
+void vkColorPassPresent::_init_attachments() {
     _attachment_descriptions = {{
         // color buffer (msaa) attachment description
         .format         = _color_format,
@@ -195,7 +195,7 @@ void vkColorDepthPass::_init_attachments() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_init_subpasses() {
+void vkColorPassPresent::_init_subpasses() {
     _subpasses = {{
         // This subpass is a graphical one
         .pipelineBindPoint = vk::PipelineBindPoint::eGraphics,

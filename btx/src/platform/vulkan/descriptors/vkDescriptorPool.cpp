@@ -1,5 +1,4 @@
 #include "brasstacks/core.hpp"
-
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -8,6 +7,7 @@ namespace btx {
 
 // =============================================================================
 vkDescriptorPool::vkDescriptorPool(vkDevice const &device,
+                                   vk::DescriptorPoolCreateFlags const flags,
                                    uint32_t const max_sets,
                                    PoolSizes const &sizes) :
     _device { device }
@@ -19,7 +19,7 @@ vkDescriptorPool::vkDescriptorPool(vkDevice const &device,
 
     vk::DescriptorPoolCreateInfo const create_info {
         .pNext         = nullptr,
-        .flags         = { },
+        .flags         = flags,
         .maxSets       = max_sets,
         .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
         .pPoolSizes    = pool_sizes.data(),

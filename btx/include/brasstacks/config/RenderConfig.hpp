@@ -2,6 +2,7 @@
 #define BRASSTACKS_CONFIG_RENDERCONFIG_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/math/colors.hpp"
 
 namespace btx {
 
@@ -26,7 +27,7 @@ struct RenderConfig final {
 
     static bool vsync_on;
 
-    static std::array<float, 4> clear_color;
+    static Color clear_color;
 
     static float anisotropy;
 

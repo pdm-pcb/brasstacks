@@ -12,19 +12,9 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
-#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
-#include "brasstacks/rendering/meshes/CubeMesh.hpp"
-
-#include "brasstacks/tools/FPSCamera.hpp"
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
-#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
-#include "brasstacks/rendering/RenderPass.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
+#include "brasstacks/system/DebugOverlay.hpp"
 
 namespace btx {
 
@@ -78,10 +68,14 @@ Renderer::Renderer(TargetWindow const &target_window) :
     _swapchain = new vkSwapchain(*_device, *_surface);
 
     _create_frame_sync();
+
+    _debug_overlay = new DebugOverlay(*_device, target_window, *_swapchain);
 }
 
 // =============================================================================
 Renderer::~Renderer() {
+    delete _debug_overlay;
+
     _destroy_frame_sync();
 
     delete _swapchain;
@@ -136,6 +130,9 @@ vkCmdBuffer const & Renderer::begin_recording() {
 void Renderer::end_recording() {
     auto &frame_sync  = *_frame_sync[_image_index];
     auto const &cmd_buffer  = frame_sync.cmd_buffer();
+
+    _debug_overlay->render_ui(cmd_buffer, _image_index);
+
     cmd_buffer.end_recording();
 }
 

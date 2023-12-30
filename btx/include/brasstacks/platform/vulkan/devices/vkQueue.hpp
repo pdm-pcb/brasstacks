@@ -25,7 +25,7 @@ public:
      * @brief Return the queue family index
      * @return uint32_t
      */
-    inline auto index() const { return _index; }
+    inline auto family_index() const { return _family_index; }
 
     /**
      * @brief Return the native Vulkan handle
@@ -54,7 +54,7 @@ private:
     /**
      * @brief This queue's family index
      */
-    uint32_t const _index;
+    uint32_t const _family_index;
 
     /**
      * @brief The native Vulkan handle

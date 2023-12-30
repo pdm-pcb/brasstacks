@@ -13,7 +13,7 @@ float   RenderConfig::swapchain_aspect_ratio = 0.0f;
 
 bool RenderConfig::vsync_on = true;
 
-std::array<float, 4> RenderConfig::clear_color { 0.04f, 0.04f, 0.08f, 1.0f };
+btx::Color RenderConfig::clear_color { 0.04f, 0.04f, 0.08f };
 
 float RenderConfig::anisotropy = 1.0f;
 

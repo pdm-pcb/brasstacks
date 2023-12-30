@@ -7,13 +7,10 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkColorPass.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
-
-#include "brasstacks/rendering/RenderPass.hpp"
 
 #include "brasstacks/rendering/meshes/PlaneMesh.hpp"
 #include "brasstacks/rendering/meshes/CubeMesh.hpp"
@@ -36,15 +33,9 @@ Demo::Demo() :
     _texture_sampler          { nullptr },
     _texture_set_layout       { nullptr },
     _texture_set              { nullptr },
-    _color_pass               { nullptr },
-    _color_pipeline           { nullptr },
-    _color_framebuffers       { },
     _color_depth_pass         { nullptr },
     _color_depth_pipeline     { nullptr },
-    _color_depth_framebuffers { },
-    _debug_ui_pass            { nullptr },
-    _debug_ui_pipeline        { nullptr },
-    _debug_ui_framebuffers    { }
+    _color_depth_framebuffers { }
 
 { }
 
@@ -54,7 +45,7 @@ void Demo::init(btx::vkDevice const &device, btx::vkSwapchain const &swapchain)
     BTX_TRACE("client app init");
 
     _descriptor_pool = new btx::vkDescriptorPool(
-        device,
+        device, { },
         1000u,
         {
             { vk::DescriptorType::eUniformBuffer,        1000u, },
@@ -94,8 +85,6 @@ void Demo::init(btx::vkDevice const &device, btx::vkSwapchain const &swapchain)
         btx::vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples);
 
     _create_texture(device);
-
-    _create_color_pass(device, swapchain);
     _create_color_depth_pass(device, swapchain, msaa_samples);
 }
 
@@ -136,71 +125,7 @@ void Demo::update() {
 void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
                            uint32_t const image_index)
 {
-    // _record_color_commands(cmd_buffer, image_index);
     _record_color_depth_commands(cmd_buffer, image_index);
-}
-
-// =============================================================================
-void Demo::_record_color_commands(btx::vkCmdBuffer const &cmd_buffer,
-                                  uint32_t const image_index)
-{
-    std::array<btx::math::Mat4, 2> const vp {{
-        _camera->view_matrix(), _camera->proj_matrix()
-    }};
-
-    _camera_ubos[image_index]->fill_buffer(vp.data());
-
-    static std::array<vk::ClearValue, 1> const clear_values = {{
-        { .color { btx::RenderConfig::clear_color }},
-    }};
-
-    vk::Rect2D const render_area = {
-        .offset {
-            .x = btx::RenderConfig::swapchain_image_offset.x,
-            .y = btx::RenderConfig::swapchain_image_offset.y,
-        },
-        .extent {
-            .width  = btx::RenderConfig::swapchain_image_size.width,
-            .height = btx::RenderConfig::swapchain_image_size.height,
-        }
-    };
-
-    auto const &framebuffer = *_color_framebuffers[image_index];
-
-    cmd_buffer.begin_render_pass(
-        vk::RenderPassBeginInfo {
-            .pNext           = nullptr,
-            .renderPass      = _color_pass->native(),
-            .framebuffer     = framebuffer.native(),
-            .renderArea      = render_area,
-            .clearValueCount = static_cast<uint32_t>(clear_values.size()),
-            .pClearValues    = clear_values.data(),
-        }
-    );
-
-    _color_pipeline->bind(cmd_buffer);
-    _color_pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
-    _color_pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
-
-    _send_color_push_constants(cmd_buffer, {
-        PushConstant {
-            .stage_flags = vk::ShaderStageFlagBits::eVertex,
-            .size_bytes = sizeof(btx::math::Mat4),
-            .data = &_plane_mat,
-        }
-    });
-    _plane_mesh->draw_indexed(cmd_buffer);
-
-    _send_color_push_constants(cmd_buffer, {
-        PushConstant {
-            .stage_flags = vk::ShaderStageFlagBits::eVertex,
-            .size_bytes = sizeof(btx::math::Mat4),
-            .data = &_cube_mat,
-        }
-    });
-    _cube_mesh->draw_indexed(cmd_buffer);
-
-    cmd_buffer.end_render_pass();
 }
 
 // =============================================================================
@@ -216,7 +141,13 @@ void Demo::_record_color_depth_commands(btx::vkCmdBuffer const &cmd_buffer,
     auto const &framebuffer = *_color_depth_framebuffers[image_index];
 
     static std::array<vk::ClearValue, 2> const clear_values = {{
-        { .color { btx::RenderConfig::clear_color }},
+        { .color = std::array<float, 4> {{
+                btx::RenderConfig::clear_color.x,
+                btx::RenderConfig::clear_color.y,
+                btx::RenderConfig::clear_color.z,
+                1.0f
+            }}
+        },
         { .depthStencil
             {
                 .depth = 1.0f,
@@ -270,24 +201,6 @@ void Demo::_record_color_depth_commands(btx::vkCmdBuffer const &cmd_buffer,
     _cube_mesh->draw_indexed(cmd_buffer);
 
     cmd_buffer.end_render_pass();
-}
-
-// =============================================================================
-void Demo::_send_color_push_constants(btx::vkCmdBuffer const &cmd_buffer,
-                                      PushConstants const &push_constants)
-{
-    size_t offset = 0u;
-    for(auto const& push_constant : push_constants) {
-        cmd_buffer.native().pushConstants(
-            _color_pipeline->layout(),
-            push_constant.stage_flags,
-            static_cast<uint32_t>(offset),
-            static_cast<uint32_t>(push_constant.size_bytes),
-            push_constant.data
-        );
-
-        offset += push_constant.size_bytes;
-    }
 }
 
 // =============================================================================
@@ -429,61 +342,12 @@ void Demo::_destroy_texture() {
 }
 
 // =============================================================================
-void Demo::_create_color_pass(btx::vkDevice const &device,
-                              btx::vkSwapchain const &swapchain)
-{
-    _color_pass = new btx::vkColorPass(device, swapchain.image_format());
-
-    _color_pipeline = new btx::vkPipeline(device);
-    (*_color_pipeline)
-        .module_from_spirv("shaders/demo.vert",
-                           vk::ShaderStageFlagBits::eVertex)
-        .module_from_spirv("shaders/demo.frag",
-                           vk::ShaderStageFlagBits::eFragment)
-        .describe_vertex_input(btx::Vertex::bindings, btx::Vertex::attributes)
-        .add_descriptor_set(*_camera_ubo_layout)
-        .add_descriptor_set(*_texture_set_layout)
-        .add_push_constant(
-            vk::ShaderStageFlagBits::eVertex,
-            sizeof(btx::math::Mat4)
-        )
-        .create(
-            *_color_pass,
-            {
-                .color_formats = { swapchain.image_format() },
-                .depth_format = vk::Format::eUndefined,
-                .viewport_extent = {
-                    .width  = btx::RenderConfig::swapchain_image_size.width,
-                    .height = btx::RenderConfig::swapchain_image_size.height,
-                },
-                .viewport_offset = {
-                    .x = btx::RenderConfig::swapchain_image_offset.x,
-                    .y = btx::RenderConfig::swapchain_image_offset.y,
-                },
-                .sample_flags = vk::SampleCountFlagBits::e1,
-            }
-        );
-
-    for(auto const *view : swapchain.image_views()) {
-        _color_framebuffers.emplace_back(new btx::vkFramebuffer(
-            device,
-            *_color_pass,
-            {
-                .width  = btx::RenderConfig::swapchain_image_size.width,
-                .height = btx::RenderConfig::swapchain_image_size.height,
-            },
-            {{ view->native() }}
-        ));
-    }
-}
-
-// =============================================================================
 void Demo::_create_color_depth_pass(btx::vkDevice const &device,
                                     btx::vkSwapchain const &swapchain,
                                     vk::SampleCountFlagBits const samples)
 {
     _color_depth_pass =
-        new btx::vkColorDepthPass(
+        new btx::vkColorPass(
             device,
             swapchain.image_format(),
             {
@@ -543,21 +407,9 @@ void Demo::_create_color_depth_pass(btx::vkDevice const &device,
 
 // =============================================================================
 void Demo::_destroy_render_passes() {
-    for(auto *framebuffer : _color_framebuffers) {
-        delete framebuffer;
-    }
-    delete _color_pipeline;
-    delete _color_pass;
-
     for(auto *framebuffer : _color_depth_framebuffers) {
         delete framebuffer;
     }
     delete _color_depth_pipeline;
     delete _color_depth_pass;
-
-    for(auto *framebuffer : _debug_ui_framebuffers) {
-        delete framebuffer;
-    }
-    delete _debug_ui_pipeline;
-    delete _debug_ui_pass;
 }

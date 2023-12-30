@@ -4,84 +4,242 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
 
-vkColorPass::vkColorPass(vkDevice const &device, vk::Format const format) :
-    vkRenderPass { device }
+vkColorPass::vkColorPass(vkDevice const &device, vk::Format const format,
+                         vk::Extent2D const &extent,
+                         vk::SampleCountFlagBits const msaa_samples) :
+    vkRenderPass   { device },
+    _extent        { extent },
+    _msaa_samples  { msaa_samples },
+    _color_format  { format },
+    _depth_format  { vk::Format::eUndefined },
+    _color_buffers {  },
+    _color_views   {  },
+    _depth_buffers {  },
+    _depth_views   {  },
+    _attachment_descriptions { },
+    _color_attachments       { },
+    _depth_attachment        { },
+    _resolve_attachments     { },
+    _subpasses               { },
+    _subpass_dependencies    { }
 {
+    _find_depth_stencil_format();
+    _create_color_buffer();
+    _create_depth_buffer();
+    _init_attachments();
+    _init_subpasses();
 
-    // Describe the color buffer attachment
-    vk::AttachmentDescription const color_buffer_desc {
-        .flags          = { },
-        .format         = format,
-        .samples        = vk::SampleCountFlagBits::e1,
+    vk::RenderPassCreateInfo const create_info {
+        .attachmentCount = static_cast<uint32_t>(_attachment_descriptions.size()),
+        .pAttachments    = _attachment_descriptions.data(),
+        .subpassCount    = static_cast<uint32_t>(_subpasses.size()),
+        .pSubpasses      = _subpasses.data(),
+        .dependencyCount = static_cast<uint32_t>(_subpass_dependencies.size()),
+        .pDependencies   = _subpass_dependencies.data()
+    };
+
+    this->create(create_info);
+}
+
+// =============================================================================
+vkColorPass::~vkColorPass() {
+    for(auto *view : _depth_views) {
+        delete view;
+    }
+
+    for(auto *buffer : _depth_buffers) {
+        delete buffer;
+    }
+
+    for(auto *view : _color_views) {
+        delete view;
+    }
+
+    for(auto *buffer : _color_buffers) {
+        delete buffer;
+    }
+}
+
+// =============================================================================
+void vkColorPass::_find_depth_stencil_format() {
+    const std::vector<vk::Format> depth_options {
+        vk::Format::eD32Sfloat,
+        vk::Format::eD32SfloatS8Uint,
+        vk::Format::eD24UnormS8Uint
+    };
+
+    for(auto const& option : depth_options) {
+        auto props = vkPhysicalDevice::native().getFormatProperties(option);
+        if(props.optimalTilingFeatures &
+           vk::FormatFeatureFlagBits::eDepthStencilAttachment)
+        {
+            BTX_TRACE("Using depth stencil format {}", vk::to_string(option));
+            _depth_format = option;
+            return;
+        }
+    }
+
+    BTX_CRITICAL("Unable to find suitable depth stencil format");
+}
+
+// =============================================================================
+void vkColorPass::_create_color_buffer() {
+    vkImage::ImageInfo const color_buffer_info {
+        .type = vk::ImageType::e2D,
+        .samples = _msaa_samples,
+        .usage_flags = (vk::ImageUsageFlagBits::eColorAttachment |
+                        vk::ImageUsageFlagBits::eTransientAttachment),
+        .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
+    };
+
+    for(size_t i = 0; i < RenderConfig::swapchain_image_count; ++i) {
+        _color_buffers.emplace_back(
+            new vkImage(this->device(),
+                        _extent,
+                        _color_format,
+                        color_buffer_info)
+        );
+
+        _color_views.emplace_back(
+            new vkImageView(this->device(),
+                            *_color_buffers.back(),
+                            vk::ImageViewType::e2D,
+                            vk::ImageAspectFlagBits::eColor)
+        );
+    }
+
+    BTX_TRACE("Created color/depth color buffers");
+}
+
+// =============================================================================
+void vkColorPass::_create_depth_buffer() {
+    vkImage::ImageInfo const depth_stencil_info {
+        .type = vk::ImageType::e2D,
+        .samples = _msaa_samples,
+        .usage_flags = vk::ImageUsageFlagBits::eDepthStencilAttachment,
+        .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
+    };
+
+    for(size_t i = 0; i < RenderConfig::swapchain_image_count; ++i) {
+        _depth_buffers.emplace_back(
+            new vkImage(this->device(),
+                        _extent,
+                        _depth_format,
+                        depth_stencil_info)
+        );
+
+        _depth_views.emplace_back(
+            new vkImageView(this->device(),
+                            *_depth_buffers.back(),
+                            vk::ImageViewType::e2D,
+                            vk::ImageAspectFlagBits::eDepth)
+        );
+    }
+
+    BTX_TRACE("Created color/depth depth buffers");
+}
+
+// =============================================================================
+void vkColorPass::_init_attachments() {
+    _attachment_descriptions = {{
+        // color buffer (msaa) attachment description
+        .format         = _color_format,
+        .samples        = _msaa_samples,
         .loadOp         = vk::AttachmentLoadOp::eClear,
+        .storeOp        = vk::AttachmentStoreOp::eDontCare,
+        .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
+        .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+        .initialLayout  = vk::ImageLayout::eUndefined,
+        .finalLayout    = vk::ImageLayout::eColorAttachmentOptimal,
+    },
+    {   // depth buffer attachment description
+        .format         = _depth_format,
+        .samples        = _msaa_samples,
+        .loadOp         = vk::AttachmentLoadOp::eClear,
+        .storeOp        = vk::AttachmentStoreOp::eDontCare,
+        .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
+        .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+        .initialLayout  = vk::ImageLayout::eUndefined,
+        .finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+    },
+    {   // final presentation/resolve attachment
+        .format         = _color_format,
+        .samples        = vk::SampleCountFlagBits::e1,
+        .loadOp         = vk::AttachmentLoadOp::eDontCare,
         .storeOp        = vk::AttachmentStoreOp::eStore,
         .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
         .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
         .initialLayout  = vk::ImageLayout::eUndefined,
-        .finalLayout    = vk::ImageLayout::ePresentSrcKHR,
+        .finalLayout    = vk::ImageLayout::eColorAttachmentOptimal,
+    }};
+
+    _color_attachments = {{
+        .attachment = 0u,
+        .layout     = vk::ImageLayout::eColorAttachmentOptimal,
+    }};
+
+    _depth_attachment = {
+        .attachment = 1u,
+        .layout     = vk::ImageLayout::eDepthStencilAttachmentOptimal,
     };
 
-	// We have one subpass. This subpass has one color attachment. While
-    // executing this subpass, the attachment will be in attachment optimal
-    // layout.
-    vk::AttachmentReference const color_buffer_ref {
-        .attachment = 0,
+    _resolve_attachments = {{
+        .attachment = 2u,
         .layout = vk::ImageLayout::eColorAttachmentOptimal,
-    };
+    }};
+}
 
-	// We will end up with two transitions.
-	// The first one happens right before we start subpass #0, where
-	// eUndefined is transitioned into eColorAttachmentOptimal.
-	// The final layout in the render pass attachment states ePresentSrcKHR, so
-	// we will get a final transition from eColorAttachmentOptimal to
-    // ePresetSrcKHR.
-    vk::SubpassDescription const subpass_desc {
-        .flags                   = { },
-        .pipelineBindPoint       = vk::PipelineBindPoint::eGraphics,
-        .inputAttachmentCount    = 0u,
-        .pInputAttachments       = nullptr,
-        .colorAttachmentCount    = 1u,
-        .pColorAttachments       = &color_buffer_ref,
-        .pResolveAttachments     = nullptr,
-        .pDepthStencilAttachment = nullptr,
+// =============================================================================
+void vkColorPass::_init_subpasses() {
+    _subpasses = {{
+        // This subpass is a graphical one
+        .pipelineBindPoint = vk::PipelineBindPoint::eGraphics,
+
+        // ...Which has no input of any kind
+        .inputAttachmentCount = 0u,
+        .pInputAttachments    = nullptr,
+
+        // But does have a single color attachment
+        .colorAttachmentCount =
+            static_cast<uint32_t>(_color_attachments.size()),
+        .pColorAttachments   = _color_attachments.data(),
+
+        // With whatever MSAA samples we've got
+        .pResolveAttachments = _resolve_attachments.data(),
+
+        // With a depth stencil
+        .pDepthStencilAttachment = &_depth_attachment,
+
+        // As we've only got a single subpass, there's nothing to preserve
+        // between subpasses
         .preserveAttachmentCount = 0u,
         .pPreserveAttachments    = nullptr,
-    };
+    }};
 
-	// Create a dependency to external events.
-	// We need to wait for the WSI semaphore to signal.
-	// Only pipeline stages which depend on eColorAttachmentOutput will
-	// actually wait for the semaphore, so we must also wait for that pipeline stage.
-    vk::SubpassDependency const subpass_dep {
-        .srcSubpass   = VK_SUBPASS_EXTERNAL,
-        .dstSubpass   = 0u,
-        .srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
-        .dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
-
-         // Since we changed the image layout, we need to make the memory
-         // visible to color attachment to modify.
-        .srcAccessMask = { },
-        .dstAccessMask = (vk::AccessFlagBits::eColorAttachmentRead |
-                          vk::AccessFlagBits::eColorAttachmentWrite),
-        .dependencyFlags = { },
-    };
-
-	// Finally, create the renderpass.
-	vk::RenderPassCreateInfo const create_info {
-        .pNext           = nullptr,
-        .flags           = { },
-        .attachmentCount = 1u,
-        .pAttachments    = &color_buffer_desc,
-        .subpassCount    = 1u,
-        .pSubpasses      = &subpass_desc,
-        .dependencyCount = 1u,
-        .pDependencies   = &subpass_dep,
-    };
-
-    this->create(create_info);
+    _subpass_dependencies = {{
+        .srcSubpass      = VK_SUBPASS_EXTERNAL,
+        .dstSubpass      = 0u,
+        .srcStageMask    = vk::PipelineStageFlagBits::eBottomOfPipe,
+        .dstStageMask    = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+        .srcAccessMask   = vk::AccessFlagBits::eMemoryRead,
+        .dstAccessMask   = vk::AccessFlagBits::eColorAttachmentWrite,
+        .dependencyFlags = vk::DependencyFlagBits::eByRegion
+    },
+    {
+        .srcSubpass      = VK_SUBPASS_EXTERNAL,
+        .dstSubpass      = 0u,
+        .srcStageMask    = (vk::PipelineStageFlagBits::eEarlyFragmentTests |
+                            vk::PipelineStageFlagBits::eLateFragmentTests),
+        .dstStageMask    = (vk::PipelineStageFlagBits::eEarlyFragmentTests |
+                            vk::PipelineStageFlagBits::eLateFragmentTests),
+        .srcAccessMask   = vk::AccessFlagBits::eNone,
+        .dstAccessMask   = vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+        .dependencyFlags = vk::DependencyFlagBits::eByRegion
+    }};
 }
 
 } // namespace btx

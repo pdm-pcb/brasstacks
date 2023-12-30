@@ -11,7 +11,7 @@
 namespace btx {
 
 class vkDevice;
-class vkColorDepthPass;
+class vkColorPassPresent;
 class vkCmdPool;
 class vkCmdBuffer;
 
