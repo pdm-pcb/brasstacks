@@ -8,6 +8,12 @@
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 
+#include <imgui_impl_win32.h>
+
+extern IMGUI_IMPL_API LRESULT
+ImGui_ImplWin32_WndProcHandler(::HWND hWnd, ::UINT uMsg, ::WPARAM wParam,
+                               ::LPARAM lParam);
+
 namespace btx {
 
 // =============================================================================
@@ -367,6 +373,10 @@ void Win32TargetWindow::_size_and_place() {
 {
     // BTX_WARN("{}", _msg_map.translate(uMsg));
 
+    if(::ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
+        return true;
+    }
+
     switch(uMsg) {
         case WM_KEYDOWN: {
             auto const translated = _keymap.translate(
@@ -375,6 +385,7 @@ void Win32TargetWindow::_size_and_place() {
             EventBroker::emit<KeyPressEvent>(translated);
             break;
         }
+
         case WM_KEYUP: {
             auto const translated = _keymap.translate(
                 static_cast<const ::USHORT>(wParam)
@@ -382,6 +393,7 @@ void Win32TargetWindow::_size_and_place() {
             EventBroker::emit<KeyReleaseEvent>(translated);
             break;
         }
+
         case WM_INPUT: {
             // First call to GetRawInputData is just to get the size of the
             // message so we can check it later
@@ -450,13 +462,13 @@ void Win32TargetWindow::_size_and_place() {
         case WM_CLOSE:
             ::DestroyWindow(hWnd);
             ::UnregisterClassA(BTX_NAME, nullptr);
-            return 0;
+            return false;
 
         // And this is the second message, but also the last one we have to
         // handle explicitly.
         case WM_DESTROY:
             ::PostQuitMessage(0);
-            return 0;
+            return false;
 
         default: break;
     }

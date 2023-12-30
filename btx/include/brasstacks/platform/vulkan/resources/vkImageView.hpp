@@ -23,7 +23,6 @@ public:
      * @brief Construct the vkImageView object.
      * @param device An established Vulkan logical device
      * @param image The image for which this view is being created
-     * @param format The associated image's format
      * @param type The image type, eg 2D, 3D, Cube
      * @param aspect_flags Image flags, eg color, depth, stencil
      */

@@ -88,6 +88,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
             "-Wno-newline-eof"
             "-Wno-global-constructors"      # There are some statics I like
             "-Wno-exit-time-destructors"    # Same as above
+            "-Wno-c99-designator"
             "-fsafe-buffer-usage-suggestions"
         )
     endif()

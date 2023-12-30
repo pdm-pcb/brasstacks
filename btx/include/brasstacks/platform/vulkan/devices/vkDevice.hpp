@@ -26,7 +26,6 @@ public:
 
     /**
      * @brief Construct the vkDevice object.
-     * @param physical_device An established Vulkan physical device
      * @param layers A list of string literals corresponding to logical device
      * layers to enable
      */

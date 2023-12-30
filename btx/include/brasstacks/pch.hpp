@@ -16,7 +16,6 @@
 
     #define VK_USE_PLATFORM_XLIB_KHR
     #include <vulkan/vulkan.hpp>
-
     #include <vulkan/vulkan_xlib.h>
 #elif defined(BTX_WINDOWS)
     // Start with the old standbys
@@ -52,7 +51,6 @@
 
     #define VK_USE_PLATFORM_WIN32_KHR
     #include <vulkan/vulkan.hpp>
-
     #include <vulkan/vulkan_win32.h>
 #endif // BTX platform
 

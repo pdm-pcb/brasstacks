@@ -27,7 +27,6 @@ public:
 
     /**
      * @brief Construct the vkSwapchain object.
-     * @param physical_device An established Vulkan physical device
      * @param surface The surface about which this swapchain is concerned
      * @param device An established Vulkan logical device
      */

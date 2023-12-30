@@ -90,14 +90,4 @@ Vec4 operator/(Vec4 const &v, float scalar) {
     return { v.x / scalar, v.y / scalar, v.z / scalar, v.w / scalar };
 }
 
-// =============================================================================
-std::ostream & operator<<(std::ostream& out, Vec4 const& v) {
-    out << std::fixed << std::setprecision(print_precs)
-        << std::setw(print_width) << v.x << " "
-        << std::setw(print_width) << v.y << " "
-        << std::setw(print_width) << v.z;
-
-    return out;
-}
-
 } // namespace btx::math

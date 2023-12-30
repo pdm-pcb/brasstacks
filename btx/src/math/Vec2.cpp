@@ -75,13 +75,4 @@ Vec2::Vec2(float const x_value, float const y_value) :
     y { y_value }
 { }
 
-// =============================================================================
-std::ostream & operator<<(std::ostream& out, Vec2 const& v) {
-    out << std::fixed << std::setprecision(print_precs)
-        << std::setw(print_width) << v.x << " "
-        << std::setw(print_width) << v.y;
-
-    return out;
-}
-
 } // namespace btx::math

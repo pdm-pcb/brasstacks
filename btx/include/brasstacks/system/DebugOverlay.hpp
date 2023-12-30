@@ -41,6 +41,9 @@ private:
     void _create_framebuffers(vkSwapchain const &swapchain);
     void _init_imgui(TargetWindow const &target_window,
                      vkSwapchain const &swapchain);
+
+    void _draw_title_bar();
+    void _draw_menu();
 };
 
 } // namespace btx

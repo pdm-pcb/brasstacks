@@ -46,13 +46,11 @@ public:
     /**
      * @brief Selects a physical device based on surface capabilities, required
      * features, and required extensions
-     * @param instance An established Vulkan instance
      * @param surface An established Vulkan surface
      * @param required_features A list of features the selected device must
      * support
      * @param required_extensions A list of extensions the selected device must
      * support
-     * @return void
      */
     static void select(vkSurface     const &surface,
                        FeatureList   const &required_features,

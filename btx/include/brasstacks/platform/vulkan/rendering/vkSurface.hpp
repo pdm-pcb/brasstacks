@@ -29,7 +29,6 @@ public:
 #elif defined(BTX_WINDOWS)
     /**
      * @brief Construct the win32 vkSurface object.
-     * @param instance An established Vulkan instance
      * @param create_info Surface creation details
      */
     vkSurface(vk::Win32SurfaceCreateInfoKHR const &create_info);

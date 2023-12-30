@@ -13,13 +13,13 @@ class vkImageView;
 class vkColorPass final : public vkRenderPass {
 public:
     vkColorPass(vkDevice const &device, vk::Format const format,
-                vk::Extent2D const &extent,
-                vk::SampleCountFlagBits const msaa_samples);
+                vk::Extent2D const &extent, bool const present);
 
     ~vkColorPass() override;
 
     auto const & color_views() const { return _color_views; }
     auto const & depth_views() const { return _depth_views; }
+    auto msaa_samples() const { return _msaa_samples; }
 
     vkColorPass() = delete;
 
@@ -31,9 +31,10 @@ public:
 
 private:
     vk::Extent2D _extent;
+    vk::Format   _color_format;
+    vk::Format   _depth_format;
+
     vk::SampleCountFlagBits _msaa_samples;
-    vk::Format _color_format;
-    vk::Format _depth_format;
 
     std::vector<vkImage *>     _color_buffers;
     std::vector<vkImageView *> _color_views;
@@ -50,7 +51,7 @@ private:
     void _find_depth_stencil_format();
     void _create_color_buffer();
     void _create_depth_buffer();
-    void _init_attachments();
+    void _init_attachments(bool const present);
     void _init_subpasses();
 };
 
