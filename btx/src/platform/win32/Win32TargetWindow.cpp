@@ -67,8 +67,6 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _register_class();
     _create_window();
     _size_and_place();
-
-    show_window();
 }
 
 // =============================================================================
@@ -83,6 +81,7 @@ Win32TargetWindow::~Win32TargetWindow() {
 // =============================================================================
 void Win32TargetWindow::show_window() {
     ::ShowWindow(_window_handle, SW_SHOWNORMAL);
+    ::UpdateWindow(_window_handle);
 }
 
 // =============================================================================
@@ -181,10 +180,10 @@ void Win32TargetWindow::_create_window() {
 
     // Create!
     _window_handle = ::CreateWindowExW(
-        0u,                      // No extended style
-        _class_name,             // Win32 class name
-        _window_title,           // Win32 window title
-        WS_OVERLAPPEDWINDOW,                // Popup window style means no decorations
+        0u,                          // No extended style
+        _window_class.lpszClassName, // Win32 class name
+        _window_title,               // Win32 window title
+        WS_OVERLAPPEDWINDOW,     // Normal window style/controls
         CW_USEDEFAULT,           // x location
         CW_USEDEFAULT,           // y location
         CW_USEDEFAULT,           // Window width
@@ -411,7 +410,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
     }
 
     // We don't know what our "this" pointer is, so just do the default
-    // thing. Hopefully, we didn't need to customize the behavior yet.
+    // thing. Hopefully that doesn't break anything
     return ::DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }
 
@@ -490,16 +489,16 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             break;
         }
 
-        case WM_ACTIVATE:
-            if(wParam == WA_INACTIVE) {
-                // _deregister_raw_input();
-                // _release_cursor();
-            }
-            else {
-                // _register_raw_input();
-                // _restrict_cursor();
-            }
-            break;
+        // case WM_ACTIVATE:
+        //     if(wParam == WA_INACTIVE) {
+        //         _deregister_raw_input();
+        //         _release_cursor();
+        //     }
+        //     else {
+        //         _register_raw_input();
+        //         _restrict_cursor();
+        //     }
+        //     break;
 
         // This is the first message received in window close cascade. Note the
         // early return so there's no call to ::DefWindowProc()

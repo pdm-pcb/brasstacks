@@ -37,6 +37,8 @@ void Application::run() {
     // Give the user a chance to bring up their data
     this->init(_renderer->device(), _renderer->swapchain());
 
+    _target_window->show_window();
+
     while(_running) {
         // Tick the clock
         Timekeeper::update();
