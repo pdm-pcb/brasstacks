@@ -16,14 +16,16 @@ ImGui_ImplWin32_WndProcHandler(::HWND hWnd, ::UINT uMsg, ::WPARAM wParam,
 
 namespace btx {
 
+Win32MsgToStr const Win32TargetWindow::_msg_map;
+Win32ToBTXKeys const Win32TargetWindow::_keymap;
+
 // =============================================================================
 Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
-    _window_title   { app_name.data() },
+    _class_name     { nullptr },
+    _window_class   { },
+    _window_title   { nullptr },
     _window_handle  { nullptr },
-    _device_context { nullptr },
-    _raw_msg        { new char[sizeof(::RAWINPUT)] },
-    _msg_map        { },
-    _keymap         { },
+    _raw_msg        { new std::byte[sizeof(::RAWINPUT)] },
     _screen_size    { 0u, 0u },
     _screen_center  { 0, 0 }
 {
@@ -34,7 +36,7 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     if(!SUCCEEDED(set_dpi_awareness_result)) {
         auto const error = ::GetLastError();
         BTX_WARN(
-            "Could not set process DPI awareness. Error {}: '{}'",
+            "Could not set process DPI awareness.\n\tError {:#x}: '{}'",
             error,
             std::system_category().message(static_cast<int>(error))
         );
@@ -53,6 +55,15 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
         static_cast<int32_t>(_screen_size.height / 2)
     };
 
+    // Now convert the window class name and window title from strings to
+    // wide strings
+    if(!str_to_wstr(BTX_NAME, &_class_name)) {
+        // return;
+    }
+    if(!str_to_wstr(app_name, &_window_title)) {
+        // return;
+    }
+
     _register_class();
     _create_window();
     _size_and_place();
@@ -63,7 +74,9 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
 // =============================================================================
 Win32TargetWindow::~Win32TargetWindow() {
     _destroy_window();
-    // Clean up our one allocation
+
+    delete[] _window_title;
+    delete[] _class_name;
     delete[] _raw_msg;
 }
 
@@ -91,46 +104,44 @@ void Win32TargetWindow::message_loop() {
 // =============================================================================
 void Win32TargetWindow::_register_class() {
     // Now it's time to register the window class
-    ::WNDCLASSEXA const wcex {
-        .cbSize = sizeof(::WNDCLASSEXA),
+    _window_class.cbSize = sizeof(::WNDCLASSEXA);
 
-        // These flags instruct Windows to redraw the entire window surface if
-        // the size changes; by default it'll just refresh the new real estate
-        .style = CS_HREDRAW | CS_VREDRAW,
+    // These flags instruct Windows to redraw the entire window surface if
+    // the size changes; by default it'll just refresh the new real estate
+    _window_class.style = CS_HREDRAW | CS_VREDRAW;
 
-        // Specify the callback for Windows messages
-        .lpfnWndProc = _static_wndproc,
+    // Specify the callback for Windows messages
+    _window_class.lpfnWndProc = _static_wndproc;
 
-        // These two are unused
-        .cbClsExtra = 0,
-        .cbWndExtra = 0,
+    // These two are unused
+    _window_class.cbClsExtra = 0;
+    _window_class.cbWndExtra = 0;
 
-        // hInstance is null since we're not using winmain
-        .hInstance = nullptr,
+    // hInstance is null since we're not using winmain
+    _window_class.hInstance = ::GetModuleHandleW(nullptr);
 
-        // No icon. Maybe some day?
-        .hIcon = nullptr,
+    // No icon. Maybe some day?
+    _window_class.hIcon = nullptr;
 
-        // Also no custom cursor
-        .hCursor = nullptr,
+    // Also no custom cursor
+    _window_class.hCursor = nullptr;
 
-        // I'm setting the window's background to black so it doesn't flash
-        // white before the renderer can set a clear color
-        .hbrBackground = static_cast<::HBRUSH>(::GetStockObject(BLACK_BRUSH)),
+    // I'm setting the window's background to black so it doesn't flash
+    // white before the renderer can set a clear color
+    _window_class.hbrBackground = static_cast<::HBRUSH>(::GetStockObject(BLACK_BRUSH));
 
-        // No menu
-        .lpszMenuName = nullptr,
+    // No menu
+    _window_class.lpszMenuName = nullptr;
 
-        // The class name is the same as the Vulkan appinfo's engine name
-        .lpszClassName = BTX_NAME,
-    };
+    // Now, assign the new string to the class definition
+    _window_class.lpszClassName = _class_name;
 
     // Try to use this class definition
-    auto const result = ::RegisterClassEx(&wcex);
+    auto const result = ::RegisterClassExW(&_window_class);
     if(!SUCCEEDED(result)) {
         auto const error = ::GetLastError();
         BTX_CRITICAL(
-            "Could register window class. Error {}: '{}'",
+            "Could register window class.\n\tError {:#x}: '{}'",
             error,
             std::system_category().message(static_cast<int>(error))
         );
@@ -169,27 +180,27 @@ void Win32TargetWindow::_create_window() {
     }
 
     // Create!
-    _window_handle = ::CreateWindowExA(
-        0u,             // No extended style
-        BTX_NAME,       // Win32 class name
-        _window_title,  // Win32 window title
-        WS_POPUP,       // Popup window style means no decorations
-        CW_USEDEFAULT,  // x location
-        CW_USEDEFAULT,  // y location
-        CW_USEDEFAULT,  // Window width
-        CW_USEDEFAULT,  // Window height
-        nullptr,        // Parent window handle
-        nullptr,        // Menu handle
-        nullptr,        // Instance handle
-        this            // Pointer to lParam; retrieved later via WM_NCCREATE
+    _window_handle = ::CreateWindowExW(
+        0u,                      // No extended style
+        _class_name,             // Win32 class name
+        _window_title,           // Win32 window title
+        WS_OVERLAPPEDWINDOW,                // Popup window style means no decorations
+        CW_USEDEFAULT,           // x location
+        CW_USEDEFAULT,           // y location
+        CW_USEDEFAULT,           // Window width
+        CW_USEDEFAULT,           // Window height
+        nullptr,                 // Parent window handle
+        nullptr,                 // Menu handle
+        _window_class.hInstance, // Instance handle
+        this                     // Pointer for lParam - retrieved later via
+                                 // WM_NCCREATE
     );
 
     if(_window_handle == nullptr) {
         auto const error = ::GetLastError();
         BTX_CRITICAL(
-            "Failed to create win32 target window. Error {}: '{}'",
-            error,
-            std::system_category().message(static_cast<int>(error))
+            "Failed to create win32 target window.\n\tError {:#x}: '{}'",
+            error, std::system_category().message(static_cast<int>(error))
         );
         return;
     }
@@ -200,7 +211,7 @@ void Win32TargetWindow::_create_window() {
 // =============================================================================
 void Win32TargetWindow::_destroy_window() {
     BTX_TRACE("Destroying win32 target window.");
-    ::SendMessageA(_window_handle, WM_CLOSE, 0, 0);
+    ::SendMessageW(_window_handle, WM_CLOSE, 0, 0);
     Win32TargetWindow::message_loop();
 }
 
@@ -333,9 +344,46 @@ void Win32TargetWindow::_size_and_place() {
 }
 
 // =============================================================================
+bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
+{
+    // Allocate and zero a fresh wchar buffer
+    *wstr = new ::WCHAR[str.size() + 1];
+    ::memset(*wstr, 0, str.size() + 1);
+
+    // And convert the string
+    size_t wchars_written;
+    auto const error = ::mbstowcs_s(
+        &wchars_written, // Output of wchars written to buffer
+        *wstr,           // Destination buffer
+        str.size() + 1,  // Size of destination
+        str.data(),      // Source string
+        _TRUNCATE        // Number of wchars to write to destination
+    );
+
+    // If we didn't write str.size() wchars to the buffer, something went wrong
+    if(wchars_written != static_cast<int>(str.size() + 1) || error != 0) {
+        BTX_ERROR("Failed to convert C-string '{}' with length {} to wide "
+                  "string. Wrote {} characters to buffer."
+                  "\n\tError {:#x}: '{}'",
+                  str, str.size(), wchars_written, error,
+                  std::system_category().message(static_cast<int>(error)));
+
+        return false;
+    }
+
+    return true;
+}
+
+// =============================================================================
 ::LRESULT Win32TargetWindow::_static_wndproc(::HWND hWnd, ::UINT uMsg,
                                              ::WPARAM wParam, ::LPARAM lParam)
 {
+    // BTX_INFO("{}", _msg_map.translate(uMsg));
+
+    if(::ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
+        return true;
+    }
+
     static Win32TargetWindow *target = nullptr;
 
     if(uMsg == WM_NCCREATE) {
@@ -345,14 +393,14 @@ void Win32TargetWindow::_size_and_place() {
         target = static_cast<Win32TargetWindow *>(lpcs->lpCreateParams);
 
         // Put the value in a safe place for future use
-        ::SetWindowLongPtrA(hWnd, GWLP_USERDATA,
+        ::SetWindowLongPtrW(hWnd, GWLP_USERDATA,
                             reinterpret_cast<::LONG_PTR>(target));
     }
     else {
         // Recover the "this" pointer from where our WM_NCCREATE handler
         // stashed it.
         target = reinterpret_cast<Win32TargetWindow *>(
-            ::GetWindowLongPtrA(hWnd, GWLP_USERDATA)
+            ::GetWindowLongPtrW(hWnd, GWLP_USERDATA)
         );
     }
 
@@ -364,18 +412,14 @@ void Win32TargetWindow::_size_and_place() {
 
     // We don't know what our "this" pointer is, so just do the default
     // thing. Hopefully, we didn't need to customize the behavior yet.
-    return ::DefWindowProcA(hWnd, uMsg, wParam, lParam);
+    return ::DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }
 
 // =============================================================================
 ::LRESULT Win32TargetWindow::_inst_wndproc(::HWND hWnd, ::UINT uMsg,
                                            ::WPARAM wParam, ::LPARAM lParam)
 {
-    // BTX_WARN("{}", _msg_map.translate(uMsg));
-
-    if(::ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
-        return true;
-    }
+    // BTX_ERROR("{}", _msg_map.translate(uMsg));
 
     switch(uMsg) {
         case WM_KEYDOWN: {
@@ -461,7 +505,8 @@ void Win32TargetWindow::_size_and_place() {
         // early return so there's no call to ::DefWindowProc()
         case WM_CLOSE:
             ::DestroyWindow(hWnd);
-            ::UnregisterClassA(BTX_NAME, nullptr);
+            ::UnregisterClassW(_window_class.lpszClassName,
+                               _window_class.hInstance);
             return false;
 
         // And this is the second message, but also the last one we have to
@@ -490,7 +535,7 @@ void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw) {
     // correct left-hand / right-hand SHIFT
     if(vkey == VK_SHIFT) {
         vkey = static_cast<::USHORT>(
-            ::MapVirtualKeyA(raw.MakeCode, MAPVK_VSC_TO_VK_EX)
+            ::MapVirtualKeyW(raw.MakeCode, MAPVK_VSC_TO_VK_EX)
         );
     }
 

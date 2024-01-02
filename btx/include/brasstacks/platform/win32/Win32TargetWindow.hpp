@@ -46,23 +46,24 @@ public:
 
 private:
     // win32 specifics
-    ::LPCSTR _window_title;
-    ::HWND   _window_handle;
-    ::HDC    _device_context;
+    ::LPWSTR      _class_name;
+    ::WNDCLASSEXW _window_class;
+    ::LPWSTR      _window_title;
+    ::HWND        _window_handle;
 
-    char *_raw_msg;
+    std::byte *_raw_msg;
 
     // For message loop debugging
-    Win32MsgToStr const _msg_map;
+    static Win32MsgToStr const _msg_map;
 
     // For brasstacks/win32 interop
-    Win32ToBTXKeys const _keymap;
+    static Win32ToBTXKeys const _keymap;
 
     // Details for later
     RenderConfig::SurfaceDimensions _screen_size;
     RenderConfig::SurfacePosition   _screen_center;
 
-    static void _register_class();
+           void _register_class();
            void _create_window();
            void _destroy_window();
            void _register_raw_input();
@@ -70,6 +71,8 @@ private:
            void _restrict_cursor();
     static void _release_cursor();
            void _size_and_place();
+
+    static bool str_to_wstr(std::string_view const str, ::LPWSTR *wstr);
 
     // Static wndproc for Windows to call, per the Raymond Chen article:
     // https://devblogs.microsoft.com/oldnewthing/20140203-00/?p=1893
@@ -80,7 +83,7 @@ private:
     ::LRESULT CALLBACK _inst_wndproc(::HWND hWnd, ::UINT uMsg,
                                      ::WPARAM wParam, ::LPARAM lParam);
 
-    void _parse_raw_keyboard(::RAWKEYBOARD const &raw);
+    static void _parse_raw_keyboard(::RAWKEYBOARD const &raw);
     static void _parse_raw_mouse(::RAWMOUSE const &raw);
 };
 

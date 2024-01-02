@@ -45,6 +45,9 @@
     #define NODEFERWINDOWPOS // More multi-window functionality
     #define NOMCX            // Modem configuration extensions
 
+    #define UNICODE
+    #define _UNICODE
+
     #include <Windows.h>
     #include <hidusage.h>
     #include <winuser.h>

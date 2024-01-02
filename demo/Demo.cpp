@@ -202,7 +202,7 @@ void Demo::_record_color_commands(btx::vkCmdBuffer const &cmd_buffer,
 
 // =============================================================================
 void Demo::_send_color_push_constants(btx::vkCmdBuffer const &cmd_buffer,
-                                            PushConstants const &push_constants)
+                                      PushConstants const &push_constants)
 {
     size_t offset = 0u;
     for(auto const& push_constant : push_constants) {
