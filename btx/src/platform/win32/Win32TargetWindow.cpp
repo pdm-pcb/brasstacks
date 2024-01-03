@@ -184,7 +184,7 @@ void Win32TargetWindow::_create_window() {
         0u,                          // No extended style
         _window_class.lpszClassName, // Win32 class name
         _window_title,               // Win32 window title
-        WS_OVERLAPPEDWINDOW,     // Normal window style/controls
+        WS_POPUP,                // Popup means no decoration
         CW_USEDEFAULT,           // x location
         CW_USEDEFAULT,           // y location
         CW_USEDEFAULT,           // Window width
