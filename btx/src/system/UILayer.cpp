@@ -79,8 +79,8 @@ UILayer::~UILayer() {
 }
 
 // =============================================================================
-void UILayer::render_ui(vkCmdBuffer const &cmd_buffer,
-                        uint32_t const image_index)
+void UILayer::render_pass(vkCmdBuffer const &cmd_buffer,
+                          uint32_t const image_index)
 {
     ::ImGui_ImplWin32_NewFrame();
     ::ImGui_ImplVulkan_NewFrame();
@@ -165,7 +165,7 @@ void UILayer::_init_imgui(TargetWindow const &target_window,
     io.Fonts->AddFontFromMemoryCompressedTTF(
         hack_regular_compressed_data,
         hack_regular_compressed_size,
-        16.0f * target_window.dpi_scale()
+        14.0f * target_window.dpi_scale()
     );
 
     auto &style = ImGui::GetStyle();

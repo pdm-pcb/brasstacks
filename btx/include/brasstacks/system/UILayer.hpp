@@ -19,7 +19,7 @@ public:
             vkSwapchain const &swapchain);
     ~UILayer();
 
-    void render_ui(vkCmdBuffer const &cmd_buffer, uint32_t const image_index);
+    void render_pass(vkCmdBuffer const &cmd_buffer, uint32_t const image_index);
 
     UILayer() = delete;
 

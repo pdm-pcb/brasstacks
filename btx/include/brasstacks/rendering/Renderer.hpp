@@ -80,7 +80,7 @@ private:
      */
     uint32_t _image_index;
 
-    UILayer *_debug_overlay;
+    UILayer *_ui_layer;
 
     /**
      * @brief Create the structures to synchronize commands with swapchain

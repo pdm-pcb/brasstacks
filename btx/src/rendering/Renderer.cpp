@@ -69,12 +69,12 @@ Renderer::Renderer(TargetWindow &target_window) :
 
     _create_frame_sync();
 
-    _debug_overlay = new UILayer(*_device, target_window, *_swapchain);
+    _ui_layer = new UILayer(*_device, target_window, *_swapchain);
 }
 
 // =============================================================================
 Renderer::~Renderer() {
-    delete _debug_overlay;
+    delete _ui_layer;
 
     _destroy_frame_sync();
 
@@ -131,7 +131,7 @@ void Renderer::end_recording() {
     auto &frame_sync  = *_frame_sync[_image_index];
     auto const &cmd_buffer  = frame_sync.cmd_buffer();
 
-    _debug_overlay->render_ui(cmd_buffer, _image_index);
+    _ui_layer->render_pass(cmd_buffer, _image_index);
 
     cmd_buffer.end_recording();
 }
