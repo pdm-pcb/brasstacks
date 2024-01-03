@@ -11,7 +11,7 @@
 namespace btx {
 
 class TargetWindow;
-class DebugOverlay;
+class UILayer;
 
 class vkSurface;
 class vkDevice;
@@ -80,7 +80,7 @@ private:
      */
     uint32_t _image_index;
 
-    DebugOverlay *_debug_overlay;
+    UILayer *_debug_overlay;
 
     /**
      * @brief Create the structures to synchronize commands with swapchain

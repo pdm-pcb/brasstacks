@@ -52,7 +52,11 @@ public:
      */
     virtual void message_loop() = 0;
 
-    void set_overlay_input(bool const state) { _overlay_input = state; }
+    void set_ui_input(bool const state) { _ui_input = state; }
+
+    bool ui_input_enabled() const { return _ui_input; }
+
+    float dpi_scale() const { return _dpi_scale; }
 
 #if defined(BTX_LINUX)
 
@@ -79,13 +83,18 @@ public:
     TargetWindow & operator=(const TargetWindow &) = delete;
 
 protected:
-    TargetWindow() : _overlay_input { false } { }
+    TargetWindow() :
+        _ui_input { false },
+        _dpi_scale { 1.0f }
+    { }
 
-    bool _overlay_input_enabled() const { return _overlay_input; }
+    void _set_dpi_scale(float const scale) { _dpi_scale = scale; }
 
 private:
-    // Controls whether or not the UI overlay should receive input messages
-    bool _overlay_input;
+    // Controls the UI or the simulation should receive input messages
+    bool _ui_input;
+
+    float _dpi_scale;
 };
 
 } // namespace btx

@@ -14,7 +14,7 @@
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
-#include "brasstacks/system/DebugOverlay.hpp"
+#include "brasstacks/system/UILayer.hpp"
 
 namespace btx {
 
@@ -69,7 +69,7 @@ Renderer::Renderer(TargetWindow &target_window) :
 
     _create_frame_sync();
 
-    _debug_overlay = new DebugOverlay(*_device, target_window, *_swapchain);
+    _debug_overlay = new UILayer(*_device, target_window, *_swapchain);
 }
 
 // =============================================================================

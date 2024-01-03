@@ -1,5 +1,5 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkDebugOverlayPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkUILayerPass.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -7,8 +7,7 @@
 
 namespace btx {
 
-vkDebugOverlayPass::vkDebugOverlayPass(vkDevice const &device,
-                                       vk::Format const format) :
+vkUILayerPass::vkUILayerPass(vkDevice const &device, vk::Format const format) :
     vkRenderPass { device }
 {
     vk::AttachmentDescription const attachment {

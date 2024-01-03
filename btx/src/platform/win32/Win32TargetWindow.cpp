@@ -205,7 +205,11 @@ void Win32TargetWindow::_create_window() {
         return;
     }
 
-    BTX_INFO("Created win32 target window");
+    auto scale = static_cast<float>(::GetDpiForWindow(_window_handle));
+    scale /= static_cast<float>(USER_DEFAULT_SCREEN_DPI);
+    this->_set_dpi_scale(scale);
+
+    BTX_INFO("Created win32 target window with {} scaling", this->dpi_scale());
 }
 
 // =============================================================================
@@ -308,7 +312,7 @@ void Win32TargetWindow::_restrict_cursor() {
     while(::ShowCursor(FALSE) >= 0) { }
 
     // Disable editor mode, meaning all inputs go to the simulation
-    this->set_overlay_input(false);
+    this->set_ui_input(false);
 }
 
 // =============================================================================
@@ -320,7 +324,7 @@ void Win32TargetWindow::_release_cursor() {
     while(::ShowCursor(TRUE) < 0) { }
 
     // Enable editor mode, meaning no input goes to the simulation
-    this->set_overlay_input(true);
+    this->set_ui_input(true);
 }
 
 // =============================================================================
@@ -421,7 +425,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
 {
     // BTX_ERROR("{}", _msg_map.translate(uMsg));
 
-    if(this->_overlay_input_enabled()) {
+    if(this->ui_input_enabled()) {
         if(::ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
             return true;
         }

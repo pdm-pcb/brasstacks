@@ -1,5 +1,5 @@
 #include "brasstacks/core.hpp"
-#include "brasstacks/system/DebugOverlay.hpp"
+#include "brasstacks/system/UILayer.hpp"
 
 #include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
@@ -8,7 +8,7 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkDebugOverlayPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkUILayerPass.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
@@ -18,6 +18,8 @@
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <imgui_impl_vulkan.h>
+
+#include "brasstacks/assets/fonts/hack_regular.hpp"
 
 // Very temporary... promise. =)
 #include "brasstacks/events/EventBroker.hpp"
@@ -41,7 +43,7 @@ static void check_result(VkResult err) {
 }
 
 // =============================================================================
-DebugOverlay::DebugOverlay(vkDevice const &device, TargetWindow &target_window,
+UILayer::UILayer(vkDevice const &device, TargetWindow &target_window,
                            vkSwapchain const &swapchain) :
     _device          { device },
     _target_window   { target_window },
@@ -51,17 +53,17 @@ DebugOverlay::DebugOverlay(vkDevice const &device, TargetWindow &target_window,
 {
     _allocate_descriptor_pool();
 
-    _overlay_pass = new vkDebugOverlayPass(_device, swapchain.image_format());
+    _overlay_pass = new vkUILayerPass(_device, swapchain.image_format());
 
     _create_framebuffers(swapchain);
     _init_imgui(target_window, swapchain);
 
-    _target_window.set_overlay_input(true);
+    _target_window.set_ui_input(true);
 }
 
 // =============================================================================
-DebugOverlay::~DebugOverlay() {
-    _target_window.set_overlay_input(false);
+UILayer::~UILayer() {
+    _target_window.set_ui_input(false);
 
     ::ImGui_ImplVulkan_DestroyFontsTexture();
     ::ImGui_ImplVulkan_Shutdown();
@@ -77,8 +79,8 @@ DebugOverlay::~DebugOverlay() {
 }
 
 // =============================================================================
-void DebugOverlay::render_ui(vkCmdBuffer const &cmd_buffer,
-                             uint32_t const image_index)
+void UILayer::render_ui(vkCmdBuffer const &cmd_buffer,
+                        uint32_t const image_index)
 {
     ::ImGui_ImplWin32_NewFrame();
     ::ImGui_ImplVulkan_NewFrame();
@@ -121,7 +123,7 @@ void DebugOverlay::render_ui(vkCmdBuffer const &cmd_buffer,
 }
 
 // =============================================================================
-void DebugOverlay::_allocate_descriptor_pool() {
+void UILayer::_allocate_descriptor_pool() {
     _descriptor_pool = new vkDescriptorPool(
         _device,
         vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
@@ -133,7 +135,7 @@ void DebugOverlay::_allocate_descriptor_pool() {
 }
 
 // =============================================================================
-void DebugOverlay::_create_framebuffers(vkSwapchain const &swapchain) {
+void UILayer::_create_framebuffers(vkSwapchain const &swapchain) {
     for(size_t i = 0; i < RenderConfig::swapchain_image_count; ++i) {
         _framebuffers.emplace_back(new vkFramebuffer(
             _device,
@@ -150,16 +152,24 @@ void DebugOverlay::_create_framebuffers(vkSwapchain const &swapchain) {
 }
 
 // =============================================================================
-void DebugOverlay::_init_imgui(TargetWindow const &target_window,
-                               vkSwapchain const &swapchain)
+void UILayer::_init_imgui(TargetWindow const &target_window,
+                          vkSwapchain const &swapchain)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
+
+    auto &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-    ImGui::StyleColorsDark();
+    io.Fonts->AddFontFromMemoryCompressedTTF(
+        hack_regular_compressed_data,
+        hack_regular_compressed_size,
+        16.0f * target_window.dpi_scale()
+    );
+
+    auto &style = ImGui::GetStyle();
+    style.ScaleAllSizes(target_window.dpi_scale());
 
     ::ImGui_ImplWin32_Init(target_window.native());
 
@@ -187,7 +197,7 @@ void DebugOverlay::_init_imgui(TargetWindow const &target_window,
 }
 
 // =============================================================================
-void DebugOverlay::_draw_title_bar() {
+void UILayer::_draw_title_bar() {
     static float const titlebar_height = 32.0f;
 
     static ImGuiWindowFlags const titlebar_flags =
@@ -255,7 +265,7 @@ void DebugOverlay::_draw_title_bar() {
 }
 
 // =============================================================================
-void DebugOverlay::_draw_menu() {
+void UILayer::_draw_menu() {
     if(ImGui::BeginMainMenuBar()) {
         if(ImGui::BeginMenu("File")) {
             if(ImGui::MenuItem("Exit")) {
