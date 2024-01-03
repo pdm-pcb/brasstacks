@@ -11,7 +11,7 @@ vkRenderPass::vkRenderPass(vkDevice const &device) :
 { }
 
 // =============================================================================
-void vkRenderPass::create(vk::RenderPassCreateInfo const &create_info) {
+void vkRenderPass::_create(vk::RenderPassCreateInfo const &create_info) {
     auto const result = _device.native().createRenderPass(create_info);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to create render pass: '{}'",

@@ -6,6 +6,8 @@
 
 namespace btx {
 
+struct WindowSizeEvent;
+
 class vkDevice;
 
 class vkColorPass;
@@ -36,6 +38,10 @@ public:
     void record_commands(btx::vkCmdBuffer const &cmd_buffer,
                          uint32_t const image_index) override;
 
+    void create_framebuffers(btx::vkDevice const &device,
+                             btx::vkSwapchain const &swapchain) override;
+    void destroy_framebuffers() override;
+
     Demo();
     ~Demo() override = default;
 
@@ -48,22 +54,23 @@ private:
 
     btx::vkDescriptorPool *_descriptor_pool;
 
-    btx::FPSCamera *_camera;
-    std::vector<btx::vkBuffer *> _camera_ubos;
-    btx::vkDescriptorSetLayout *_camera_ubo_layout;
-    std::vector<btx::vkDescriptorSet *> _camera_ubo_sets;
-
     btx::PlaneMesh *_plane_mesh;
     btx::math::Mat4 _plane_mat;
 
-    btx::CubeMesh *_cube_mesh;
+    btx::CubeMesh  *_cube_mesh;
     btx::math::Mat4 _cube_mat;
 
-    btx::vkImage *_texture;
+    btx::vkImage     *_texture;
     btx::vkImageView *_texture_view;
-    btx::vkSampler *_texture_sampler;
+    btx::vkSampler   *_texture_sampler;
+
     btx::vkDescriptorSetLayout *_texture_set_layout;
-    btx::vkDescriptorSet *_texture_set;
+    btx::vkDescriptorSet       *_texture_set;
+
+    btx::FPSCamera                     *_camera;
+    std::vector<btx::vkBuffer *>        _camera_ubos;
+    btx::vkDescriptorSetLayout         *_camera_ubo_layout;
+    std::vector<btx::vkDescriptorSet *> _camera_ubo_sets;
 
     btx::vkColorPass                 *_color_pass;
     btx::vkPipeline                  *_color_pipeline;
@@ -78,7 +85,7 @@ private:
     void _create_color_pass(btx::vkDevice const &device,
                             btx::vkSwapchain const &swapchain);
 
-    void _destroy_render_passes();
+    void _destroy_color_pass();
 
     void _record_color_commands(btx::vkCmdBuffer const &cmd_buffer,
                                 uint32_t const image_index);

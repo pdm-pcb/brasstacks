@@ -24,9 +24,8 @@ public:
     }
 
     // =========================================================================
-    template<typename Event, typename... EventParams>
-    static void emit(EventParams ...event_args) {
-        Event event { event_args... };
+    template<typename Event>
+    static void emit(Event const &event) {
         static_cast<EventCallbacks<Event> *>(
             _callbacks[_event_id<Event>()]
         )->emit(event);

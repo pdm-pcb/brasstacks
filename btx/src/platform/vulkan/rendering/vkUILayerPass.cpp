@@ -61,7 +61,7 @@ vkUILayerPass::vkUILayerPass(vkDevice const &device, vk::Format const format) :
         .pDependencies = &dependency,
     };
 
-    this->create(create_info);
+    this->_create(create_info);
 }
 
 } // namespace btx

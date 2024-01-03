@@ -24,7 +24,7 @@ public:
 protected:
     explicit vkRenderPass(vkDevice const &device);
 
-    void create(vk::RenderPassCreateInfo const &create_info);
+    void _create(vk::RenderPassCreateInfo const &create_info);
 
     auto const & device() const { return _device; }
 

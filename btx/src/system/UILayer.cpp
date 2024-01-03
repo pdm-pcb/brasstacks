@@ -44,7 +44,7 @@ static void check_result(VkResult err) {
 
 // =============================================================================
 UILayer::UILayer(vkDevice const &device, TargetWindow &target_window,
-                           vkSwapchain const &swapchain) :
+                 vkSwapchain const &swapchain) :
     _device          { device },
     _target_window   { target_window },
     _descriptor_pool { nullptr },
@@ -56,7 +56,7 @@ UILayer::UILayer(vkDevice const &device, TargetWindow &target_window,
     _overlay_pass = new vkUILayerPass(_device, swapchain.image_format());
 
     _create_framebuffers(swapchain);
-    _init_imgui(target_window, swapchain);
+    _init_imgui(target_window);
 
     _target_window.set_ui_input(true);
 }
@@ -152,9 +152,7 @@ void UILayer::_create_framebuffers(vkSwapchain const &swapchain) {
 }
 
 // =============================================================================
-void UILayer::_init_imgui(TargetWindow const &target_window,
-                          vkSwapchain const &swapchain)
-{
+void UILayer::_init_imgui(TargetWindow const &target_window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -182,8 +180,8 @@ void UILayer::_init_imgui(TargetWindow const &target_window,
         .PipelineCache = VK_NULL_HANDLE,
         .DescriptorPool = _descriptor_pool->native(),
         .Subpass = 0u,
-        .MinImageCount = static_cast<uint32_t>(swapchain.images().size()),
-        .ImageCount = static_cast<uint32_t>(swapchain.images().size()),
+        .MinImageCount = RenderConfig::swapchain_image_count,
+        .ImageCount = RenderConfig::swapchain_image_count,
         .MSAASamples = VK_SAMPLE_COUNT_1_BIT,
         .UseDynamicRendering = false,
         .ColorAttachmentFormat = VK_FORMAT_UNDEFINED,
@@ -269,7 +267,7 @@ void UILayer::_draw_menu() {
     if(ImGui::BeginMainMenuBar()) {
         if(ImGui::BeginMenu("File")) {
             if(ImGui::MenuItem("Exit")) {
-                EventBroker::emit<KeyReleaseEvent>(BTX_KB_ESCAPE);
+                EventBroker::emit<KeyReleaseEvent>({ BTX_KB_ESCAPE });
             }
             ImGui::EndMenu();
         }

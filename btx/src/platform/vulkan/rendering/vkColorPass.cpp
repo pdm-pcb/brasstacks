@@ -44,7 +44,7 @@ vkColorPass::vkColorPass(vkDevice const &device, vk::Format const format,
         .pDependencies   = _subpass_dependencies.data()
     };
 
-    this->create(create_info);
+    this->_create(create_info);
 }
 
 // =============================================================================

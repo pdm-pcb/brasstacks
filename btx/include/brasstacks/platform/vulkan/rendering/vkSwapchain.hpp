@@ -139,6 +139,8 @@ private:
      * image views for them
      */
     void _get_swapchain_images();
+
+    void _recreate();
 };
 
 } // namespace btx

@@ -11,6 +11,8 @@
 namespace btx {
 
 struct KeyReleaseEvent;
+struct WindowSizeEvent;
+
 class TargetWindow;
 class Renderer;
 
@@ -49,6 +51,8 @@ public:
      */
     void on_key_release(KeyReleaseEvent const &event);
 
+    void on_window_size_event(WindowSizeEvent const &);
+
     Application() = delete;
 
     Application(Application &&) = delete;
@@ -58,12 +62,7 @@ public:
     Application & operator=(const Application &) = delete;
 
 protected:
-    /**
-     * @brief A chance for the user to do their setup.
-     *
-     * The overridden function is called after other systems are online, just
-     * before the main application loop begins.
-     */
+
     virtual void init(vkDevice const &device, vkSwapchain const &swapchain) = 0;
     /**
      * @brief A chance for the user to do any cleanup.
@@ -82,6 +81,10 @@ protected:
 
     virtual void record_commands(vkCmdBuffer const &cmd_buffer,
                                  uint32_t const image_index) = 0;
+
+    virtual void destroy_framebuffers() = 0;
+    virtual void create_framebuffers(vkDevice const &device,
+                                     vkSwapchain const &swapchain) = 0;
 
 private:
     /**

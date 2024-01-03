@@ -11,13 +11,16 @@ namespace btx {
 
 // =============================================================================
 Application::Application(std::string_view const app_name) :
-    _running { true }
+    _running       { true },
+    _target_window { nullptr },
+    _renderer      { nullptr }
 {
     // Events can start firing potentially as soon as we let TargetWindow run
     // its message loop
     EventBroker::init();
     // Application uses key releases to controll its running state
     EventBroker::subscribe<KeyReleaseEvent>(this, &Application::on_key_release);
+    EventBroker::subscribe<WindowSizeEvent>(this, &Application::on_window_size_event);
 
     // Instantiate the platform window and renderer backend
     _target_window = TargetWindow::create(app_name);
@@ -76,6 +79,27 @@ void Application::on_key_release(KeyReleaseEvent const &event) {
     if(event.code == BTX_KB_ESCAPE) {
         _running = false;
     }
+}
+
+// =============================================================================
+void Application::on_window_size_event(WindowSizeEvent const &) {
+    if(_renderer == nullptr) {
+        return;
+    }
+
+    _renderer->wait_device_idle();
+
+    _renderer->destroy_swapchain();
+    this->destroy_framebuffers();
+
+    if(RenderConfig::target_window_size.width == 0u
+        || RenderConfig::target_window_size.height == 0u)
+    {
+        return;
+    }
+
+    _renderer->create_swapchain();
+    this->create_framebuffers(_renderer->device(), _renderer->swapchain());
 }
 
 } // namespace btx

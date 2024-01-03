@@ -89,7 +89,8 @@ uint32_t vkSwapchain::acquire_image_index(vk::Semaphore const &semaphore) {
         if(result == vk::Result::eSuboptimalKHR ||
            result == vk::Result::eErrorOutOfDateKHR)
         {
-            BTX_CRITICAL("Recreate swapchain: {}", vk::to_string(result));
+            _recreate();
+            return std::numeric_limits<uint32_t>::max();
         }
         else {
             BTX_CRITICAL("Could not acquire next swapchain image: '{}'",
@@ -120,7 +121,7 @@ void vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index) 
         if(result == vk::Result::eSuboptimalKHR ||
            result == vk::Result::eErrorOutOfDateKHR)
         {
-            BTX_CRITICAL("Recreate swapchain: {}", vk::to_string(result));
+            _recreate();
         }
         else {
             BTX_CRITICAL("Failed to submit swapchain image {}: '{}",
@@ -383,6 +384,21 @@ void vkSwapchain::_get_swapchain_images() {
             vk::ImageAspectFlagBits::eColor
         );
     }
+}
+
+// =============================================================================
+void vkSwapchain::_recreate() {
+    for(auto *image : _images) {
+        delete image;
+    }
+
+    for(auto *view : _image_views) {
+        delete view;
+    }
+
+    BTX_TRACE("Destroying swapchain {}", _handle);
+
+    _device.native().destroy(_handle);
 }
 
 } // namespace btx

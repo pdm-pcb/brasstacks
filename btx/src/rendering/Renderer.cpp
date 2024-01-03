@@ -20,67 +20,43 @@ namespace btx {
 
 // =============================================================================
 Renderer::Renderer(TargetWindow &target_window) :
-    _image_index { std::numeric_limits<uint32_t>::max() }
+    _target_window      { target_window },
+    _device             { nullptr },
+    _surface            { nullptr },
+    _swapchain          { nullptr },
+    _image_acquire_sems { },
+    _frame_sync         { },
+    _image_index        { std::numeric_limits<uint32_t>::max() },
+    _ui_layer           { nullptr }
 {
     vkInstance::create();
 
     // First, acquire the details necessary to construct a Vulkan surface from
     // the target window
-#if defined(BTX_LINUX)
+    _create_surface();
 
-    vk::XlibSurfaceCreateInfoKHR const create_info {
-      .pNext = nullptr,
-      .flags = { },
-      .dpy = nullptr,
-      .window = { }
-    };
+    // Then use the information from that surface to choose a physical device
+    _select_physical_device();
 
-#elif defined(BTX_WINDOWS)
+    // Instantiate a logical device based on the physical device
+    _create_device();
 
-    vk::Win32SurfaceCreateInfoKHR const create_info {
-      .pNext = nullptr,
-      .flags = { },
-      .hinstance = nullptr,
-      .hwnd = target_window.native()
-    };
+    // Create the swapchain using the logical device and surface
+    _create_swapchain();
 
-#endif // BTX platform
-
-    _surface = new vkSurface(create_info);
-
-    vkPhysicalDevice::select(
-        *_surface,
-        {
-            vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
-            vkPhysicalDevice::Features::FILL_MODE_NONSOLID,
-        },
-        {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        }
-    );
-
-    _device = new vkDevice(
-#ifdef BTX_DEBUG
-        { "VK_LAYER_KHRONOS_validation", }
-#endif // BTX_DEBUG
-    );
-
-    _swapchain = new vkSwapchain(*_device, *_surface);
-
+    // And create the semaphores and vkFrameSync structures to manage the
+    // swapchain images
     _create_frame_sync();
 
-    _ui_layer = new UILayer(*_device, target_window, *_swapchain);
+    // Finally, enable the UI overlay
+    _create_ui_layer();
 }
 
 // =============================================================================
 Renderer::~Renderer() {
-    delete _ui_layer;
-
+    _destroy_swapchain();
     _destroy_frame_sync();
-
-    delete _swapchain;
-    delete _device;
-    delete _surface;
+    _destroy_device();
 }
 
 // =============================================================================
@@ -96,6 +72,11 @@ uint32_t Renderer::acquire_next_image() {
 
     // And ask the swapchain which index comes next
     _image_index = _swapchain->acquire_image_index(acquire_sem);
+
+    if(_image_index == std::numeric_limits<uint32_t>::max()) {
+        _device->wait_idle();
+        _image_index = _swapchain->acquire_image_index(acquire_sem);
+    }
 
     // Wrap the corresponding frame's data for convenience
     auto &frame = *_frame_sync[_image_index];
@@ -131,7 +112,7 @@ void Renderer::end_recording() {
     auto &frame_sync  = *_frame_sync[_image_index];
     auto const &cmd_buffer  = frame_sync.cmd_buffer();
 
-    _ui_layer->render_pass(cmd_buffer, _image_index);
+    // _ui_layer->render_pass(cmd_buffer, _image_index);
 
     cmd_buffer.end_recording();
 }
@@ -179,6 +160,73 @@ void Renderer::wait_device_idle() {
 }
 
 // =============================================================================
+void Renderer::destroy_swapchain() {
+    _destroy_ui_layer();
+    _destroy_swapchain();
+    _destroy_surface();
+}
+
+// =============================================================================
+void Renderer::create_swapchain() {
+    _create_surface();
+    _create_swapchain();
+    _create_ui_layer();
+}
+
+// =============================================================================
+void Renderer::_create_surface() {
+#if defined(BTX_LINUX)
+
+    vk::XlibSurfaceCreateInfoKHR const create_info {
+      .pNext = nullptr,
+      .flags = { },
+      .dpy = nullptr,
+      .window = { }
+    };
+
+#elif defined(BTX_WINDOWS)
+
+    vk::Win32SurfaceCreateInfoKHR const create_info {
+      .pNext = nullptr,
+      .flags = { },
+      .hinstance = nullptr,
+      .hwnd = _target_window.native()
+    };
+
+#endif // BTX platform
+
+    _surface = new vkSurface(create_info);
+}
+
+// =============================================================================
+void Renderer::_select_physical_device() {
+    vkPhysicalDevice::select(
+        *_surface,
+        {
+            vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
+            vkPhysicalDevice::Features::FILL_MODE_NONSOLID,
+        },
+        {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        }
+    );
+}
+
+// =============================================================================
+void Renderer::_create_device() {
+    _device = new vkDevice(
+#ifdef BTX_DEBUG
+        { "VK_LAYER_KHRONOS_validation", }
+#endif // BTX_DEBUG
+    );
+}
+
+// =============================================================================
+void Renderer::_create_swapchain() {
+    _swapchain = new vkSwapchain(*_device, *_surface);
+}
+
+// =============================================================================
 void Renderer::_create_frame_sync() {
     for(uint32_t i = 0; i < RenderConfig::swapchain_image_count; ++i) {
         _frame_sync.push_back(new vkFrameSync(*_device));
@@ -201,10 +249,35 @@ void Renderer::_create_frame_sync() {
 }
 
 // =============================================================================
+void Renderer::_create_ui_layer() {
+    // _ui_layer = new UILayer(*_device, _target_window, *_swapchain);
+}
+
+// =============================================================================
+void Renderer::_destroy_surface() {
+    delete _surface;
+    _surface = nullptr;
+}
+
+// =============================================================================
+void Renderer::_destroy_device() {
+    delete _device;
+    _device = nullptr;
+}
+
+// =============================================================================
+void Renderer::_destroy_swapchain() {
+    delete _swapchain;
+    _swapchain = nullptr;
+}
+
+// =============================================================================
 void Renderer::_destroy_frame_sync() {
     for(auto *frame : _frame_sync) {
         delete frame;
     }
+
+    _frame_sync.clear();
 
     while(!_image_acquire_sems.empty()) {
         auto const sem = _image_acquire_sems.front();
@@ -214,6 +287,12 @@ void Renderer::_destroy_frame_sync() {
 
         _image_acquire_sems.pop();
     }
+}
+
+// =============================================================================
+void Renderer::_destroy_ui_layer() {
+    delete _ui_layer;
+    _ui_layer = nullptr;
 }
 
 } // namespace btx

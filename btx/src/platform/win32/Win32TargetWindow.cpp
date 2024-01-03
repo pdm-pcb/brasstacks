@@ -4,6 +4,7 @@
 #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
 #include "brasstacks/events/EventBroker.hpp"
+#include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
@@ -184,7 +185,7 @@ void Win32TargetWindow::_create_window() {
         0u,                          // No extended style
         _window_class.lpszClassName, // Win32 class name
         _window_title,               // Win32 window title
-        WS_POPUP,                // Popup means no decoration
+        WS_OVERLAPPEDWINDOW,                // Popup means no decoration
         CW_USEDEFAULT,           // x location
         CW_USEDEFAULT,           // y location
         CW_USEDEFAULT,           // Window width
@@ -441,7 +442,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             auto const translated = _keymap.translate(
                 static_cast<const ::USHORT>(wParam)
             );
-            EventBroker::emit<KeyPressEvent>(translated);
+            EventBroker::emit<KeyPressEvent>({ translated });
             break;
         }
 
@@ -449,7 +450,26 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             auto const translated = _keymap.translate(
                 static_cast<const ::USHORT>(wParam)
             );
-            EventBroker::emit<KeyReleaseEvent>(translated);
+            EventBroker::emit<KeyReleaseEvent>({ translated });
+            break;
+        }
+
+        case WM_SIZE: {
+            uint32_t const width  = LOWORD(lParam);
+            uint32_t const height = HIWORD(lParam);
+
+            if((width != RenderConfig::target_window_size.width)
+                || (height != RenderConfig::target_window_size.height))
+            {
+                RenderConfig::target_window_size.width = width;
+                RenderConfig::target_window_size.height = height;
+
+                BTX_INFO("win32 target window size became {}x{}",
+                         width, height);
+
+                EventBroker::emit<WindowSizeEvent>({ });
+            }
+
             break;
         }
 
@@ -616,10 +636,10 @@ void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw) {
     bool const is_release = ((raw.Flags & RI_KEY_BREAK) != 0);
 
     if(is_release) {
-        EventBroker::emit<KeyReleaseEvent>(translated);
+        EventBroker::emit<KeyReleaseEvent>({ translated });
     }
     else {
-        EventBroker::emit<KeyPressEvent>(translated);
+        EventBroker::emit<KeyPressEvent>({ translated });
     }
 }
 
@@ -630,47 +650,47 @@ void Win32TargetWindow::_parse_raw_mouse(::RAWMOUSE const &raw) {
 
     // Left mouse button
     if((button_flags & RI_MOUSE_LEFT_BUTTON_DOWN) != 0u) {
-        EventBroker::emit<MouseButtonPressEvent>(BTX_MB_LEFT);
+        EventBroker::emit<MouseButtonPressEvent>({ BTX_MB_LEFT });
     }
     else if((button_flags & RI_MOUSE_LEFT_BUTTON_UP) != 0u) {
-        EventBroker::emit<MouseButtonReleaseEvent>(BTX_MB_LEFT);
+        EventBroker::emit<MouseButtonReleaseEvent>({ BTX_MB_LEFT });
     }
 
     // Right mouse button
     if((button_flags & RI_MOUSE_RIGHT_BUTTON_DOWN) != 0u) {
-        EventBroker::emit<MouseButtonPressEvent>(BTX_MB_RIGHT);
+        EventBroker::emit<MouseButtonPressEvent>({ BTX_MB_RIGHT });
     }
     else if((button_flags & RI_MOUSE_RIGHT_BUTTON_UP) != 0u) {
-        EventBroker::emit<MouseButtonReleaseEvent>(BTX_MB_RIGHT);
+        EventBroker::emit<MouseButtonReleaseEvent>({ BTX_MB_RIGHT });
     }
 
     // Middle mouse button
     if((button_flags & RI_MOUSE_MIDDLE_BUTTON_DOWN) != 0u) {
-        EventBroker::emit<MouseButtonPressEvent>(BTX_MB_MIDDLE);
+        EventBroker::emit<MouseButtonPressEvent>({ BTX_MB_MIDDLE });
     }
     else if((button_flags & RI_MOUSE_MIDDLE_BUTTON_UP) != 0u) {
-        EventBroker::emit<MouseButtonReleaseEvent>(BTX_MB_MIDDLE);
+        EventBroker::emit<MouseButtonReleaseEvent>({ BTX_MB_MIDDLE });
     }
 
     // Mouse movement
     if(raw.lLastX != 0 || raw.lLastY != 0) {
-        EventBroker::emit<MouseMoveEvent>(raw.lLastX, raw.lLastY);
+        EventBroker::emit<MouseMoveEvent>({ raw.lLastX, raw.lLastY });
     }
 
     // Vertical mouse scroll
     if((button_flags & RI_MOUSE_WHEEL) != 0u) {
-        EventBroker::emit<MouseScrollEvent>(
+        EventBroker::emit<MouseScrollEvent>({
             static_cast<int32_t>(button_data),
             0
-        );
+        });
     }
 
     // Horizontal mouse scroll
     if((button_flags & RI_MOUSE_HWHEEL) != 0u) {
-        EventBroker::emit<MouseScrollEvent>(
+        EventBroker::emit<MouseScrollEvent>({
             0,
             static_cast<int32_t>(button_data)
-        );
+        });
     }
 }
 

@@ -10,6 +10,8 @@
 
 namespace btx {
 
+struct WindowSizeEvent;
+
 class TargetWindow;
 class UILayer;
 
@@ -42,6 +44,9 @@ public:
 
     void wait_device_idle();
 
+    void destroy_swapchain();
+    void create_swapchain();
+
     inline auto const & device() const { return *_device; }
     inline auto const & swapchain() const { return *_swapchain; }
 
@@ -54,6 +59,8 @@ public:
     Renderer & operator=(const Renderer &) = delete;
 
 private:
+    TargetWindow &_target_window;
+
     vkDevice    *_device;
     vkSurface   *_surface;
     vkSwapchain *_swapchain;
@@ -82,16 +89,18 @@ private:
 
     UILayer *_ui_layer;
 
-    /**
-     * @brief Create the structures to synchronize commands with swapchain
-     * images as well as the framebuffers
-     */
+    void _create_surface();
+    void _select_physical_device();
+    void _create_device();
+    void _create_swapchain();
     void _create_frame_sync();
+    void _create_ui_layer();
 
-    /**
-     * @brief Called from the destructor
-     */
+    void _destroy_surface();
+    void _destroy_device();
+    void _destroy_swapchain();
     void _destroy_frame_sync();
+    void _destroy_ui_layer();
 };
 
 } // namespace btx

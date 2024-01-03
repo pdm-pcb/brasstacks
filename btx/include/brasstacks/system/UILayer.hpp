@@ -35,14 +35,14 @@ private:
     TargetWindow &_target_window;
 
     vkDescriptorPool *_descriptor_pool;
+
     std::vector<vkFramebuffer *> _framebuffers;
 
     vkUILayerPass *_overlay_pass;
 
     void _allocate_descriptor_pool();
     void _create_framebuffers(vkSwapchain const &swapchain);
-    void _init_imgui(TargetWindow const &target_window,
-                     vkSwapchain const &swapchain);
+    void _init_imgui(TargetWindow const &target_window);
 
     void _draw_title_bar();
     void _draw_menu();
