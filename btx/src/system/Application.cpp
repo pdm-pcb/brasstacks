@@ -18,9 +18,12 @@ Application::Application(std::string_view const app_name) :
     // Events can start firing potentially as soon as we let TargetWindow run
     // its message loop
     EventBroker::init();
-    // Application uses key releases to controll its running state
-    EventBroker::subscribe<KeyReleaseEvent>(this, &Application::on_key_release);
+
+    EventBroker::subscribe<WindowCloseEvent>(this, &Application::on_window_close);
     EventBroker::subscribe<WindowSizeEvent>(this, &Application::on_window_size_event);
+    EventBroker::subscribe<WindowMinimizeEvent>(this, &Application::on_window_minimize);
+    EventBroker::subscribe<WindowRestoreEvent>(this, &Application::on_window_restore);
+    EventBroker::subscribe<KeyReleaseEvent>(this, &Application::on_key_release);
 
     // Instantiate the platform window and renderer backend
     _target_window = TargetWindow::create(app_name);
@@ -28,9 +31,6 @@ Application::Application(std::string_view const app_name) :
 }
 
 Application::~Application() {
-    // Kill Events first so nothing unexpected pops up during destruction
-    EventBroker::shutdown();
-
     delete _renderer;
     delete _target_window;
 }
@@ -67,6 +67,9 @@ void Application::run() {
         _target_window->message_loop();
     }
 
+    // Kill Events first so nothing unexpected pops up during destruction
+    EventBroker::shutdown();
+
     _renderer->wait_device_idle();
 
     // Give the user a chance to clean up
@@ -74,11 +77,8 @@ void Application::run() {
 }
 
 // =============================================================================
-void Application::on_key_release(KeyReleaseEvent const &event) {
-    // For now, a hard-coded check against Esc is how Application terminates
-    if(event.code == BTX_KB_ESCAPE) {
-        _running = false;
-    }
+void Application::on_window_close(WindowCloseEvent const &) {
+    _running = false;
 }
 
 // =============================================================================
@@ -92,14 +92,43 @@ void Application::on_window_size_event(WindowSizeEvent const &) {
     _renderer->destroy_swapchain();
     this->destroy_framebuffers();
 
-    if(RenderConfig::target_window_size.width == 0u
+    _renderer->create_swapchain();
+    this->create_framebuffers(_renderer->device(), _renderer->swapchain());
+}
+
+// =============================================================================
+void Application::on_window_minimize(WindowMinimizeEvent const &) {
+    if(_renderer == nullptr) {
+        return;
+    }
+
+    _renderer->wait_device_idle();
+
+    _renderer->destroy_swapchain();
+    this->destroy_framebuffers();
+
+    while(RenderConfig::target_window_size.width == 0u
         || RenderConfig::target_window_size.height == 0u)
     {
+        _target_window->message_loop();
+    }
+}
+
+// =============================================================================
+void Application::on_window_restore(WindowRestoreEvent const &) {
+    if(_renderer == nullptr) {
         return;
     }
 
     _renderer->create_swapchain();
     this->create_framebuffers(_renderer->device(), _renderer->swapchain());
+}
+
+// =============================================================================
+void Application::on_key_release(KeyReleaseEvent const &event) {
+    if(event.code == BTX_KB_ESCAPE) {
+        _running = false;
+    }
 }
 
 } // namespace btx

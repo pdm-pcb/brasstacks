@@ -63,6 +63,8 @@ private:
     RenderConfig::SurfaceDimensions _screen_size;
     RenderConfig::SurfacePosition   _screen_center;
 
+    bool _minimized;
+
     void _register_class();
     void _create_window();
     void _destroy_window();

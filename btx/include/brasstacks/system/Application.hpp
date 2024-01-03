@@ -10,8 +10,12 @@
 
 namespace btx {
 
-struct KeyReleaseEvent;
+struct WindowCloseEvent;
 struct WindowSizeEvent;
+struct WindowMinimizeEvent;
+struct WindowRestoreEvent;
+
+struct KeyReleaseEvent;
 
 class TargetWindow;
 class Renderer;
@@ -45,13 +49,12 @@ public:
      */
     void run();
 
-    /**
-     * @brief Key event handler for Application.
-     * @param event Which key was released
-     */
-    void on_key_release(KeyReleaseEvent const &event);
-
+    void on_window_close(WindowCloseEvent const &);
     void on_window_size_event(WindowSizeEvent const &);
+    void on_window_minimize(WindowMinimizeEvent const &);
+    void on_window_restore(WindowRestoreEvent const &);
+
+    void on_key_release(KeyReleaseEvent const &event);
 
     Application() = delete;
 

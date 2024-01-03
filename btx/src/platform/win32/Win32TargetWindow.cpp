@@ -28,7 +28,8 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _window_handle  { nullptr },
     _raw_msg        { new std::byte[sizeof(::RAWINPUT)] },
     _screen_size    { 0u, 0u },
-    _screen_center  { 0, 0 }
+    _screen_center  { 0, 0 },
+    _minimized      { false }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -458,7 +459,26 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             uint32_t const width  = LOWORD(lParam);
             uint32_t const height = HIWORD(lParam);
 
-            if((width != RenderConfig::target_window_size.width)
+            if(wParam == SIZE_MINIMIZED && !_minimized) {
+                RenderConfig::target_window_size.width = 0u;
+                RenderConfig::target_window_size.height = 0u;
+
+                _minimized = true;
+
+                BTX_INFO("win32 target window minimized");
+                EventBroker::emit<WindowMinimizeEvent>({ });
+            }
+            else if(wParam == SIZE_RESTORED && _minimized) {
+                RenderConfig::target_window_size.width = width;
+                RenderConfig::target_window_size.height = height;
+
+                _minimized = false;
+
+                BTX_INFO("win32 target window restored to {}x{}",
+                          width, height);
+                EventBroker::emit<WindowMinimizeEvent>({ });
+            }
+            else if((width != RenderConfig::target_window_size.width)
                 || (height != RenderConfig::target_window_size.height))
             {
                 RenderConfig::target_window_size.width = width;
@@ -542,6 +562,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             ::DestroyWindow(hWnd);
             ::UnregisterClassW(_window_class.lpszClassName,
                                _window_class.hInstance);
+            EventBroker::emit<WindowCloseEvent>({ });
             return false;
 
         // And this is the second message, but also the last one we have to

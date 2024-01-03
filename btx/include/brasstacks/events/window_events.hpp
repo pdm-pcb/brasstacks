@@ -6,7 +6,13 @@
 namespace btx {
 
 // Empty struct to carry the signal
+struct WindowCloseEvent final { };
+
 struct WindowSizeEvent final { };
+
+struct WindowMinimizeEvent final { };
+
+struct WindowRestoreEvent final { };
 
 } //namespace btx
 

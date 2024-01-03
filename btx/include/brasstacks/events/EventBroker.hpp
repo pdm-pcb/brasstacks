@@ -46,6 +46,7 @@ public:
         for(auto const *callback : _callbacks) {
             delete callback;
         }
+        _callbacks.clear();
     }
 
     // =========================================================================
