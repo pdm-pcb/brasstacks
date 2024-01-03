@@ -2,6 +2,7 @@
 #include "brasstacks/system/DebugOverlay.hpp"
 
 #include "brasstacks/system/TargetWindow.hpp"
+#include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -40,10 +41,10 @@ static void check_result(VkResult err) {
 }
 
 // =============================================================================
-DebugOverlay::DebugOverlay(vkDevice const &device,
-                           TargetWindow const &target_window,
+DebugOverlay::DebugOverlay(vkDevice const &device, TargetWindow &target_window,
                            vkSwapchain const &swapchain) :
     _device          { device },
+    _target_window   { target_window },
     _descriptor_pool { nullptr },
     _framebuffers    { },
     _overlay_pass    { nullptr }
@@ -54,10 +55,14 @@ DebugOverlay::DebugOverlay(vkDevice const &device,
 
     _create_framebuffers(swapchain);
     _init_imgui(target_window, swapchain);
+
+    _target_window.set_overlay_input(true);
 }
 
 // =============================================================================
 DebugOverlay::~DebugOverlay() {
+    _target_window.set_overlay_input(false);
+
     ::ImGui_ImplVulkan_DestroyFontsTexture();
     ::ImGui_ImplVulkan_Shutdown();
     ::ImGui_ImplWin32_Shutdown();

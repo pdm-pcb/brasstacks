@@ -63,14 +63,14 @@ private:
     RenderConfig::SurfaceDimensions _screen_size;
     RenderConfig::SurfacePosition   _screen_center;
 
-           void _register_class();
-           void _create_window();
-           void _destroy_window();
-           void _register_raw_input();
+    void _register_class();
+    void _create_window();
+    void _destroy_window();
+    void _register_raw_input();
     static void _deregister_raw_input();
-           void _restrict_cursor();
-    static void _release_cursor();
-           void _size_and_place();
+    void _restrict_cursor();
+    void _release_cursor();
+    void _size_and_place();
 
     static bool str_to_wstr(std::string_view const str, ::LPWSTR *wstr);
 

@@ -96,7 +96,8 @@ void Win32TargetWindow::message_loop() {
 
     // Run through available messages from the OS
     while(::PeekMessage(&message, _window_handle, 0u, 0u, PM_REMOVE) != 0) {
-        ::DispatchMessage(&message);
+        ::TranslateMessage(&message);
+        ::DispatchMessageW(&message);
     }
 }
 
@@ -305,6 +306,9 @@ void Win32TargetWindow::_restrict_cursor() {
 
     // Run through all requests to show a cursor until ours is the last
     while(::ShowCursor(FALSE) >= 0) { }
+
+    // Disable editor mode, meaning all inputs go to the simulation
+    this->set_overlay_input(false);
 }
 
 // =============================================================================
@@ -314,6 +318,9 @@ void Win32TargetWindow::_release_cursor() {
 
     // Run through all requests to show a cursor until ours is the last
     while(::ShowCursor(TRUE) < 0) { }
+
+    // Enable editor mode, meaning no input goes to the simulation
+    this->set_overlay_input(true);
 }
 
 // =============================================================================
@@ -360,7 +367,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
     );
 
     // If we didn't write str.size() wchars to the buffer, something went wrong
-    if(wchars_written != static_cast<int>(str.size() + 1) || error != 0) {
+    if(wchars_written != (str.size() + 1) || error != 0) {
         BTX_ERROR("Failed to convert C-string '{}' with length {} to wide "
                   "string. Wrote {} characters to buffer."
                   "\n\tError {:#x}: '{}'",
@@ -377,12 +384,6 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
 ::LRESULT Win32TargetWindow::_static_wndproc(::HWND hWnd, ::UINT uMsg,
                                              ::WPARAM wParam, ::LPARAM lParam)
 {
-    // BTX_INFO("{}", _msg_map.translate(uMsg));
-
-    if(::ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
-        return true;
-    }
-
     static Win32TargetWindow *target = nullptr;
 
     if(uMsg == WM_NCCREATE) {
@@ -419,6 +420,17 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
                                            ::WPARAM wParam, ::LPARAM lParam)
 {
     // BTX_ERROR("{}", _msg_map.translate(uMsg));
+
+    if(this->_overlay_input_enabled()) {
+        if(::ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
+            return true;
+        }
+
+        auto const &io = ImGui::GetIO();
+        if(io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput) {
+            return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
+        }
+    }
 
     switch(uMsg) {
         case WM_KEYDOWN: {

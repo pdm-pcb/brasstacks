@@ -30,7 +30,7 @@ public:
      * @brief Construct the Renderer object.
      * @param target_window Used to create a rendering surface.
      */
-    explicit Renderer(TargetWindow const &target_window);
+    explicit Renderer(TargetWindow &target_window);
 
     ~Renderer();
 

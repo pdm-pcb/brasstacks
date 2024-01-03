@@ -34,7 +34,8 @@ public:
     static TargetWindow * create(
         std::string_view const app_name,
         RenderConfig::SurfaceDimensions const &dimensions = { 0u, 0u},
-        RenderConfig::SurfacePosition const &position = { 0, 0 });
+        RenderConfig::SurfacePosition const &position = { 0, 0 }
+    );
 
     /**
      * @brief Make the window visible.
@@ -50,6 +51,8 @@ public:
      * @brief Run through and process messages from the operating system.
      */
     virtual void message_loop() = 0;
+
+    void set_overlay_input(bool const state) { _overlay_input = state; }
 
 #if defined(BTX_LINUX)
 
@@ -76,7 +79,13 @@ public:
     TargetWindow & operator=(const TargetWindow &) = delete;
 
 protected:
-    TargetWindow() = default;
+    TargetWindow() : _overlay_input { false } { }
+
+    bool _overlay_input_enabled() const { return _overlay_input; }
+
+private:
+    // Controls whether or not the UI overlay should receive input messages
+    bool _overlay_input;
 };
 
 } // namespace btx

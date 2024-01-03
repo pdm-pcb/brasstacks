@@ -19,7 +19,7 @@
 namespace btx {
 
 // =============================================================================
-Renderer::Renderer(TargetWindow const &target_window) :
+Renderer::Renderer(TargetWindow &target_window) :
     _image_index { std::numeric_limits<uint32_t>::max() }
 {
     vkInstance::create();

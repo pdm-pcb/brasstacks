@@ -15,8 +15,8 @@ class vkFramebuffer;
 
 class DebugOverlay {
 public:
-    DebugOverlay(vkDevice const &device, TargetWindow const &target_window,
-            vkSwapchain const &swapchain);
+    DebugOverlay(vkDevice const &device, TargetWindow &target_window,
+                 vkSwapchain const &swapchain);
     ~DebugOverlay();
 
     void render_ui(vkCmdBuffer const &cmd_buffer, uint32_t const image_index);
@@ -31,6 +31,8 @@ public:
 
 private:
     vkDevice const &_device;
+
+    TargetWindow &_target_window;
 
     vkDescriptorPool *_descriptor_pool;
     std::vector<vkFramebuffer *> _framebuffers;
