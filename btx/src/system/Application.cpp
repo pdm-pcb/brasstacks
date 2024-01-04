@@ -65,9 +65,9 @@ void Application::run() {
 
             _renderer->end_recording();
             _renderer->submit_commands();
+
             if(_renderer->present_image() == false) {
                 _destroy_and_recreate_swapchain();
-                continue;
             }
 
         Timekeeper::frame_end();
