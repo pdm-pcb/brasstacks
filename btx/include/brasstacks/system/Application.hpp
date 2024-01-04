@@ -106,6 +106,8 @@ private:
      * swapchain images and pipelines.
      */
     Renderer *_renderer;
+
+    void _destroy_and_recreate_swapchain();
 };
 
 } // namespace btx

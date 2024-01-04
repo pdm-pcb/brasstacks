@@ -479,16 +479,21 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
                 EventBroker::emit<WindowMinimizeEvent>({ });
             }
             else if((width != RenderConfig::target_window_size.width)
-                || (height != RenderConfig::target_window_size.height))
+                    || (height != RenderConfig::target_window_size.height))
             {
                 RenderConfig::target_window_size.width = width;
                 RenderConfig::target_window_size.height = height;
+            }
 
+            break;
+        }
+
+        case WM_EXITSIZEMOVE: {
                 BTX_INFO("win32 target window size became {}x{}",
-                         width, height);
+                         RenderConfig::target_window_size.width,
+                         RenderConfig::target_window_size.height);
 
                 EventBroker::emit<WindowSizeEvent>({ });
-            }
 
             break;
         }

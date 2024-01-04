@@ -53,13 +53,22 @@ void Application::run() {
 
             // Let the renderer go to town on a frame
             uint32_t const image_index = _renderer->acquire_next_image();
+
+            if(image_index == std::numeric_limits<uint32_t>::max()) {
+                _destroy_and_recreate_swapchain();
+                continue;
+            }
+
             vkCmdBuffer const &cmd_buffer = _renderer->begin_recording();
 
             this->record_commands(cmd_buffer, image_index);
 
             _renderer->end_recording();
             _renderer->submit_commands();
-            _renderer->present_image();
+            if(_renderer->present_image() == false) {
+                _destroy_and_recreate_swapchain();
+                continue;
+            }
 
         Timekeeper::frame_end();
 
@@ -86,14 +95,7 @@ void Application::on_window_size_event(WindowSizeEvent const &) {
     if(_renderer == nullptr) {
         return;
     }
-
-    _renderer->wait_device_idle();
-
-    _renderer->destroy_swapchain();
-    this->destroy_framebuffers();
-
-    _renderer->create_swapchain();
-    this->create_framebuffers(_renderer->device(), _renderer->swapchain());
+    _destroy_and_recreate_swapchain();
 }
 
 // =============================================================================
@@ -104,7 +106,7 @@ void Application::on_window_minimize(WindowMinimizeEvent const &) {
 
     _renderer->wait_device_idle();
 
-    _renderer->destroy_swapchain();
+    _renderer->destroy_swapchain_and_resources();
     this->destroy_framebuffers();
 
     while(RenderConfig::target_window_size.width == 0u
@@ -120,7 +122,7 @@ void Application::on_window_restore(WindowRestoreEvent const &) {
         return;
     }
 
-    _renderer->create_swapchain();
+    _renderer->create_swapchain_and_resources();
     this->create_framebuffers(_renderer->device(), _renderer->swapchain());
 }
 
@@ -129,6 +131,17 @@ void Application::on_key_release(KeyReleaseEvent const &event) {
     if(event.code == BTX_KB_ESCAPE) {
         _running = false;
     }
+}
+
+// =============================================================================
+void Application::_destroy_and_recreate_swapchain() {
+    _renderer->wait_device_idle();
+
+    _renderer->destroy_swapchain_and_resources();
+    this->destroy_framebuffers();
+
+    _renderer->create_swapchain_and_resources();
+    this->create_framebuffers(_renderer->device(), _renderer->swapchain());
 }
 
 } // namespace btx

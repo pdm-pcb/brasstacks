@@ -86,16 +86,14 @@ uint32_t vkSwapchain::acquire_image_index(vk::Semaphore const &semaphore) {
     );
 
     if(result != vk::Result::eSuccess) {
-        if(result == vk::Result::eSuboptimalKHR ||
-           result == vk::Result::eErrorOutOfDateKHR)
+        if(result != vk::Result::eSuboptimalKHR &&
+           result != vk::Result::eErrorOutOfDateKHR)
         {
-            _recreate();
-            return std::numeric_limits<uint32_t>::max();
-        }
-        else {
             BTX_CRITICAL("Could not acquire next swapchain image: '{}'",
                          vk::to_string(result));
         }
+
+        return std::numeric_limits<uint32_t>::max();
     }
 
     // Return the index of the image that'll be safe to write next
@@ -103,7 +101,8 @@ uint32_t vkSwapchain::acquire_image_index(vk::Semaphore const &semaphore) {
 }
 
 // =============================================================================
-void vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index) {
+bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
+{
     // This present call will wait on frame.cmds_complete_sem to ensure the
     // submitted batch of commands has finished
     vk::PresentInfoKHR const present_info {
@@ -118,16 +117,17 @@ void vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index) 
         _device.graphics_queue().native().presentKHR(present_info);
 
     if(result != vk::Result::eSuccess) {
-        if(result == vk::Result::eSuboptimalKHR ||
-           result == vk::Result::eErrorOutOfDateKHR)
+        if(result != vk::Result::eSuboptimalKHR &&
+           result != vk::Result::eErrorOutOfDateKHR)
         {
-            _recreate();
-        }
-        else {
             BTX_CRITICAL("Failed to submit swapchain image {}: '{}",
                          image_index, vk::to_string(result));
         }
+
+        return false;
     }
+
+    return true;
 }
 
 // =============================================================================

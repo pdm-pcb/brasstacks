@@ -40,12 +40,12 @@ public:
     vkCmdBuffer const & begin_recording();
     void end_recording();
     void submit_commands();
-    void present_image();
+    [[nodiscard]] bool present_image();
 
     void wait_device_idle();
 
-    void destroy_swapchain();
-    void create_swapchain();
+    void create_swapchain_and_resources();
+    void destroy_swapchain_and_resources();
 
     inline auto const & device() const { return *_device; }
     inline auto const & swapchain() const { return *_swapchain; }

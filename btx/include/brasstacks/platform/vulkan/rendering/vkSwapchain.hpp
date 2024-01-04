@@ -47,8 +47,10 @@ public:
      * @param frame The synchronization structures associated with the image
      * to be presented
      * @param image_index The index of the swapchain image to be presented
+     * @return bool Whether or not the presentation was successful
      */
-    void present(vkFrameSync const &frame, uint32_t const image_index);
+    [[nodiscard]] bool present(vkFrameSync const &frame,
+                               uint32_t const image_index);
 
     /**
      * @brief Return the swapchain's image format

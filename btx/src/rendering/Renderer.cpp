@@ -54,8 +54,7 @@ Renderer::Renderer(TargetWindow &target_window) :
 
 // =============================================================================
 Renderer::~Renderer() {
-    _destroy_swapchain();
-    _destroy_frame_sync();
+    destroy_swapchain_and_resources();
     _destroy_device();
 }
 
@@ -73,9 +72,11 @@ uint32_t Renderer::acquire_next_image() {
     // And ask the swapchain which index comes next
     _image_index = _swapchain->acquire_image_index(acquire_sem);
 
+    // Something has gone wrong with the swapchain
     if(_image_index == std::numeric_limits<uint32_t>::max()) {
-        _device->wait_idle();
-        _image_index = _swapchain->acquire_image_index(acquire_sem);
+        // Put it back
+        _image_acquire_sems.push(acquire_sem);
+        return _image_index;
     }
 
     // Wrap the corresponding frame's data for convenience
@@ -149,9 +150,9 @@ void Renderer::submit_commands() {
 }
 
 // =============================================================================
-void Renderer::present_image() {
+bool Renderer::present_image() {
     auto &frame_sync = *_frame_sync[_image_index];
-    _swapchain->present(frame_sync, _image_index);
+    return _swapchain->present(frame_sync, _image_index);
 }
 
 // =============================================================================
@@ -160,17 +161,19 @@ void Renderer::wait_device_idle() {
 }
 
 // =============================================================================
-void Renderer::destroy_swapchain() {
-    _destroy_ui_layer();
-    _destroy_swapchain();
-    _destroy_surface();
+void Renderer::create_swapchain_and_resources() {
+    _create_surface();
+    _create_swapchain();
+    _create_frame_sync();
+    _create_ui_layer();
 }
 
 // =============================================================================
-void Renderer::create_swapchain() {
-    _create_surface();
-    _create_swapchain();
-    _create_ui_layer();
+void Renderer::destroy_swapchain_and_resources() {
+    _destroy_ui_layer();
+    _destroy_frame_sync();
+    _destroy_swapchain();
+    _destroy_surface();
 }
 
 // =============================================================================
