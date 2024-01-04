@@ -95,6 +95,8 @@ private:
      */
     bool _running;
 
+    bool _paused;
+
     /**
      * @brief The platform window to which Renderer will draw and from which
      * Application will take input.

@@ -12,6 +12,7 @@ namespace btx {
 // =============================================================================
 Application::Application(std::string_view const app_name) :
     _running       { true },
+    _paused        { false },
     _target_window { nullptr },
     _renderer      { nullptr }
 {
@@ -72,8 +73,10 @@ void Application::run() {
 
         Timekeeper::frame_end();
 
-        // Check for input and events from the OS
-        _target_window->message_loop();
+        do {
+            // Check for input and events from the OS
+            _target_window->message_loop();
+        } while(_running && _paused);
     }
 
     // Kill Events first so nothing unexpected pops up during destruction
@@ -109,11 +112,7 @@ void Application::on_window_minimize(WindowMinimizeEvent const &) {
     _renderer->destroy_swapchain_and_resources();
     this->destroy_framebuffers();
 
-    while(RenderConfig::target_window_size.width == 0u
-        || RenderConfig::target_window_size.height == 0u)
-    {
-        _target_window->message_loop();
-    }
+    _paused = true;
 }
 
 // =============================================================================
@@ -124,6 +123,8 @@ void Application::on_window_restore(WindowRestoreEvent const &) {
 
     _renderer->create_swapchain_and_resources();
     this->create_framebuffers(_renderer->device(), _renderer->swapchain());
+
+    _paused = false;
 }
 
 // =============================================================================

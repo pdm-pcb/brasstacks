@@ -476,7 +476,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
 
                 BTX_INFO("win32 target window restored to {}x{}",
                           width, height);
-                EventBroker::emit<WindowMinimizeEvent>({ });
+                EventBroker::emit<WindowRestoreEvent>({ });
             }
             else if((width != RenderConfig::target_window_size.width)
                     || (height != RenderConfig::target_window_size.height))
