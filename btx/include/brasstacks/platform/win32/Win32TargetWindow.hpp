@@ -26,7 +26,7 @@ namespace btx {
  */
 class Win32TargetWindow final : public TargetWindow {
 public:
-    Win32TargetWindow(std::string_view const app_name);
+    explicit Win32TargetWindow(std::string_view const app_name);
     ~Win32TargetWindow() override;
 
     void show_window() override;
