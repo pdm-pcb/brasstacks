@@ -550,16 +550,16 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             break;
         }
 
-        case WM_ACTIVATE:
-            if(wParam == WA_INACTIVE) {
-                _deregister_raw_input();
-                _release_cursor();
-            }
-            else {
-                _register_raw_input();
-                _restrict_cursor();
-            }
-            break;
+        // case WM_ACTIVATE:
+        //     if(wParam == WA_INACTIVE) {
+        //         _deregister_raw_input();
+        //         _release_cursor();
+        //     }
+        //     else {
+        //         _register_raw_input();
+        //         _restrict_cursor();
+        //     }
+        //     break;
 
         // This is the first message received in window close cascade. Note the
         // early return so there's no call to ::DefWindowProc()
