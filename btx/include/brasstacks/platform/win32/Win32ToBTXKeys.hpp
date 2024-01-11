@@ -2,7 +2,7 @@
 #define BRASSTACKS_PLATFORM_WIN32_WIN32TOBTXKEYS_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/system/input/btx_keycodes.hpp"
+#include "brasstacks/platform/input/btx_keycodes.hpp"
 #include "brasstacks/tools/ConsoleLog.hpp"
 
 namespace btx {

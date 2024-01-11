@@ -1,4 +1,4 @@
-#include "brasstacks/core.hpp"
+#include "brasstacks/brasstacks.hpp"
 
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 
@@ -6,7 +6,6 @@
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
-#include "brasstacks/system/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
@@ -384,21 +383,6 @@ void vkSwapchain::_get_swapchain_images() {
             vk::ImageAspectFlagBits::eColor
         );
     }
-}
-
-// =============================================================================
-void vkSwapchain::_recreate() {
-    for(auto *image : _images) {
-        delete image;
-    }
-
-    for(auto *view : _image_views) {
-        delete view;
-    }
-
-    BTX_TRACE("Destroying swapchain {}", _handle);
-
-    _device.native().destroy(_handle);
 }
 
 } // namespace btx

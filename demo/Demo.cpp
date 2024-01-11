@@ -1,180 +1,56 @@
 #include "Demo.hpp"
-#include "brasstacks/core.hpp"
 
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkColorPass.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
-#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorPass.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
 
 #include "brasstacks/rendering/meshes/PlaneMesh.hpp"
-#include "brasstacks/rendering/meshes/CubeMesh.hpp"
-#include "brasstacks/tools/FPSCamera.hpp"
 
-// =============================================================================
 Demo::Demo() :
-    btx::Application("Demo"),
-    _descriptor_pool    { nullptr },
-    _plane_mesh         { nullptr },
-    _plane_mat          { btx::math::Mat4::identity },
-    _cube_mesh          { nullptr },
-    _cube_mat           { btx::math::Mat4::identity },
-    _texture            { nullptr },
-    _texture_view       { nullptr },
-    _texture_sampler    { nullptr },
-    _texture_set_layout { nullptr },
-    _texture_set        { nullptr },
-    _camera             { nullptr },
-    _camera_ubos        { },
-    _camera_ubo_layout  { nullptr },
-    _camera_ubo_sets    { },
-    _color_pass         { nullptr },
-    _color_pipeline     { nullptr },
+    Application("Demo"),
+    _device { nullptr },
+    _swapchain { nullptr },
+    _color_pass { nullptr },
+    _color_pipeline { nullptr },
     _color_framebuffers { }
-
 { }
 
-// =============================================================================
 void Demo::init(btx::vkDevice const &device, btx::vkSwapchain const &swapchain)
 {
-    BTX_TRACE("client app init");
-
-    _descriptor_pool = new btx::vkDescriptorPool(
-        device, { },
-        1000u,
-        {
-            { vk::DescriptorType::eUniformBuffer,        1000u, },
-            { vk::DescriptorType::eCombinedImageSampler, 1000u, },
-        }
-    );
-
-    _plane_mesh = new btx::PlaneMesh(
-        device,
-        0.75f
-        // {{
-        //     { 1.0f, 0.0f, 0.0f },
-        //     { 0.0f, 1.0f, 0.0f },
-        //     { 0.0f, 0.0f, 1.0f },
-        //     { 0.25f, 0.25f, 0.25f }
-        // }}
-    );
-
-    _cube_mesh = new btx::CubeMesh(
-        device,
-        0.75f
-        // {{
-        //     { 1.0f, 0.0f, 0.0f },
-        //     { 0.0f, 1.0f, 0.0f },
-        //     { 0.0f, 0.0f, 1.0f },
-        //     { 0.25f, 0.25f, 0.25f },
-        //     { 1.0f, 0.0f, 0.0f },
-        //     { 0.0f, 1.0f, 0.0f },
-        //     { 0.0f, 0.0f, 1.0f },
-        //     { 0.5f, 0.5f, 0.5f },
-        // }}
-    );
-
-    _create_texture(device);
-
-    create_framebuffers(device, swapchain);
+    _device = &device;
+    _swapchain = &swapchain;
+    _create_color_pass();
 }
 
-// =============================================================================
 void Demo::shutdown() {
-    BTX_TRACE("client app shutdown");
-
-    destroy_framebuffers();
-
-    _destroy_texture();
-
-    delete _cube_mesh;
-    delete _plane_mesh;
-
-    delete _descriptor_pool;
-}
-
-// =============================================================================
-void Demo::update() {
-    _camera->update();
-
-    _plane_mat = btx::math::translate(btx::math::Mat4::identity,
-                                      -btx::math::Vec3::unit_x);
-
-    // _cube_mat =
-    //     math::rotate(math::Mat4::identity,
-    //                  20.0f * Timekeeper::run_time(),
-    //                  math::Vec3::unit_z) *
-    //     math::rotate(math::Mat4::identity,
-    //                  10.0f * Timekeeper::run_time(),
-    //                  math::Vec3::unit_y);
-
-    _cube_mat = btx::math::translate(btx::math::Mat4::identity,
-                                     btx::math::Vec3::unit_x);
-}
-
-// =============================================================================
-void Demo::create_framebuffers(btx::vkDevice const &device,
-                               btx::vkSwapchain const &swapchain)
-{
-    _create_camera(device);
-    _create_color_pass(device, swapchain);
-}
-
-// =============================================================================
-void Demo::destroy_framebuffers() {
     _destroy_color_pass();
-    _destroy_camera();
 }
 
-// =============================================================================
+void Demo::update() {
+
+}
+
 void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
                            uint32_t const image_index)
 {
-    _record_color_commands(cmd_buffer, image_index);
-}
-
-// =============================================================================
-void Demo::_record_color_commands(btx::vkCmdBuffer const &cmd_buffer,
-                                  uint32_t const image_index)
-{
-    std::array<btx::math::Mat4, 2> const vp {{
-        _camera->view_matrix(), _camera->proj_matrix()
-    }};
-
-    _camera_ubos[image_index]->fill_buffer(vp.data());
-
     auto const &framebuffer = *_color_framebuffers[image_index];
 
     static std::array<vk::ClearValue, 2> const clear_values = {{
-        { .color = std::array<float, 4> {{
-                btx::RenderConfig::clear_color.x,
-                btx::RenderConfig::clear_color.y,
-                btx::RenderConfig::clear_color.z,
-                1.0f
-            }}
-        },
-        { .depthStencil
-            {
-                .depth = 1.0f,
-                .stencil = 1u,
-            }
-        }
+        { .color = std::array<float, 4> {{ 0.08f, 0.08f, 0.16f, 1.0f }} },
+        { .depthStencil { .depth = 1.0f, .stencil = 1u } }
     }};
 
     vk::Rect2D const render_area = {
-        .offset {
-            .x = btx::RenderConfig::swapchain_image_offset.x,
-            .y = btx::RenderConfig::swapchain_image_offset.y,
-        },
+        .offset { .x = 0u, .y = 0u },
         .extent {
             .width  = btx::RenderConfig::swapchain_image_size.width,
             .height = btx::RenderConfig::swapchain_image_size.height,
-        }
+        },
     };
 
     cmd_buffer.begin_render_pass(
@@ -189,186 +65,20 @@ void Demo::_record_color_commands(btx::vkCmdBuffer const &cmd_buffer,
     );
 
     _color_pipeline->bind(cmd_buffer);
-    _color_pipeline->bind_descriptor_set(cmd_buffer, *_camera_ubo_sets[image_index]);
-    _color_pipeline->bind_descriptor_set(cmd_buffer, *_texture_set);
 
-    _send_color_push_constants(cmd_buffer, {
-        PushConstant {
-            .stage_flags = vk::ShaderStageFlagBits::eVertex,
-            .size_bytes = sizeof(btx::math::Mat4),
-            .data = &_plane_mat,
-        }
-    });
-    _plane_mesh->draw_indexed(cmd_buffer);
-
-    _send_color_push_constants(cmd_buffer, {
-        PushConstant {
-            .stage_flags = vk::ShaderStageFlagBits::eVertex,
-            .size_bytes = sizeof(btx::math::Mat4),
-            .data = &_cube_mat,
-        }
-    });
-    _cube_mesh->draw_indexed(cmd_buffer);
+    // send push constants
+    // bind descriptor sets
+    // draw indexed
+    // etc
 
     cmd_buffer.end_render_pass();
 }
 
-// =============================================================================
-void Demo::_send_color_push_constants(btx::vkCmdBuffer const &cmd_buffer,
-                                      PushConstants const &push_constants)
-{
-    size_t offset = 0u;
-    for(auto const& push_constant : push_constants) {
-        cmd_buffer.native().pushConstants(
-            _color_pipeline->layout(),
-            push_constant.stage_flags,
-            static_cast<uint32_t>(offset),
-            static_cast<uint32_t>(push_constant.size_bytes),
-            push_constant.data
-        );
-
-        offset += push_constant.size_bytes;
-    }
-}
-
-// =============================================================================
-void Demo::_create_camera(btx::vkDevice const &device) {
-    _camera = new btx::FPSCamera(
-       {
-            .position = { 0.0f, 0.0f, 4.0f },
-            .forward  = { 0.0f, 0.0f, 0.0f },
-            .up       = { 0.0f, 1.0f, 0.0f },
-
-            .pitch = 0.0f,
-            .yaw = -90.0f,
-        },
-        {
-            .vfov_degrees = 45.0f,
-            .aspect_ratio = btx::RenderConfig::swapchain_aspect_ratio,
-            .near_plane = 0.1f,
-            .far_plane = 1000.0f,
-        }
-    );
-
-    for(uint32_t i = 0; i < btx::RenderConfig::swapchain_image_count; ++i) {
-        _camera_ubos.push_back(new btx::vkBuffer(
-            device, 2 * sizeof(btx::math::Mat4),
-            vk::BufferUsageFlagBits::eUniformBuffer,
-            (vk::MemoryPropertyFlagBits::eHostVisible |
-             vk::MemoryPropertyFlagBits::eHostCoherent)
-        ));
-    }
-
-    _camera_ubo_layout = new btx::vkDescriptorSetLayout(device);
-
-    (*_camera_ubo_layout)
-        .add_binding(vk::DescriptorType::eUniformBuffer,
-                     vk::ShaderStageFlagBits::eAll)
-        .create();
-
-    _camera_ubo_sets.resize(btx::RenderConfig::swapchain_image_count);
-
-    for(uint32_t i = 0; i < btx::RenderConfig::swapchain_image_count; ++i) {
-        _camera_ubo_sets[i] =  new btx::vkDescriptorSet(device,
-                                                        *_descriptor_pool,
-                                                        *_camera_ubo_layout);
-
-        (*_camera_ubo_sets[i])
-            .add_buffer(*_camera_ubos[i], vk::DescriptorType::eUniformBuffer)
-            .write_set();
-    }
-}
-
-// =============================================================================
-void Demo::_destroy_camera() {
-    for(auto *set : _camera_ubo_sets) {
-        delete set;
-    }
-    _camera_ubo_sets.clear();
-
-    delete _camera_ubo_layout;
-    _camera_ubo_layout = nullptr;
-
-    for(auto *buffer : _camera_ubos) {
-        delete buffer;
-    }
-    _camera_ubos.clear();
-
-    delete _camera;
-    _camera = nullptr;
-}
-
-// =============================================================================
-void Demo::_create_texture(btx::vkDevice const &device) {
-    btx::vkImage::ImageInfo const image_info {
-        .type = vk::ImageType::e2D,
-        .samples = vk::SampleCountFlagBits::e1,
-        .usage_flags =  (vk::ImageUsageFlagBits::eSampled |
-                         vk::ImageUsageFlagBits::eTransferDst |
-                         vk::ImageUsageFlagBits::eTransferSrc),
-        .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal
-    };
-    _texture = new btx::vkImage(device, "textures/woodfloor_051_d.jpg",
-                                image_info);
-
-    _texture_view = new btx::vkImageView(device, *_texture,
-                                         vk::ImageViewType::e2D,
-                                         vk::ImageAspectFlagBits::eColor);
-
-    _texture_sampler = new btx::vkSampler(device, vk::Filter::eLinear,
-                                          vk::Filter::eLinear,
-                                          vk::SamplerMipmapMode::eLinear,
-                                          vk::SamplerAddressMode::eRepeat,
-                                          vk::SamplerAddressMode::eRepeat);
-
-    _texture_set_layout = new btx::vkDescriptorSetLayout(device);
-
-    (*_texture_set_layout)
-        .add_binding(vk::DescriptorType::eCombinedImageSampler,
-                     vk::ShaderStageFlagBits::eFragment)
-        .create();
-
-    // _texture_sets.resize(btx::RenderConfig::swapchain_image_count);
-
-    // for(uint32_t i = 0; i < btx::RenderConfig::swapchain_image_count; ++i) {
-        _texture_set =  new btx::vkDescriptorSet(device,
-                                                 *_descriptor_pool,
-                                                 *_texture_set_layout);
-
-        (*_texture_set)
-            .add_image(*_texture, *_texture_view, *_texture_sampler,
-                       vk::DescriptorType::eCombinedImageSampler)
-            .write_set();
-    // }
-}
-
-// =============================================================================
-void Demo::_destroy_texture() {
-    // for(auto *set : _texture_sets) {
-        delete _texture_set;
-    // }
-    _texture_set = nullptr;
-
-    delete _texture_set_layout;
-    _texture_set_layout = nullptr;
-
-    delete _texture_sampler;
-    delete _texture_view;
-    delete _texture;
-
-    _texture_sampler = nullptr;
-    _texture_view = nullptr;
-    _texture = nullptr;
-}
-
-// =============================================================================
-void Demo::_create_color_pass(btx::vkDevice const &device,
-                              btx::vkSwapchain const &swapchain)
-{
+void Demo::_create_color_pass() {
     _color_pass =
         new btx::vkColorPass(
-            device,
-            swapchain.image_format(),
+            *_device,
+            _swapchain->image_format(),
             {
                 .width  = btx::RenderConfig::swapchain_image_size.width,
                 .height = btx::RenderConfig::swapchain_image_size.height,
@@ -376,41 +86,32 @@ void Demo::_create_color_pass(btx::vkDevice const &device,
             true
         );
 
-    _color_pipeline = new btx::vkPipeline(device);
+    _color_pipeline = new btx::vkPipeline(*_device);
     (*_color_pipeline)
         .module_from_spirv("shaders/demo.vert",
                            vk::ShaderStageFlagBits::eVertex)
         .module_from_spirv("shaders/demo.frag",
                            vk::ShaderStageFlagBits::eFragment)
         .describe_vertex_input(btx::Vertex::bindings, btx::Vertex::attributes)
-        .add_descriptor_set(*_camera_ubo_layout)
-        .add_descriptor_set(*_texture_set_layout)
-        .add_push_constant(
-            vk::ShaderStageFlagBits::eVertex,
-            sizeof(btx::math::Mat4)
-        )
         .create(
             *_color_pass,
             {
-                .color_formats = { swapchain.image_format() },
+                .color_formats = { _swapchain->image_format() },
                 .depth_format = vk::Format::eUndefined,
                 .viewport_extent = {
                     .width  = btx::RenderConfig::swapchain_image_size.width,
                     .height = btx::RenderConfig::swapchain_image_size.height,
                 },
-                .viewport_offset = {
-                    .x = btx::RenderConfig::swapchain_image_offset.x,
-                    .y = btx::RenderConfig::swapchain_image_offset.y,
-                },
+                .viewport_offset = { .x = 0u, .y = 0u, },
                 .sample_flags = _color_pass->msaa_samples(),
                 .enable_depth_test = VK_TRUE,
             }
         );
 
-    for(size_t i = 0; i < btx::RenderConfig::swapchain_image_count; ++i) {
+    auto const swapchain_image_count = _swapchain->image_views().size();
+    for(size_t i = 0; i < swapchain_image_count; ++i) {
         _color_framebuffers.emplace_back(new btx::vkFramebuffer(
-            device,
-            *_color_pass,
+            *_device, *_color_pass,
             {
                 .width  = btx::RenderConfig::swapchain_image_size.width,
                 .height = btx::RenderConfig::swapchain_image_size.height,
@@ -418,23 +119,17 @@ void Demo::_create_color_pass(btx::vkDevice const &device,
             {{
                 _color_pass->color_views()[i]->native(),
                 _color_pass->depth_views()[i]->native(),
-                swapchain.image_views()[i]->native()
+                _swapchain->image_views()[i]->native()
             }}
         ));
     }
 }
 
-// =============================================================================
 void Demo::_destroy_color_pass() {
     for(auto *framebuffer : _color_framebuffers) {
         delete framebuffer;
     }
 
-    _color_framebuffers.clear();
-
     delete _color_pipeline;
-    _color_pipeline = nullptr;
-
     delete _color_pass;
-    _color_pass = nullptr;
 }

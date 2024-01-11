@@ -1,9 +1,3 @@
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CheckCompilerVersions.cmake")
-CheckCompilerVersions()
-
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FetchDeps.cmake")
-FetchDeps()
-
 set(TARGET_NAME "brasstacks")
 
 add_library(${TARGET_NAME} STATIC)
@@ -32,12 +26,21 @@ target_precompile_headers(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/brasstacks/pch.hpp"
 )
 
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_spdlog.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_glfw.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_glm.cmake")
+
+fetch_spdlog()
+fetch_glfw()
+fetch_glm()
+
 target_link_libraries(
     ${TARGET_NAME} PUBLIC
-    third_party
     spdlog::spdlog
+    glfw
     Vulkan::Vulkan
-    # glm
+    glm::glm_static
+    third_party
 )
 
 target_include_directories(
@@ -54,6 +57,10 @@ elseif(WIN32)
     target_compile_definitions(
         ${TARGET_NAME} PUBLIC
         BTX_WINDOWS
+    )
+    target_link_libraries(
+        ${TARGET_NAME} PRIVATE
+        "Dwmapi.lib"
     )
 endif()
 

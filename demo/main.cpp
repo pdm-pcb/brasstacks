@@ -1,7 +1,7 @@
 #include "Demo.hpp"
 
 int main() {
-    auto demo = std::make_unique<Demo>();
-    demo->run();
+    Demo demo;
+    demo.run();
     return 0;
 }

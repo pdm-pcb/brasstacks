@@ -1,4 +1,4 @@
-#include "brasstacks/core.hpp"
+#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkColorPass.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -18,10 +18,10 @@ vkColorPass::vkColorPass(vkDevice const &device, vk::Format const format,
     _msaa_samples {
         vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples)
     },
-    _color_buffers {  },
-    _color_views   {  },
-    _depth_buffers {  },
-    _depth_views   {  },
+    _color_buffers { },
+    _color_views   { },
+    _depth_buffers { },
+    _depth_views   { },
     _attachment_descriptions { },
     _color_attachments       { },
     _depth_attachment        { },

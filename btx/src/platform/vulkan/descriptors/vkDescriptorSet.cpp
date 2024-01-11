@@ -1,4 +1,4 @@
-#include "brasstacks/core.hpp"
+#include "brasstacks/brasstacks.hpp"
 
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 

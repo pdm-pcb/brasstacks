@@ -12,50 +12,25 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #if defined(BTX_LINUX)
-    #include <X11/Xlib.h>
-
     #define VK_USE_PLATFORM_XLIB_KHR
     #include <vulkan/vulkan.hpp>
     #include <vulkan/vulkan_xlib.h>
+
+    #define GLFW_EXPOSE_NATIVE_X11
 #elif defined(BTX_WINDOWS)
-    // Start with the old standbys
-    #define WIN32_LEAN_AND_MEAN
-    #define VC_EXTRALEAN
+    #define NOMINMAX
 
-    // And now disable a bunch of features one by one
-    #define NOGDICAPMASKS    // Color and other GDI stuff
-    #define NOMENUS
-    #define NOICONS
-    #define NORASTEROPS      // Rasterization functions
-    #define NOCLIPBOARD
-    #define NOCOLOR          // UI color
-    #define NODRAWTEXT       // Drawing formatted text
-    #define NOMB             // Message box
-    #define NOMEMMGR         // Global/local memory managers
-    #define NOMETAFILE       // GDI/clipboard file format
-    #define NOMINMAX         // Bothersome min and max macros
-    #define NOOPENFILE       // File manipulation
-    #define NOSCROLL
-    #define NOSERVICE        // Windows services
-    #define NOSOUND
-    #define NOTEXTMETRIC     // Font info
-    #define NOWH             // Windows hooks
-    #define NOCOMM
-    #define NOHELP
-    #define NODEFERWINDOWPOS // More multi-window functionality
-    #define NOMCX            // Modem configuration extensions
-
-    #define UNICODE
-    #define _UNICODE
-
-    #include <Windows.h>
-    #include <hidusage.h>
-    #include <winuser.h>
+    #include <dwmapi.h>
 
     #define VK_USE_PLATFORM_WIN32_KHR
     #include <vulkan/vulkan.hpp>
     #include <vulkan/vulkan_win32.h>
+
+    #define GLFW_EXPOSE_NATIVE_WIN32
 #endif // BTX platform
+
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 #include <cstdint>
 #include <cstdlib>
@@ -63,26 +38,19 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <cstring>
-#include <list>
-#include <functional>
-#include <unordered_map>
-#include <array>
+#include <numbers>
+#include <limits>
+#include <set>
 #include <filesystem>
 #include <fstream>
 #include <queue>
-#include <chrono>
-#include <set>
-#include <numbers>
-#include <thread>
-#include <mutex>
 
 #if defined(BTX_DEBUG)
-static std::filesystem::path const BTX_ASSET_PATH("../../demo/assets");
-static std::string           const BTX_SHADER_EXT("-debug.spv");
+    static std::filesystem::path const BTX_ASSET_PATH("../../demo/assets");
+    static std::string           const BTX_SHADER_EXT("-debug.spv");
 #else
-static std::filesystem::path const BTX_ASSET_PATH("assets");
-static std::string           const BTX_SHADER_EXT("-release.spv");
+    static std::filesystem::path const BTX_ASSET_PATH("assets");
+    static std::string           const BTX_SHADER_EXT("-release.spv");
 #endif // BTX build config
 
 #endif // BRASSTACKS_PCH_HPP
