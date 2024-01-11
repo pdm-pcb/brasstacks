@@ -443,7 +443,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             auto const translated = _keymap.translate(
                 static_cast<const ::USHORT>(wParam)
             );
-            EventBus::publish(KeyPressEvent{ .code = translated });
+            EventBus::publish(KeyPressEvent { .code = translated });
             break;
         }
 
@@ -451,7 +451,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             auto const translated = _keymap.translate(
                 static_cast<const ::USHORT>(wParam)
             );
-            EventBus::publish(KeyReleaseEvent{ .code = translated });
+            EventBus::publish(KeyReleaseEvent { .code = translated });
             break;
         }
 
@@ -662,10 +662,10 @@ void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw) {
     bool const is_release = ((raw.Flags & RI_KEY_BREAK) != 0);
 
     if(is_release) {
-        EventBus::publish(KeyPressEvent{ .code = translated });
+        EventBus::publish(KeyReleaseEvent { .code = translated });
     }
     else {
-        EventBus::publish(KeyPressEvent{ .code = translated });
+        EventBus::publish(KeyPressEvent { .code = translated });
     }
 }
 
