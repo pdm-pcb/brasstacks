@@ -7,6 +7,9 @@
 #define BRASSTACKS_SYSTEM_APPLICATION_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/events/EventQueue.hpp"
+#include "brasstacks/events/window_events.hpp"
+#include "brasstacks/events/keyboard_events.hpp"
 
 namespace btx {
 
@@ -108,6 +111,12 @@ private:
      * swapchain images and pipelines.
      */
     Renderer *_renderer;
+
+    EventQueue<WindowCloseEvent>    _window_close_queue;
+    EventQueue<WindowSizeEvent>     _window_size_queue;
+    EventQueue<WindowMinimizeEvent> _window_minimize_queue;
+    EventQueue<WindowRestoreEvent>  _window_restore_queue;
+    EventQueue<KeyReleaseEvent>     _key_release_queue;
 
     void _destroy_and_recreate_swapchain();
 };

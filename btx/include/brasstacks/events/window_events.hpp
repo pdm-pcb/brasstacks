@@ -2,17 +2,18 @@
 #define BRASSTACKS_EVENTS_WINDOW_EVENTS_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/events/EventBase.hpp"
 
 namespace btx {
 
 // Empty struct to carry the signal
-struct WindowCloseEvent final { };
+struct WindowCloseEvent final : public EventBase { };
 
-struct WindowSizeEvent final { };
+struct WindowSizeEvent final : public EventBase { };
 
-struct WindowMinimizeEvent final { };
+struct WindowMinimizeEvent final : public EventBase { };
 
-struct WindowRestoreEvent final { };
+struct WindowRestoreEvent final : public EventBase { };
 
 } //namespace btx
 

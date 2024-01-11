@@ -3,6 +3,9 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/math/math.hpp"
+#include "brasstacks/events/EventQueue.hpp"
+#include "brasstacks/events/keyboard_events.hpp"
+#include "brasstacks/events/mouse_events.hpp"
 
 namespace btx {
 
@@ -80,7 +83,9 @@ private:
         float yaw   = -90.0f;
     } _state;
 
-    void _register_callbacks();
+    EventQueue<KeyPressEvent>   _key_press_queue;
+    EventQueue<KeyReleaseEvent> _key_release_queue;
+    EventQueue<MouseMoveEvent>  _mouse_move_queue;
 };
 
 } // namespace btx

@@ -1,7 +1,7 @@
 #include "brasstacks/core.hpp"
 #include "brasstacks/tools/FPSCamera.hpp"
 
-#include "brasstacks/events/EventBroker.hpp"
+#include "brasstacks/events/EventBus.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
 
@@ -9,7 +9,10 @@ namespace btx {
 
 // =============================================================================
 FPSCamera::FPSCamera(Orientation const &orientation,
-                     PerspectiveParams const &persp_params)
+                     PerspectiveParams const &persp_params) :
+    _key_press_queue   { *this, &FPSCamera::on_key_press },
+    _key_release_queue { *this, &FPSCamera::on_key_release },
+    _mouse_move_queue  { *this, &FPSCamera::on_mouse_move }
 {
     _state = {
         .position = orientation.position,
@@ -18,12 +21,14 @@ FPSCamera::FPSCamera(Orientation const &orientation,
     };
 
     set_perspective_proj(persp_params);
-
-    _register_callbacks();
 }
 
 // =============================================================================
 void FPSCamera::update() {
+    _key_press_queue.process_queue();
+    _key_release_queue.process_queue();
+    _mouse_move_queue.process_queue();
+
     auto const cos_yaw   = std::cos(math::radians(_state.yaw));
     auto const sin_yaw   = std::sin(math::radians(_state.yaw));
     auto const cos_pitch = std::cos(math::radians(_state.pitch));
@@ -107,13 +112,6 @@ void FPSCamera::set_perspective_proj(PerspectiveParams const &persp_params) {
         persp_params.near_plane,
         persp_params.far_plane
     );
-}
-
-// =============================================================================
-void FPSCamera::_register_callbacks() {
-    EventBroker::subscribe<KeyPressEvent>(this, &FPSCamera::on_key_press);
-    EventBroker::subscribe<KeyReleaseEvent>(this, &FPSCamera::on_key_release);
-    EventBroker::subscribe<MouseMoveEvent>(this, &FPSCamera::on_mouse_move);
 }
 
 } // namespace btx

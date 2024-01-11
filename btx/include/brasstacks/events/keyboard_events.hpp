@@ -2,15 +2,16 @@
 #define BRASSTACKS_EVENTS_KEYBOARD_EVENTS_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/events/EventBase.hpp"
 #include "brasstacks/system/input/btx_keycodes.hpp"
 
 namespace btx {
 
-struct KeyPressEvent final {
+struct KeyPressEvent final : public EventBase {
     Keycode code;
 };
 
-struct KeyReleaseEvent final {
+struct KeyReleaseEvent final : public EventBase  {
     Keycode code;
 };
 

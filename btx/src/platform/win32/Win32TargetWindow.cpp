@@ -3,7 +3,7 @@
 #include "brasstacks/core.hpp"
 #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
-#include "brasstacks/events/EventBroker.hpp"
+#include "brasstacks/events/EventBus.hpp"
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
@@ -162,8 +162,8 @@ void Win32TargetWindow::_create_window() {
         auto const h = static_cast<float>(_screen_size.height);
 
         RenderConfig::target_window_size = {
-            static_cast<uint32_t>(w * 0.75f),
-            static_cast<uint32_t>(h * 0.75f)
+            static_cast<uint32_t>(w * 0.5f),
+            static_cast<uint32_t>(h * 0.5f)
         };
     }
 
@@ -427,23 +427,23 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
 {
     // BTX_ERROR("{}", _msg_map.translate(uMsg));
 
-    if(this->ui_input_enabled()) {
-        if(::ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
-            return true;
-        }
+    // if(this->ui_input_enabled()) {
+    //     if(::ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
+    //         return true;
+    //     }
 
-        auto const &io = ImGui::GetIO();
-        if(io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput) {
-            return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
-        }
-    }
+    //     auto const &io = ImGui::GetIO();
+    //     if(io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput) {
+    //         return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
+    //     }
+    // }
 
     switch(uMsg) {
         case WM_KEYDOWN: {
             auto const translated = _keymap.translate(
                 static_cast<const ::USHORT>(wParam)
             );
-            EventBroker::emit<KeyPressEvent>({ translated });
+            EventBus::publish(KeyPressEvent{ .code = translated });
             break;
         }
 
@@ -451,7 +451,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             auto const translated = _keymap.translate(
                 static_cast<const ::USHORT>(wParam)
             );
-            EventBroker::emit<KeyReleaseEvent>({ translated });
+            EventBus::publish(KeyReleaseEvent{ .code = translated });
             break;
         }
 
@@ -466,7 +466,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
                 _minimized = true;
 
                 BTX_INFO("win32 target window minimized");
-                EventBroker::emit<WindowMinimizeEvent>({ });
+                EventBus::publish<WindowMinimizeEvent>({ });
             }
             else if(wParam == SIZE_RESTORED && _minimized) {
                 RenderConfig::target_window_size.width = width;
@@ -476,7 +476,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
 
                 BTX_INFO("win32 target window restored to {}x{}",
                           width, height);
-                EventBroker::emit<WindowRestoreEvent>({ });
+                EventBus::publish<WindowRestoreEvent>({ });
             }
             else if((width != RenderConfig::target_window_size.width)
                     || (height != RenderConfig::target_window_size.height))
@@ -493,7 +493,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
                          RenderConfig::target_window_size.width,
                          RenderConfig::target_window_size.height);
 
-                EventBroker::emit<WindowSizeEvent>({ });
+                EventBus::publish<WindowSizeEvent>({ });
 
             break;
         }
@@ -550,16 +550,16 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             break;
         }
 
-        // case WM_ACTIVATE:
-        //     if(wParam == WA_INACTIVE) {
-        //         _deregister_raw_input();
-        //         _release_cursor();
-        //     }
-        //     else {
-        //         _register_raw_input();
-        //         _restrict_cursor();
-        //     }
-        //     break;
+        case WM_ACTIVATE:
+            if(wParam == WA_INACTIVE) {
+                _deregister_raw_input();
+                _release_cursor();
+            }
+            else {
+                _register_raw_input();
+                _restrict_cursor();
+            }
+            break;
 
         // This is the first message received in window close cascade. Note the
         // early return so there's no call to ::DefWindowProc()
@@ -567,7 +567,7 @@ bool Win32TargetWindow::str_to_wstr(std::string_view const str, ::LPWSTR *wstr)
             ::DestroyWindow(hWnd);
             ::UnregisterClassW(_window_class.lpszClassName,
                                _window_class.hInstance);
-            EventBroker::emit<WindowCloseEvent>({ });
+            EventBus::publish<WindowCloseEvent>({ });
             return false;
 
         // And this is the second message, but also the last one we have to
@@ -662,10 +662,10 @@ void Win32TargetWindow::_parse_raw_keyboard(::RAWKEYBOARD const &raw) {
     bool const is_release = ((raw.Flags & RI_KEY_BREAK) != 0);
 
     if(is_release) {
-        EventBroker::emit<KeyReleaseEvent>({ translated });
+        EventBus::publish(KeyPressEvent{ .code = translated });
     }
     else {
-        EventBroker::emit<KeyPressEvent>({ translated });
+        EventBus::publish(KeyPressEvent{ .code = translated });
     }
 }
 
@@ -676,46 +676,49 @@ void Win32TargetWindow::_parse_raw_mouse(::RAWMOUSE const &raw) {
 
     // Left mouse button
     if((button_flags & RI_MOUSE_LEFT_BUTTON_DOWN) != 0u) {
-        EventBroker::emit<MouseButtonPressEvent>({ BTX_MB_LEFT });
+        EventBus::publish(MouseButtonPressEvent { .code = BTX_MB_LEFT });
     }
     else if((button_flags & RI_MOUSE_LEFT_BUTTON_UP) != 0u) {
-        EventBroker::emit<MouseButtonReleaseEvent>({ BTX_MB_LEFT });
+        EventBus::publish(MouseButtonReleaseEvent { .code = BTX_MB_LEFT });
     }
 
     // Right mouse button
     if((button_flags & RI_MOUSE_RIGHT_BUTTON_DOWN) != 0u) {
-        EventBroker::emit<MouseButtonPressEvent>({ BTX_MB_RIGHT });
+        EventBus::publish(MouseButtonPressEvent { .code = BTX_MB_RIGHT });
     }
     else if((button_flags & RI_MOUSE_RIGHT_BUTTON_UP) != 0u) {
-        EventBroker::emit<MouseButtonReleaseEvent>({ BTX_MB_RIGHT });
+        EventBus::publish(MouseButtonReleaseEvent { .code = BTX_MB_RIGHT });
     }
 
     // Middle mouse button
     if((button_flags & RI_MOUSE_MIDDLE_BUTTON_DOWN) != 0u) {
-        EventBroker::emit<MouseButtonPressEvent>({ BTX_MB_MIDDLE });
+        EventBus::publish(MouseButtonPressEvent { .code = BTX_MB_MIDDLE });
     }
     else if((button_flags & RI_MOUSE_MIDDLE_BUTTON_UP) != 0u) {
-        EventBroker::emit<MouseButtonReleaseEvent>({ BTX_MB_MIDDLE });
+        EventBus::publish(MouseButtonReleaseEvent { .code = BTX_MB_MIDDLE });
     }
 
     // Mouse movement
     if(raw.lLastX != 0 || raw.lLastY != 0) {
-        EventBroker::emit<MouseMoveEvent>({ raw.lLastX, raw.lLastY });
+        EventBus::publish(MouseMoveEvent {
+            .x_offset = raw.lLastX,
+            .y_offset = raw.lLastY
+        });
     }
 
     // Vertical mouse scroll
     if((button_flags & RI_MOUSE_WHEEL) != 0u) {
-        EventBroker::emit<MouseScrollEvent>({
-            static_cast<int32_t>(button_data),
-            0
+        EventBus::publish(MouseScrollEvent {
+            .vert_offset = static_cast<int32_t>(button_data),
+            .horiz_offset = 0
         });
     }
 
     // Horizontal mouse scroll
     if((button_flags & RI_MOUSE_HWHEEL) != 0u) {
-        EventBroker::emit<MouseScrollEvent>({
-            0,
-            static_cast<int32_t>(button_data)
+        EventBus::publish(MouseScrollEvent {
+            .vert_offset = 0,
+            .horiz_offset = static_cast<int32_t>(button_data)
         });
     }
 }

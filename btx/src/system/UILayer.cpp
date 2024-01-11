@@ -21,10 +21,6 @@
 
 #include "brasstacks/assets/fonts/hack_regular.hpp"
 
-// Very temporary... promise. =)
-#include "brasstacks/events/EventBroker.hpp"
-#include "brasstacks/events/keyboard_events.hpp"
-
 namespace btx {
 
 // =============================================================================
@@ -266,9 +262,9 @@ void UILayer::_draw_title_bar() {
 void UILayer::_draw_menu() {
     if(ImGui::BeginMainMenuBar()) {
         if(ImGui::BeginMenu("File")) {
-            if(ImGui::MenuItem("Exit")) {
-                EventBroker::emit<KeyReleaseEvent>({ BTX_KB_ESCAPE });
-            }
+            // if(ImGui::MenuItem("Exit")) {
+            //     EventBus::publish<KeyReleaseEvent>({ BTX_KB_ESCAPE });
+            // }
             ImGui::EndMenu();
         }
         if(ImGui::BeginMenu("Edit")) {

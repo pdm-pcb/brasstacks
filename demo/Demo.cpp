@@ -1,9 +1,6 @@
 #include "Demo.hpp"
 #include "brasstacks/core.hpp"
 
-#include "brasstacks/events/EventBroker.hpp"
-#include "brasstacks/events/window_events.hpp"
-
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"

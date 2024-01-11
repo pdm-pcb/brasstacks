@@ -1,7 +1,7 @@
 #include "brasstacks/core.hpp"
 #include "brasstacks/system/Application.hpp"
 
-#include "brasstacks/events/EventBroker.hpp"
+#include "brasstacks/events/EventBus.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 
 #include "brasstacks/system/TargetWindow.hpp"
@@ -11,21 +11,16 @@ namespace btx {
 
 // =============================================================================
 Application::Application(std::string_view const app_name) :
-    _running       { true },
-    _paused        { false },
+    _running { true },
+    _paused  { false },
     _target_window { nullptr },
-    _renderer      { nullptr }
+    _renderer      { nullptr },
+    _window_close_queue    { *this, &Application::on_window_close },
+    _window_size_queue     { *this, &Application::on_window_size_event },
+    _window_minimize_queue { *this, &Application::on_window_minimize },
+    _window_restore_queue  { *this, &Application::on_window_restore },
+    _key_release_queue     { *this, &Application::on_key_release }
 {
-    // Events can start firing potentially as soon as we let TargetWindow run
-    // its message loop
-    EventBroker::init();
-
-    EventBroker::subscribe<WindowCloseEvent>(this, &Application::on_window_close);
-    EventBroker::subscribe<WindowSizeEvent>(this, &Application::on_window_size_event);
-    EventBroker::subscribe<WindowMinimizeEvent>(this, &Application::on_window_minimize);
-    EventBroker::subscribe<WindowRestoreEvent>(this, &Application::on_window_restore);
-    EventBroker::subscribe<KeyReleaseEvent>(this, &Application::on_key_release);
-
     // Instantiate the platform window and renderer backend
     _target_window = TargetWindow::create(app_name);
     _renderer = new Renderer(*_target_window);
@@ -46,6 +41,12 @@ void Application::run() {
     while(_running) {
         // Tick the clock
         Timekeeper::update();
+
+        _window_close_queue.process_queue();
+        _window_size_queue.process_queue();
+        _window_minimize_queue.process_queue();
+        _window_restore_queue.process_queue();
+        _key_release_queue.process_queue();
 
         // Have the client do per-frame processing and submit draw calls
         this->update();
@@ -78,9 +79,6 @@ void Application::run() {
             _target_window->message_loop();
         } while(_running && _paused);
     }
-
-    // Kill Events first so nothing unexpected pops up during destruction
-    EventBroker::shutdown();
 
     _renderer->wait_device_idle();
 
