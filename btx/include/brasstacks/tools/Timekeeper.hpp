@@ -7,9 +7,9 @@ namespace btx {
 
 class Timekeeper final {
 public:
-    using HRC = std::chrono::high_resolution_clock;
-    using TimePoint = HRC::time_point;
-    using Microseconds = std::chrono::microseconds;
+    using SteadyClock = std::chrono::steady_clock;
+    using TimePoint = SteadyClock::time_point;
+    using Nanoseconds = std::chrono::nanoseconds;
 
     static void update();
 
@@ -17,14 +17,14 @@ public:
     static void frame_end();
 
     inline static auto run_time() {
-        return 1e-6f * static_cast<float>(_run_time);
+        return 1e-9f * static_cast<float>(_run_time);
     }
 
     inline static auto frame_time() {
-        return 1e-6f * static_cast<float>(_frame_time);
+        return 1e-9f * static_cast<float>(_frame_time);
     }
 
-    inline static auto now() { return HRC::now(); }
+    inline static auto now() { return SteadyClock::now(); }
 
     Timekeeper() = delete;
     ~Timekeeper() = delete;
@@ -36,8 +36,8 @@ public:
     Timekeeper& operator=(const Timekeeper &other) = delete;
 
 private:
-    static HRC::time_point _app_start;
-    static HRC::time_point _frame_start;
+    static SteadyClock::time_point _app_start;
+    static SteadyClock::time_point _frame_start;
 
     static uint64_t _run_time;
     static uint64_t _frame_time;

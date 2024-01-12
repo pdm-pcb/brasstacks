@@ -25,9 +25,7 @@ FPSCamera::FPSCamera(Orientation const &orientation,
 
 // =============================================================================
 void FPSCamera::update() {
-    _key_press_queue.process_queue();
-    _key_release_queue.process_queue();
-    _mouse_move_queue.process_queue();
+    _process_events();
 
     auto const cos_yaw   = std::cos(math::radians(_state.yaw));
     auto const sin_yaw   = std::sin(math::radians(_state.yaw));
@@ -112,6 +110,13 @@ void FPSCamera::set_perspective_proj(PerspectiveParams const &persp_params) {
         persp_params.near_plane,
         persp_params.far_plane
     );
+}
+
+// =============================================================================
+void FPSCamera::_process_events() {
+    _key_press_queue.process_queue();
+    _key_release_queue.process_queue();
+    _mouse_move_queue.process_queue();
 }
 
 } // namespace btx

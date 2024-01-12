@@ -9,6 +9,7 @@ namespace btx {
 // =============================================================================
 Application::Application(std::string_view const app_name) :
     _running              { true },
+    _editor_mode          { true },
     _target_window        { new TargetWindow(app_name) },
     _target_window_thread { &TargetWindow::create_and_wait, _target_window },
     _renderer             { new Renderer(*_target_window) },
@@ -29,26 +30,32 @@ void Application::run() {
     _target_window->start();
 
     while(_running) {
+        Timekeeper::update();
+
         _process_events();
 
         this->update();
 
-        uint32_t const image_index = _renderer->acquire_next_image();
-        if(image_index == std::numeric_limits<uint32_t>::max()) {
-            _recreate_swapchain();
-            continue;
-        }
+        Timekeeper::frame_start();
 
-        _renderer->begin_recording();
+            uint32_t const image_index = _renderer->acquire_next_image();
+            if(image_index == std::numeric_limits<uint32_t>::max()) {
+                _recreate_swapchain();
+                continue;
+            }
 
-            this->record_commands();
+            _renderer->begin_recording();
 
-        _renderer->end_recording();
-        _renderer->submit_commands();
+                this->record_commands();
 
-        if(!_renderer->present_image()) {
-            _recreate_swapchain();
-        }
+            _renderer->end_recording();
+            _renderer->submit_commands();
+
+            if(!_renderer->present_image()) {
+                _recreate_swapchain();
+            }
+
+        Timekeeper::frame_end();
     }
 
     _target_window->stop();
@@ -68,7 +75,7 @@ Application::on_window_close([[maybe_unused]] WindowCloseEvent const &event) {
 // =============================================================================
 void Application::on_key_release([[maybe_unused]] KeyReleaseEvent const &event)
 {
-    if(event.code == BTX_KB_ESCAPE) {
+    if(_editor_mode && event.code == BTX_KB_ESCAPE) {
         _running = false;
     }
 }

@@ -35,7 +35,8 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _position_mutex  { },
     _minimized       { false },
     _run_mutex       { },
-    _running         { false }
+    _running         { false },
+    _editor_mode     { true }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -419,29 +420,7 @@ void Win32TargetWindow::_message_loop() {
 {
     // BTX_ERROR("{}", _msg_map.translate(uMsg));
 
-    // if(this->ui_input_enabled()) {
-    //     if(::ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
-    //         return true;
-    //     }
-
-    //     auto const &io = ImGui::GetIO();
-    //     if(io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput) {
-    //         return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
-    //     }
-    // }
-
     switch(uMsg) {
-        // case WM_ACTIVATE:
-        //     if(wParam == WA_INACTIVE) {
-        //         _deregister_raw_input();
-        //         _release_cursor();
-        //     }
-        //     else {
-        //         _register_raw_input();
-        //         _restrict_cursor();
-        //     }
-        //     break;
-
         // This is the first message received in window close cascade. Note the
         // early return so there's no call to ::DefWindowProc()
         case WM_CLOSE:
@@ -505,7 +484,15 @@ void Win32TargetWindow::_message_loop() {
             auto const translated = _keymap.translate(
                 static_cast<const ::USHORT>(wParam)
             );
-            EventBus::publish(KeyPressEvent { .code = translated });
+
+            if(!_editor_mode && translated == BTX_KB_ESCAPE) {
+                _editor_mode = true;
+                _deregister_raw_input();
+                _release_cursor();
+            }
+            else {
+                EventBus::publish(KeyPressEvent { .code = translated });
+            }
             break;
         }
 
@@ -514,6 +501,15 @@ void Win32TargetWindow::_message_loop() {
                 static_cast<const ::USHORT>(wParam)
             );
             EventBus::publish(KeyReleaseEvent { .code = translated });
+            break;
+        }
+
+        case WM_LBUTTONDOWN: {
+            if(_editor_mode) {
+                _editor_mode = false;
+                _register_raw_input();
+                _restrict_cursor();
+            }
             break;
         }
 

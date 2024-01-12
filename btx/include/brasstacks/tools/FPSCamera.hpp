@@ -86,6 +86,8 @@ private:
     EventQueue<KeyPressEvent>   _key_press_queue;
     EventQueue<KeyReleaseEvent> _key_release_queue;
     EventQueue<MouseMoveEvent>  _mouse_move_queue;
+
+    void _process_events();
 };
 
 } // namespace btx

@@ -71,6 +71,8 @@ private:
     std::condition_variable _run_cv;
     bool _running;
 
+    bool _editor_mode;
+
     void _register_class();
     void _create_window();
     void _destroy_window();

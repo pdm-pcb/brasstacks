@@ -5,7 +5,6 @@
 #include "brasstacks/events/EventQueue.hpp"
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
-
 #include "brasstacks/core/TargetWindow.hpp"
 
 namespace btx {
@@ -41,6 +40,7 @@ public:
 
 private:
     bool _running;
+    bool _editor_mode;
 
     TargetWindow *_target_window;
     std::thread _target_window_thread;
