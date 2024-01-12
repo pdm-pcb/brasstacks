@@ -4,12 +4,11 @@
 #include "brasstacks/core/Application.hpp"
 
 namespace btx {
-    class vkCmdBuffer;
-    class vkColorPass;
-    class vkPipeline;
-    class vkFramebuffer;
     class vkDevice;
     class vkSwapchain;
+    class vkCmdBuffer;
+
+    class ColorDepthPass;
 } // namespace btx
 
 class Demo final : public btx::Application {
@@ -32,17 +31,7 @@ private:
     btx::vkDevice    const *_device;
     btx::vkSwapchain const *_swapchain;
 
-    btx::vkColorPass                 *_color_pass;
-    btx::vkPipeline                  *_color_pipeline;
-    std::vector<btx::vkFramebuffer *> _color_framebuffers;
-
-    void _create_color_pass();
-    void _create_color_pipeline();
-    void _create_framebuffers();
-
-    void _destroy_color_pass();
-    void _destroy_color_pipeline();
-    void _destroy_framebuffers();
+    btx::ColorDepthPass *_color_depth_pass;
 };
 
 #endif // DEMO_HPP

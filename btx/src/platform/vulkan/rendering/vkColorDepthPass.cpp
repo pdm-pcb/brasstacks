@@ -1,5 +1,5 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkColorPass.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -10,8 +10,9 @@
 
 namespace btx {
 
-vkColorPass::vkColorPass(vkDevice const &device, vkSwapchain const &swapchain,
-                         bool const present) :
+vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
+                                   vkSwapchain const &swapchain,
+                                   bool const present) :
     vkRenderPass   { device, swapchain },
     _extent        { .width = swapchain.size().width,
                      .height = swapchain.size().height },
@@ -38,7 +39,8 @@ vkColorPass::vkColorPass(vkDevice const &device, vkSwapchain const &swapchain,
     _init_subpasses();
 
     vk::RenderPassCreateInfo const create_info {
-        .attachmentCount = static_cast<uint32_t>(_attachment_descriptions.size()),
+        .attachmentCount = static_cast<uint32_t>(
+                                _attachment_descriptions.size()),
         .pAttachments    = _attachment_descriptions.data(),
         .subpassCount    = static_cast<uint32_t>(_subpasses.size()),
         .pSubpasses      = _subpasses.data(),
@@ -50,7 +52,7 @@ vkColorPass::vkColorPass(vkDevice const &device, vkSwapchain const &swapchain,
 }
 
 // =============================================================================
-vkColorPass::~vkColorPass() {
+vkColorDepthPass::~vkColorDepthPass() {
     for(auto *view : _depth_views) {
         delete view;
     }
@@ -69,7 +71,7 @@ vkColorPass::~vkColorPass() {
 }
 
 // =============================================================================
-void vkColorPass::_find_depth_stencil_format() {
+void vkColorDepthPass::_find_depth_stencil_format() {
     const std::vector<vk::Format> depth_options {
         vk::Format::eD32Sfloat,
         vk::Format::eD32SfloatS8Uint,
@@ -91,7 +93,7 @@ void vkColorPass::_find_depth_stencil_format() {
 }
 
 // =============================================================================
-void vkColorPass::_create_color_buffer() {
+void vkColorDepthPass::_create_color_buffer() {
     vkImage::ImageInfo const color_buffer_info {
         .type         = vk::ImageType::e2D,
         .samples      = _msaa_samples,
@@ -121,7 +123,7 @@ void vkColorPass::_create_color_buffer() {
 }
 
 // =============================================================================
-void vkColorPass::_create_depth_buffer() {
+void vkColorDepthPass::_create_depth_buffer() {
     vkImage::ImageInfo const depth_stencil_info {
         .type         = vk::ImageType::e2D,
         .samples      = _msaa_samples,
@@ -150,7 +152,7 @@ void vkColorPass::_create_depth_buffer() {
 }
 
 // =============================================================================
-void vkColorPass::_init_attachments(bool const present) {
+void vkColorDepthPass::_init_attachments(bool const present) {
     _attachment_descriptions = {{
         // color buffer (msaa) attachment description
         .format  = _color_format,
@@ -201,7 +203,7 @@ void vkColorPass::_init_attachments(bool const present) {
 }
 
 // =============================================================================
-void vkColorPass::_init_subpasses() {
+void vkColorDepthPass::_init_subpasses() {
     _subpasses = {{
         // This subpass is a graphical one
         .pipelineBindPoint = vk::PipelineBindPoint::eGraphics,

@@ -11,25 +11,25 @@ class vkSwapchain;
 class vkImage;
 class vkImageView;
 
-class vkColorPass final : public vkRenderPass {
+class vkColorDepthPass final : public vkRenderPass {
 public:
 
-    vkColorPass(vkDevice const &device, vkSwapchain const &swapchain,
-                bool const present);
+    vkColorDepthPass(vkDevice const &device, vkSwapchain const &swapchain,
+                     bool const present);
 
-    ~vkColorPass() override;
+    ~vkColorDepthPass() override;
 
     auto const & color_views() const { return _color_views; }
     auto const & depth_views() const { return _depth_views; }
     auto msaa_samples() const { return _msaa_samples; }
 
-    vkColorPass() = delete;
+    vkColorDepthPass() = delete;
 
-    vkColorPass(vkColorPass &&) = delete;
-    vkColorPass(vkColorPass const &) = delete;
+    vkColorDepthPass(vkColorDepthPass &&) = delete;
+    vkColorDepthPass(vkColorDepthPass const &) = delete;
 
-    vkColorPass & operator=(vkColorPass &&) = delete;
-    vkColorPass & operator=(vkColorPass const &) = delete;
+    vkColorDepthPass & operator=(vkColorDepthPass &&) = delete;
+    vkColorDepthPass & operator=(vkColorDepthPass const &) = delete;
 
 private:
     vk::Extent2D _extent;
