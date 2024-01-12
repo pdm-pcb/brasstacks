@@ -2,13 +2,13 @@
 #define BRASSTACKS_CORE_APPLICATION_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/events/EventQueue.hpp"
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 
 namespace btx {
 
-class TargetWindow;
 class Renderer;
 class vkDevice;
 class vkCmdBuffer;
@@ -51,7 +51,7 @@ private:
     EventQueue<WindowCloseEvent> _window_close_events;
     EventQueue<KeyReleaseEvent>  _key_release_events;
 
-    void _poll_and_process_events();
+    void _process_events();
     void _recreate_swapchain();
 };
 

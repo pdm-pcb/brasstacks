@@ -28,7 +28,7 @@ void Application::run() {
     _target_window->show_window();
 
     while(_running) {
-        _poll_and_process_events();
+        _process_events();
 
         this->update();
 
@@ -72,7 +72,7 @@ void Application::on_key_release([[maybe_unused]] KeyReleaseEvent const &event)
 }
 
 // =============================================================================
-void Application::_poll_and_process_events() {
+void Application::_process_events() {
     _target_window->poll_events();
     _window_close_events.process_queue();
     _key_release_events.process_queue();
@@ -85,7 +85,7 @@ void Application::_recreate_swapchain() {
     while(_running && (RenderConfig::target_window_size.width == 0u
                        || RenderConfig::target_window_size.width == 0u))
     {
-        _poll_and_process_events();
+        _process_events();
     }
 
     if(_running) {

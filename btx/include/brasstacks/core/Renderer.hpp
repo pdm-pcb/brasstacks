@@ -2,12 +2,12 @@
 #define BRASSTACKS_CORE_RENDERER_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 namespace btx {
 
-class TargetWindow;
 class vkSurface;
 class vkSwapchain;
 class vkFrameSync;

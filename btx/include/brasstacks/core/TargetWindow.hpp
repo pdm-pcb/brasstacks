@@ -3,38 +3,41 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
+#include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
 namespace btx {
 
-class TargetWindow {
-public:
-    explicit TargetWindow(std::string_view const app_name);
-    ~TargetWindow();
+using TargetWindow = Win32TargetWindow;
 
-    inline void show_window() { ::glfwShowWindow(_window); }
-    inline void hide_window() { ::glfwHideWindow(_window); }
+// class TargetWindow final {
+// public:
+//     explicit TargetWindow(std::string_view const app_name);
+//     ~TargetWindow();
 
-    void poll_events();
+//     inline void show_window() { ::glfwShowWindow(_window); }
+//     inline void hide_window() { ::glfwHideWindow(_window); }
 
-#if defined(BTX_LINUX)
-    auto native() const { return ::glfwGetX11Window(_window); }
-#elif defined(BTX_WINDOWS)
-    auto native() const { return ::glfwGetWin32Window(_window); }
-#endif // BTX platform
+//     void poll_events();
 
-    TargetWindow() = delete;
+// #if defined(BTX_LINUX)
+//     auto native() const { return ::glfwGetX11Window(_window); }
+// #elif defined(BTX_WINDOWS)
+//     auto native() const { return ::glfwGetWin32Window(_window); }
+// #endif // BTX platform
 
-    TargetWindow(TargetWindow &&) = delete;
-    TargetWindow(TargetWindow const &) = delete;
+//     TargetWindow() = delete;
 
-    TargetWindow & operator=(TargetWindow &&) = delete;
-    TargetWindow & operator=(TargetWindow const &) = delete;
+//     TargetWindow(TargetWindow &&) = delete;
+//     TargetWindow(TargetWindow const &) = delete;
 
-private:
-    GLFWwindow *_window;
+//     TargetWindow & operator=(TargetWindow &&) = delete;
+//     TargetWindow & operator=(TargetWindow const &) = delete;
 
-    void _set_window_dimensions();
-};
+// private:
+//     GLFWwindow *_window;
+
+//     void _set_window_dimensions();
+// };
 
 } // namespace btx
 
