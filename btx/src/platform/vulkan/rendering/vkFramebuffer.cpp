@@ -11,7 +11,7 @@ namespace btx {
 // =============================================================================
 vkFramebuffer::vkFramebuffer(vkDevice const &device,
                              vkRenderPass const &render_pass,
-                             vk::Extent2D const &extent,
+                             RenderConfig::Size const &size,
                              std::vector<vk::ImageView> const &attachments) :
     _device { device }
 {
@@ -21,8 +21,8 @@ vkFramebuffer::vkFramebuffer(vkDevice const &device,
         .renderPass      = render_pass.native(),
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments    = attachments.data(),
-        .width           = extent.width,
-        .height          = extent.height,
+        .width           = size.width,
+        .height          = size.height,
         .layers          = 1u,
     };
 
@@ -35,7 +35,7 @@ vkFramebuffer::vkFramebuffer(vkDevice const &device,
 
     _handle = result.value;
     BTX_TRACE("Created framebuffer {} for render pass {} with extent {}x{}",
-              _handle, render_pass.native(), extent.width, extent.height);
+              _handle, render_pass.native(), size.width, size.height);
 }
 
 // =============================================================================

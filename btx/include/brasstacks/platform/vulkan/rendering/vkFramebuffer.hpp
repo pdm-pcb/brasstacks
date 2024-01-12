@@ -7,6 +7,7 @@
 #define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAMEBUFFER_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -19,7 +20,7 @@ class vkRenderPass;
 class vkFramebuffer final {
 public:
     vkFramebuffer(vkDevice const &device, vkRenderPass const &render_pass,
-                  vk::Extent2D const &extent,
+                  RenderConfig::Size const &size,
                   std::vector<vk::ImageView> const &attachments);
 
     ~vkFramebuffer();

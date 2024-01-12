@@ -133,14 +133,11 @@ void ColorDepthPass::_create_pipeline() {
         .create(
             *_render_pass,
             {
-                .color_formats = { _renderer.swapchain().image_format() },
-                .depth_format = vk::Format::eUndefined,
-                .viewport_extent = {
-                    .width  = _renderer.swapchain().size().width,
-                    .height = _renderer.swapchain().size().height,
-                },
-                .viewport_offset = { .x = 0u, .y = 0u, },
-                .sample_flags = _render_pass->msaa_samples(),
+                .color_formats     = { _renderer.swapchain().image_format() },
+                .depth_format      = vk::Format::eUndefined,
+                .viewport_extent   = _renderer.swapchain().size(),
+                .viewport_offset   = _renderer.swapchain().offset(),
+                .sample_flags      = _render_pass->msaa_samples(),
                 .enable_depth_test = VK_TRUE,
             }
         );
@@ -153,10 +150,7 @@ void ColorDepthPass::_create_framebuffers() {
         _framebuffers.emplace_back(new vkFramebuffer(
             _renderer.device(),
             *_render_pass,
-            {
-                .width  = _renderer.swapchain().size().width,
-                .height = _renderer.swapchain().size().height,
-            },
+            _renderer.swapchain().size(),
             {{
                 _render_pass->color_views()[i]->native(),
                 _render_pass->depth_views()[i]->native(),
