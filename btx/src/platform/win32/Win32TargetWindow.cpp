@@ -22,21 +22,22 @@ Win32ToBTXKeys const Win32TargetWindow::_keymap;
 
 // =============================================================================
 Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
-    _class_name      { },
-    _window_class    { },
-    _window_title    { app_name.begin(), app_name.end() },
-    _window_handle   { },
-    _raw_msg         { new std::byte[sizeof(::RAWINPUT)] },
-    _screen_size     { 0u, 0u },
-    _screen_center   { 0, 0 },
-    _window_size     { 0u, 0u },
-    _window_position { 0, 0 },
-    _size_mutex      { },
-    _position_mutex  { },
-    _minimized       { false },
-    _run_mutex       { },
-    _running         { false },
-    _editor_mode     { true }
+    _class_name         { },
+    _window_class       { },
+    _window_title       { app_name.begin(), app_name.end() },
+    _window_handle      { },
+    _raw_msg            { new std::byte[sizeof(::RAWINPUT)] },
+    _screen_size        { 0u, 0u },
+    _screen_center      { 0, 0 },
+    _window_size        { 0u, 0u },
+    _window_position    { 0, 0 },
+    _size_mutex         { },
+    _position_mutex     { },
+    _minimized          { false },
+    _run_mutex          { },
+    _running            { false },
+    _toggle_editor_mode { false },
+    _in_editor_mode     { true }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -98,6 +99,23 @@ void Win32TargetWindow::create_and_wait() {
             }
         }
 
+        if(_toggle_editor_mode.load()) {
+            if(!_in_editor_mode) {
+                BTX_TRACE("Entering editor mode");
+                _in_editor_mode = true;
+                _deregister_raw_input();
+                _release_cursor();
+            }
+            else {
+                BTX_TRACE("Exiting editor mode");
+                _in_editor_mode = false;
+                _restrict_cursor();
+                _register_raw_input();
+            }
+
+            _toggle_editor_mode.store(false);
+        }
+
         _message_loop();
     }
 
@@ -120,6 +138,16 @@ void Win32TargetWindow::stop() {
     BTX_TRACE("Stopping target window...");
     std::unique_lock<std::mutex> run_lock(_run_mutex);
     _running = false;
+}
+
+// =============================================================================
+void Win32TargetWindow::enter_editor_mode() {
+    _toggle_editor_mode.store(true);
+}
+
+// =============================================================================
+void Win32TargetWindow::exit_editor_mode() {
+    _toggle_editor_mode.store(true);
 }
 
 // =============================================================================
@@ -484,15 +512,7 @@ void Win32TargetWindow::_message_loop() {
             auto const translated = _keymap.translate(
                 static_cast<const ::USHORT>(wParam)
             );
-
-            if(!_editor_mode && translated == BTX_KB_ESCAPE) {
-                _editor_mode = true;
-                _deregister_raw_input();
-                _release_cursor();
-            }
-            else {
-                EventBus::publish(KeyPressEvent { .code = translated });
-            }
+            EventBus::publish(KeyPressEvent { .code = translated });
             break;
         }
 
@@ -505,11 +525,7 @@ void Win32TargetWindow::_message_loop() {
         }
 
         case WM_LBUTTONDOWN: {
-            if(_editor_mode) {
-                _editor_mode = false;
-                _register_raw_input();
-                _restrict_cursor();
-            }
+            EventBus::publish(MouseButtonPressEvent { .code = BTX_MB_LEFT });
             break;
         }
 

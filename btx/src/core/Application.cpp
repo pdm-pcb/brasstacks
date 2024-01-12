@@ -8,13 +8,14 @@ namespace btx {
 
 // =============================================================================
 Application::Application(std::string_view const app_name) :
-    _running              { true },
-    _editor_mode          { true },
-    _target_window        { new TargetWindow(app_name) },
-    _target_window_thread { &TargetWindow::create_and_wait, _target_window },
-    _renderer             { new Renderer(*_target_window) },
-    _window_close_events  { *this, &Application::on_window_close },
-    _key_release_events   { *this, &Application::on_key_release }
+    _running                   { true },
+    _editor_mode               { true },
+    _target_window             { new TargetWindow(app_name) },
+    _target_window_thread      { &TargetWindow::create_and_wait, _target_window },
+    _renderer                  { new Renderer(*_target_window) },
+    _window_close_events       { *this, &Application::on_window_close },
+    _key_press_events          { *this, &Application::on_key_press },
+    _mouse_button_press_events { *this, &Application::on_mouse_button_press }
 { }
 
 // =============================================================================
@@ -73,17 +74,35 @@ Application::on_window_close([[maybe_unused]] WindowCloseEvent const &event) {
 }
 
 // =============================================================================
-void Application::on_key_release([[maybe_unused]] KeyReleaseEvent const &event)
+void Application::on_key_press(KeyPressEvent const &event)
 {
-    if(_editor_mode && event.code == BTX_KB_ESCAPE) {
-        _running = false;
+    if(event.code == BTX_KB_ESCAPE) {
+        if(_editor_mode) {
+            _running = false;
+        }
+        else {
+            _editor_mode = true;
+            _target_window->enter_editor_mode();
+        }
+    }
+}
+
+// =============================================================================
+void Application::on_mouse_button_press(MouseButtonPressEvent const &event)
+{
+    if(event.code == BTX_MB_LEFT) {
+        if(_editor_mode) {
+            _editor_mode = false;
+            _target_window->exit_editor_mode();
+        }
     }
 }
 
 // =============================================================================
 void Application::_process_events() {
     _window_close_events.process_queue();
-    _key_release_events.process_queue();
+    _key_press_events.process_queue();
+    _mouse_button_press_events.process_queue();
 }
 
 // =============================================================================

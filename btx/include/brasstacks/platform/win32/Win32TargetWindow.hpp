@@ -20,6 +20,9 @@ public:
     void start();
     void stop();
 
+    void enter_editor_mode();
+    void exit_editor_mode();
+
     inline auto const & native() const { return _window_handle; }
 
     inline RenderConfig::Size const size() {
@@ -71,7 +74,8 @@ private:
     std::condition_variable _run_cv;
     bool _running;
 
-    bool _editor_mode;
+    std::atomic<bool> _toggle_editor_mode;
+    bool _in_editor_mode;
 
     void _register_class();
     void _create_window();

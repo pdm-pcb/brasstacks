@@ -5,6 +5,7 @@
 #include "brasstacks/events/EventQueue.hpp"
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
+#include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/core/TargetWindow.hpp"
 
 namespace btx {
@@ -28,7 +29,8 @@ public:
     virtual void recreate_swapchain_resources() = 0;
 
     void on_window_close(WindowCloseEvent const &event);
-    void on_key_release(KeyReleaseEvent const &event);
+    void on_key_press(KeyPressEvent const &event);
+    void on_mouse_button_press(MouseButtonPressEvent const &event);
 
     Application() = delete;
 
@@ -47,8 +49,9 @@ private:
 
     Renderer *_renderer;
 
-    EventQueue<WindowCloseEvent> _window_close_events;
-    EventQueue<KeyReleaseEvent>  _key_release_events;
+    EventQueue<WindowCloseEvent>      _window_close_events;
+    EventQueue<KeyPressEvent>         _key_press_events;
+    EventQueue<MouseButtonPressEvent> _mouse_button_press_events;
 
     void _process_events();
     void _recreate_swapchain();
