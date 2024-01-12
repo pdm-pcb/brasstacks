@@ -2,11 +2,11 @@
 
 namespace btx {
 
-RenderConfig::SurfaceDimensions RenderConfig::target_window_size     = { };
-RenderConfig::SurfacePosition   RenderConfig::target_window_position = { };
+RenderConfig::Dimensions RenderConfig::target_window_size     = { };
+RenderConfig::Offset     RenderConfig::target_window_position = { };
 
-RenderConfig::SurfaceDimensions RenderConfig::swapchain_image_size   = { };
-RenderConfig::SurfacePosition   RenderConfig::swapchain_image_offset = { };
+RenderConfig::Dimensions RenderConfig::swapchain_image_size   = { };
+RenderConfig::Offset     RenderConfig::swapchain_image_offset = { };
 
 uint32_t RenderConfig::swapchain_image_count = 0u;
 float   RenderConfig::swapchain_aspect_ratio = 0.0f;

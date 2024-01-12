@@ -5,24 +5,14 @@
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 
-static void error_callback(int error, char const *desc) noexcept {
-    BTX_ERROR("GLFW Error {}: {:s}", error, desc);
-}
-
-static void key_callback([[maybe_unused]] GLFWwindow *window,
-                         [[maybe_unused]] int key,
-                         [[maybe_unused]] int scancode,
-                         [[maybe_unused]] int action,
-                         [[maybe_unused]] int mods) noexcept
-{
-    using namespace btx;
-
-    if(key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-        EventBus::publish(KeyReleaseEvent { .code = BTX_KB_ESCAPE });
-    }
-}
-
 namespace btx {
+
+static void error_callback(int error, char const *desc) noexcept;
+
+static void key_callback(GLFWwindow *window, int key, int scancode,
+                         int action, int mods) noexcept;
+
+static void size_callback(GLFWwindow *window, int width, int height) noexcept;
 
 // =============================================================================
 TargetWindow::TargetWindow(std::string_view const app_name) :
@@ -58,6 +48,7 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
     }
 
     ::glfwSetKeyCallback(_window, key_callback);
+    ::glfwSetWindowSizeCallback(_window, size_callback);
 
 #ifdef BTX_WINDOWS
     ::BOOL value = TRUE;
@@ -78,7 +69,7 @@ TargetWindow::~TargetWindow() {
 }
 
 // =============================================================================
-void TargetWindow::update() {
+void TargetWindow::poll_events() {
     ::glfwPollEvents();
 
     if(::glfwWindowShouldClose(_window)) {
@@ -104,6 +95,33 @@ void TargetWindow::_set_window_dimensions() {
     RenderConfig::target_window_position = {
         .x = static_cast<int32_t>(center_x - (width * 0.5f)),
         .y = static_cast<int32_t>(center_y - (height * 0.5f)),
+    };
+}
+
+// =============================================================================
+void error_callback(int error, char const *desc) noexcept {
+    BTX_ERROR("GLFW Error {}: {:s}", error, desc);
+}
+
+// =============================================================================
+void key_callback([[maybe_unused]] GLFWwindow *window,
+                  [[maybe_unused]] int key,
+                  [[maybe_unused]] int scancode,
+                  [[maybe_unused]] int action,
+                  [[maybe_unused]] int mods) noexcept
+{
+    if(key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+        EventBus::publish(KeyReleaseEvent { .code = BTX_KB_ESCAPE });
+    }
+}
+
+// =============================================================================
+void size_callback([[maybe_unused]] GLFWwindow* window,
+                   int width, int height) noexcept
+{
+    RenderConfig::target_window_size = {
+        .width  = static_cast<uint32_t>(width),
+        .height = static_cast<uint32_t>(height),
     };
 }
 

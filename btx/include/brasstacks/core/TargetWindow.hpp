@@ -14,7 +14,7 @@ public:
     inline void show_window() { ::glfwShowWindow(_window); }
     inline void hide_window() { ::glfwHideWindow(_window); }
 
-    void update();
+    void poll_events();
 
 #if defined(BTX_LINUX)
     auto native() const { return ::glfwGetX11Window(_window); }

@@ -3,12 +3,12 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
+#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 namespace btx {
 
 class TargetWindow;
 class vkSurface;
-class vkDevice;
 class vkSwapchain;
 class vkFrameSync;
 class vkCmdBuffer;
@@ -24,7 +24,9 @@ public:
     void submit_commands();
     [[nodiscard]] bool present_image();
 
-    void wait_device_idle();
+    inline void wait_device_idle() const { _device->wait_idle(); }
+
+    void recreate_swapchain();
 
     inline auto const & device()    const { return *_device; }
     inline auto const & swapchain() const { return *_swapchain; }
@@ -55,6 +57,7 @@ private:
     void _create_swapchain();
     void _create_frame_sync();
 
+    void _destroy_swapchain();
     void _destroy_frame_sync();
 };
 

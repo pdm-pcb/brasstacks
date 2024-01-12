@@ -5,7 +5,6 @@
 #include "brasstacks/platform/vulkan/rendering/vkColorPass.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkColorPass.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 
@@ -23,12 +22,11 @@ Demo::Demo() :
 void Demo::init(btx::vkDevice const &device, btx::vkSwapchain const &swapchain)
 {
     _device = &device;
-    _swapchain = &swapchain;
-    _create_color_pass();
+    create_swapchain_resources(swapchain);
 }
 
 void Demo::shutdown() {
-    _destroy_color_pass();
+    destroy_swapchain_resources();
 }
 
 void Demo::update() {
@@ -74,17 +72,42 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
     cmd_buffer.end_render_pass();
 }
 
+void Demo::destroy_swapchain_resources() {
+    _destroy_framebuffers();
+    _destroy_color_pipeline();
+    _destroy_color_pass();
+}
+
+void Demo::create_swapchain_resources(btx::vkSwapchain const &swapchain) {
+    _swapchain = &swapchain;
+
+    _create_color_pass();
+    _create_color_pipeline();
+    _create_framebuffers();
+}
+
 void Demo::_create_color_pass() {
-    _color_pass =
-        new btx::vkColorPass(
-            *_device,
-            _swapchain->image_format(),
-            {
-                .width  = btx::RenderConfig::swapchain_image_size.width,
-                .height = btx::RenderConfig::swapchain_image_size.height,
-            },
-            true
-        );
+    if(_color_pass != nullptr) {
+        BTX_ERROR("Color pass already created.");
+        return;
+    }
+
+    _color_pass = new btx::vkColorPass(
+        *_device,
+        _swapchain->image_format(),
+        {
+            .width  = btx::RenderConfig::swapchain_image_size.width,
+            .height = btx::RenderConfig::swapchain_image_size.height,
+        },
+        true
+    );
+}
+
+void Demo::_create_color_pipeline() {
+    if(_color_pipeline != nullptr) {
+        BTX_ERROR("Color pipeline already created.");
+        return;
+    }
 
     _color_pipeline = new btx::vkPipeline(*_device);
     (*_color_pipeline)
@@ -107,6 +130,13 @@ void Demo::_create_color_pass() {
                 .enable_depth_test = VK_TRUE,
             }
         );
+}
+
+void Demo::_create_framebuffers() {
+    if(!_color_framebuffers.empty()) {
+        BTX_ERROR("Color framebuffers already created.");
+        return;
+    }
 
     auto const swapchain_image_count = _swapchain->image_views().size();
     for(size_t i = 0; i < swapchain_image_count; ++i) {
@@ -126,10 +156,19 @@ void Demo::_create_color_pass() {
 }
 
 void Demo::_destroy_color_pass() {
+    delete _color_pass;
+    _color_pass = nullptr;
+}
+
+void Demo::_destroy_color_pipeline() {
+    delete _color_pipeline;
+    _color_pipeline = nullptr;
+}
+
+void Demo::_destroy_framebuffers() {
     for(auto *framebuffer : _color_framebuffers) {
         delete framebuffer;
     }
 
-    delete _color_pipeline;
-    delete _color_pass;
+    _color_framebuffers.clear();
 }

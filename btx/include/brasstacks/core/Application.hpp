@@ -23,9 +23,13 @@ public:
 
     virtual void init(vkDevice const &device, vkSwapchain const &swapchain) = 0;
     virtual void shutdown() = 0;
+
     virtual void update() = 0;
     virtual void record_commands(vkCmdBuffer const &cmd_buffer,
                                  uint32_t const image_index) = 0;
+
+    virtual void destroy_swapchain_resources() = 0;
+    virtual void create_swapchain_resources(vkSwapchain const &swapchain) = 0;
 
     void on_window_close(WindowCloseEvent const &event);
     void on_key_release(KeyReleaseEvent const &event);
@@ -46,6 +50,9 @@ private:
 
     EventQueue<WindowCloseEvent> _window_close_events;
     EventQueue<KeyReleaseEvent>  _key_release_events;
+
+    void _poll_and_process_events();
+    void _recreate_swapchain();
 };
 
 } // namespace btx

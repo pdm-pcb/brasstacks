@@ -5,7 +5,6 @@
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
@@ -35,7 +34,8 @@ Renderer::Renderer(TargetWindow const &target_window) :
 // =============================================================================
 Renderer::~Renderer() {
     _destroy_frame_sync();
-    delete _swapchain;
+    _destroy_swapchain();
+
     delete _device;
     delete _surface;
 }
@@ -56,9 +56,9 @@ uint32_t Renderer::acquire_next_image() {
 
     // Something has gone wrong with the swapchain
     if(_image_index == std::numeric_limits<uint32_t>::max()) {
-        // Put it back
-        _image_acquire_sems.push(acquire_sem);
-        return _image_index;
+        _image_acquire_sems.push(acquire_sem); // Put the sem back
+        wait_device_idle();                    // Wait for the device to finish
+        return _image_index;                   // Now tell Application
     }
 
     // Wrap the corresponding frame's data for convenience
@@ -134,16 +134,30 @@ void Renderer::submit_commands() {
 // =============================================================================
 bool Renderer::present_image() {
     auto &frame_sync = *_frame_sync[_image_index];
-    return _swapchain->present(frame_sync, _image_index);
+    auto const present_success = _swapchain->present(frame_sync, _image_index);
+
+    if(!present_success) {
+        wait_device_idle();
+    }
+
+    return present_success;
 }
 
 // =============================================================================
-void Renderer::wait_device_idle() {
-    _device->wait_idle();
+void Renderer::recreate_swapchain() {
+    _destroy_frame_sync();
+    _destroy_swapchain();
+    _create_swapchain();
+    _create_frame_sync();
 }
 
 // =============================================================================
 void Renderer::_create_surface() {
+    if(_surface != nullptr) {
+        BTX_ERROR("Surface already created");
+        return;
+    }
+
 #if defined(BTX_LINUX)
 
     vk::XlibSurfaceCreateInfoKHR const create_info {
@@ -169,6 +183,11 @@ void Renderer::_create_surface() {
 
 // =============================================================================
 void Renderer::_select_physical_device() {
+    if(_surface == nullptr) {
+        BTX_CRITICAL("Cannot select physical device without surface.");
+        return;
+    }
+
     vkPhysicalDevice::select(
         *_surface,
         {
@@ -183,6 +202,11 @@ void Renderer::_select_physical_device() {
 
 // =============================================================================
 void Renderer::_create_device() {
+    if(_device != nullptr) {
+        BTX_ERROR("Logical device already created.");
+        return;
+    }
+
     _device = new vkDevice(
 #ifdef BTX_DEBUG
         { "VK_LAYER_KHRONOS_validation", }
@@ -192,6 +216,11 @@ void Renderer::_create_device() {
 
 // =============================================================================
 void Renderer::_create_swapchain() {
+    if(_swapchain != nullptr) {
+        BTX_ERROR("Swapchain already created.");
+        return;
+    }
+
     _swapchain = new vkSwapchain(*_device, *_surface);
 }
 
@@ -215,6 +244,12 @@ void Renderer::_create_frame_sync() {
 
     BTX_TRACE("Created image acquire semaphore {}", result.value);
     _image_acquire_sems.push(result.value);
+}
+
+// =============================================================================
+void Renderer::_destroy_swapchain() {
+    delete _swapchain;
+    _swapchain = nullptr;
 }
 
 // =============================================================================

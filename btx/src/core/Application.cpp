@@ -27,31 +27,26 @@ void Application::run() {
 
     _target_window->show_window();
 
-    uint32_t image_index = std::numeric_limits<uint32_t>::max();
-    vkCmdBuffer const *cmd_buffer = nullptr;
-
     while(_running) {
-        _target_window->update();
-
-        _window_close_events.process_queue();
-        _key_release_events.process_queue();
+        _poll_and_process_events();
 
         this->update();
 
-        image_index = _renderer->acquire_next_image();
+        uint32_t const image_index = _renderer->acquire_next_image();
         if(image_index == std::numeric_limits<uint32_t>::max()) {
+            _recreate_swapchain();
             continue;
         }
 
-        cmd_buffer = &_renderer->begin_recording();
+        vkCmdBuffer const &cmd_buffer = _renderer->begin_recording();
 
-        this->record_commands(*cmd_buffer, image_index);
+            this->record_commands(cmd_buffer, image_index);
 
         _renderer->end_recording();
         _renderer->submit_commands();
 
-        if(_renderer->present_image() == false) {
-            continue;
+        if(!_renderer->present_image()) {
+            _recreate_swapchain();
         }
     }
 
@@ -73,6 +68,29 @@ void Application::on_key_release([[maybe_unused]] KeyReleaseEvent const &event)
 {
     if(event.code == BTX_KB_ESCAPE) {
         _running = false;
+    }
+}
+
+// =============================================================================
+void Application::_poll_and_process_events() {
+    _target_window->poll_events();
+    _window_close_events.process_queue();
+    _key_release_events.process_queue();
+}
+
+// =============================================================================
+void Application::_recreate_swapchain() {
+    this->destroy_swapchain_resources();
+
+    while(_running && (RenderConfig::target_window_size.width == 0u
+                       || RenderConfig::target_window_size.width == 0u))
+    {
+        _poll_and_process_events();
+    }
+
+    if(_running) {
+        _renderer->recreate_swapchain();
+        this->create_swapchain_resources(_renderer->swapchain());
     }
 }
 

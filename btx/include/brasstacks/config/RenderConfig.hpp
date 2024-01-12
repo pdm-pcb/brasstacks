@@ -7,23 +7,23 @@
 namespace btx {
 
 struct RenderConfig final {
-    struct SurfaceDimensions final {
+    struct Dimensions final {
         uint32_t width = 0;
         uint32_t height = 0;
     };
 
-    struct SurfacePosition final {
+    struct Offset final {
         int32_t x = 0;
         int32_t y = 0;
     };
 
-    static SurfaceDimensions target_window_size;
-    static SurfacePosition   target_window_position;
+    static Dimensions target_window_size;
+    static Offset     target_window_position;
 
-    static SurfaceDimensions swapchain_image_size;
-    static SurfacePosition   swapchain_image_offset;
-    static uint32_t          swapchain_image_count;
-    static float             swapchain_aspect_ratio;
+    static Dimensions swapchain_image_size;
+    static Offset     swapchain_image_offset;
+    static uint32_t   swapchain_image_count;
+    static float      swapchain_aspect_ratio;
 
     static bool vsync_on;
 
