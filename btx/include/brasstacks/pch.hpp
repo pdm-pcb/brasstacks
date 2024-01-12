@@ -12,25 +12,50 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #if defined(BTX_LINUX)
+    #include <X11/Xlib.h>
+
     #define VK_USE_PLATFORM_XLIB_KHR
     #include <vulkan/vulkan.hpp>
     #include <vulkan/vulkan_xlib.h>
-
-    #define GLFW_EXPOSE_NATIVE_X11
 #elif defined(BTX_WINDOWS)
-    #define NOMINMAX
+    // Start with the old standbys
+    #define WIN32_LEAN_AND_MEAN
+    #define VC_EXTRALEAN
 
+    // And now disable a bunch of features one by one
+    #define NOGDICAPMASKS    // Color and other GDI stuff
+    #define NOMENUS
+    #define NOICONS
+    #define NORASTEROPS      // Rasterization functions
+    #define NOCLIPBOARD
+    #define NOCOLOR          // UI color
+    #define NODRAWTEXT       // Drawing formatted text
+    #define NOMB             // Message box
+    #define NOMEMMGR         // Global/local memory managers
+    #define NOMETAFILE       // GDI/clipboard file format
+    #define NOMINMAX         // Bothersome min and max macros
+    #define NOOPENFILE       // File manipulation
+    #define NOSCROLL
+    #define NOSERVICE        // Windows services
+    #define NOSOUND
+    #define NOTEXTMETRIC     // Font info
+    #define NOWH             // Windows hooks
+    #define NOCOMM
+    #define NOHELP
+    #define NODEFERWINDOWPOS // More multi-window functionality
+    #define NOMCX            // Modem configuration extensions
+
+    #define UNICODE
+
+    #include <Windows.h>
+    #include <hidusage.h>
+    #include <WinUser.h>
     #include <dwmapi.h>
 
     #define VK_USE_PLATFORM_WIN32_KHR
     #include <vulkan/vulkan.hpp>
     #include <vulkan/vulkan_win32.h>
-
-    #define GLFW_EXPOSE_NATIVE_WIN32
 #endif // BTX platform
-
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
 
 #include <cstdint>
 #include <cstdlib>

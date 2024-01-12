@@ -46,7 +46,9 @@ private:
     bool _running;
 
     TargetWindow *_target_window;
-    Renderer     *_renderer;
+    std::thread _target_window_thread;
+
+    Renderer *_renderer;
 
     EventQueue<WindowCloseEvent> _window_close_events;
     EventQueue<KeyReleaseEvent>  _key_release_events;

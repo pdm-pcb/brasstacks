@@ -39,7 +39,7 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
     auto const &framebuffer = *_color_framebuffers[image_index];
 
     static std::array<vk::ClearValue, 2> const clear_values = {{
-        { .color = std::array<float, 4> {{ 0.08f, 0.08f, 0.16f, 1.0f }} },
+        { .color { std::array<float, 4> {{ 0.08f, 0.08f, 0.16f, 1.0f }} }},
         { .depthStencil { .depth = 1.0f, .stencil = 1u } }
     }};
 

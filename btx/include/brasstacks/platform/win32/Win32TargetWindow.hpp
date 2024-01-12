@@ -15,10 +15,9 @@ public:
     explicit Win32TargetWindow(std::string_view const app_name);
     ~Win32TargetWindow();
 
-    void show_window();
-    void hide_window();
-
-    void poll_events();
+    void create_and_wait();
+    void start();
+    void stop();
 
     ::HWND const & native() const { return _window_handle; }
 
@@ -50,6 +49,9 @@ private:
     RenderConfig::Offset    _screen_center;
 
     bool _minimized;
+
+    std::mutex _run_mutex;
+    std::condition_variable _run_cv;
     bool _running;
 
     void _register_class();
@@ -60,6 +62,8 @@ private:
     void _restrict_cursor();
     void _release_cursor();
     void _size_and_place();
+
+    void _message_loop();
 
     // Static wndproc for Windows to call, per the Raymond Chen article:
     // https://devblogs.microsoft.com/oldnewthing/20140203-00/?p=1893

@@ -31,15 +31,15 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_glfw.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_glm.cmake")
 
 fetch_spdlog()
-fetch_glfw()
-fetch_glm()
+# fetch_glfw()
+# fetch_glm()
 
 target_link_libraries(
     ${TARGET_NAME} PUBLIC
     spdlog::spdlog
-    glfw
+    # glfw
     Vulkan::Vulkan
-    glm::glm_static
+    # glm::glm_static
     third_party
 )
 
@@ -79,7 +79,7 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
    CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(
-        ${TARGET_NAME} PRIVATE
+        ${TARGET_NAME} PUBLIC
         "-Wall"         # Enable most warnings
         "-Wextra"
         "-pedantic"     # and language compliance checks
@@ -87,7 +87,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         target_compile_options(
-            ${TARGET_NAME} PRIVATE
+            ${TARGET_NAME} PUBLIC
             "-Weverything"      # Clang supports enabling all possible warnings
             "-Wno-c++98-compat" # ...which means some must then be disabled
             "-Wno-c++98-compat-pedantic"
@@ -102,7 +102,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
         target_compile_options(
-            ${TARGET_NAME} PRIVATE
+            ${TARGET_NAME} PUBLIC
             "-march=x86-64-v3"    # Target Haswell/Excavator or newer
             "-mtune=x86-64-v3"
         )
@@ -110,24 +110,24 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
 
     if(CMAKE_BUILD_TYPE MATCHES "Debug")
         target_compile_options(
-            ${TARGET_NAME} PRIVATE
+            ${TARGET_NAME} PUBLIC
             "-O0"       # No optimization
             "-ggdb3"    # All the gdb flags
         )
     elseif(CMAKE_BUILD_TYPE MATCHES "Release")
         target_compile_options(
-            ${TARGET_NAME} PRIVATE
+            ${TARGET_NAME} PUBLIC
             "-O3"       # Optimize for speed, sacrifice size
         )
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_definitions(
-        ${TARGET_NAME} PRIVATE
+        ${TARGET_NAME} PUBLIC
         _CRT_SECURE_NO_WARNINGS # Do not warn about C string functions
     )
 
     target_compile_options(
-        ${TARGET_NAME} PRIVATE
+        ${TARGET_NAME} PUBLIC
         "/Wall"         # All warnings not disabled by default
         "/wd4820"       # Ignore warning for padding
         "/wd5045"       # Ignore warning for spectre mitigation
@@ -137,14 +137,14 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64")
         target_compile_options(
-            ${TARGET_NAME} PRIVATE
+            ${TARGET_NAME} PUBLIC
             "/arch:AVX2"    # Target Haswell/Excavator or newer
         )
     endif()
 
     if(CMAKE_BUILD_TYPE MATCHES "Debug")
         target_compile_options(
-            ${TARGET_NAME} PRIVATE
+            ${TARGET_NAME} PUBLIC
             "/Od"       # Optimization disabled
             "/Zi"		# Generate .pdb files: implies /debug
             "/JMC"      # Just-My-Code: only step over user code
@@ -156,12 +156,12 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         )
 
         target_link_options(
-            ${TARGET_NAME} PRIVATE
+            ${TARGET_NAME} PUBLIC
             "/DEBUG:FULL" # Move private symbol information into single .pdb
         )
     elseif(CMAKE_BUILD_TYPE MATCHES "Release")
         target_compile_options(
-            ${TARGET_NAME} PRIVATE
+            ${TARGET_NAME} PUBLIC
             "/O2"       # Optimize for speed. Implies:
                         # - global optimization
                         # - intrinsics
@@ -173,7 +173,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         )
 
         target_link_options(
-            ${TARGET_NAME} PRIVATE
+            ${TARGET_NAME} PUBLIC
             "/OPT:NOREF"    # Remove unused functions
         )
     endif()

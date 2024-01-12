@@ -30,7 +30,8 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _screen_size        { 0u, 0u },
     _screen_center      { 0, 0 },
     _minimized          { false },
-    _running            { true }
+    _run_mutex          { },
+    _running            { false }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -62,40 +63,58 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _class_name = std::wstring(btx_name_view.begin(), btx_name_view.end());
 
     _register_class();
-    _create_window();
-    _size_and_place();
 }
 
 // =============================================================================
 Win32TargetWindow::~Win32TargetWindow() {
-    _running = false;
-
-    _destroy_window();
-
     delete[] _raw_msg;
 }
 
 // =============================================================================
-void Win32TargetWindow::show_window() {
+void Win32TargetWindow::create_and_wait() {
+    _create_window();
+    _size_and_place();
+
+    BTX_TRACE("Target window waiting to run...");
+    {
+        std::unique_lock<std::mutex> run_lock(_run_mutex);
+        _run_cv.wait(run_lock, [&](){ return _running; });
+    }
+    BTX_TRACE("Target window running!");
+
     ::ShowWindow(_window_handle, SW_SHOWNORMAL);
     ::UpdateWindow(_window_handle);
-}
 
-// =============================================================================
-void Win32TargetWindow::hide_window() {
-    ::ShowWindow(_window_handle, SW_HIDE);
-}
+    while(true) {
+        {
+            std::unique_lock<std::mutex> run_lock(_run_mutex);
+            if(!_running) {
+                break;
+            }
+        }
 
-// =============================================================================
-void Win32TargetWindow::poll_events() {
-    static ::MSG message;
-    ::memset(&message, 0, sizeof(::MSG));
-
-    // Run through available messages from the OS
-    while(::PeekMessage(&message, _window_handle, 0u, 0u, PM_REMOVE) != 0) {
-        ::TranslateMessage(&message);
-        ::DispatchMessageW(&message);
+        _message_loop();
     }
+
+    ::ShowWindow(_window_handle, SW_HIDE);
+    _destroy_window();
+}
+
+// =============================================================================
+void Win32TargetWindow::start() {
+    BTX_TRACE("Starting target window...");
+    {
+        std::unique_lock<std::mutex> run_lock(_run_mutex);
+        _running = true;
+    }
+    _run_cv.notify_one();
+}
+
+// =============================================================================
+void Win32TargetWindow::stop() {
+    BTX_TRACE("Stopping target window...");
+    std::unique_lock<std::mutex> run_lock(_run_mutex);
+    _running = false;
 }
 
 // =============================================================================
@@ -182,16 +201,16 @@ void Win32TargetWindow::_create_window() {
         0u,                          // No extended style
         _window_class.lpszClassName, // Win32 class name
         _window_title.c_str(),       // Win32 window title
-        WS_OVERLAPPEDWINDOW,                // Popup means no decoration
-        CW_USEDEFAULT,           // x location
-        CW_USEDEFAULT,           // y location
-        CW_USEDEFAULT,           // Window width
-        CW_USEDEFAULT,           // Window height
-        nullptr,                 // Parent window handle
-        nullptr,                 // Menu handle
-        _window_class.hInstance, // Instance handle
-        this                     // Pointer for lParam - retrieved later via
-                                 // WM_NCCREATE
+        WS_OVERLAPPEDWINDOW,         // Normal window
+        CW_USEDEFAULT,               // x location
+        CW_USEDEFAULT,               // y location
+        CW_USEDEFAULT,               // Window width
+        CW_USEDEFAULT,               // Window height
+        nullptr,                     // Parent window handle
+        nullptr,                     // Menu handle
+        _window_class.hInstance,     // Instance handle
+        this                         // Pointer for lParam: retrieved later via
+                                     // the WM_NCCREATE message
     );
 
     if(_window_handle == nullptr) {
@@ -222,7 +241,7 @@ void Win32TargetWindow::_create_window() {
 void Win32TargetWindow::_destroy_window() {
     BTX_TRACE("Destroying win32 target window.");
     ::SendMessageW(_window_handle, WM_CLOSE, 0, 0);
-    poll_events();
+    _message_loop();
 }
 
 // =============================================================================
@@ -360,6 +379,18 @@ void Win32TargetWindow::_size_and_place() {
 }
 
 // =============================================================================
+void Win32TargetWindow::_message_loop() {
+    static ::MSG message;
+    ::memset(&message, 0, sizeof(::MSG));
+
+    // Run through available messages from the OS
+    while(::PeekMessage(&message, _window_handle, 0u, 0u, PM_REMOVE) != 0) {
+        ::TranslateMessage(&message);
+        ::DispatchMessageW(&message);
+    }
+}
+
+// =============================================================================
 ::LRESULT Win32TargetWindow::_static_wndproc(::HWND hWnd, ::UINT uMsg,
                                              ::WPARAM wParam, ::LPARAM lParam)
 {
@@ -412,21 +443,31 @@ void Win32TargetWindow::_size_and_place() {
     // }
 
     switch(uMsg) {
-        case WM_KEYDOWN: {
-            auto const translated = _keymap.translate(
-                static_cast<const ::USHORT>(wParam)
-            );
-            EventBus::publish(KeyPressEvent { .code = translated });
-            break;
-        }
+        // case WM_ACTIVATE:
+        //     if(wParam == WA_INACTIVE) {
+        //         _deregister_raw_input();
+        //         _release_cursor();
+        //     }
+        //     else {
+        //         _register_raw_input();
+        //         _restrict_cursor();
+        //     }
+        //     break;
 
-        case WM_KEYUP: {
-            auto const translated = _keymap.translate(
-                static_cast<const ::USHORT>(wParam)
-            );
-            EventBus::publish(KeyReleaseEvent { .code = translated });
-            break;
-        }
+        // This is the first message received in window close cascade. Note the
+        // early return so there's no call to ::DefWindowProc()
+        case WM_CLOSE:
+            ::DestroyWindow(hWnd);
+            ::UnregisterClassW(_window_class.lpszClassName,
+                               _window_class.hInstance);
+            EventBus::publish<WindowCloseEvent>({ });
+            return false;
+
+        // And this is the second message, but also the last one we have to
+        // handle explicitly.
+        case WM_DESTROY:
+            ::PostQuitMessage(0);
+            return false;
 
         case WM_SIZE: {
             uint32_t const width  = LOWORD(lParam);
@@ -468,6 +509,22 @@ void Win32TargetWindow::_size_and_place() {
 
                 EventBus::publish<WindowSizeEvent>({ });
 
+            break;
+        }
+
+        case WM_KEYDOWN: {
+            auto const translated = _keymap.translate(
+                static_cast<const ::USHORT>(wParam)
+            );
+            EventBus::publish(KeyPressEvent { .code = translated });
+            break;
+        }
+
+        case WM_KEYUP: {
+            auto const translated = _keymap.translate(
+                static_cast<const ::USHORT>(wParam)
+            );
+            EventBus::publish(KeyReleaseEvent { .code = translated });
             break;
         }
 
@@ -522,32 +579,6 @@ void Win32TargetWindow::_size_and_place() {
 
             break;
         }
-
-        // case WM_ACTIVATE:
-        //     if(wParam == WA_INACTIVE) {
-        //         _deregister_raw_input();
-        //         _release_cursor();
-        //     }
-        //     else {
-        //         _register_raw_input();
-        //         _restrict_cursor();
-        //     }
-        //     break;
-
-        // This is the first message received in window close cascade. Note the
-        // early return so there's no call to ::DefWindowProc()
-        case WM_CLOSE:
-            ::DestroyWindow(hWnd);
-            ::UnregisterClassW(_window_class.lpszClassName,
-                               _window_class.hInstance);
-            EventBus::publish<WindowCloseEvent>({ });
-            return false;
-
-        // And this is the second message, but also the last one we have to
-        // handle explicitly.
-        case WM_DESTROY:
-            ::PostQuitMessage(0);
-            return false;
 
         default: break;
     }
