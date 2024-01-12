@@ -114,14 +114,6 @@ void Demo::update() {
     _plane_mat = btx::math::translate(btx::math::Mat4::identity,
                                       -btx::math::Vec3::unit_x);
 
-    // _cube_mat =
-    //     math::rotate(math::Mat4::identity,
-    //                  20.0f * Timekeeper::run_time(),
-    //                  math::Vec3::unit_z) *
-    //     math::rotate(math::Mat4::identity,
-    //                  10.0f * Timekeeper::run_time(),
-    //                  math::Vec3::unit_y);
-
     _cube_mat = btx::math::translate(btx::math::Mat4::identity,
                                      btx::math::Vec3::unit_x);
 }
