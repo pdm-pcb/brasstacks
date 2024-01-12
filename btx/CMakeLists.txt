@@ -29,10 +29,12 @@ target_precompile_headers(
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_spdlog.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_glfw.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_glm.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_vma.cmake")
 
 fetch_spdlog()
 # fetch_glfw()
 # fetch_glm()
+fetch_vma()
 
 target_link_libraries(
     ${TARGET_NAME} PUBLIC
