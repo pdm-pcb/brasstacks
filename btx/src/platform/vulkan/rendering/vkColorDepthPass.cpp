@@ -54,15 +54,15 @@ vkColorDepthPass::~vkColorDepthPass() {
 }
 
 // =============================================================================
-void vkColorDepthPass::recreate_swapchain_resources() {
-    _create_color_buffers();
-    _create_depth_buffers();
-}
-
-// =============================================================================
 void vkColorDepthPass::destroy_swapchain_resources() {
     _destroy_depth_buffers();
     _destroy_color_buffers();
+}
+
+// =============================================================================
+void vkColorDepthPass::recreate_swapchain_resources() {
+    _create_color_buffers();
+    _create_depth_buffers();
 }
 
 // =============================================================================

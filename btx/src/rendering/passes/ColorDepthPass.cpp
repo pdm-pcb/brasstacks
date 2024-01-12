@@ -39,16 +39,6 @@ void ColorDepthPass::create() {
 }
 
 // =============================================================================
-void ColorDepthPass::recreate_swapchain_resources() {
-    _render_pass->recreate_swapchain_resources();
-
-    _pipeline->update_dimensions(_renderer.swapchain().size(),
-                                 _renderer.swapchain().offset());
-
-    _create_framebuffers();
-}
-
-// =============================================================================
 void ColorDepthPass::destroy_swapchain_resources() {
     for(auto *framebuffer : _framebuffers) {
         delete framebuffer;
@@ -56,6 +46,16 @@ void ColorDepthPass::destroy_swapchain_resources() {
     _framebuffers.clear();
 
     _render_pass->destroy_swapchain_resources();
+}
+
+// =============================================================================
+void ColorDepthPass::recreate_swapchain_resources() {
+    _render_pass->recreate_swapchain_resources();
+
+    _pipeline->update_dimensions(_renderer.swapchain().size(),
+                                 _renderer.swapchain().offset());
+
+    _create_framebuffers();
 }
 
 // =============================================================================

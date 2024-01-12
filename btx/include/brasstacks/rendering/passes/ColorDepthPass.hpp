@@ -22,8 +22,8 @@ public:
 
     void create();
 
-    void recreate_swapchain_resources();
     void destroy_swapchain_resources();
+    void recreate_swapchain_resources();
 
     void begin();
     void end();
