@@ -249,68 +249,68 @@ void Win32TargetWindow::_register_raw_input() {
     // WM_KEYDOWN, while RIDEV_REMOVE unregisters the device from Windows' raw
     // input.
 
-    // std::array<::RAWINPUTDEVICE, 2> devices { };
+    std::array<::RAWINPUTDEVICE, 2> devices { };
 
-    // devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
-    // devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD; // First, the keyboard
-    // devices[0].dwFlags     = RIDEV_NOLEGACY;
-    // devices[0].hwndTarget  = _window_handle;
+    devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+    devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD; // The keyboard
+    devices[0].dwFlags     = RIDEV_NOLEGACY;
+    devices[0].hwndTarget  = _window_handle;
 
-    // devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
-    // devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE; // And then the mouse
-    // devices[1].dwFlags     = RIDEV_NOLEGACY;
-    // devices[1].hwndTarget  = _window_handle;
+    devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
+    devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE; // And the mouse
+    devices[1].dwFlags     = RIDEV_NOLEGACY;
+    devices[1].hwndTarget  = _window_handle;
 
-    // // Attempt to register
-    // auto const result = ::RegisterRawInputDevices(
-    //     devices.data(),
-    //     static_cast<::UINT>(devices.size()),
-    //     sizeof(::RAWINPUTDEVICE)
-    // );
+    // Attempt to register
+    auto const result = ::RegisterRawInputDevices(
+        devices.data(),
+        static_cast<::UINT>(devices.size()),
+        sizeof(::RAWINPUTDEVICE)
+    );
 
-    // if(result == FALSE) {
-    //     auto const error = ::GetLastError();
-    //     BTX_CRITICAL("Failed to register raw win32 input with error: '{}'",
-    //                  std::system_category().message(static_cast<int>(error)));
-    // }
-    // else {
-    //     BTX_TRACE("Registered win32 raw input");
-    // }
+    if(result == FALSE) {
+        auto const error = ::GetLastError();
+        BTX_CRITICAL("Failed to register raw win32 input with error: '{}'",
+                     std::system_category().message(static_cast<int>(error)));
+    }
+    else {
+        BTX_TRACE("Registered win32 raw input");
+    }
 }
 
 // =============================================================================
 void Win32TargetWindow::_deregister_raw_input() {
-    // All of this is the same as in _register_raw_input()(), except RIDEV_NOLEGACY
-    // is exchanged for RIDEV_REMOVE and provide nullptr instead of the window
+    // All of this is the same as when registering, except RIDEV_NOLEGACY is
+    // exchanged for RIDEV_REMOVE and providing nullptr instead of the window
     // handle
 
-    // std::array<::RAWINPUTDEVICE, 2> devices { };
+    std::array<::RAWINPUTDEVICE, 2> devices { };
 
-    // devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
-    // devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD; // The keyboard
-    // devices[0].dwFlags     = RIDEV_REMOVE;
-    // devices[0].hwndTarget  = nullptr;
+    devices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+    devices[0].usUsage     = HID_USAGE_GENERIC_KEYBOARD; // The keyboard
+    devices[0].dwFlags     = RIDEV_REMOVE;
+    devices[0].hwndTarget  = nullptr;
 
-    // devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
-    // devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE; // And the mouse
-    // devices[1].dwFlags     = RIDEV_REMOVE;
-    // devices[1].hwndTarget  = nullptr;
+    devices[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
+    devices[1].usUsage     = HID_USAGE_GENERIC_MOUSE; // And the mouse
+    devices[1].dwFlags     = RIDEV_REMOVE;
+    devices[1].hwndTarget  = nullptr;
 
-    // // Attempt to deregister
-    // auto const result = ::RegisterRawInputDevices(
-    //     devices.data(),
-    //     static_cast<::UINT>(devices.size()),
-    //     sizeof(::RAWINPUTDEVICE)
-    // );
+    // Attempt to deregister
+    auto const result = ::RegisterRawInputDevices(
+        devices.data(),
+        static_cast<::UINT>(devices.size()),
+        sizeof(::RAWINPUTDEVICE)
+    );
 
-    // if(result == FALSE) {
-    //     auto const error = ::GetLastError();
-    //     BTX_CRITICAL("Failed to deregister raw input with error: '{}'",
-    //                  std::system_category().message(static_cast<int>(error)));
-    // }
-    // else {
-    //     BTX_TRACE("Deregistered win32 raw input");
-    // }
+    if(result == FALSE) {
+        auto const error = ::GetLastError();
+        BTX_CRITICAL("Failed to deregister raw input with error: '{}'",
+                     std::system_category().message(static_cast<int>(error)));
+    }
+    else {
+        BTX_TRACE("Deregistered win32 raw input");
+    }
 }
 
 // =============================================================================
@@ -333,9 +333,6 @@ void Win32TargetWindow::_restrict_cursor() {
 
     // Run through all requests to show a cursor until ours is the last
     while(::ShowCursor(FALSE) >= 0) { }
-
-    // Disable editor mode, meaning all inputs go to the simulation
-    // this->set_ui_input(false);
 }
 
 // =============================================================================
@@ -345,9 +342,6 @@ void Win32TargetWindow::_release_cursor() {
 
     // Run through all requests to show a cursor until ours is the last
     while(::ShowCursor(TRUE) < 0) { }
-
-    // Enable editor mode, meaning no input goes to the simulation
-    // this->set_ui_input(true);
 }
 
 // =============================================================================

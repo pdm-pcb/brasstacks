@@ -5,12 +5,12 @@
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
 namespace btx {
 
 class vkSurface;
 class vkSwapchain;
-class vkFrameSync;
 class vkCmdBuffer;
 
 class Renderer final {
@@ -19,7 +19,7 @@ public:
     ~Renderer();
 
     uint32_t acquire_next_image();
-    vkCmdBuffer const & begin_recording();
+    void begin_recording();
     void end_recording();
     void submit_commands();
     [[nodiscard]] bool present_image();
@@ -30,6 +30,11 @@ public:
 
     inline auto const & device()    const { return *_device; }
     inline auto const & swapchain() const { return *_swapchain; }
+
+    inline auto image_index() const { return _image_index; }
+    inline auto const & cmd_buffer() const {
+        return _frame_sync[_image_index]->cmd_buffer();
+    }
 
     Renderer() = delete;
 

@@ -146,7 +146,7 @@ void vkPipeline::bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
 }
 
 // =============================================================================
-vkPipeline & vkPipeline::module_from_spirv(std::string_view filepath,
+vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
                                            vk::ShaderStageFlagBits const stage,
                                            std::string_view entry_point)
 {
@@ -215,21 +215,21 @@ vkPipeline::add_push_constant(vk::ShaderStageFlags const stage_flags,
 }
 
 // =============================================================================
-void vkPipeline::update_dimensions(vk::Extent2D const &extent,
-                                   vk::Offset2D const &offset)
+void vkPipeline::update_dimensions(RenderConfig::Size const &size,
+                                   RenderConfig::Offset const &offset)
 {
     _viewport = vk::Viewport {
         .x         = static_cast<float>(offset.x),
-        .y         = static_cast<float>(extent.height),
-        .width     = static_cast<float>(extent.width),
-        .height    = -static_cast<float>(extent.height),
+        .y         = static_cast<float>(size.height),
+        .width     = static_cast<float>(size.width),
+        .height    = -static_cast<float>(size.height),
         .minDepth  = 0.0f,
         .maxDepth  = 1.0f,
     };
 
     _scissor = vk::Rect2D {
         .offset = { .x = offset.x, .y = offset.y },
-        .extent = { .width = extent.width, .height = extent.height },
+        .extent = { .width = size.width, .height = size.height },
     };
 
     BTX_TRACE(

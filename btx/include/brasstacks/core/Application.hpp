@@ -2,17 +2,15 @@
 #define BRASSTACKS_CORE_APPLICATION_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/events/EventQueue.hpp"
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 
+#include "brasstacks/core/TargetWindow.hpp"
+
 namespace btx {
 
 class Renderer;
-class vkDevice;
-class vkCmdBuffer;
-class vkSwapchain;
 
 class Application {
 public:
@@ -21,15 +19,14 @@ public:
 
     void run();
 
-    virtual void init(vkDevice const &device, vkSwapchain const &swapchain) = 0;
+    virtual void init(Renderer const &renderer) = 0;
     virtual void shutdown() = 0;
 
     virtual void update() = 0;
-    virtual void record_commands(vkCmdBuffer const &cmd_buffer,
-                                 uint32_t const image_index) = 0;
+    virtual void record_commands() = 0;
 
     virtual void destroy_swapchain_resources() = 0;
-    virtual void create_swapchain_resources(vkSwapchain const &swapchain) = 0;
+    virtual void recreate_swapchain_resources() = 0;
 
     void on_window_close(WindowCloseEvent const &event);
     void on_key_release(KeyReleaseEvent const &event);

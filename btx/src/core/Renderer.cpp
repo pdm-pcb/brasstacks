@@ -6,7 +6,6 @@
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 
@@ -81,22 +80,16 @@ uint32_t Renderer::acquire_next_image() {
 }
 
 // =============================================================================
-vkCmdBuffer const & Renderer::begin_recording() {
+void Renderer::begin_recording() {
     auto &frame_sync  = *_frame_sync[_image_index];
     auto const &cmd_buffer  = frame_sync.cmd_buffer();
-
     cmd_buffer.begin_one_time_submit();
-
-    return cmd_buffer;
 }
 
 // =============================================================================
 void Renderer::end_recording() {
     auto &frame_sync  = *_frame_sync[_image_index];
     auto const &cmd_buffer  = frame_sync.cmd_buffer();
-
-    // _ui_layer->render_pass(cmd_buffer, _image_index);
-
     cmd_buffer.end_recording();
 }
 

@@ -20,14 +20,14 @@ public:
     void start();
     void stop();
 
-    inline auto const & native() const { return _window_handle; };
+    inline auto const & native() const { return _window_handle; }
 
     inline RenderConfig::Size const size() {
         std::unique_lock<std::mutex> read_lock(_size_mutex);
         return { .width = _window_size.width, .height = _window_size.height };
     }
 
-    inline RenderConfig::Offset const & posiotion() {
+    inline RenderConfig::Offset const posiotion() {
         std::unique_lock<std::mutex> read_lock(_position_mutex);
         return { .x = _window_position.x, .y = _window_position.y };
     }

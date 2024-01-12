@@ -3,7 +3,6 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/events/EventBus.hpp"
-#include "brasstacks/events/EventBase.hpp"
 
 namespace btx {
 

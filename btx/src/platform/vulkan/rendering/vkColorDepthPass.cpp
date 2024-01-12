@@ -10,14 +10,10 @@
 
 namespace btx {
 
-vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
-                                   vkSwapchain const &swapchain,
+vkColorDepthPass::vkColorDepthPass(Renderer const &renderer,
                                    bool const present) :
-    vkRenderPass   { device, swapchain },
-    _extent        { .width = swapchain.size().width,
-                     .height = swapchain.size().height },
-    _color_format  { swapchain.image_format() },
-    _depth_format  { vk::Format::eUndefined },
+    vkRenderPass  { renderer },
+    _depth_format { vk::Format::eUndefined },
     _msaa_samples {
         vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples)
     },
@@ -33,10 +29,10 @@ vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
     _subpass_dependencies    { }
 {
     _find_depth_stencil_format();
-    _create_color_buffer();
-    _create_depth_buffer();
     _init_attachments(present);
     _init_subpasses();
+    _create_color_buffers();
+    _create_depth_buffers();
 
     vk::RenderPassCreateInfo const create_info {
         .attachmentCount = static_cast<uint32_t>(
@@ -53,21 +49,20 @@ vkColorDepthPass::vkColorDepthPass(vkDevice const &device,
 
 // =============================================================================
 vkColorDepthPass::~vkColorDepthPass() {
-    for(auto *view : _depth_views) {
-        delete view;
-    }
+    _destroy_depth_buffers();
+    _destroy_color_buffers();
+}
 
-    for(auto *buffer : _depth_buffers) {
-        delete buffer;
-    }
+// =============================================================================
+void vkColorDepthPass::recreate_swapchain_resources() {
+    _create_color_buffers();
+    _create_depth_buffers();
+}
 
-    for(auto *view : _color_views) {
-        delete view;
-    }
-
-    for(auto *buffer : _color_buffers) {
-        delete buffer;
-    }
+// =============================================================================
+void vkColorDepthPass::destroy_swapchain_resources() {
+    _destroy_depth_buffers();
+    _destroy_color_buffers();
 }
 
 // =============================================================================
@@ -93,69 +88,10 @@ void vkColorDepthPass::_find_depth_stencil_format() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_create_color_buffer() {
-    vkImage::ImageInfo const color_buffer_info {
-        .type         = vk::ImageType::e2D,
-        .samples      = _msaa_samples,
-        .usage_flags  = (vk::ImageUsageFlagBits::eColorAttachment |
-                         vk::ImageUsageFlagBits::eTransientAttachment),
-        .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
-    };
-
-    auto const image_count = swapchain().images().size();
-    for(size_t i = 0; i < image_count; ++i) {
-        _color_buffers.emplace_back(
-            new vkImage(this->device(),
-                        _extent,
-                        _color_format,
-                        color_buffer_info)
-        );
-
-        _color_views.emplace_back(
-            new vkImageView(this->device(),
-                            *_color_buffers.back(),
-                            vk::ImageViewType::e2D,
-                            vk::ImageAspectFlagBits::eColor)
-        );
-    }
-
-    BTX_TRACE("Created color/depth color buffers");
-}
-
-// =============================================================================
-void vkColorDepthPass::_create_depth_buffer() {
-    vkImage::ImageInfo const depth_stencil_info {
-        .type         = vk::ImageType::e2D,
-        .samples      = _msaa_samples,
-        .usage_flags  = vk::ImageUsageFlagBits::eDepthStencilAttachment,
-        .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
-    };
-
-    auto const image_count = swapchain().images().size();
-    for(size_t i = 0; i < image_count; ++i) {
-        _depth_buffers.emplace_back(
-            new vkImage(this->device(),
-                        _extent,
-                        _depth_format,
-                        depth_stencil_info)
-        );
-
-        _depth_views.emplace_back(
-            new vkImageView(this->device(),
-                            *_depth_buffers.back(),
-                            vk::ImageViewType::e2D,
-                            vk::ImageAspectFlagBits::eDepth)
-        );
-    }
-
-    BTX_TRACE("Created color/depth depth buffers");
-}
-
-// =============================================================================
 void vkColorDepthPass::_init_attachments(bool const present) {
     _attachment_descriptions = {{
         // color buffer (msaa) attachment description
-        .format  = _color_format,
+        .format  = swapchain().image_format(),
         .samples = _msaa_samples,
         .loadOp  = vk::AttachmentLoadOp::eClear,
         .storeOp = vk::AttachmentStoreOp::eDontCare,
@@ -175,7 +111,7 @@ void vkColorDepthPass::_init_attachments(bool const present) {
         .finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
     },
     {   // final presentation/resolve attachment
-        .format  = _color_format,
+        .format  = swapchain().image_format(),
         .samples = vk::SampleCountFlagBits::e1,
         .loadOp  = vk::AttachmentLoadOp::eDontCare,
         .storeOp = vk::AttachmentStoreOp::eStore,
@@ -249,6 +185,97 @@ void vkColorDepthPass::_init_subpasses() {
         .dstAccessMask   = vk::AccessFlagBits::eDepthStencilAttachmentWrite,
         .dependencyFlags = vk::DependencyFlagBits::eByRegion
     }};
+}
+
+// =============================================================================
+void vkColorDepthPass::_create_color_buffers() {
+    vkImage::ImageInfo const color_buffer_info {
+        .type         = vk::ImageType::e2D,
+        .samples      = _msaa_samples,
+        .usage_flags  = (vk::ImageUsageFlagBits::eColorAttachment |
+                         vk::ImageUsageFlagBits::eTransientAttachment),
+        .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
+    };
+
+    auto const image_count = swapchain().images().size();
+    for(size_t i = 0; i < image_count; ++i) {
+        _color_buffers.emplace_back(
+            new vkImage(this->device(),
+                        { .width = swapchain().size().width,
+                          .height = swapchain().size().height },
+                        swapchain().image_format(),
+                        color_buffer_info)
+        );
+
+        _color_views.emplace_back(
+            new vkImageView(this->device(),
+                            *_color_buffers.back(),
+                            vk::ImageViewType::e2D,
+                            vk::ImageAspectFlagBits::eColor)
+        );
+    }
+
+    BTX_TRACE("Created color/depth color buffers");
+}
+
+// =============================================================================
+void vkColorDepthPass::_create_depth_buffers() {
+    vkImage::ImageInfo const depth_stencil_info {
+        .type         = vk::ImageType::e2D,
+        .samples      = _msaa_samples,
+        .usage_flags  = vk::ImageUsageFlagBits::eDepthStencilAttachment,
+        .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
+    };
+
+    auto const image_count = swapchain().images().size();
+    for(size_t i = 0; i < image_count; ++i) {
+        _depth_buffers.emplace_back(
+            new vkImage(this->device(),
+                        { .width = swapchain().size().width,
+                          .height = swapchain().size().height },
+                        _depth_format,
+                        depth_stencil_info)
+        );
+
+        _depth_views.emplace_back(
+            new vkImageView(this->device(),
+                            *_depth_buffers.back(),
+                            vk::ImageViewType::e2D,
+                            vk::ImageAspectFlagBits::eDepth)
+        );
+    }
+
+    BTX_TRACE("Created color/depth depth buffers");
+}
+
+// =============================================================================
+void vkColorDepthPass::_destroy_color_buffers() {
+    for(auto *view : _color_views) {
+        delete view;
+    }
+
+    _color_views.clear();
+
+    for(auto *buffer : _color_buffers) {
+        delete buffer;
+    }
+
+    _color_buffers.clear();
+}
+
+// =============================================================================
+void vkColorDepthPass::_destroy_depth_buffers() {
+    for(auto *view : _depth_views) {
+        delete view;
+    }
+
+    _depth_views.clear();
+
+    for(auto *buffer : _depth_buffers) {
+        delete buffer;
+    }
+
+    _depth_buffers.clear();
 }
 
 } // namespace btx

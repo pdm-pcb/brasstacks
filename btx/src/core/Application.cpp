@@ -24,7 +24,7 @@ Application::~Application() {
 
 // =============================================================================
 void Application::run() {
-    this->init(_renderer->device(), _renderer->swapchain());
+    this->init(*_renderer);
 
     _target_window->start();
 
@@ -39,9 +39,9 @@ void Application::run() {
             continue;
         }
 
-        vkCmdBuffer const &cmd_buffer = _renderer->begin_recording();
+        _renderer->begin_recording();
 
-            this->record_commands(cmd_buffer, image_index);
+            this->record_commands();
 
         _renderer->end_recording();
         _renderer->submit_commands();
@@ -93,7 +93,7 @@ void Application::_recreate_swapchain() {
 
     if(_running) {
         _renderer->recreate_swapchain();
-        this->create_swapchain_resources(_renderer->swapchain());
+        this->recreate_swapchain_resources();
     }
 }
 

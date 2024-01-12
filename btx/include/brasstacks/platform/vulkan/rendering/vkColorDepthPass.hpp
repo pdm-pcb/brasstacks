@@ -6,18 +6,19 @@
 
 namespace btx {
 
-class vkDevice;
-class vkSwapchain;
+class Renderer;
+
 class vkImage;
 class vkImageView;
 
 class vkColorDepthPass final : public vkRenderPass {
 public:
 
-    vkColorDepthPass(vkDevice const &device, vkSwapchain const &swapchain,
-                     bool const present);
-
+    vkColorDepthPass(Renderer const &renderer, bool const present);
     ~vkColorDepthPass() override;
+
+    void destroy_swapchain_resources();
+    void recreate_swapchain_resources();
 
     auto const & color_views() const { return _color_views; }
     auto const & depth_views() const { return _depth_views; }
@@ -32,9 +33,7 @@ public:
     vkColorDepthPass & operator=(vkColorDepthPass const &) = delete;
 
 private:
-    vk::Extent2D _extent;
-    vk::Format   _color_format;
-    vk::Format   _depth_format;
+    vk::Format _depth_format;
 
     vk::SampleCountFlagBits _msaa_samples;
 
@@ -51,10 +50,13 @@ private:
     std::vector<vk::SubpassDependency>     _subpass_dependencies;
 
     void _find_depth_stencil_format();
-    void _create_color_buffer();
-    void _create_depth_buffer();
     void _init_attachments(bool const present);
     void _init_subpasses();
+
+    void _create_color_buffers();
+    void _create_depth_buffers();
+    void _destroy_color_buffers();
+    void _destroy_depth_buffers();
 };
 
 } // namespace btx

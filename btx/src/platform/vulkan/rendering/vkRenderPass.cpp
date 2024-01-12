@@ -6,15 +6,13 @@
 namespace btx {
 
 // =============================================================================
-vkRenderPass::vkRenderPass(vkDevice const &device,
-                           vkSwapchain const &swapchain) :
-    _device { device },
-    _swapchain { swapchain }
+vkRenderPass::vkRenderPass(Renderer const &renderer) :
+    _renderer { renderer }
 { }
 
 // =============================================================================
 void vkRenderPass::_create(vk::RenderPassCreateInfo const &create_info) {
-    auto const result = _device.native().createRenderPass(create_info);
+    auto const result = device().native().createRenderPass(create_info);
     if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to create render pass: '{}'",
                      vk::to_string(result.result));
@@ -28,7 +26,7 @@ void vkRenderPass::_create(vk::RenderPassCreateInfo const &create_info) {
 // =============================================================================
 vkRenderPass::~vkRenderPass() {
     BTX_TRACE("Destroying render pass {}", _handle);
-    _device.native().destroyRenderPass(_handle);
+    device().native().destroyRenderPass(_handle);
 }
 
 } // namespace btx

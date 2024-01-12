@@ -2,6 +2,7 @@
 #define BRASSTACKS_PLATFORM_VULKAN_PIPELINE_VKPIPELINE_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -24,8 +25,8 @@ public:
         vk::Format depth_format = vk::Format::eUndefined;
 
         // Viewport settings
-        vk::Extent2D viewport_extent { 0u, 0u };
-        vk::Offset2D viewport_offset { 0, 0 };
+        RenderConfig::Size   viewport_extent { 0u, 0u };
+        RenderConfig::Offset viewport_offset { 0, 0 };
 
         // Drawing options
         vk::PolygonMode   polygon_mode = vk::PolygonMode::eFill;
@@ -54,9 +55,9 @@ public:
     void bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
                              vkDescriptorSet const &set) const;
 
-    vkPipeline & module_from_spirv(std::string_view filepath,
+    vkPipeline & module_from_spirv(std::string_view const filepath,
                                    vk::ShaderStageFlagBits const stage,
-                                   std::string_view entry_point = "main");
+                                   std::string_view const entry_point = "main");
 
     using VertBindings = std::vector<vk::VertexInputBindingDescription>;
     using VertAttribs  = std::vector<vk::VertexInputAttributeDescription>;
@@ -68,8 +69,8 @@ public:
     vkPipeline & add_push_constant(vk::ShaderStageFlags const stage_flags,
                                    size_t const size_bytes);
 
-    void update_dimensions(vk::Extent2D const &extent,
-                           vk::Offset2D const &offset);
+    void update_dimensions(RenderConfig::Size const &size,
+                           RenderConfig::Offset const &offset);
 
     inline auto const & native()   const { return _handle; }
     inline auto const & viewport() const { return _viewport; }

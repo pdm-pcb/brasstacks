@@ -26,7 +26,7 @@ public:
 
     struct PerspectiveParams {
         float vfov_degrees = 45.0f;
-        float aspect_ratio = 1.777777778f;
+        float aspect_ratio = (16.0f / 9.0f);
         float near_plane = 0.1f;
         float far_plane = 1000.0f;
     };

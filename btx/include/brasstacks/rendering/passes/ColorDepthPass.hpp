@@ -5,21 +5,42 @@
 
 namespace btx {
 
-class vkDevice;
-class vkSwapchain;
+class Renderer;
+
 class vkColorDepthPass;
 class vkPipeline;
 class vkFramebuffer;
-
 class vkCmdBuffer;
+
+class vkDescriptorSetLayout;
+class vkDescriptorSet;
 
 class ColorDepthPass {
 public:
-    ColorDepthPass(vkDevice const &device, vkSwapchain const &swapchain);
+    explicit ColorDepthPass(Renderer const &renderer);
     ~ColorDepthPass();
 
-    void begin(vkCmdBuffer const &cmd_buffer, uint32_t const image_index);
+    void create();
+
+    void recreate_swapchain_resources();
+    void destroy_swapchain_resources();
+
+    void begin();
     void end();
+
+    void bind_descriptor_set(vkDescriptorSet const &set) const;
+
+    struct PushConstant {
+        vk::ShaderStageFlags const stage_flags = vk::ShaderStageFlagBits::eAll;
+        size_t const size_bytes = 0;
+        void const *data = nullptr;
+    };
+
+    using PushConstants = std::vector<PushConstant>;
+
+    void send_push_constants(PushConstants const &push_constants);
+
+    auto & pipeline() { return *_pipeline; }
 
     ColorDepthPass() = delete;
 
@@ -30,10 +51,9 @@ public:
     ColorDepthPass & operator=(ColorDepthPass const &) = delete;
 
 private:
-    vkDevice const &_device;
-    vkSwapchain const &_swapchain;
+    Renderer const &_renderer;
 
-    vkColorDepthPass                 *_render_pass;
+    vkColorDepthPass            *_render_pass;
     vkPipeline                  *_pipeline;
     std::vector<vkFramebuffer *> _framebuffers;
 

@@ -2,11 +2,9 @@
 #define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKRENDERPASS_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
+#include "brasstacks/core/Renderer.hpp"
 
 namespace btx {
-
-class vkDevice;
 
 class vkRenderPass {
 public:
@@ -23,16 +21,15 @@ public:
     vkRenderPass & operator=(vkRenderPass const &) = delete;
 
 protected:
-    vkRenderPass(vkDevice const &device, vkSwapchain const &swapchain);
+    vkRenderPass(Renderer const &renderer);
 
     void _create(vk::RenderPassCreateInfo const &create_info);
 
-    auto const & device() const { return _device; }
-    auto const & swapchain() const { return _swapchain; }
+    auto const & device() const { return _renderer.device(); }
+    auto const & swapchain() const { return _renderer.swapchain(); }
 
 private:
-    vkDevice const &_device;
-    vkSwapchain const &_swapchain;
+    Renderer const &_renderer;
 
     vk::RenderPass _handle;
 };
