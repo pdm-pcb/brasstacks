@@ -19,7 +19,20 @@ public:
     void start();
     void stop();
 
-    ::HWND const & native() const { return _window_handle; }
+    inline auto const & native() const { return _window_handle; };
+
+    struct Size { uint32_t width = 0u; uint32_t height = 0; };
+    struct Position { int32_t x = 0; int32_t y = 0; };
+
+    inline Size const size() {
+        std::unique_lock<std::mutex> read_lock(_size_mutex);
+        return { .width = _window_size.width, .height = _window_size.height };
+    }
+
+    inline Position const & posiotion() {
+        std::unique_lock<std::mutex> read_lock(_position_mutex);
+        return { .x = _window_position.x, .y = _window_position.y };
+    }
 
     Win32TargetWindow() = delete;
 
@@ -45,8 +58,14 @@ private:
     static Win32ToBTXKeys const _keymap;
 
     // Details for later
-    RenderConfig::Dimensions _screen_size;
-    RenderConfig::Offset    _screen_center;
+    Size     _screen_size;
+    Position _screen_center;
+
+    Size     _window_size;
+    Position _window_position;
+
+    std::mutex _size_mutex;
+    std::mutex _position_mutex;
 
     bool _minimized;
 

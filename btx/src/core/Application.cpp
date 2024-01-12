@@ -83,9 +83,11 @@ void Application::_process_events() {
 void Application::_recreate_swapchain() {
     this->destroy_swapchain_resources();
 
-    while(_running && (RenderConfig::target_window_size.width == 0u
-                       || RenderConfig::target_window_size.height == 0u))
-    {
+    while(_running) {
+        auto window_size = _target_window->size();
+        if(window_size.width != 0u && window_size.height != 0u) {
+            break;
+        }
         _process_events();
     }
 

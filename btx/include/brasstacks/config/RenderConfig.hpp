@@ -17,9 +17,6 @@ struct RenderConfig final {
         int32_t y = 0;
     };
 
-    static Dimensions target_window_size;
-    static Offset     target_window_position;
-
     static Dimensions swapchain_image_size;
     static Offset     swapchain_image_offset;
     static uint32_t   swapchain_image_count;

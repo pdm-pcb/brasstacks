@@ -2,9 +2,6 @@
 
 namespace btx {
 
-RenderConfig::Dimensions RenderConfig::target_window_size     = { };
-RenderConfig::Offset     RenderConfig::target_window_position = { };
-
 RenderConfig::Dimensions RenderConfig::swapchain_image_size   = { };
 RenderConfig::Offset     RenderConfig::swapchain_image_offset = { };
 

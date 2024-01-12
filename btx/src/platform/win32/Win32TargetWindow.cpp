@@ -22,16 +22,20 @@ Win32ToBTXKeys const Win32TargetWindow::_keymap;
 
 // =============================================================================
 Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
-    _class_name    { },
-    _window_class  { },
-    _window_title  { app_name.begin(), app_name.end() },
-    _window_handle { },
-    _raw_msg       { new std::byte[sizeof(::RAWINPUT)] },
-    _screen_size   { 0u, 0u },
-    _screen_center { 0, 0 },
-    _minimized     { false },
-    _run_mutex     { },
-    _running       { false }
+    _class_name      { },
+    _window_class    { },
+    _window_title    { app_name.begin(), app_name.end() },
+    _window_handle   { },
+    _raw_msg         { new std::byte[sizeof(::RAWINPUT)] },
+    _screen_size     { 0u, 0u },
+    _screen_center   { 0, 0 },
+    _window_size     { 0u, 0u },
+    _window_position { 0, 0 },
+    _size_mutex      { },
+    _position_mutex  { },
+    _minimized       { false },
+    _run_mutex       { },
+    _running         { false }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -170,30 +174,23 @@ void Win32TargetWindow::_register_class() {
 void Win32TargetWindow::_create_window() {
     // If width and height aren't preconfigured, then just opt for most of the
     // available real estate
-    if(RenderConfig::target_window_size.width == 0u ||
-       RenderConfig::target_window_size.height == 0u)
-    {
+    if(_window_size.width == 0u || _window_size.height == 0u) {
         auto const w = static_cast<float>(_screen_size.width);
         auto const h = static_cast<float>(_screen_size.height);
 
-        RenderConfig::target_window_size = {
-            static_cast<uint32_t>(w * 0.5f),
-            static_cast<uint32_t>(h * 0.5f)
-        };
+        std::unique_lock<std::mutex> write_lock(_size_mutex);
+        _window_size = { .width = static_cast<uint32_t>(w * 0.5f),
+                         .height = static_cast<uint32_t>(h * 0.5f) };
     }
 
     // Default to a centered window
-    if(RenderConfig::target_window_position.x == 0 ||
-       RenderConfig::target_window_position.y == 0)
-    {
-        auto const &size = RenderConfig::target_window_size;
-        auto const half_width = static_cast<int32_t>(size.width) / 2;
-        auto const half_height = static_cast<int32_t>(size.height) / 2;
+    if(_window_position.x == 0 || _window_position.y == 0) {
+        auto const half_width = static_cast<int32_t>(_window_size.width) / 2;
+        auto const half_height = static_cast<int32_t>(_window_size.height) / 2;
 
-        RenderConfig::target_window_position = {
-            .x = _screen_center.x - half_width,
-            .y = _screen_center.y - half_height
-        };
+        std::unique_lock<std::mutex> write_lock(_position_mutex);
+        _window_position = { .x = _screen_center.x - half_width,
+                             .y = _screen_center.y - half_height };
     }
 
     // Create!
@@ -209,8 +206,9 @@ void Win32TargetWindow::_create_window() {
         nullptr,                     // Parent window handle
         nullptr,                     // Menu handle
         _window_class.hInstance,     // Instance handle
-        this                         // Pointer for lParam: retrieved later via
-                                     // the WM_NCCREATE message
+
+        this                         // Pointer for lParam: retrieved later
+                                     // via the WM_NCCREATE message
     );
 
     if(_window_handle == nullptr) {
@@ -354,20 +352,17 @@ void Win32TargetWindow::_release_cursor() {
 
 // =============================================================================
 void Win32TargetWindow::_size_and_place() {
-    auto const &size = RenderConfig::target_window_size;
-    auto const &position = RenderConfig::target_window_position;
-
-    BTX_TRACE("Target window size: {}x{}, position: {}x{}", size.width,
-                                                            size.height,
-                                                            position.x,
-                                                            position.y);
+    BTX_TRACE("Target window size: {}x{}, position: {}x{}", _window_size.width,
+                                                            _window_size.height,
+                                                            _window_position.x,
+                                                            _window_position.y);
 
     auto const result = ::SetWindowPos(_window_handle,
                                        nullptr, // hwnd insert after
-                                       static_cast<int>(position.x),
-                                       static_cast<int>(position.y),
-                                       static_cast<int>(size.width),
-                                       static_cast<int>(size.height),
+                                       static_cast<int>(_window_position.x),
+                                       static_cast<int>(_window_position.y),
+                                       static_cast<int>(_window_size.width),
+                                       static_cast<int>(_window_size.height),
                                        0); // flags
 
     if(!SUCCEEDED(result)) {
@@ -473,8 +468,11 @@ void Win32TargetWindow::_message_loop() {
             uint32_t const height = HIWORD(lParam);
 
             if(wParam == SIZE_MINIMIZED && !_minimized) {
-                RenderConfig::target_window_size.width = 0u;
-                RenderConfig::target_window_size.height = 0u;
+                {
+                    std::unique_lock<std::mutex> write_lock(_size_mutex);
+                    _window_size.width = 0u;
+                    _window_size.height = 0u;
+                }
 
                 _minimized = true;
 
@@ -482,19 +480,25 @@ void Win32TargetWindow::_message_loop() {
                 EventBus::publish<WindowMinimizeEvent>({ });
             }
             else if(wParam == SIZE_RESTORED && _minimized) {
-                RenderConfig::target_window_size.width = width;
-                RenderConfig::target_window_size.height = height;
+                {
+                    std::unique_lock<std::mutex> write_lock(_size_mutex);
+                    _window_size.width = width;
+                    _window_size.height = height;
+                }
 
                 _minimized = false;
 
                 BTX_TRACE("win32 window restored to {}x{}", width, height);
                 EventBus::publish<WindowRestoreEvent>({ });
             }
-            else if((width != RenderConfig::target_window_size.width)
-                    || (height != RenderConfig::target_window_size.height))
+            else if((width != _window_size.width)
+                    || (height != _window_size.height))
             {
-                RenderConfig::target_window_size.width = width;
-                RenderConfig::target_window_size.height = height;
+                {
+                    std::unique_lock<std::mutex> write_lock(_size_mutex);
+                    _window_size.width = width;
+                    _window_size.height = height;
+                }
 
                 BTX_TRACE("win32 window resized: {}x{}", width, height);
                 EventBus::publish<WindowSizeEvent>({ });
