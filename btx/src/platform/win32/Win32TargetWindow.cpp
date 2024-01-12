@@ -22,16 +22,16 @@ Win32ToBTXKeys const Win32TargetWindow::_keymap;
 
 // =============================================================================
 Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
-    _class_name         { },
-    _window_class       { },
-    _window_title       { app_name.begin(), app_name.end() },
-    _window_handle      { },
-    _raw_msg            { new std::byte[sizeof(::RAWINPUT)] },
-    _screen_size        { 0u, 0u },
-    _screen_center      { 0, 0 },
-    _minimized          { false },
-    _run_mutex          { },
-    _running            { false }
+    _class_name    { },
+    _window_class  { },
+    _window_title  { app_name.begin(), app_name.end() },
+    _window_handle { },
+    _raw_msg       { new std::byte[sizeof(::RAWINPUT)] },
+    _screen_size   { 0u, 0u },
+    _screen_center { 0, 0 },
+    _minimized     { false },
+    _run_mutex     { },
+    _running       { false }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -362,14 +362,13 @@ void Win32TargetWindow::_size_and_place() {
                                                             position.x,
                                                             position.y);
 
-    auto const result = ::SetWindowPos(
-        _window_handle, nullptr,
-        static_cast<int>(position.x),
-        static_cast<int>(position.y),
-        static_cast<int>(size.width),
-        static_cast<int>(size.height),
-        0
-    );
+    auto const result = ::SetWindowPos(_window_handle,
+                                       nullptr, // hwnd insert after
+                                       static_cast<int>(position.x),
+                                       static_cast<int>(position.y),
+                                       static_cast<int>(size.width),
+                                       static_cast<int>(size.height),
+                                       0); // flags
 
     if(!SUCCEEDED(result)) {
         auto const error = ::GetLastError();
@@ -479,7 +478,7 @@ void Win32TargetWindow::_message_loop() {
 
                 _minimized = true;
 
-                BTX_INFO("win32 target window minimized");
+                BTX_TRACE("win32 window minimized");
                 EventBus::publish<WindowMinimizeEvent>({ });
             }
             else if(wParam == SIZE_RESTORED && _minimized) {
@@ -488,8 +487,7 @@ void Win32TargetWindow::_message_loop() {
 
                 _minimized = false;
 
-                BTX_INFO("win32 target window restored to {}x{}",
-                          width, height);
+                BTX_TRACE("win32 window restored to {}x{}", width, height);
                 EventBus::publish<WindowRestoreEvent>({ });
             }
             else if((width != RenderConfig::target_window_size.width)
@@ -497,17 +495,10 @@ void Win32TargetWindow::_message_loop() {
             {
                 RenderConfig::target_window_size.width = width;
                 RenderConfig::target_window_size.height = height;
-            }
 
-            break;
-        }
-
-        case WM_EXITSIZEMOVE: {
-                BTX_INFO("win32 target window size became {}x{}",
-                         RenderConfig::target_window_size.width,
-                         RenderConfig::target_window_size.height);
-
+                BTX_TRACE("win32 window resized: {}x{}", width, height);
                 EventBus::publish<WindowSizeEvent>({ });
+            }
 
             break;
         }
