@@ -3,25 +3,27 @@
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
 namespace btx {
 
-vkColorPass::vkColorPass(vkDevice const &device, vk::Format const format,
-                         vk::Extent2D const &extent, bool const present) :
-    vkRenderPass   { device },
-    _extent        { extent },
-    _color_format  { format },
+vkColorPass::vkColorPass(vkDevice const &device, vkSwapchain const &swapchain,
+                         bool const present) :
+    vkRenderPass   { device, swapchain },
+    _extent        { .width = swapchain.size().width,
+                     .height = swapchain.size().height },
+    _color_format  { swapchain.image_format() },
     _depth_format  { vk::Format::eUndefined },
     _msaa_samples {
         vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples)
     },
-    _color_buffers { },
-    _color_views   { },
-    _depth_buffers { },
-    _depth_views   { },
+    _color_buffers           { },
+    _color_views             { },
+    _depth_buffers           { },
+    _depth_views             { },
     _attachment_descriptions { },
     _color_attachments       { },
     _depth_attachment        { },
@@ -98,7 +100,8 @@ void vkColorPass::_create_color_buffer() {
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
     };
 
-    for(size_t i = 0; i < RenderConfig::swapchain_image_count; ++i) {
+    auto const image_count = swapchain().images().size();
+    for(size_t i = 0; i < image_count; ++i) {
         _color_buffers.emplace_back(
             new vkImage(this->device(),
                         _extent,
@@ -126,7 +129,8 @@ void vkColorPass::_create_depth_buffer() {
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
     };
 
-    for(size_t i = 0; i < RenderConfig::swapchain_image_count; ++i) {
+    auto const image_count = swapchain().images().size();
+    for(size_t i = 0; i < image_count; ++i) {
         _depth_buffers.emplace_back(
             new vkImage(this->device(),
                         _extent,

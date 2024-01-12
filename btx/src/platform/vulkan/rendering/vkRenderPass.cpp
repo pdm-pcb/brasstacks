@@ -6,8 +6,10 @@
 namespace btx {
 
 // =============================================================================
-vkRenderPass::vkRenderPass(vkDevice const &device) :
-    _device { device }
+vkRenderPass::vkRenderPass(vkDevice const &device,
+                           vkSwapchain const &swapchain) :
+    _device { device },
+    _swapchain { swapchain }
 { }
 
 // =============================================================================

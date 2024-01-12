@@ -46,8 +46,8 @@ void Demo::record_commands(btx::vkCmdBuffer const &cmd_buffer,
     vk::Rect2D const render_area = {
         .offset { .x = 0u, .y = 0u },
         .extent {
-            .width  = btx::RenderConfig::swapchain_image_size.width,
-            .height = btx::RenderConfig::swapchain_image_size.height,
+            .width  = _swapchain->size().width,
+            .height = _swapchain->size().height,
         },
     };
 
@@ -92,15 +92,7 @@ void Demo::_create_color_pass() {
         return;
     }
 
-    _color_pass = new btx::vkColorPass(
-        *_device,
-        _swapchain->image_format(),
-        {
-            .width  = btx::RenderConfig::swapchain_image_size.width,
-            .height = btx::RenderConfig::swapchain_image_size.height,
-        },
-        true
-    );
+    _color_pass = new btx::vkColorPass(*_device, *_swapchain, true);
 }
 
 void Demo::_create_color_pipeline() {
@@ -122,8 +114,8 @@ void Demo::_create_color_pipeline() {
                 .color_formats = { _swapchain->image_format() },
                 .depth_format = vk::Format::eUndefined,
                 .viewport_extent = {
-                    .width  = btx::RenderConfig::swapchain_image_size.width,
-                    .height = btx::RenderConfig::swapchain_image_size.height,
+                    .width  = _swapchain->size().width,
+                    .height = _swapchain->size().height,
                 },
                 .viewport_offset = { .x = 0u, .y = 0u, },
                 .sample_flags = _color_pass->msaa_samples(),
@@ -143,8 +135,8 @@ void Demo::_create_framebuffers() {
         _color_framebuffers.emplace_back(new btx::vkFramebuffer(
             *_device, *_color_pass,
             {
-                .width  = btx::RenderConfig::swapchain_image_size.width,
-                .height = btx::RenderConfig::swapchain_image_size.height,
+                .width  = _swapchain->size().width,
+                .height = _swapchain->size().height,
             },
             {{
                 _color_pass->color_views()[i]->native(),

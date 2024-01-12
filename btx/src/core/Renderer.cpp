@@ -226,7 +226,8 @@ void Renderer::_create_swapchain() {
 
 // =============================================================================
 void Renderer::_create_frame_sync() {
-    for(uint32_t i = 0; i < RenderConfig::swapchain_image_count; ++i) {
+    auto const image_count = _swapchain->images().size();
+    for(uint32_t i = 0; i < image_count; ++i) {
         _frame_sync.push_back(new vkFrameSync(*_device));
     }
 

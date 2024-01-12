@@ -19,7 +19,11 @@ vkSwapchain::vkSwapchain(vkDevice const &device, vkSurface const &surface) :
     _image_format    { },
     _present_mode    { },
     _handle          { nullptr },
-    _images          { }
+    _images          { },
+    _image_views     { },
+    _size            { 0u, 0u },
+    _offset          { 0, 0 },
+    _aspect_ratio    { 0.0f }
 {
     // Grab the supported image counts, resolutions, etc from the surface
     _query_surface_capabilities(surface.native());
@@ -160,18 +164,16 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
     );
 
     // We intend to draw to the whole surface
-    RenderConfig::swapchain_image_size.width = capabilities.currentExtent.width;
-    RenderConfig::swapchain_image_size.height = capabilities.currentExtent.height;
+    _size.width = capabilities.currentExtent.width;
+    _size.height = capabilities.currentExtent.height;
 
     // Update the aspect ratio
-    RenderConfig::swapchain_aspect_ratio =
-        static_cast<float>(RenderConfig::swapchain_image_size.width) /
-        static_cast<float>(RenderConfig::swapchain_image_size.height);
+    _aspect_ratio = static_cast<float>(_size.width) /
+                    static_cast<float>(_size.height);
 
-    // TODO: this merits some actual rationale
-    RenderConfig::swapchain_image_count = capabilities.minImageCount + 1;
-    _images.resize(RenderConfig::swapchain_image_count);
-    _image_views.resize(RenderConfig::swapchain_image_count);
+    // TODO: this +1 merits some actual rationale
+    _images.resize(capabilities.minImageCount + 1);
+    _image_views.resize(capabilities.minImageCount + 1);
 }
 
 // =============================================================================
@@ -285,14 +287,14 @@ vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
         "\nSwapchain Create Info:"
         "\n    Extent:       {}x{}"
         "\n    Offset:       {}x{}"
+        "\n    Aspect Ratio: {:.04f}"
         "\n    Image Count:  {}"
         "\n    Format:       {}"
         "\n    Color Space:  {}"
         "\n    Present Mode: {}",
-        RenderConfig::swapchain_image_size.width,
-        RenderConfig::swapchain_image_size.height,
-        RenderConfig::swapchain_image_offset.x,
-        RenderConfig::swapchain_image_offset.y,
+        _size.width, _size.height,
+        _offset.x, _offset.y,
+        _aspect_ratio,
         _images.size(),
         vk::to_string(_image_format.format),
         vk::to_string(_image_format.colorSpace),
@@ -304,10 +306,7 @@ vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
         .minImageCount   = static_cast<uint32_t>(_images.size()),
         .imageFormat     = _image_format.format,
         .imageColorSpace = _image_format.colorSpace,
-        .imageExtent     = {
-            .width  = RenderConfig::swapchain_image_size.width,
-            .height = RenderConfig::swapchain_image_size.height
-        },
+        .imageExtent     = { .width = _size.width, .height = _size.height },
 
         // Image array layers will always be one, except in the case of a
         // device with multiple displays interested in the same swapchain, like

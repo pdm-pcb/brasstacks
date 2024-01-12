@@ -7,20 +7,9 @@
 namespace btx {
 
 struct RenderConfig final {
-    struct Dimensions final {
-        uint32_t width = 0;
-        uint32_t height = 0;
-    };
 
-    struct Offset final {
-        int32_t x = 0;
-        int32_t y = 0;
-    };
-
-    static Dimensions swapchain_image_size;
-    static Offset     swapchain_image_offset;
-    static uint32_t   swapchain_image_count;
-    static float      swapchain_aspect_ratio;
+    struct Size { uint32_t width = 0u; uint32_t height = 0u; };
+    struct Offset { int32_t x = 0u; int32_t y = 0u; };
 
     static bool vsync_on;
 

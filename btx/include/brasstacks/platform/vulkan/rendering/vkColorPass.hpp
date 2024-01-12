@@ -7,13 +7,15 @@
 namespace btx {
 
 class vkDevice;
+class vkSwapchain;
 class vkImage;
 class vkImageView;
 
 class vkColorPass final : public vkRenderPass {
 public:
-    vkColorPass(vkDevice const &device, vk::Format const format,
-                vk::Extent2D const &extent, bool const present);
+
+    vkColorPass(vkDevice const &device, vkSwapchain const &swapchain,
+                bool const present);
 
     ~vkColorPass() override;
 

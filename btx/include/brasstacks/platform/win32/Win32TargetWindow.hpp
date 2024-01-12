@@ -5,6 +5,7 @@
 
 #include "brasstacks/pch.hpp"
 
+#include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/platform/win32/Win32MsgToStr.hpp"
 #include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
 
@@ -21,15 +22,12 @@ public:
 
     inline auto const & native() const { return _window_handle; };
 
-    struct Size { uint32_t width = 0u; uint32_t height = 0; };
-    struct Position { int32_t x = 0; int32_t y = 0; };
-
-    inline Size const size() {
+    inline RenderConfig::Size const size() {
         std::unique_lock<std::mutex> read_lock(_size_mutex);
         return { .width = _window_size.width, .height = _window_size.height };
     }
 
-    inline Position const & posiotion() {
+    inline RenderConfig::Offset const & posiotion() {
         std::unique_lock<std::mutex> read_lock(_position_mutex);
         return { .x = _window_position.x, .y = _window_position.y };
     }
@@ -58,11 +56,11 @@ private:
     static Win32ToBTXKeys const _keymap;
 
     // Details for later
-    Size     _screen_size;
-    Position _screen_center;
+    RenderConfig::Size   _screen_size;
+    RenderConfig::Offset _screen_center;
 
-    Size     _window_size;
-    Position _window_position;
+    RenderConfig::Size   _window_size;
+    RenderConfig::Offset _window_position;
 
     std::mutex _size_mutex;
     std::mutex _position_mutex;

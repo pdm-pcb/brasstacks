@@ -53,14 +53,14 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     // Testing for the primary display's resolution this way feels brittle,
     // but it does work for the average use case
     _screen_size = {
-        static_cast<uint32_t>(::GetSystemMetrics(SM_CXSCREEN)),
-        static_cast<uint32_t>(::GetSystemMetrics(SM_CYSCREEN))
+        .width = static_cast<uint32_t>(::GetSystemMetrics(SM_CXSCREEN)),
+        .height = static_cast<uint32_t>(::GetSystemMetrics(SM_CYSCREEN))
     };
 
     // Hold on to the screen's center for later
     _screen_center = {
-        static_cast<int32_t>(_screen_size.width / 2),
-        static_cast<int32_t>(_screen_size.height / 2)
+        .x = static_cast<int32_t>(_screen_size.width / 2u),
+        .y = static_cast<int32_t>(_screen_size.height / 2u)
     };
 
     auto const btx_name_view = std::string_view(BTX_NAME);

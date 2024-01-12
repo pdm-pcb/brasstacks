@@ -2,6 +2,7 @@
 #define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKSWAPCHAIN_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -24,10 +25,12 @@ public:
 
     void recreate();
 
+    inline auto const &size() const { return _size; }
+    inline auto const &offset() const { return _offset; }
+    inline auto aspect_ratio() const { return _aspect_ratio; }
+
     inline auto image_format() const { return _image_format.format; }
-
     inline auto const & images() const { return _images; }
-
     inline auto const & image_views() const { return _image_views; }
 
     vkSwapchain() = delete;
@@ -46,6 +49,10 @@ private:
     vk::SwapchainKHR           _handle;
     std::vector<vkImage *>     _images;
     std::vector<vkImageView *> _image_views;
+
+    RenderConfig::Size   _size;
+    RenderConfig::Offset _offset;
+    float _aspect_ratio;
 
     void _query_surface_capabilities(vk::SurfaceKHR const &surface);
     void _query_surface_format(vk::SurfaceKHR const &surface);
