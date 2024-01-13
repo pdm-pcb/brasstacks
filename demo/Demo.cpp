@@ -2,7 +2,6 @@
 #include "brasstacks/brasstacks.hpp"
 
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/rendering/meshes/PlaneMesh.hpp"
 #include "brasstacks/rendering/passes/ColorDepthPass.hpp"
 
 #include "brasstacks/rendering/meshes/PlaneMesh.hpp"
@@ -125,8 +124,7 @@ void Demo::update() {
 }
 
 // =============================================================================
-void Demo::record_commands()
-{
+void Demo::record_commands() const {
     auto const image_index = _renderer->image_index();
 
     std::array<btx::math::Mat4, 2> const vp {{ _camera->view_matrix(),

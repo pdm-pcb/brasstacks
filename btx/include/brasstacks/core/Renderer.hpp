@@ -2,8 +2,7 @@
 #define BRASSTACKS_CORE_RENDERER_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/core/TargetWindow.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
+#include "brasstacks/core/Application.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
@@ -15,14 +14,12 @@ class vkCmdBuffer;
 
 class Renderer final {
 public:
-    explicit Renderer(TargetWindow const &target_window);
+    explicit Renderer(Application const &application);
     ~Renderer();
 
-    uint32_t acquire_next_image();
-    void begin_recording();
-    void end_recording();
-    void submit_commands();
-    [[nodiscard]] bool present_image();
+    void start();
+    void stop();
+    void run();
 
     inline void wait_device_idle() const { _device->wait_idle(); }
 
@@ -45,7 +42,7 @@ public:
     Renderer & operator=(Renderer const &) = delete;
 
 private:
-    TargetWindow const &_target_window;
+    Application const &_application;
 
     vkSurface   *_surface;
     vkDevice    *_device;
@@ -55,6 +52,16 @@ private:
     std::vector<vkFrameSync *> _frame_sync;
 
     uint32_t _image_index;
+
+    std::mutex _run_mutex;
+    std::condition_variable _run_cv;
+    bool _running;
+
+    uint32_t _acquire_next_image();
+    void _begin_recording();
+    void _end_recording();
+    void _submit_commands();
+    [[nodiscard]] bool _present_image();
 
     void _create_surface();
     void _select_physical_device();

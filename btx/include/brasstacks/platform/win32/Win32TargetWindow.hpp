@@ -16,9 +16,9 @@ public:
     explicit Win32TargetWindow(std::string_view const app_name);
     ~Win32TargetWindow();
 
-    void create_and_wait();
     void start();
     void stop();
+    void run();
 
     void enter_editor_mode();
     void exit_editor_mode();

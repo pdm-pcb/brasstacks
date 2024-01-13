@@ -11,8 +11,9 @@ Application::Application(std::string_view const app_name) :
     _running                   { true },
     _editor_mode               { true },
     _target_window             { new TargetWindow(app_name) },
-    _target_window_thread      { &TargetWindow::create_and_wait, _target_window },
-    _renderer                  { new Renderer(*_target_window) },
+    _target_window_thread      { &TargetWindow::run, _target_window },
+    _renderer                  { new Renderer(*this) },
+    _renderer_thread           { &Renderer::run, _renderer },
     _window_close_events       { *this, &Application::on_window_close },
     _key_press_events          { *this, &Application::on_key_press },
     _mouse_button_press_events { *this, &Application::on_mouse_button_press }
@@ -29,6 +30,7 @@ void Application::run() {
     this->init(*_renderer);
 
     _target_window->start();
+    _renderer->start();
 
     while(_running) {
         _process_events();
@@ -39,31 +41,13 @@ void Application::run() {
             Timekeeper::update_sim_run_time();
             this->update();
         }
-
-        Timekeeper::frame_start();
-
-            uint32_t const image_index = _renderer->acquire_next_image();
-            if(image_index == std::numeric_limits<uint32_t>::max()) {
-                _recreate_swapchain();
-                continue;
-            }
-
-            _renderer->begin_recording();
-
-            this->record_commands();
-
-            _renderer->end_recording();
-            _renderer->submit_commands();
-
-            if(!_renderer->present_image()) {
-                _recreate_swapchain();
-            }
-
-        Timekeeper::frame_end();
     }
 
     _target_window->stop();
     _target_window_thread.join();
+
+    _renderer->stop();
+    _renderer_thread.join();
 
     _renderer->wait_device_idle();
 

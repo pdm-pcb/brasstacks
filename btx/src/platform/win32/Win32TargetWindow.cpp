@@ -35,6 +35,7 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _position_mutex     { },
     _minimized          { false },
     _run_mutex          { },
+    _run_cv             { },
     _running            { false },
     _toggle_editor_mode { false },
     _in_editor_mode     { true }
@@ -77,7 +78,24 @@ Win32TargetWindow::~Win32TargetWindow() {
 }
 
 // =============================================================================
-void Win32TargetWindow::create_and_wait() {
+void Win32TargetWindow::start() {
+    BTX_TRACE("Starting target window...");
+    {
+        std::unique_lock<std::mutex> run_lock(_run_mutex);
+        _running = true;
+    }
+    _run_cv.notify_one();
+}
+
+// =============================================================================
+void Win32TargetWindow::stop() {
+    BTX_TRACE("Stopping target window...");
+    std::unique_lock<std::mutex> run_lock(_run_mutex);
+    _running = false;
+}
+
+// =============================================================================
+void Win32TargetWindow::run() {
     _create_window();
     _size_and_place();
 
@@ -121,23 +139,6 @@ void Win32TargetWindow::create_and_wait() {
 
     ::ShowWindow(_window_handle, SW_HIDE);
     _destroy_window();
-}
-
-// =============================================================================
-void Win32TargetWindow::start() {
-    BTX_TRACE("Starting target window...");
-    {
-        std::unique_lock<std::mutex> run_lock(_run_mutex);
-        _running = true;
-    }
-    _run_cv.notify_one();
-}
-
-// =============================================================================
-void Win32TargetWindow::stop() {
-    BTX_TRACE("Stopping target window...");
-    std::unique_lock<std::mutex> run_lock(_run_mutex);
-    _running = false;
 }
 
 // =============================================================================

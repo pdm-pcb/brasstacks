@@ -32,7 +32,7 @@ public:
     void shutdown() override;
 
     void update() override;
-    void record_commands() override;
+    void record_commands() const override;
 
     void destroy_swapchain_resources() override;
     void recreate_swapchain_resources() override;

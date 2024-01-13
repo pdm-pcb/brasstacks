@@ -5,6 +5,7 @@
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
@@ -12,14 +13,17 @@
 namespace btx {
 
 // =============================================================================
-Renderer::Renderer(TargetWindow const &target_window) :
-    _target_window      { target_window },
+Renderer::Renderer(Application const &application) :
+    _application        { application },
     _surface            { nullptr },
     _device             { nullptr },
     _swapchain          { nullptr },
     _image_acquire_sems { },
     _frame_sync         { },
-    _image_index        { std::numeric_limits<uint32_t>::max() }
+    _image_index        { std::numeric_limits<uint32_t>::max() },
+    _run_mutex          { },
+    _run_cv             { },
+    _running            { false }
 {
     vkInstance::create();
 
@@ -40,7 +44,72 @@ Renderer::~Renderer() {
 }
 
 // =============================================================================
-uint32_t Renderer::acquire_next_image() {
+void Renderer::start() {
+    BTX_TRACE("Starting renderer...");
+    {
+        std::unique_lock<std::mutex> run_lock(_run_mutex);
+        _running = true;
+    }
+    _run_cv.notify_one();
+}
+
+// =============================================================================
+void Renderer::stop() {
+    BTX_TRACE("Stopping renderer...");
+    std::unique_lock<std::mutex> run_lock(_run_mutex);
+    _running = false;
+}
+
+// =============================================================================
+void Renderer::run() {
+    BTX_TRACE("Renderer waiting to run...");
+    {
+        std::unique_lock<std::mutex> run_lock(_run_mutex);
+        _run_cv.wait(run_lock, [&](){ return _running; });
+    }
+    BTX_TRACE("Renderer running!");
+
+    while(true) {
+        {
+            std::unique_lock<std::mutex> run_lock(_run_mutex);
+            if(!_running) {
+                break;
+            }
+        }
+
+        Timekeeper::frame_start();
+
+            uint32_t const image_index = _acquire_next_image();
+            if(image_index == std::numeric_limits<uint32_t>::max()) {
+                // _recreate_swapchain();
+                continue;
+            }
+
+            _begin_recording();
+
+            _application.record_commands();
+
+            _end_recording();
+            _submit_commands();
+
+            if(!_present_image()) {
+                // _recreate_swapchain();
+            }
+
+        Timekeeper::frame_end();
+    }
+}
+
+// =============================================================================
+void Renderer::recreate_swapchain() {
+    _destroy_frame_sync();
+    _destroy_swapchain();
+    _create_swapchain();
+    _create_frame_sync();
+}
+
+// =============================================================================
+uint32_t Renderer::_acquire_next_image() {
     if(_image_acquire_sems.empty()) {
         BTX_CRITICAL("Swapchain ran out of image acquire semaphores.");
         return std::numeric_limits<uint32_t>::max();
@@ -80,21 +149,21 @@ uint32_t Renderer::acquire_next_image() {
 }
 
 // =============================================================================
-void Renderer::begin_recording() {
+void Renderer::_begin_recording() {
     auto &frame_sync  = *_frame_sync[_image_index];
     auto const &cmd_buffer  = frame_sync.cmd_buffer();
     cmd_buffer.begin_one_time_submit();
 }
 
 // =============================================================================
-void Renderer::end_recording() {
+void Renderer::_end_recording() {
     auto &frame_sync  = *_frame_sync[_image_index];
     auto const &cmd_buffer  = frame_sync.cmd_buffer();
     cmd_buffer.end_recording();
 }
 
 // =============================================================================
-void Renderer::submit_commands() {
+void Renderer::_submit_commands() {
     auto &frame_sync = *_frame_sync[_image_index];
 
     static vk::PipelineStageFlags const wait_stage {
@@ -125,7 +194,7 @@ void Renderer::submit_commands() {
 }
 
 // =============================================================================
-bool Renderer::present_image() {
+bool Renderer::_present_image() {
     auto &frame_sync = *_frame_sync[_image_index];
     auto const present_success = _swapchain->present(frame_sync, _image_index);
 
@@ -134,14 +203,6 @@ bool Renderer::present_image() {
     }
 
     return present_success;
-}
-
-// =============================================================================
-void Renderer::recreate_swapchain() {
-    _destroy_frame_sync();
-    _destroy_swapchain();
-    _create_swapchain();
-    _create_frame_sync();
 }
 
 // =============================================================================
@@ -157,7 +218,7 @@ void Renderer::_create_surface() {
       .pNext = nullptr,
       .flags = { },
       .dpy = nullptr,
-      .window = _target_window.native()
+      .window = _application.target_window().native()
     };
 
 #elif defined(BTX_WINDOWS)
@@ -166,7 +227,7 @@ void Renderer::_create_surface() {
       .pNext = nullptr,
       .flags = { },
       .hinstance = nullptr,
-      .hwnd = _target_window.native()
+      .hwnd = _application.target_window().native()
     };
 
 #endif // BTX platform
