@@ -111,11 +111,17 @@ void Demo::shutdown() {
 void Demo::update() {
     _camera->update();
 
-    _plane_mat = btx::math::translate(btx::math::Mat4::identity,
-                                      -btx::math::Vec3::unit_x);
+    using namespace btx::math;
 
-    _cube_mat = btx::math::translate(btx::math::Mat4::identity,
-                                     btx::math::Vec3::unit_x);
+    _plane_mat = translate(Mat4::identity, -Vec3::unit_x * 1.25f) *
+                 rotate(Mat4::identity,
+                        20.0f * btx::Timekeeper::run_time(),
+                        Vec3::unit_z);
+
+    _cube_mat = translate(Mat4::identity, Vec3::unit_x * 1.25f) *
+                rotate(Mat4::identity,
+                       10.0f * btx::Timekeeper::run_time(),
+                       Vec3::unit_y - Vec3::unit_x);
 }
 
 // =============================================================================

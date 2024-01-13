@@ -17,11 +17,11 @@ public:
     static void frame_end();
 
     inline static auto run_time() {
-        return 1e-9f * static_cast<float>(_run_time);
+        return 1e-9f * static_cast<float>(_run_time.load());
     }
 
     inline static auto frame_time() {
-        return 1e-9f * static_cast<float>(_frame_time);
+        return 1e-9f * static_cast<float>(_frame_time.load());
     }
 
     inline static auto now() { return SteadyClock::now(); }
@@ -39,8 +39,8 @@ private:
     static SteadyClock::time_point _app_start;
     static SteadyClock::time_point _frame_start;
 
-    static uint64_t _run_time;
-    static uint64_t _frame_time;
+    static std::atomic<uint64_t> _run_time;
+    static std::atomic<uint64_t> _frame_time;
 };
 
 } // namespace btx
