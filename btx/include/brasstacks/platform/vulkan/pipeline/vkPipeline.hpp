@@ -16,8 +16,32 @@ class vkDescriptorSetLayout;
 class vkPipeline final {
 public:
     explicit vkPipeline(vkDevice const &device);
-
     ~vkPipeline();
+
+    static vk::SampleCountFlagBits samples_to_flag(uint32_t const samples);
+
+    void bind(vkCmdBuffer const &cmd_buffer);
+    void bind_descriptor_set(vkDescriptorSet const &set) const;
+    void unbind();
+
+    vkPipeline & module_from_spirv(std::string_view const filepath,
+                                   vk::ShaderStageFlagBits const stage,
+                                   std::string_view const entry_point = "main");
+
+    using VertBindings = std::vector<vk::VertexInputBindingDescription>;
+    using VertAttribs  = std::vector<vk::VertexInputAttributeDescription>;
+    vkPipeline & describe_vertex_input(VertBindings const &bindings,
+                                       VertAttribs const &attributes);
+
+    vkPipeline & add_descriptor_set(vkDescriptorSetLayout const &layout);
+
+    struct PushConstant {
+        vk::ShaderStageFlags const stage_flags = vk::ShaderStageFlagBits::eAll;
+        size_t const size_bytes = 0;
+        void const *data = nullptr;
+    };
+
+    vkPipeline & add_push_constant(PushConstant const &push_constant);
 
     struct Config {
         // Attachment configuration
@@ -49,25 +73,8 @@ public:
 
     void create(vkRenderPass const &render_pass, Config const &config);
 
-    static vk::SampleCountFlagBits samples_to_flag(uint32_t const samples);
-
-    void bind(vkCmdBuffer const &cmd_buffer) const;
-    void bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
-                             vkDescriptorSet const &set) const;
-
-    vkPipeline & module_from_spirv(std::string_view const filepath,
-                                   vk::ShaderStageFlagBits const stage,
-                                   std::string_view const entry_point = "main");
-
-    using VertBindings = std::vector<vk::VertexInputBindingDescription>;
-    using VertAttribs  = std::vector<vk::VertexInputAttributeDescription>;
-    vkPipeline & describe_vertex_input(VertBindings const &bindings,
-                                       VertAttribs const &attributes);
-
-    vkPipeline & add_descriptor_set(vkDescriptorSetLayout const &layout);
-
-    vkPipeline & add_push_constant(vk::ShaderStageFlags const stage_flags,
-                                   size_t const size_bytes);
+    using PushConstants = std::vector<PushConstant>;
+    void send_push_constants(PushConstants const &push_constants);
 
     void update_dimensions(RenderConfig::Size const &size,
                            RenderConfig::Offset const &offset);
@@ -77,6 +84,8 @@ public:
     inline auto const & scissor()  const { return _scissor; }
     inline auto const & layout()   const { return _layout; }
 
+    vkPipeline() = delete;
+
     vkPipeline(vkPipeline &&) = delete;
     vkPipeline(const vkPipeline &) = delete;
 
@@ -85,6 +94,8 @@ public:
 
 private:
     vkDevice const &_device;
+
+    vk::Pipeline _handle;
 
     std::vector<vkShader *>                        _shaders;
     std::vector<vk::PipelineShaderStageCreateInfo> _shader_stages;
@@ -113,7 +124,7 @@ private:
 
     vk::PipelineLayout _layout;
 
-    vk::Pipeline _handle;
+    vkCmdBuffer const *_cmd_buffer;
 
     void _init_assembly();
     void _init_viewport(Config const &config);

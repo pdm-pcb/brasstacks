@@ -5,7 +5,6 @@
 
 #include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
@@ -104,15 +103,19 @@ void ColorDepthPass::end() {
     }
     _cmd_buffer->end_render_pass();
     _cmd_buffer = nullptr;
+
+    _pipeline->unbind();
 }
 
 // =============================================================================
 void ColorDepthPass::bind_descriptor_set(vkDescriptorSet const &set) const {
-    _pipeline->bind_descriptor_set(*_cmd_buffer, set);
+    _pipeline->bind_descriptor_set(set);
 }
 
 // =============================================================================
-void ColorDepthPass::send_push_constants(PushConstants const &push_constants) {
+void ColorDepthPass::send_push_constants(
+    vkPipeline::PushConstants const &push_constants)
+{
     size_t offset = 0u;
     for(auto const& push_constant : push_constants) {
         _cmd_buffer->native().pushConstants(

@@ -14,6 +14,7 @@ namespace btx {
 // =============================================================================
 vkPipeline::vkPipeline(vkDevice const &device) :
     _device               { device },
+    _handle               { nullptr },
     _shaders              { },
     _shader_stages        { },
     _viewport             { 0, 0 },
@@ -30,7 +31,7 @@ vkPipeline::vkPipeline(vkDevice const &device) :
     _push_constants       { },
     _push_constant_offset { 0 },
     _layout               { },
-    _handle               { nullptr }
+    _cmd_buffer           { nullptr }
 { }
 
 // =============================================================================
@@ -39,6 +40,134 @@ vkPipeline::~vkPipeline() {
 
     _device.native().destroy(_layout);
     _device.native().destroy(_handle);
+}
+
+// =============================================================================
+vk::SampleCountFlagBits vkPipeline::samples_to_flag(uint32_t const samples) {
+    if(samples == 64u) { return vk::SampleCountFlagBits::e64; }
+    if(samples == 32u) { return vk::SampleCountFlagBits::e32; }
+    if(samples == 16u) { return vk::SampleCountFlagBits::e16; }
+    if(samples == 8u)  { return vk::SampleCountFlagBits::e8;  }
+    if(samples == 4u)  { return vk::SampleCountFlagBits::e4;  }
+    if(samples == 2u)  { return vk::SampleCountFlagBits::e2;  }
+    if(samples == 1u)  { return vk::SampleCountFlagBits::e1;  }
+
+    BTX_CRITICAL("Unsupported MSAA sample count {}", samples);
+
+    return { };
+}
+
+// =============================================================================
+void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) {
+    if(_cmd_buffer != nullptr) {
+        BTX_ERROR("Trying to bind already bound pipeline");
+        return;
+    }
+
+    _cmd_buffer = &cmd_buffer;
+
+    _cmd_buffer->native().bindPipeline(
+        vk::PipelineBindPoint::eGraphics,
+        _handle
+    );
+    _cmd_buffer->native().setViewport(0u, _viewport);
+    _cmd_buffer->native().setScissor(0u, _scissor);
+}
+
+// =============================================================================
+void vkPipeline::bind_descriptor_set(vkDescriptorSet const &set) const {
+    if(_cmd_buffer == nullptr) {
+        BTX_ERROR("Trying to bind descriptor set to unbound pipeline");
+        return;
+    }
+
+    auto const set_layout_key = reinterpret_cast<uint64_t>(
+        VkDescriptorSetLayout(set.layout().native())
+    );
+
+    _cmd_buffer->native().bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        _layout,
+        _set_bind_points.at(set_layout_key),
+        1u, &(set.native()),
+        0u, nullptr
+    );
+}
+
+// =============================================================================
+void vkPipeline::unbind() {
+    if(_cmd_buffer == nullptr) {
+        BTX_ERROR("Cannot unbind pipeline twice");
+        return;
+    }
+
+    _cmd_buffer = nullptr;
+}
+
+// =============================================================================
+vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
+                                           vk::ShaderStageFlagBits const stage,
+                                           std::string_view entry_point)
+{
+    if(_handle) {
+        BTX_CRITICAL("Adding a fragment stage to a pipeline that's already "
+                     "been created.");
+    }
+
+    _shaders.emplace_back(new vkShader(_device, filepath));
+
+    _shader_stages.emplace_back(
+        vk::PipelineShaderStageCreateInfo {
+            .stage = stage,
+            .module = _shaders.back()->native(),
+            .pName = entry_point.data(),
+        }
+    );
+
+    return *this;
+}
+
+// =============================================================================
+vkPipeline & vkPipeline::describe_vertex_input(VertBindings const &bindings,
+                                               VertAttribs const &attributes)
+{
+    auto const binding_count = static_cast<uint32_t>(bindings.size());
+    auto const attrib_count  = static_cast<uint32_t>(attributes.size());
+
+    _vert_input_info = {
+        .vertexBindingDescriptionCount = binding_count,
+        .pVertexBindingDescriptions    = bindings.data(),
+
+        .vertexAttributeDescriptionCount = attrib_count,
+        .pVertexAttributeDescriptions   = attributes.data(),
+    };
+
+    return *this;
+}
+
+// =============================================================================
+vkPipeline &
+vkPipeline::add_descriptor_set(vkDescriptorSetLayout const &layout) {
+    if(_handle) {
+        BTX_CRITICAL("Adding a descriptor set to a pipeline that's already "
+                     "been created.");
+    }
+
+    _set_layouts.push_back(layout.native());
+    return *this;
+}
+
+// =============================================================================
+vkPipeline & vkPipeline::add_push_constant(PushConstant const &push_constant) {
+    _push_constants.push_back({
+        .stageFlags = push_constant.stage_flags,
+        .offset = static_cast<uint32_t>(_push_constant_offset),
+        .size = static_cast<uint32_t>(push_constant.size_bytes)
+    });
+
+    _push_constant_offset += push_constant.size_bytes;
+
+    return *this;
 }
 
 // =============================================================================
@@ -104,114 +233,19 @@ void vkPipeline::create(vkRenderPass const &render_pass, Config const &config) {
 }
 
 // =============================================================================
-vk::SampleCountFlagBits vkPipeline::samples_to_flag(uint32_t const samples) {
-    if(samples == 64u) { return vk::SampleCountFlagBits::e64; }
-    if(samples == 32u) { return vk::SampleCountFlagBits::e32; }
-    if(samples == 16u) { return vk::SampleCountFlagBits::e16; }
-    if(samples == 8u)  { return vk::SampleCountFlagBits::e8;  }
-    if(samples == 4u)  { return vk::SampleCountFlagBits::e4;  }
-    if(samples == 2u)  { return vk::SampleCountFlagBits::e2;  }
-    if(samples == 1u)  { return vk::SampleCountFlagBits::e1;  }
+void vkPipeline::send_push_constants(PushConstants const &push_constants) {
+    size_t offset = 0u;
+    for(auto const& push_constant : push_constants) {
+        _cmd_buffer->native().pushConstants(
+            _layout,
+            push_constant.stage_flags,
+            static_cast<uint32_t>(offset),
+            static_cast<uint32_t>(push_constant.size_bytes),
+            push_constant.data
+        );
 
-    BTX_CRITICAL("Unsupported MSAA sample count {}", samples);
-
-    return { };
-}
-
-// =============================================================================
-void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) const {
-    cmd_buffer.native().bindPipeline(
-        vk::PipelineBindPoint::eGraphics,
-        _handle
-    );
-    cmd_buffer.native().setViewport(0u, _viewport);
-    cmd_buffer.native().setScissor(0u, _scissor);
-}
-
-// =============================================================================
-void vkPipeline::bind_descriptor_set(vkCmdBuffer const &cmd_buffer,
-                                     vkDescriptorSet const &set) const
-{
-    auto const set_layout_key = reinterpret_cast<uint64_t>(
-        VkDescriptorSetLayout(set.layout().native())
-    );
-
-    cmd_buffer.native().bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics,
-        _layout,
-        _set_bind_points.at(set_layout_key),
-        1u, &(set.native()),
-        0u, nullptr
-    );
-}
-
-// =============================================================================
-vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
-                                           vk::ShaderStageFlagBits const stage,
-                                           std::string_view entry_point)
-{
-    if(_handle) {
-        BTX_CRITICAL("Adding a fragment stage to a pipeline that's already "
-                     "been created.");
+        offset += push_constant.size_bytes;
     }
-
-    _shaders.emplace_back(new vkShader(_device, filepath));
-
-    _shader_stages.emplace_back(
-        vk::PipelineShaderStageCreateInfo {
-            .stage = stage,
-            .module = _shaders.back()->native(),
-            .pName = entry_point.data(),
-        }
-    );
-
-    return *this;
-}
-
-// =============================================================================
-vkPipeline & vkPipeline::describe_vertex_input(VertBindings const &bindings,
-                                               VertAttribs const &attributes)
-{
-    auto const binding_count = static_cast<uint32_t>(bindings.size());
-    auto const attrib_count  = static_cast<uint32_t>(attributes.size());
-
-    _vert_input_info = {
-        .vertexBindingDescriptionCount = binding_count,
-        .pVertexBindingDescriptions    = bindings.data(),
-
-        .vertexAttributeDescriptionCount = attrib_count,
-        .pVertexAttributeDescriptions   = attributes.data(),
-    };
-
-    return *this;
-}
-
-// =============================================================================
-vkPipeline &
-vkPipeline::add_descriptor_set(vkDescriptorSetLayout const &layout) {
-    if(_handle) {
-        BTX_CRITICAL("Adding a descriptor set to a pipeline that's already "
-                     "been created.");
-    }
-
-    _set_layouts.push_back(layout.native());
-    return *this;
-}
-
-// =============================================================================
-vkPipeline &
-vkPipeline::add_push_constant(vk::ShaderStageFlags const stage_flags,
-                              size_t const size_bytes)
-{
-    _push_constants.push_back({
-        .stageFlags = stage_flags,
-        .offset = static_cast<uint32_t>(_push_constant_offset),
-        .size = static_cast<uint32_t>(size_bytes)
-    });
-
-    _push_constant_offset += size_bytes;
-
-    return *this;
 }
 
 // =============================================================================

@@ -91,8 +91,8 @@ void Demo::init(btx::Renderer const &renderer) {
         .describe_vertex_input(btx::Vertex::bindings,
                                btx::Vertex::attributes)
         .add_descriptor_set(*_camera_ubo_layout)
-        .add_push_constant(vk::ShaderStageFlagBits::eVertex,
-                           sizeof(btx::math::Mat4));
+        .add_push_constant({ .stage_flags = vk::ShaderStageFlagBits::eVertex,
+                             .size_bytes = sizeof(btx::math::Mat4) });
 
     _color_depth_pass->create();
 }
@@ -139,7 +139,7 @@ void Demo::record_commands()
         _color_depth_pass->bind_descriptor_set(*_camera_ubo_sets[image_index]);
 
         _color_depth_pass->send_push_constants({
-            btx::ColorDepthPass::PushConstant {
+            btx::vkPipeline::PushConstant {
                 .stage_flags = vk::ShaderStageFlagBits::eVertex,
                 .size_bytes = sizeof(btx::math::Mat4),
                 .data = &_plane_mat,
@@ -149,7 +149,7 @@ void Demo::record_commands()
         _plane_mesh->draw_indexed(_renderer->cmd_buffer());
 
         _color_depth_pass->send_push_constants({
-            btx::ColorDepthPass::PushConstant {
+            btx::vkPipeline::PushConstant {
                 .stage_flags = vk::ShaderStageFlagBits::eVertex,
                 .size_bytes = sizeof(btx::math::Mat4),
                 .data = &_cube_mat,

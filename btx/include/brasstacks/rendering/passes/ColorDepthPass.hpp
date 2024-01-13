@@ -2,20 +2,20 @@
 #define BRASSTACKS_RENDERING_PASSES_COLORDEPTHPASS_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
 namespace btx {
 
 class Renderer;
 
 class vkColorDepthPass;
-class vkPipeline;
 class vkFramebuffer;
 class vkCmdBuffer;
 
 class vkDescriptorSetLayout;
 class vkDescriptorSet;
 
-class ColorDepthPass {
+class ColorDepthPass final {
 public:
     explicit ColorDepthPass(Renderer const &renderer);
     ~ColorDepthPass();
@@ -30,15 +30,7 @@ public:
 
     void bind_descriptor_set(vkDescriptorSet const &set) const;
 
-    struct PushConstant {
-        vk::ShaderStageFlags const stage_flags = vk::ShaderStageFlagBits::eAll;
-        size_t const size_bytes = 0;
-        void const *data = nullptr;
-    };
-
-    using PushConstants = std::vector<PushConstant>;
-
-    void send_push_constants(PushConstants const &push_constants);
+    void send_push_constants(vkPipeline::PushConstants const &push_constants);
 
     auto & pipeline() { return *_pipeline; }
 
