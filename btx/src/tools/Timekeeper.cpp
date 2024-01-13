@@ -3,15 +3,24 @@
 
 namespace btx {
 
-Timekeeper::TimePoint Timekeeper::_app_start = Timekeeper::SteadyClock::now();
-Timekeeper::TimePoint Timekeeper::_frame_start = Timekeeper::_app_start;
+Timekeeper::TimePoint Timekeeper::_app_start   { };
+Timekeeper::TimePoint Timekeeper::_sim_start   { };
+Timekeeper::TimePoint Timekeeper::_frame_start { };
 
-std::atomic<uint64_t> Timekeeper::_run_time   = 0u;
-std::atomic<uint64_t> Timekeeper::_frame_time = 0u;
+std::atomic<uint64_t> Timekeeper::_app_run_time = 0u;
+std::atomic<uint64_t> Timekeeper::_sim_run_time = 0u;
+std::atomic<uint64_t> Timekeeper::_frame_time   = 0u;
 
-void Timekeeper::update() {
+void Timekeeper::update_app_run_time() {
     auto interval = SteadyClock::now() - _app_start;
-    _run_time.store(static_cast<uint64_t>(
+    _app_run_time.store(static_cast<uint64_t>(
+        std::chrono::duration_cast<Nanoseconds>(interval).count()
+    ));
+}
+
+void Timekeeper::update_sim_run_time() {
+    auto interval = SteadyClock::now() - _sim_start;
+    _sim_run_time.store(static_cast<uint64_t>(
         std::chrono::duration_cast<Nanoseconds>(interval).count()
     ));
 }

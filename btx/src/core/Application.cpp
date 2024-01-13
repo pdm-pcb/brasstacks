@@ -31,11 +31,14 @@ void Application::run() {
     _target_window->start();
 
     while(_running) {
-        Timekeeper::update();
-
         _process_events();
 
-        this->update();
+        Timekeeper::update_app_run_time();
+
+        if(!_editor_mode) {
+            Timekeeper::update_sim_run_time();
+            this->update();
+        }
 
         Timekeeper::frame_start();
 
@@ -47,7 +50,7 @@ void Application::run() {
 
             _renderer->begin_recording();
 
-                this->record_commands();
+            this->record_commands();
 
             _renderer->end_recording();
             _renderer->submit_commands();
@@ -94,6 +97,7 @@ void Application::on_mouse_button_press(MouseButtonPressEvent const &event)
         if(_editor_mode) {
             _editor_mode = false;
             _target_window->exit_editor_mode();
+            Timekeeper::sim_start();
         }
     }
 }

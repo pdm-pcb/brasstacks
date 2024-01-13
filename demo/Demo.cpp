@@ -115,12 +115,12 @@ void Demo::update() {
 
     _plane_mat = translate(Mat4::identity, -Vec3::unit_x * 1.25f) *
                  rotate(Mat4::identity,
-                        20.0f * btx::Timekeeper::run_time(),
+                        20.0f * btx::Timekeeper::sim_run_time(),
                         Vec3::unit_z);
 
     _cube_mat = translate(Mat4::identity, Vec3::unit_x * 1.25f) *
                 rotate(Mat4::identity,
-                       10.0f * btx::Timekeeper::run_time(),
+                       10.0f * btx::Timekeeper::sim_run_time(),
                        Vec3::unit_y - Vec3::unit_x);
 }
 
