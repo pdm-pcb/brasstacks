@@ -28,11 +28,12 @@ public:
 private:
     Application &_application;
 
+    std::mutex _interval_mutex;
+    TimeKeeper::Nanoseconds _tick_interval;
+
     std::mutex _run_mutex;
     std::condition_variable _run_cv;
     bool _running;
-
-    TimeKeeper::Nanoseconds _tick_interval;
 };
 
 } // namespace btx

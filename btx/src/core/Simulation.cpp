@@ -4,11 +4,12 @@
 namespace btx {
 
 Simulation::Simulation(Application &application, uint32_t ticks_per_second) :
-    _application   { application },
-    _run_mutex     { },
-    _run_cv        { },
-    _running       { false },
-    _tick_interval { }
+    _application    { application },
+    _interval_mutex { },
+    _tick_interval  { },
+    _run_mutex      { },
+    _run_cv         { },
+    _running        { false }
 {
     set_ticks_per_second(ticks_per_second);
 }
@@ -17,11 +18,15 @@ void Simulation::set_ticks_per_second(uint32_t const ticks_per_second) {
     auto const rate = 1.0 / static_cast<double>(ticks_per_second);
     auto const duration = std::chrono::duration<double>(rate);
 
-    _tick_interval =
-        std::chrono::duration_cast<TimeKeeper::Nanoseconds>(duration);
+    {
+        std::unique_lock<std::mutex> interval_lock(_interval_mutex);
 
-    BTX_INFO("Simulation tick: {}hz, every {}", ticks_per_second,
-                                                _tick_interval);
+        _tick_interval =
+            std::chrono::duration_cast<TimeKeeper::Nanoseconds>(duration);
+
+        BTX_INFO("Simulation tick: {}hz, every {}", ticks_per_second,
+                                                    _tick_interval);
+    }
 }
 
 void Simulation::start() {
@@ -65,12 +70,18 @@ void Simulation::run() {
         if(tick_start >= next_tick) {
             _application.update();
 
+            // Find the next step
+            {
+                std::unique_lock<std::mutex> interval_lock(_interval_mutex);
+                next_tick = tick_start + _tick_interval;
+            }
+
             // The work is done
             TimeKeeper::sim_tick_end();
             // BTX_TRACE("Sim tick: {:.09f}", TimeKeeper::sim_tick_time());
-
-            // Find the next step
-            next_tick = tick_start + _tick_interval;
+        }
+        else {
+            std::this_thread::yield();
         }
     }
 }

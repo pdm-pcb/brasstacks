@@ -41,6 +41,8 @@ void Application::run() {
     while(_running) {
         _process_events();
         TimeKeeper::update_app_run_time();
+
+        std::this_thread::yield();
     }
 
     _simulation->stop();

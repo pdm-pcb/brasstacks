@@ -135,6 +135,8 @@ void Win32TargetWindow::run() {
         }
 
         _message_loop();
+
+        std::this_thread::yield();
     }
 
     ::ShowWindow(_window_handle, SW_HIDE);
