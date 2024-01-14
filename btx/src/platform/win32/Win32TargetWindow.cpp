@@ -22,23 +22,23 @@ Win32ToBTXKeys const Win32TargetWindow::_keymap;
 
 // =============================================================================
 Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
-    _class_name         { },
-    _window_class       { },
-    _window_title       { app_name.begin(), app_name.end() },
-    _window_handle      { },
-    _raw_msg            { new std::byte[sizeof(::RAWINPUT)] },
-    _screen_size        { 0u, 0u },
-    _screen_center      { 0, 0 },
-    _window_size        { 0u, 0u },
-    _window_position    { 0, 0 },
-    _size_mutex         { },
-    _position_mutex     { },
-    _minimized          { false },
-    _run_mutex          { },
-    _run_cv             { },
-    _running            { false },
-    _toggle_editor_mode { false },
-    _in_editor_mode     { true }
+    _class_name            { },
+    _window_class          { },
+    _window_title          { app_name.begin(), app_name.end() },
+    _window_handle         { },
+    _raw_msg               { new std::byte[sizeof(::RAWINPUT)] },
+    _screen_size           { 0u, 0u },
+    _screen_center         { 0, 0 },
+    _window_size           { 0u, 0u },
+    _window_position       { 0, 0 },
+    _size_mutex            { },
+    _position_mutex        { },
+    _minimized             { false },
+    _run_mutex             { },
+    _run_cv                { },
+    _running               { false },
+    _toggle_cursor_capture { false },
+    _cursor_captured       { false }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -117,21 +117,21 @@ void Win32TargetWindow::run() {
             }
         }
 
-        if(_toggle_editor_mode.load()) {
-            if(!_in_editor_mode) {
-                BTX_TRACE("Entering editor mode");
-                _in_editor_mode = true;
+        if(_toggle_cursor_capture.load()) {
+            if(_cursor_captured) {
+                BTX_TRACE("Releasing cursor");
+                _cursor_captured = false;
                 _deregister_raw_input();
                 _release_cursor();
             }
             else {
-                BTX_TRACE("Exiting editor mode");
-                _in_editor_mode = false;
+                BTX_TRACE("Capturing cursor");
+                _cursor_captured = true;
                 _restrict_cursor();
                 _register_raw_input();
             }
 
-            _toggle_editor_mode.store(false);
+            _toggle_cursor_capture.store(false);
         }
 
         _message_loop();
@@ -144,13 +144,8 @@ void Win32TargetWindow::run() {
 }
 
 // =============================================================================
-void Win32TargetWindow::enter_editor_mode() {
-    _toggle_editor_mode.store(true);
-}
-
-// =============================================================================
-void Win32TargetWindow::exit_editor_mode() {
-    _toggle_editor_mode.store(true);
+void Win32TargetWindow::toggle_cursor_capture() {
+    _toggle_cursor_capture.store(true);
 }
 
 // =============================================================================

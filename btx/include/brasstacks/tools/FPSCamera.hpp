@@ -59,8 +59,8 @@ private:
     math::Mat4 _proj_matrix;
 
     struct CameraConfig {
-        float move_speed   = 1.0f;
-        float look_speed   = 0.075f;
+        float move_speed = 1.0f;
+        float look_speed = 0.075f;
     } _config;
 
     struct KeyboardState {

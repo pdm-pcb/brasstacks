@@ -20,8 +20,7 @@ public:
     void stop();
     void run();
 
-    void enter_editor_mode();
-    void exit_editor_mode();
+    void toggle_cursor_capture();
 
     inline auto const & native() const { return _window_handle; }
 
@@ -74,8 +73,8 @@ private:
     std::condition_variable _run_cv;
     bool _running;
 
-    std::atomic<bool> _toggle_editor_mode;
-    bool _in_editor_mode;
+    std::atomic<bool> _toggle_cursor_capture;
+    bool _cursor_captured;
 
     void _register_class();
     void _create_window();

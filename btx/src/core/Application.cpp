@@ -14,7 +14,7 @@ Application::Application(std::string_view const app_name) :
     _target_window_thread      { &TargetWindow::run, _target_window },
     _renderer                  { new Renderer(*this) },
     _renderer_thread           { &Renderer::run, _renderer },
-    _simulation                { new Simulation(*this, 120u) },
+    _simulation                { new Simulation(*this, 120) },
     _simulation_thread         { &Simulation::run, _simulation },
     _window_close_events       { *this, &Application::on_window_close },
     _key_press_events          { *this, &Application::on_key_press },
@@ -66,26 +66,24 @@ Application::on_window_close([[maybe_unused]] WindowCloseEvent const &event) {
 }
 
 // =============================================================================
-void Application::on_key_press(KeyPressEvent const &event)
-{
+void Application::on_key_press(KeyPressEvent const &event) {
     if(event.code == BTX_KB_ESCAPE) {
         if(_editor_mode) {
             _running = false;
         }
         else {
             _editor_mode = true;
-            _target_window->enter_editor_mode();
+            _target_window->toggle_cursor_capture();
         }
     }
 }
 
 // =============================================================================
-void Application::on_mouse_button_press(MouseButtonPressEvent const &event)
-{
+void Application::on_mouse_button_press(MouseButtonPressEvent const &event) {
     if(event.code == BTX_MB_LEFT) {
         if(_editor_mode) {
             _editor_mode = false;
-            _target_window->exit_editor_mode();
+            _target_window->toggle_cursor_capture();
         }
     }
 }
