@@ -99,7 +99,7 @@ void Win32TargetWindow::run() {
     _create_window();
     _size_and_place();
 
-    BTX_TRACE("Target window waiting to run...");
+    BTX_TRACE("Target window ready to run...");
     {
         std::unique_lock<std::mutex> run_lock(_run_mutex);
         _run_cv.wait(run_lock, [&](){ return _running; });

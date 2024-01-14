@@ -62,7 +62,7 @@ void Renderer::stop() {
 
 // =============================================================================
 void Renderer::run() {
-    BTX_TRACE("Renderer waiting to run...");
+    BTX_TRACE("Renderer ready to run...");
     {
         std::unique_lock<std::mutex> run_lock(_run_mutex);
         _run_cv.wait(run_lock, [&](){ return _running; });
@@ -77,7 +77,7 @@ void Renderer::run() {
             }
         }
 
-        Timekeeper::frame_start();
+        TimeKeeper::frame_start();
 
             uint32_t const image_index = _acquire_next_image();
             if(image_index == std::numeric_limits<uint32_t>::max()) {
@@ -96,7 +96,8 @@ void Renderer::run() {
                 // _recreate_swapchain();
             }
 
-        Timekeeper::frame_end();
+        TimeKeeper::frame_end();
+        // BTX_TRACE("Frame time: {:.09f}", TimeKeeper::frame_time());
     }
 }
 

@@ -42,7 +42,7 @@ void FPSCamera::update() {
     );
     _state.up = math::cross(_state.side, _state.forward);
 
-    auto move_speed = _config.move_speed * Timekeeper::frame_time();
+    auto move_speed = _config.move_speed * TimeKeeper::sim_tick_delta();
     if(_kb.lshift) {
         move_speed *= 3.0f;
     }

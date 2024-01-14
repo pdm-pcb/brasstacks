@@ -11,6 +11,7 @@
 namespace btx {
 
 class Renderer;
+class Simulation;
 
 class Application {
 public:
@@ -51,6 +52,9 @@ private:
 
     Renderer *_renderer;
     std::thread _renderer_thread;
+
+    Simulation *_simulation;
+    std::thread _simulation_thread;
 
     EventQueue<WindowCloseEvent>      _window_close_events;
     EventQueue<KeyPressEvent>         _key_press_events;

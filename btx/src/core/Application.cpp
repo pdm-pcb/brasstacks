@@ -14,6 +14,8 @@ Application::Application(std::string_view const app_name) :
     _target_window_thread      { &TargetWindow::run, _target_window },
     _renderer                  { new Renderer(*this) },
     _renderer_thread           { &Renderer::run, _renderer },
+    _simulation                { new Simulation(*this, 120u) },
+    _simulation_thread         { &Simulation::run, _simulation },
     _window_close_events       { *this, &Application::on_window_close },
     _key_press_events          { *this, &Application::on_key_press },
     _mouse_button_press_events { *this, &Application::on_mouse_button_press }
@@ -21,6 +23,7 @@ Application::Application(std::string_view const app_name) :
 
 // =============================================================================
 Application::~Application() {
+    delete _simulation;
     delete _renderer;
     delete _target_window;
 }
@@ -31,23 +34,23 @@ void Application::run() {
 
     _target_window->start();
     _renderer->start();
+    _simulation->start();
+
+    TimeKeeper::start_app_run_time();
 
     while(_running) {
         _process_events();
-
-        Timekeeper::update_app_run_time();
-
-        if(!_editor_mode) {
-            Timekeeper::update_sim_run_time();
-            this->update();
-        }
+        TimeKeeper::update_app_run_time();
     }
 
-    _target_window->stop();
-    _target_window_thread.join();
+    _simulation->stop();
+    _simulation_thread.join();
 
     _renderer->stop();
     _renderer_thread.join();
+
+    _target_window->stop();
+    _target_window_thread.join();
 
     _renderer->wait_device_idle();
 
@@ -81,7 +84,6 @@ void Application::on_mouse_button_press(MouseButtonPressEvent const &event)
         if(_editor_mode) {
             _editor_mode = false;
             _target_window->exit_editor_mode();
-            Timekeeper::sim_start();
         }
     }
 }

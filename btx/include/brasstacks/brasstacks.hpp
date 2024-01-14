@@ -3,7 +3,7 @@
 
 #include "brasstacks/version.hpp"
 #include "brasstacks/tools/ConsoleLog.hpp"
-#include "brasstacks/tools/Timekeeper.hpp"
+#include "brasstacks/tools/TimeKeeper.hpp"
 #include "brasstacks/core/Application.hpp"
 #include "brasstacks/core/Simulation.hpp"
 #include "brasstacks/core/TargetWindow.hpp"
