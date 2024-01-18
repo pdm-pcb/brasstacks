@@ -69,9 +69,7 @@ private:
 
     bool _minimized;
 
-    std::mutex _run_mutex;
-    std::condition_variable _run_cv;
-    bool _running;
+    std::atomic_flag _run_flag;
 
     std::atomic<bool> _toggle_cursor_capture;
     bool _cursor_captured;

@@ -34,9 +34,7 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _size_mutex            { },
     _position_mutex        { },
     _minimized             { false },
-    _run_mutex             { },
-    _run_cv                { },
-    _running               { false },
+    _run_flag              { },
     _toggle_cursor_capture { false },
     _cursor_captured       { false }
 {
@@ -80,18 +78,23 @@ Win32TargetWindow::~Win32TargetWindow() {
 // =============================================================================
 void Win32TargetWindow::start() {
     BTX_TRACE("Starting target window...");
-    {
-        std::unique_lock<std::mutex> run_lock(_run_mutex);
-        _running = true;
-    }
-    _run_cv.notify_one();
+    // {
+    //     std::unique_lock<std::mutex> run_lock(_run_mutex);
+    //     _running = true;
+    // }
+    // _run_cv.notify_one();
+
+    _run_flag.test_and_set();
+    _run_flag.notify_one();
 }
 
 // =============================================================================
 void Win32TargetWindow::stop() {
     BTX_TRACE("Stopping target window...");
-    std::unique_lock<std::mutex> run_lock(_run_mutex);
-    _running = false;
+    // std::unique_lock<std::mutex> run_lock(_run_mutex);
+    // _running = false;
+
+    _run_flag.clear();
 }
 
 // =============================================================================
@@ -100,23 +103,13 @@ void Win32TargetWindow::run() {
     _size_and_place();
 
     BTX_TRACE("Target window ready to run...");
-    {
-        std::unique_lock<std::mutex> run_lock(_run_mutex);
-        _run_cv.wait(run_lock, [&](){ return _running; });
-    }
+    _run_flag.wait(false);
     BTX_TRACE("Target window running!");
 
     ::ShowWindow(_window_handle, SW_SHOWNORMAL);
     ::UpdateWindow(_window_handle);
 
-    while(true) {
-        {
-            std::unique_lock<std::mutex> run_lock(_run_mutex);
-            if(!_running) {
-                break;
-            }
-        }
-
+    while(_run_flag.test()) {
         if(_toggle_cursor_capture.load()) {
             if(_cursor_captured) {
                 BTX_TRACE("Releasing cursor");

@@ -21,9 +21,7 @@ Renderer::Renderer(Application const &application) :
     _image_acquire_sems { },
     _frame_sync         { },
     _image_index        { std::numeric_limits<uint32_t>::max() },
-    _run_mutex          { },
-    _run_cv             { },
-    _running            { false }
+    _run_flag           { }
 {
     vkInstance::create();
 
@@ -46,37 +44,23 @@ Renderer::~Renderer() {
 // =============================================================================
 void Renderer::start() {
     BTX_TRACE("Starting renderer...");
-    {
-        std::unique_lock<std::mutex> run_lock(_run_mutex);
-        _running = true;
-    }
-    _run_cv.notify_one();
+    _run_flag.test_and_set();
+    _run_flag.notify_one();
 }
 
 // =============================================================================
 void Renderer::stop() {
     BTX_TRACE("Stopping renderer...");
-    std::unique_lock<std::mutex> run_lock(_run_mutex);
-    _running = false;
+    _run_flag.clear();
 }
 
 // =============================================================================
 void Renderer::run() {
     BTX_TRACE("Renderer ready to run...");
-    {
-        std::unique_lock<std::mutex> run_lock(_run_mutex);
-        _run_cv.wait(run_lock, [&](){ return _running; });
-    }
+    _run_flag.wait(false);
     BTX_TRACE("Renderer running!");
 
-    while(true) {
-        {
-            std::unique_lock<std::mutex> run_lock(_run_mutex);
-            if(!_running) {
-                break;
-            }
-        }
-
+    while(_run_flag.test()) {
         TimeKeeper::frame_start();
 
             uint32_t const image_index = _acquire_next_image();

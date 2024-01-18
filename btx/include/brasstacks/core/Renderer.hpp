@@ -53,9 +53,7 @@ private:
 
     uint32_t _image_index;
 
-    std::mutex _run_mutex;
-    std::condition_variable _run_cv;
-    bool _running;
+    std::atomic_flag _run_flag;
 
     uint32_t _acquire_next_image();
     void _begin_recording();

@@ -5,6 +5,7 @@
 #include "brasstacks/tools/ConsoleLog.hpp"
 #include "brasstacks/tools/TimeKeeper.hpp"
 #include "brasstacks/core/Application.hpp"
+#include "brasstacks/core/ApplicationState.hpp"
 #include "brasstacks/core/Simulation.hpp"
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/core/Renderer.hpp"

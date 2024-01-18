@@ -31,9 +31,7 @@ private:
     std::mutex _interval_mutex;
     TimeKeeper::Nanoseconds _tick_interval;
 
-    std::mutex _run_mutex;
-    std::condition_variable _run_cv;
-    bool _running;
+    std::atomic_flag _run_flag;
 };
 
 } // namespace btx
