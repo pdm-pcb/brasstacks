@@ -1,6 +1,8 @@
 #ifndef BRASSTACKS_PLATFORM_WIN32_WIN32MSGTOSTR_HPP
 #define BRASSTACKS_PLATFORM_WIN32_WIN32MSGTOSTR_HPP
 
+#ifdef BTX_WINDOWS
+
 #include "brasstacks/pch.hpp"
 #include "brasstacks/tools/ConsoleLog.hpp"
 
@@ -32,5 +34,7 @@ private:
 };
 
 } // namespace btx
+
+#endif // BTX_WINDOWS
 
 #endif // BRASSTACKS_PLATFORM_WIN32_WIN32MSGTOSTR_HPP

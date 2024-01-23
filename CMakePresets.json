@@ -26,9 +26,6 @@
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
-            },
-            "cacheVariables": {
-                "BTX_LINUX": true
             }
         },
         {

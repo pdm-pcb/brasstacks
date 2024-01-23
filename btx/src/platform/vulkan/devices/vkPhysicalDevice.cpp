@@ -6,6 +6,8 @@
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 
+#include "brasstacks/config/RenderConfig.hpp"
+
 namespace btx {
 
 vkPhysicalDevice::Devices vkPhysicalDevice::_available_devices = { };

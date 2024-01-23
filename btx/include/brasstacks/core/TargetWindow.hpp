@@ -3,11 +3,13 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
+#include "brasstacks/platform/x11/X11TargetWindow.hpp"
 #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
 namespace btx {
 
-using TargetWindow = Win32TargetWindow;
+using TargetWindow = X11TargetWindow;
+// using TargetWindow = Win32TargetWindow;
 
 // class TargetWindow final {
 // public:

@@ -13,6 +13,8 @@
 
 #if defined(BTX_LINUX)
     #include <X11/Xlib.h>
+    #include <X11/Xutil.h>
+    #include <X11/Xatom.h>
 
     #define VK_USE_PLATFORM_XLIB_KHR
     #include <vulkan/vulkan.hpp>
@@ -59,19 +61,23 @@
 
 #include <cstdint>
 #include <cstdlib>
-#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <cmath>
 #include <numbers>
 #include <limits>
 #include <set>
+#include <list>
 #include <filesystem>
 #include <fstream>
 #include <queue>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #if defined(BTX_DEBUG)
-    static std::filesystem::path const BTX_ASSET_PATH("../../demo/assets");
+    static std::filesystem::path const BTX_ASSET_PATH("demo/assets");
     static std::string           const BTX_SHADER_EXT("-debug.spv");
 #else
     static std::filesystem::path const BTX_ASSET_PATH("assets");

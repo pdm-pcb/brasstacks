@@ -1,3 +1,5 @@
+#ifdef BTX_WINDOWS
+
 #include "brasstacks/platform/win32/Win32MsgToStr.hpp"
 
 namespace btx {
@@ -261,3 +263,5 @@ Win32MsgToStr::Win32MsgToStr() :
 { }
 
 } // namespace btx
+
+#endif // BTX_WINDOWS

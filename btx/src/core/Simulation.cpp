@@ -22,8 +22,8 @@ void Simulation::set_ticks_per_second(uint32_t const ticks_per_second) {
         _tick_interval =
             std::chrono::duration_cast<TimeKeeper::Nanoseconds>(duration);
 
-        BTX_INFO("Simulation tick: {}hz, every {}", ticks_per_second,
-                                                    _tick_interval);
+        BTX_INFO("Simulation tick: {}hz, every {}ns", ticks_per_second,
+                                                      _tick_interval.count());
     }
 }
 

@@ -24,7 +24,7 @@ public:
      * @param instance An established Vulkan instance
      * @param create_info Surface creation details
      */
-    vkSurface(vk::XlibSurfaceCreatInfoKHR const &create_info);
+    vkSurface(vk::XlibSurfaceCreateInfoKHR const &create_info);
 
 #elif defined(BTX_WINDOWS)
     /**

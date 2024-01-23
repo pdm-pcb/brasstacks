@@ -30,8 +30,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
         target_compile_options(
             ${TARGET_NAME} PRIVATE
-            "-march=x86-64-v3"    # Target Haswell/Excavator or newer
-            "-mtune=x86-64-v3"
+            "-march=x86-64-v3" # Target Haswell/Excavator or newer
         )
     endif()
 

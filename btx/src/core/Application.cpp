@@ -73,7 +73,7 @@ void Application::on_key_press(KeyPressEvent const &event) {
         }
         else {
             _editor_mode = true;
-            _target_window->toggle_cursor_capture();
+            // _target_window->toggle_cursor_capture();
         }
     }
 }
@@ -83,7 +83,7 @@ void Application::on_mouse_button_press(MouseButtonPressEvent const &event) {
     if(event.code == BTX_MB_LEFT) {
         if(_editor_mode) {
             _editor_mode = false;
-            _target_window->toggle_cursor_capture();
+            // _target_window->toggle_cursor_capture();
         }
     }
 }

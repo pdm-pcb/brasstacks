@@ -200,19 +200,19 @@ void Renderer::_create_surface() {
 #if defined(BTX_LINUX)
 
     vk::XlibSurfaceCreateInfoKHR const create_info {
-      .pNext = nullptr,
-      .flags = { },
-      .dpy = nullptr,
-      .window = _application.target_window().native()
+        .pNext = nullptr,
+        .flags = { },
+        .dpy = _application.target_window().display(),
+        .window = _application.target_window().native()
     };
 
 #elif defined(BTX_WINDOWS)
 
     vk::Win32SurfaceCreateInfoKHR const create_info {
-      .pNext = nullptr,
-      .flags = { },
-      .hinstance = nullptr,
-      .hwnd = _application.target_window().native()
+        .pNext = nullptr,
+        .flags = { },
+        .hinstance = nullptr,
+        .hwnd = _application.target_window().native()
     };
 
 #endif // BTX platform

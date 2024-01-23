@@ -26,11 +26,13 @@ target_precompile_headers(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/brasstacks/pch.hpp"
 )
 
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_fmtlib.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_spdlog.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_glfw.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_glm.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_vma.cmake")
 
+fetch_fmtlib()
 fetch_spdlog()
 # fetch_glfw()
 # fetch_glm()
@@ -54,6 +56,10 @@ if(LINUX)
     target_compile_definitions(
         ${TARGET_NAME} PUBLIC
         BTX_LINUX
+    )
+    target_link_libraries(
+        ${TARGET_NAME} PRIVATE
+        "X11"
     )
 elseif(WIN32)
     target_compile_definitions(
@@ -98,15 +104,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
             "-Wno-global-constructors"      # There are some statics I like
             "-Wno-exit-time-destructors"    # Same as above
             "-Wno-c99-designator"
-            "-fsafe-buffer-usage-suggestions"
         )
     endif()
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
         target_compile_options(
             ${TARGET_NAME} PUBLIC
-            "-march=x86-64-v3"    # Target Haswell/Excavator or newer
-            "-mtune=x86-64-v3"
+            "-march=x86-64-v3" # Target Haswell/Excavator or newer
         )
     endif()
 

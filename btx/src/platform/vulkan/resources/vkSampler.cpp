@@ -1,8 +1,8 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/resources/vkSampler.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 

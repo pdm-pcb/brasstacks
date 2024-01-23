@@ -7,7 +7,6 @@
 #define BRASSTACKS_TOOLS_CONSOLELOG_HPP
 
 #include "brasstacks/pch.hpp"
-#include <spdlog/spdlog.h>
 
 namespace btx {
 
@@ -42,7 +41,7 @@ public:
      * @param args Format string arguments
      */
     template<typename ...T>
-    static void btx_trace(std::format_string<T...> fmt, T&& ...args);
+    static void btx_trace(fmt::format_string<T...> fmt, T&& ...args);
 
     /**
      * @brief Log a information level message.
@@ -50,7 +49,7 @@ public:
      * @param args Format string arguments
      */
     template<typename ...T>
-    static void btx_info(std::format_string<T...> fmt, T&& ...args);
+    static void btx_info(fmt::format_string<T...> fmt, T&& ...args);
 
     /**
      * @brief Log a warning level message.
@@ -58,7 +57,7 @@ public:
      * @param args Format string arguments
      */
     template<typename ...T>
-    static void btx_warn(std::format_string<T...> fmt, T&& ...args);
+    static void btx_warn(fmt::format_string<T...> fmt, T&& ...args);
 
     /**
      * @brief Log an error level message.
@@ -66,7 +65,7 @@ public:
      * @param args Format string arguments
      */
     template<typename ...T>
-    static void btx_error(std::format_string<T...> fmt, T&& ...args);
+    static void btx_error(fmt::format_string<T...> fmt, T&& ...args);
 
     /**
      * @brief Log a critical level message. This will assert() in debug.
@@ -74,7 +73,7 @@ public:
      * @param args Format string arguments
      */
     template<typename ...T>
-    static void btx_critical(std::format_string<T...> fmt, T&& ...args);
+    static void btx_critical(fmt::format_string<T...> fmt, T&& ...args);
 
     ConsoleLog() = delete;
 
@@ -97,31 +96,31 @@ private:
 // Implementations
 
 template<typename ...T>
-void ConsoleLog::btx_trace(std::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_trace(fmt::format_string<T...> fmt, T&& ...args) {
     _init();
     _logger->trace(fmt, std::forward<T>(args)...);
 }
 
 template<typename ...T>
-void ConsoleLog::btx_info(std::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_info(fmt::format_string<T...> fmt, T&& ...args) {
     _init();
     _logger->info(fmt, std::forward<T>(args)...);
 }
 
 template<typename ...T>
-void ConsoleLog::btx_warn(std::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_warn(fmt::format_string<T...> fmt, T&& ...args) {
     _init();
     _logger->warn(fmt, std::forward<T>(args)...);
 }
 
 template<typename ...T>
-void ConsoleLog::btx_error(std::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_error(fmt::format_string<T...> fmt, T&& ...args) {
     _init();
     _logger->error(fmt, std::forward<T>(args)...);
 }
 
 template<typename ...T>
-void ConsoleLog::btx_critical(std::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_critical(fmt::format_string<T...> fmt, T&& ...args) {
     _init();
     _logger->critical(fmt, std::forward<T>(args)...);
     assert(false);

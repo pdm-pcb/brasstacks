@@ -1,7 +1,5 @@
 #include "brasstacks/tools/ConsoleLog.hpp"
 
-#include <spdlog/sinks/stdout_color_sinks.h>
-
 namespace btx {
 
 spdlog::logger *ConsoleLog::_logger = nullptr;

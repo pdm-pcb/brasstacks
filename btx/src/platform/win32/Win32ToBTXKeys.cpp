@@ -1,3 +1,5 @@
+#ifdef BTX_WINDOWS
+
 #include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
 
 namespace btx {
@@ -115,3 +117,5 @@ Win32ToBTXKeys::Win32ToBTXKeys() :
 { }
 
 } // namespace btx
+
+#endif // BTX_WINDOWS
