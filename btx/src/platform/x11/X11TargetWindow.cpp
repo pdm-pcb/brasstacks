@@ -17,9 +17,11 @@ X11ToBTXKeys const X11TargetWindow::_keymap;
 // =============================================================================
 X11TargetWindow::X11TargetWindow(std::string_view const app_name) :
     _display               { nullptr },
-    _screen                { nullptr },
-    _root                  { std::numeric_limits<::XID>::max() },
-    _window                { std::numeric_limits<::XID>::max() },
+    _root                  { 0u },
+    _window                { 0u },
+    _visual_info           { },
+    _attributes            { },
+    _window_title          { app_name },
     _screen_size           { 0u, 0u },
     _screen_center         { 0, 0 },
     _window_size           { 0u, 0u },
@@ -38,25 +40,27 @@ X11TargetWindow::X11TargetWindow(std::string_view const app_name) :
         return;
     }
 
-    _screen = ::XDefaultScreenOfDisplay(_display);
+    _root = ::XDefaultRootWindow(_display);
 
-    if(_screen == nullptr) {
-        BTX_CRITICAL("Could not open default X11 screen");
+    if(_root == 0u) {
+        BTX_CRITICAL("Could not get default X11 root window");
+        ::XCloseDisplay(_display);
         return;
     }
 
-    _root = ::XDefaultRootWindow(_display);
+    auto * const screen = ::XDefaultScreenOfDisplay(_display);
 
-    if(_root == std::numeric_limits<::XID>::max()) {
-        BTX_CRITICAL("Could not get default X11 root window");
+    if(screen == nullptr) {
+        BTX_CRITICAL("Could not open default X11 screen");
+        ::XCloseDisplay(_display);
         return;
     }
 
     // Testing for the primary display's resolution this way feels brittle,
     // but it does work for the average use case
     _screen_size = {
-        .width = static_cast<uint32_t>(_screen->width),
-        .height = static_cast<uint32_t>(_screen->height)
+        .width = static_cast<uint32_t>(screen->width),
+        .height = static_cast<uint32_t>(screen->height)
     };
 
     // Hold on to the screen's center for later
@@ -64,6 +68,28 @@ X11TargetWindow::X11TargetWindow(std::string_view const app_name) :
         .x = static_cast<int32_t>(_screen_size.width / 2u),
         .y = static_cast<int32_t>(_screen_size.height / 2u)
     };
+
+    auto const visinfo_match = ::XMatchVisualInfo(
+        _display,
+        ::XScreenNumberOfScreen(screen),
+        RenderConfig::display_bit_depth,
+        TrueColor,
+        &_visual_info
+    );
+
+    if(visinfo_match == 0) {
+        BTX_CRITICAL("Unable to match X11 visual info with bit depth {}",
+                     RenderConfig::display_bit_depth);
+        ::XCloseDisplay(_display);
+        return;
+    }
+
+    _attributes.background_pixel = 0u;
+    _attributes.colormap = ::XCreateColormap(_display,
+                                             _root,
+                                             _visual_info.visual,
+                                             AllocNone);
+    _attributes.event_mask = StructureNotifyMask;
 }
 
 // =============================================================================
@@ -93,31 +119,31 @@ void X11TargetWindow::run() {
     _run_flag.wait(false);
     BTX_TRACE("Target window running!");
 
-    // ::ShowWindow(_window, SW_SHOWNORMAL);
-    // ::UpdateWindow(_window);
+    ::XMapWindow(_display, _window);
+    ::XFlush(_display);
 
-    // while(_run_flag.test()) {
-    //     if(_toggle_cursor_capture.load()) {
-    //         if(_cursor_captured) {
-    //             BTX_TRACE("Releasing cursor");
-    //             _cursor_captured = false;
-    //             _deregister_raw_input();
-    //             _release_cursor();
-    //         }
-    //         else {
-    //             BTX_TRACE("Capturing cursor");
-    //             _cursor_captured = true;
-    //             _restrict_cursor();
-    //             _register_raw_input();
-    //         }
+    while(_run_flag.test()) {
+        if(_toggle_cursor_capture.load()) {
+            if(_cursor_captured) {
+                BTX_TRACE("Releasing cursor");
+                _cursor_captured = false;
+                // _deregister_raw_input();
+                // _release_cursor();
+            }
+            else {
+                BTX_TRACE("Capturing cursor");
+                _cursor_captured = true;
+                // _restrict_cursor();
+                // _register_raw_input();
+            }
 
-    //         _toggle_cursor_capture.store(false);
-    //     }
+            _toggle_cursor_capture.store(false);
+        }
 
-    //     _message_loop();
+        _message_loop();
 
-    //     std::this_thread::yield();
-    // }
+        std::this_thread::yield();
+    }
 
     // ::ShowWindow(_window, SW_HIDE);
     _destroy_window();
@@ -151,11 +177,31 @@ void X11TargetWindow::_create_window() {
                              .y = _screen_center.y - half_height };
     }
 
-    _window = ::XCreateWindow(_display, _root, 0, 0, _screen->width, _screen->height, 0, 0, 0, nullptr, 0, nullptr);
+    _window = ::XCreateWindow(_display, _root,
+                              _window_position.x,
+                              _window_position.y,
+                              _window_size.width,
+                              _window_size.height,
+                              0, // border width
+                              RenderConfig::display_bit_depth,
+                              InputOutput, // window class
+                              _visual_info.visual,
+                              CWBackPixel | CWColormap | CWEventMask,
+                              &_attributes);
 
     // auto scale = static_cast<float>(::GetDpiForWindow(_window));
     // scale /= static_cast<float>(USER_DEFAULT_SCREEN_DPI);
     // this->_set_dpi_scale(scale);
+
+    if(_window == 0u) {
+        BTX_CRITICAL("Failed to create x11 target window");
+        ::XCloseDisplay(_display);
+        return;
+    }
+
+    if(::XStoreName(_display, _window, _window_title.c_str()) == 0) {
+        BTX_ERROR("Unable to set x11 target window title");
+    }
 
     BTX_INFO("Created x11 target window");
 }
@@ -164,8 +210,6 @@ void X11TargetWindow::_create_window() {
 void X11TargetWindow::_destroy_window() {
     BTX_TRACE("Destroying x11 target window.");
     ::XDestroyWindow(_display, _window);
-    // ::SendMessageW(_window, WM_CLOSE, 0, 0);
-    // _message_loop();
 }
 
 // // =============================================================================
@@ -294,14 +338,22 @@ void X11TargetWindow::_size_and_place() {
 
 // =============================================================================
 void X11TargetWindow::_message_loop() {
-    // static ::MSG message;
-    // ::memset(&message, 0, sizeof(::MSG));
+    static ::XEvent event { };
+    ::memset(&event, 0, sizeof(::XEvent));
 
-    // // Run through available messages from the OS
-    // while(::PeekMessage(&message, _window, 0u, 0u, PM_REMOVE) != 0) {
-    //     ::TranslateMessage(&message);
-    //     ::DispatchMessageW(&message);
-    // }
+    while(::XPending(_display) > 0) {
+        ::XNextEvent(_display, &event);
+
+        switch(event.type) {
+            case DestroyNotify: {
+                auto const *ev = reinterpret_cast<XDestroyWindowEvent*>(&event);
+                if(ev->window == _window) {
+                    EventBus::publish<WindowCloseEvent>({ });
+                }
+                break;
+            }
+        }
+    }
 }
 
 // // =============================================================================

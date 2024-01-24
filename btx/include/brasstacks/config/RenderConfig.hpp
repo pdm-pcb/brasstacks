@@ -2,7 +2,6 @@
 #define BRASSTACKS_CONFIG_RENDERCONFIG_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/math/colors.hpp"
 
 namespace btx {
 
@@ -13,11 +12,11 @@ struct RenderConfig final {
 
     static bool vsync_on;
 
-    static Color clear_color;
-
     static float anisotropy;
 
-    static uint32_t msaa_samples;
+    static uint8_t msaa_samples;
+
+    static uint8_t display_bit_depth;
 };
 
 } // namespace btx

@@ -43,12 +43,16 @@ public:
     X11TargetWindow & operator=(X11TargetWindow &&) = delete;
     X11TargetWindow & operator=(X11TargetWindow const &) = delete;
 
-// private:
+private:
     // x11 specifics
     ::Display *_display;
-    ::Screen  *_screen;
     ::Window  _root;
     ::Window  _window;
+
+    ::XVisualInfo          _visual_info;
+    ::XSetWindowAttributes _attributes;
+
+    std::string _window_title;
 
     // std::byte *_raw_msg;
 
