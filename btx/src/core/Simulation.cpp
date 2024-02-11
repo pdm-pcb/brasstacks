@@ -12,6 +12,9 @@ Simulation::Simulation(Application &application, uint32_t ticks_per_second) :
     _loop_running   { }
 {
     set_ticks_per_second(ticks_per_second);
+
+    _thread_running.clear();
+    _loop_running.clear();
 }
 
 // =============================================================================

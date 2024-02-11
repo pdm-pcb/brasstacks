@@ -68,6 +68,8 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _class_name = std::wstring(btx_name_view.begin(), btx_name_view.end());
 
     _register_class();
+
+    _run_flag.clear();
 }
 
 // =============================================================================

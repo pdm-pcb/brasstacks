@@ -31,6 +31,9 @@ Renderer::Renderer(Application const &application) :
     _create_device();
     _create_swapchain();
     _create_frame_sync();
+
+    _thread_running.clear();
+    _loop_running.clear();
 }
 
 // =============================================================================

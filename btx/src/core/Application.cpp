@@ -14,7 +14,7 @@ Application::Application(std::string_view const app_name) :
     _target_window_thread      { &TargetWindow::run, _target_window },
     _renderer                  { new Renderer(*this) },
     _renderer_thread           { &Renderer::run, _renderer },
-    _simulation                { new Simulation(*this, 60) },
+    _simulation                { new Simulation(*this, 120) },
     _simulation_thread         { &Simulation::run, _simulation },
     _window_close_events       { *this, &Application::on_window_close },
     _key_press_events          { *this, &Application::on_key_press },
