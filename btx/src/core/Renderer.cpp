@@ -45,6 +45,12 @@ Renderer::~Renderer() {
 // =============================================================================
 void Renderer::start_thread() {
     BTX_TRACE("Starting renderer thread...");
+
+    // If we just set _thread_running but not _loop_running, the renderer's
+    // main loop will just pause right away
+    _loop_running.test_and_set();
+    _loop_running.notify_one();
+
     _thread_running.test_and_set();
     _thread_running.notify_one();
 }
@@ -52,6 +58,7 @@ void Renderer::start_thread() {
 // =============================================================================
 void Renderer::stop_thread() {
     BTX_TRACE("Stopping renderer thread...");
+
     // First, make sure the loop can proceed
     _loop_running.test_and_set();
     _loop_running.notify_one();

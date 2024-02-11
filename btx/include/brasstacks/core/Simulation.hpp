@@ -15,8 +15,9 @@ public:
 
     void set_ticks_per_second(uint32_t const ticks_per_second);
 
-    void start();
-    void stop();
+    void start_thread();
+    void stop_thread();
+    void toggle_loop();
     void run();
 
     Simulation() = delete;
@@ -33,7 +34,8 @@ private:
     std::mutex _interval_mutex;
     TimeKeeper::Nanoseconds _tick_interval;
 
-    std::atomic_flag _run_flag;
+    std::atomic_flag _thread_running;
+    std::atomic_flag _loop_running;
 };
 
 } // namespace btx

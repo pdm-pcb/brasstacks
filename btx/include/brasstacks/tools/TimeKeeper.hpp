@@ -37,12 +37,8 @@ public:
         return 1e-9f * static_cast<float>(_sim_run_time.load());
     }
 
-    inline static auto frame_time() {
-        return 1e-9f * static_cast<float>(_frame_time.load());
-    }
-
-    inline static auto sim_tick_time() {
-        return 1e-9f * static_cast<float>(_sim_tick_time.load());
+    inline static auto frame_delta() {
+        return 1e-9f * static_cast<float>(_frame_delta.load());
     }
 
     inline static auto sim_tick_delta() {
@@ -69,8 +65,7 @@ private:
     static std::atomic<uint64_t> _app_run_time;
     static std::atomic<uint64_t> _sim_run_time;
 
-    static std::atomic<uint64_t> _frame_time;
-    static std::atomic<uint64_t> _sim_tick_time;
+    static std::atomic<uint64_t> _frame_delta;
     static std::atomic<uint64_t> _sim_tick_delta;
 };
 

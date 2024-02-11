@@ -34,7 +34,7 @@ void Application::run() {
 
     _target_window->start();
     _renderer->start_thread();
-    _simulation->start();
+    _simulation->start_thread();
 
     TimeKeeper::start_app_run_time();
 
@@ -45,7 +45,7 @@ void Application::run() {
         std::this_thread::yield();
     }
 
-    _simulation->stop();
+    _simulation->stop_thread();
     _simulation_thread.join();
 
     _renderer->stop_thread();
@@ -73,17 +73,17 @@ Application::on_window_close([[maybe_unused]] WindowCloseEvent const &event) {
 // =============================================================================
 void Application::on_key_press(KeyPressEvent const &event) {
     switch(event.code) {
-        case BTX_KB_ESCAPE: _running = false; break;
-        case BTX_KB_1: _renderer->toggle_loop(); break;
-    }
-    if(event.code == BTX_KB_ESCAPE) {
-        // if(_editor_mode) {
+        case BTX_KB_ESCAPE:
             _running = false;
-        // }
-        // else {
-        //     _editor_mode = true;
-        //     // _target_window->toggle_cursor_capture();
-        // }
+            break;
+
+        case BTX_KB_PERIOD:
+            _simulation->toggle_loop();
+            break;
+
+        case BTX_KB_FRONT_SLASH:
+            _renderer->toggle_loop();
+            break;
     }
 }
 
