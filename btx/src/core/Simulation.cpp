@@ -69,16 +69,17 @@ void Simulation::run() {
     _thread_running.wait(false);
     BTX_TRACE("Simulation running!");
 
-    TimeKeeper::start_sim_run_time();
-
     while(_thread_running.test()) {
         if(!_loop_running.test()) {
             BTX_TRACE("Simulation loop paused...");
+            auto const pause_begin = TimeKeeper::now();
             _loop_running.wait(false);
+
             BTX_TRACE("Simulation loop playing!");
+            TimeKeeper::sim_pause_offset(TimeKeeper::now() - pause_begin);
         }
 
-        tick_start = TimeKeeper::sim_tick_start();
+        tick_start = TimeKeeper::now();
 
         if(tick_start >= next_tick) {
             _application.update();

@@ -11,23 +11,16 @@ public:
     using TimePoint   = SteadyClock::time_point;
     using Nanoseconds = std::chrono::nanoseconds;
 
-    inline static void start_app_run_time() {
-        _app_run_time_start = SteadyClock::now();
-    }
-
-    inline static void start_sim_run_time() {
-        _sim_run_time_start = SteadyClock::now();
-    }
+    inline static auto now() { return SteadyClock::now(); }
 
     static void update_app_run_time();
 
     static void frame_start();
     static void frame_end();
 
-    static TimePoint const sim_tick_start();
     static void sim_tick_end();
 
-    inline static auto now() { return SteadyClock::now(); }
+    static void sim_pause_offset(SteadyClock::duration const &offset);
 
     inline static auto app_run_time() {
         return 1e-9f * static_cast<float>(_app_run_time.load());
@@ -55,8 +48,7 @@ public:
     TimeKeeper& operator=(const TimeKeeper &other) = delete;
 
 private:
-    static SteadyClock::time_point _app_run_time_start;
-    static SteadyClock::time_point _sim_run_time_start;
+    static SteadyClock::time_point _app_start_time;
 
     static SteadyClock::time_point _frame_start;
     static SteadyClock::time_point _sim_tick_start;

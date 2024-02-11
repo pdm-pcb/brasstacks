@@ -3,8 +3,7 @@
 
 namespace btx {
 
-TimeKeeper::TimePoint TimeKeeper::_app_run_time_start { };
-TimeKeeper::TimePoint TimeKeeper::_sim_run_time_start { };
+TimeKeeper::TimePoint TimeKeeper::_app_start_time { TimeKeeper::now() };
 
 TimeKeeper::TimePoint TimeKeeper::_frame_start    { };
 TimeKeeper::TimePoint TimeKeeper::_sim_tick_start { };
@@ -16,44 +15,47 @@ std::atomic<uint64_t> TimeKeeper::_sim_run_time = 0u;
 std::atomic<uint64_t> TimeKeeper::_frame_delta    = 0u;
 std::atomic<uint64_t> TimeKeeper::_sim_tick_delta = 0u;
 
+// =============================================================================
 void TimeKeeper::update_app_run_time() {
-    auto const interval = SteadyClock::now() - _app_run_time_start;
-    _app_run_time.store(static_cast<uint64_t>(
-        std::chrono::duration_cast<Nanoseconds>(interval).count()
-    ));
+    auto const interval = now() - _app_start_time;
+    _app_run_time.store(static_cast<uint64_t>(interval.count()));
 }
 
+// =============================================================================
 void TimeKeeper::frame_start() {
-    _frame_start = SteadyClock::now();
+    _frame_start = now();
 }
 
+// =============================================================================
 void TimeKeeper::frame_end() {
-    auto const interval = SteadyClock::now() - _frame_start;
-    _frame_delta.store(static_cast<uint64_t>(
-        std::chrono::duration_cast<Nanoseconds>(interval).count()
-    ));
+    auto const interval = now() - _frame_start;
+    _frame_delta.store(static_cast<uint64_t>(interval.count()));
 }
 
-TimeKeeper::TimePoint const TimeKeeper::sim_tick_start() {
-    _sim_tick_start = SteadyClock::now();
-
-    auto const interval = _sim_tick_start - _sim_run_time_start;
-    _sim_run_time.store(static_cast<uint64_t>(
-        std::chrono::duration_cast<Nanoseconds>(interval).count()
-    ));
-
-    return _sim_tick_start;
-}
-
+// =============================================================================
 void TimeKeeper::sim_tick_end() {
-    auto const tick_end = SteadyClock::now();
+    auto const tick_end = now();
+    auto const duration = tick_end - _sim_tick_end;
+    auto const delta = static_cast<uint64_t>(duration.count());
 
-    auto const delta = tick_end - _sim_tick_end;
-    _sim_tick_delta.store(static_cast<uint64_t>(
-        std::chrono::duration_cast<Nanoseconds>(delta).count()
-    ));
+    _sim_tick_delta.store(delta);
+    _sim_run_time.store(_sim_run_time.load() + delta);
 
     _sim_tick_end = tick_end;
+}
+
+// =============================================================================
+void TimeKeeper::sim_pause_offset(SteadyClock::duration const &offset) {
+    auto const offset_ns = static_cast<uint64_t>(offset.count());
+
+    BTX_TRACE("Offsetting simulation run time by -{}ns", offset_ns);
+    if(offset_ns > _sim_run_time.load()) {
+        _sim_run_time.store(0);
+    }
+    else {
+        _sim_run_time.store(_sim_run_time.load() - offset_ns);
+    }
+    BTX_TRACE("New run time: {}ns", _sim_run_time.load());
 }
 
 } // namespace btx
