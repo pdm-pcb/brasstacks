@@ -263,6 +263,28 @@ void Win32TargetWindow::_destroy_window() {
 }
 
 // =============================================================================
+void Win32TargetWindow::_size_and_place() {
+    BTX_TRACE("Target window size: {}x{}, position: {}x{}", _window_size.width,
+                                                            _window_size.height,
+                                                            _window_position.x,
+                                                            _window_position.y);
+
+    auto const result = ::SetWindowPos(_window_handle,
+                                       nullptr, // hwnd insert after
+                                       static_cast<int>(_window_position.x),
+                                       static_cast<int>(_window_position.y),
+                                       static_cast<int>(_window_size.width),
+                                       static_cast<int>(_window_size.height),
+                                       0); // flags
+
+    if(!SUCCEEDED(result)) {
+        auto const error = ::GetLastError();
+        BTX_CRITICAL("Failed to set win32 window position with error: '{}'",
+                     std::system_category().message(static_cast<int>(error)));
+    }
+}
+
+// =============================================================================
 void Win32TargetWindow::_register_raw_input() {
     // Below, we specify the keyboard and mouse as raw input devices. The
     // RIDEV_NOLEGACY flag tells Windows not to generate legacy messages, like
@@ -362,28 +384,6 @@ void Win32TargetWindow::_release_cursor() {
 
     // Run through all requests to show a cursor until ours is the last
     while(::ShowCursor(TRUE) < 0) { }
-}
-
-// =============================================================================
-void Win32TargetWindow::_size_and_place() {
-    BTX_TRACE("Target window size: {}x{}, position: {}x{}", _window_size.width,
-                                                            _window_size.height,
-                                                            _window_position.x,
-                                                            _window_position.y);
-
-    auto const result = ::SetWindowPos(_window_handle,
-                                       nullptr, // hwnd insert after
-                                       static_cast<int>(_window_position.x),
-                                       static_cast<int>(_window_position.y),
-                                       static_cast<int>(_window_size.width),
-                                       static_cast<int>(_window_size.height),
-                                       0); // flags
-
-    if(!SUCCEEDED(result)) {
-        auto const error = ::GetLastError();
-        BTX_CRITICAL("Failed to set win32 window position with error: '{}'",
-                     std::system_category().message(static_cast<int>(error)));
-    }
 }
 
 // =============================================================================

@@ -77,11 +77,11 @@ private:
     void _register_class();
     void _create_window();
     void _destroy_window();
+    void _size_and_place();
     void _register_raw_input();
     static void _deregister_raw_input();
     void _restrict_cursor();
     void _release_cursor();
-    void _size_and_place();
 
     void _message_loop();
 

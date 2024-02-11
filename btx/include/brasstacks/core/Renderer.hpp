@@ -2,12 +2,12 @@
 #define BRASSTACKS_CORE_RENDERER_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/core/Application.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
 
 namespace btx {
 
+class Application;
 class vkSurface;
 class vkSwapchain;
 class vkCmdBuffer;
@@ -17,8 +17,9 @@ public:
     explicit Renderer(Application const &application);
     ~Renderer();
 
-    void start();
-    void stop();
+    void start_thread();
+    void stop_thread();
+    void toggle_loop();
     void run();
 
     inline void wait_device_idle() const { _device->wait_idle(); }
@@ -53,7 +54,8 @@ private:
 
     uint32_t _image_index;
 
-    std::atomic_flag _run_flag;
+    std::atomic_flag _thread_running;
+    std::atomic_flag _loop_running;
 
     uint32_t _acquire_next_image();
     void _begin_recording();
@@ -69,6 +71,8 @@ private:
 
     void _destroy_swapchain();
     void _destroy_frame_sync();
+
+    void _recreate_swapchain();
 };
 
 } // namespace btx

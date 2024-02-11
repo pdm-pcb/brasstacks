@@ -163,4 +163,4 @@ void ColorDepthPass::_create_framebuffers() {
     }
 }
 
-} // namepsace btx
+} // namespace btx

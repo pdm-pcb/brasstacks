@@ -5,7 +5,7 @@
 
 namespace btx {
 
-#if defined(BTX_LINUX)
+#ifdef BTX_LINUX
 
 vkSurface::vkSurface(vk::XlibSurfaceCreateInfoKHR const &create_info) {
     // Attempt to create, then check
@@ -21,7 +21,7 @@ vkSurface::vkSurface(vk::XlibSurfaceCreateInfoKHR const &create_info) {
     BTX_TRACE("Created Vulkan surface {}", _handle);
 }
 
-#elif defined(BTX_WINDOWS)
+#elif BTX_WINDOWS
 
 vkSurface::vkSurface(vk::Win32SurfaceCreateInfoKHR const &create_info) {
     // Attempt to create, then check

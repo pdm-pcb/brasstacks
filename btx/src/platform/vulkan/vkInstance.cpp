@@ -149,9 +149,9 @@ void vkInstance::_init_extensions() {
 
     // Surfaces describe the spaces to which you can draw in Vulkan. They're
     // also platform dependant.
-#if defined(BTX_LINUX)
+#ifdef BTX_LINUX
     _enabled_extensions.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
-#elif defined(BTX_WINDOWS)
+#elif BTX_WINDOWS
     _enabled_extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif // BTX platform
 

@@ -6,6 +6,8 @@
 
 namespace btx {
 
+class Application;
+
 class Simulation {
 public:
     Simulation(Application &application, uint32_t ticks_per_second);

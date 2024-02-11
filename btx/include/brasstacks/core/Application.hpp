@@ -20,6 +20,8 @@ public:
 
     void run();
 
+    void recreate_swapchain();
+
     virtual void init(Renderer const &renderer) = 0;
     virtual void shutdown() = 0;
 
@@ -45,7 +47,7 @@ public:
 
 private:
     bool _running;
-    bool _editor_mode;
+    // bool _editor_mode;
 
     TargetWindow *_target_window;
     std::thread _target_window_thread;

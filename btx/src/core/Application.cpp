@@ -9,7 +9,7 @@ namespace btx {
 // =============================================================================
 Application::Application(std::string_view const app_name) :
     _running                   { true },
-    _editor_mode               { true },
+    // _editor_mode               { true },
     _target_window             { new TargetWindow(app_name) },
     _target_window_thread      { &TargetWindow::run, _target_window },
     _renderer                  { new Renderer(*this) },
@@ -33,7 +33,7 @@ void Application::run() {
     this->init(*_renderer);
 
     _target_window->start();
-    _renderer->start();
+    _renderer->start_thread();
     _simulation->start();
 
     TimeKeeper::start_app_run_time();
@@ -48,7 +48,7 @@ void Application::run() {
     _simulation->stop();
     _simulation_thread.join();
 
-    _renderer->stop();
+    _renderer->stop_thread();
     _renderer_thread.join();
 
     _target_window->stop();
@@ -60,6 +60,11 @@ void Application::run() {
 }
 
 // =============================================================================
+void Application::recreate_swapchain() {
+
+}
+
+// =============================================================================
 void
 Application::on_window_close([[maybe_unused]] WindowCloseEvent const &event) {
     _running = false;
@@ -67,25 +72,29 @@ Application::on_window_close([[maybe_unused]] WindowCloseEvent const &event) {
 
 // =============================================================================
 void Application::on_key_press(KeyPressEvent const &event) {
+    switch(event.code) {
+        case BTX_KB_ESCAPE: _running = false; break;
+        case BTX_KB_1: _renderer->toggle_loop(); break;
+    }
     if(event.code == BTX_KB_ESCAPE) {
-        if(_editor_mode) {
+        // if(_editor_mode) {
             _running = false;
-        }
-        else {
-            _editor_mode = true;
-            // _target_window->toggle_cursor_capture();
-        }
+        // }
+        // else {
+        //     _editor_mode = true;
+        //     // _target_window->toggle_cursor_capture();
+        // }
     }
 }
 
 // =============================================================================
 void Application::on_mouse_button_press(MouseButtonPressEvent const &event) {
-    if(event.code == BTX_MB_LEFT) {
-        if(_editor_mode) {
-            _editor_mode = false;
-            // _target_window->toggle_cursor_capture();
-        }
-    }
+    // if(event.code == BTX_MB_LEFT) {
+    //     if(_editor_mode) {
+    //         _editor_mode = false;
+    //         // _target_window->toggle_cursor_capture();
+    //     }
+    // }
 }
 
 // =============================================================================

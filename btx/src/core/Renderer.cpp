@@ -21,7 +21,8 @@ Renderer::Renderer(Application const &application) :
     _image_acquire_sems { },
     _frame_sync         { },
     _image_index        { std::numeric_limits<uint32_t>::max() },
-    _run_flag           { }
+    _thread_running     { },
+    _loop_running       { }
 {
     vkInstance::create();
 
@@ -42,30 +43,52 @@ Renderer::~Renderer() {
 }
 
 // =============================================================================
-void Renderer::start() {
-    BTX_TRACE("Starting renderer...");
-    _run_flag.test_and_set();
-    _run_flag.notify_one();
+void Renderer::start_thread() {
+    BTX_TRACE("Starting renderer thread...");
+    _thread_running.test_and_set();
+    _thread_running.notify_one();
 }
 
 // =============================================================================
-void Renderer::stop() {
-    BTX_TRACE("Stopping renderer...");
-    _run_flag.clear();
+void Renderer::stop_thread() {
+    BTX_TRACE("Stopping renderer thread...");
+    // First, make sure the loop can proceed
+    _loop_running.test_and_set();
+    _loop_running.notify_one();
+
+    // Next, allow the loop to exit
+    _thread_running.clear();
+}
+
+// =============================================================================
+void Renderer::toggle_loop() {
+    BTX_TRACE("Toggling renderer loop...");
+    if(!_loop_running.test_and_set()) {
+        _loop_running.notify_one();
+    }
+    else {
+        _loop_running.clear();
+    }
 }
 
 // =============================================================================
 void Renderer::run() {
     BTX_TRACE("Renderer ready to run...");
-    _run_flag.wait(false);
+    _thread_running.wait(false);
     BTX_TRACE("Renderer running!");
 
-    while(_run_flag.test()) {
+    while(_thread_running.test()) {
+        if(!_loop_running.test()) {
+            BTX_TRACE("Renderer loop paused...");
+            _loop_running.wait(false);
+            BTX_TRACE("Renderer loop playing!");
+        }
+
         TimeKeeper::frame_start();
 
             uint32_t const image_index = _acquire_next_image();
             if(image_index == std::numeric_limits<uint32_t>::max()) {
-                // _recreate_swapchain();
+                _recreate_swapchain();
                 continue;
             }
 
@@ -77,7 +100,7 @@ void Renderer::run() {
             _submit_commands();
 
             if(!_present_image()) {
-                // _recreate_swapchain();
+                _recreate_swapchain();
             }
 
         TimeKeeper::frame_end();
@@ -197,7 +220,7 @@ void Renderer::_create_surface() {
         return;
     }
 
-#if defined(BTX_LINUX)
+#ifdef BTX_LINUX
 
     vk::XlibSurfaceCreateInfoKHR const create_info {
         .pNext = nullptr,
@@ -206,7 +229,7 @@ void Renderer::_create_surface() {
         .window = _application.target_window().native()
     };
 
-#elif defined(BTX_WINDOWS)
+#elif BTX_WINDOWS
 
     vk::Win32SurfaceCreateInfoKHR const create_info {
         .pNext = nullptr,
@@ -308,6 +331,11 @@ void Renderer::_destroy_frame_sync() {
 
         _image_acquire_sems.pop();
     }
+}
+
+// =============================================================================
+void Renderer::_recreate_swapchain() {
+    // ...?
 }
 
 } // namespace btx

@@ -8,8 +8,11 @@
 
 namespace btx {
 
-using TargetWindow = X11TargetWindow;
-// using TargetWindow = Win32TargetWindow;
+#ifdef BTX_LINUX
+    using TargetWindow = X11TargetWindow;
+#elif BTX_WINDOWS
+    using TargetWindow = Win32TargetWindow;
+#endif // BTX platform
 
 // class TargetWindow final {
 // public:
@@ -21,9 +24,9 @@ using TargetWindow = X11TargetWindow;
 
 //     void poll_events();
 
-// #if defined(BTX_LINUX)
+// #ifdef BTX_LINUX
 //     auto native() const { return ::glfwGetX11Window(_window); }
-// #elif defined(BTX_WINDOWS)
+// #elif BTX_WINDOWS
 //     auto native() const { return ::glfwGetWin32Window(_window); }
 // #endif // BTX platform
 

@@ -18,7 +18,7 @@ namespace btx {
  */
 class vkSurface final {
 public:
-#if defined(BTX_LINUX)
+#ifdef BTX_LINUX
     /**
      * @brief Construct the X11 vkSurface object.
      * @param instance An established Vulkan instance
@@ -26,7 +26,7 @@ public:
      */
     vkSurface(vk::XlibSurfaceCreateInfoKHR const &create_info);
 
-#elif defined(BTX_WINDOWS)
+#elif BTX_WINDOWS
     /**
      * @brief Construct the win32 vkSurface object.
      * @param create_info Surface creation details

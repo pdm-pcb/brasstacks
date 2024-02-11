@@ -11,7 +11,7 @@
 // I'll check the return values
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#if defined(BTX_LINUX)
+#ifdef BTX_LINUX
     #include <X11/Xlib.h>
     #include <X11/Xutil.h>
     #include <X11/Xatom.h>
@@ -19,7 +19,7 @@
     #define VK_USE_PLATFORM_XLIB_KHR
     #include <vulkan/vulkan.hpp>
     #include <vulkan/vulkan_xlib.h>
-#elif defined(BTX_WINDOWS)
+#elif BTX_WINDOWS
     // Start with the old standbys
     #define WIN32_LEAN_AND_MEAN
     #define VC_EXTRALEAN
@@ -76,7 +76,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-#if defined(BTX_DEBUG)
+#ifdef BTX_DEBUG
     static std::filesystem::path const BTX_ASSET_PATH("demo/assets");
     static std::string           const BTX_SHADER_EXT("-debug.spv");
 #else
