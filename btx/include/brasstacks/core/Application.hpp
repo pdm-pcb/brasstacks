@@ -47,10 +47,8 @@ public:
 
 private:
     bool _running;
-    // bool _editor_mode;
 
     TargetWindow *_target_window;
-    std::thread _target_window_thread;
 
     Renderer *_renderer;
     std::thread _renderer_thread;

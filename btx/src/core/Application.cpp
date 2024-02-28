@@ -9,9 +9,7 @@ namespace btx {
 // =============================================================================
 Application::Application(std::string_view const app_name) :
     _running                   { true },
-    // _editor_mode               { true },
     _target_window             { new TargetWindow(app_name) },
-    _target_window_thread      { &TargetWindow::run, _target_window },
     _renderer                  { new Renderer(*this) },
     _renderer_thread           { &Renderer::run, _renderer },
     _simulation                { new Simulation(*this, 120) },
@@ -32,16 +30,19 @@ Application::~Application() {
 void Application::run() {
     this->init(*_renderer);
 
-    _target_window->start();
     _renderer->start_thread();
     _simulation->start_thread();
+    _target_window->show();
 
     while(_running) {
         TimeKeeper::update_app_run_time();
+        _target_window->poll_events();
         _process_events();
 
         std::this_thread::yield();
     }
+
+    _target_window->hide();
 
     _simulation->stop_thread();
     _simulation_thread.join();
@@ -49,17 +50,9 @@ void Application::run() {
     _renderer->stop_thread();
     _renderer_thread.join();
 
-    _target_window->stop();
-    _target_window_thread.join();
-
     _renderer->wait_device_idle();
 
     this->shutdown();
-}
-
-// =============================================================================
-void Application::recreate_swapchain() {
-
 }
 
 // =============================================================================
@@ -87,12 +80,6 @@ void Application::on_key_press(KeyPressEvent const &event) {
 
 // =============================================================================
 void Application::on_mouse_button_press(MouseButtonPressEvent const &event) {
-    // if(event.code == BTX_MB_LEFT) {
-    //     if(_editor_mode) {
-    //         _editor_mode = false;
-    //         // _target_window->toggle_cursor_capture();
-    //     }
-    // }
 }
 
 // =============================================================================

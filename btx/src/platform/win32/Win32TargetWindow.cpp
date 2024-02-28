@@ -33,10 +33,7 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _window_position       { 0, 0 },
     _size_mutex            { },
     _position_mutex        { },
-    _minimized             { false },
-    _run_flag              { },
-    _toggle_cursor_capture { false },
-    _cursor_captured       { false }
+    _minimized             { false }
 {
     // Set DPI awareness before querying for resolution
     auto const set_dpi_awareness_result =
@@ -68,79 +65,37 @@ Win32TargetWindow::Win32TargetWindow(std::string_view const app_name) :
     _class_name = std::wstring(btx_name_view.begin(), btx_name_view.end());
 
     _register_class();
-
-    _run_flag.clear();
+    _create_window();
+    _size_and_place();
 }
 
 // =============================================================================
 Win32TargetWindow::~Win32TargetWindow() {
+    _destroy_window();
     delete[] _raw_msg;
 }
 
 // =============================================================================
-void Win32TargetWindow::start() {
-    BTX_TRACE("Starting target window...");
-    // {
-    //     std::unique_lock<std::mutex> run_lock(_run_mutex);
-    //     _running = true;
-    // }
-    // _run_cv.notify_one();
-
-    _run_flag.test_and_set();
-    _run_flag.notify_one();
-}
-
-// =============================================================================
-void Win32TargetWindow::stop() {
-    BTX_TRACE("Stopping target window...");
-    // std::unique_lock<std::mutex> run_lock(_run_mutex);
-    // _running = false;
-
-    _run_flag.clear();
-}
-
-// =============================================================================
-void Win32TargetWindow::run() {
-    _create_window();
-    _size_and_place();
-
-    BTX_TRACE("Target window ready to run...");
-    _run_flag.wait(false);
-    BTX_TRACE("Target window running!");
-
+void Win32TargetWindow::show() {
     ::ShowWindow(_window_handle, SW_SHOWNORMAL);
     ::UpdateWindow(_window_handle);
-
-    while(_run_flag.test()) {
-        if(_toggle_cursor_capture.load()) {
-            if(_cursor_captured) {
-                BTX_TRACE("Releasing cursor");
-                _cursor_captured = false;
-                _deregister_raw_input();
-                _release_cursor();
-            }
-            else {
-                BTX_TRACE("Capturing cursor");
-                _cursor_captured = true;
-                _restrict_cursor();
-                _register_raw_input();
-            }
-
-            _toggle_cursor_capture.store(false);
-        }
-
-        _message_loop();
-
-        std::this_thread::yield();
-    }
-
-    ::ShowWindow(_window_handle, SW_HIDE);
-    _destroy_window();
 }
 
 // =============================================================================
-void Win32TargetWindow::toggle_cursor_capture() {
-    _toggle_cursor_capture.store(true);
+void Win32TargetWindow::hide() {
+    ::ShowWindow(_window_handle, SW_HIDE);
+}
+
+// =============================================================================
+void Win32TargetWindow::poll_events() {
+    static ::MSG message;
+    ::memset(&message, 0, sizeof(::MSG));
+
+    // Run through available messages from the OS
+    while(::PeekMessage(&message, _window_handle, 0u, 0u, PM_REMOVE) != 0) {
+        ::TranslateMessage(&message);
+        ::DispatchMessageW(&message);
+    }
 }
 
 // =============================================================================
@@ -261,7 +216,7 @@ void Win32TargetWindow::_create_window() {
 void Win32TargetWindow::_destroy_window() {
     BTX_TRACE("Destroying win32 target window.");
     ::SendMessageW(_window_handle, WM_CLOSE, 0, 0);
-    _message_loop();
+    poll_events();
 }
 
 // =============================================================================
@@ -386,18 +341,6 @@ void Win32TargetWindow::_release_cursor() {
 
     // Run through all requests to show a cursor until ours is the last
     while(::ShowCursor(TRUE) < 0) { }
-}
-
-// =============================================================================
-void Win32TargetWindow::_message_loop() {
-    static ::MSG message;
-    ::memset(&message, 0, sizeof(::MSG));
-
-    // Run through available messages from the OS
-    while(::PeekMessage(&message, _window_handle, 0u, 0u, PM_REMOVE) != 0) {
-        ::TranslateMessage(&message);
-        ::DispatchMessageW(&message);
-    }
 }
 
 // =============================================================================

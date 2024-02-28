@@ -16,11 +16,10 @@ public:
     explicit Win32TargetWindow(std::string_view const app_name);
     ~Win32TargetWindow();
 
-    void start();
-    void stop();
-    void run();
+    void show();
+    void hide();
 
-    void toggle_cursor_capture();
+    void poll_events();
 
     inline auto const & native() const { return _window_handle; }
 
@@ -69,11 +68,6 @@ private:
 
     bool _minimized;
 
-    std::atomic_flag _run_flag;
-
-    std::atomic<bool> _toggle_cursor_capture;
-    bool _cursor_captured;
-
     void _register_class();
     void _create_window();
     void _destroy_window();
@@ -82,8 +76,6 @@ private:
     static void _deregister_raw_input();
     void _restrict_cursor();
     void _release_cursor();
-
-    void _message_loop();
 
     // Static wndproc for Windows to call, per the Raymond Chen article:
     // https://devblogs.microsoft.com/oldnewthing/20140203-00/?p=1893
