@@ -36,6 +36,9 @@ void Simulation::set_ticks_per_second(uint32_t const ticks_per_second) {
 // =============================================================================
 void Simulation::start_thread() {
     BTX_TRACE("Starting simulation thread...");
+    _loop_running.test_and_set();
+    _loop_running.notify_one();
+
     _thread_running.test_and_set();
     _thread_running.notify_one();
 }

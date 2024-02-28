@@ -16,6 +16,8 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
         return;
     }
 
+    BTX_INFO("Initialized GLFW {:s}", ::glfwGetVersionString());
+
     ::glfwSetErrorCallback(TargetWindow::_glfw_error_callback);
 
     _get_window_dimensions();
