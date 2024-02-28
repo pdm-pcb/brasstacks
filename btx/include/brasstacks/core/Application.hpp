@@ -20,8 +20,6 @@ public:
 
     void run();
 
-    void recreate_swapchain();
-
     virtual void init(Renderer const &renderer) = 0;
     virtual void shutdown() = 0;
 
@@ -61,7 +59,6 @@ private:
     EventQueue<MouseButtonPressEvent> _mouse_button_press_events;
 
     void _process_events();
-    void _recreate_swapchain();
 };
 
 } // namespace btx

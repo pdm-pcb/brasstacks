@@ -34,14 +34,14 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/fetch_vma.cmake")
 
 fetch_fmtlib()
 fetch_spdlog()
-# fetch_glfw()
+fetch_glfw()
 # fetch_glm()
 fetch_vma()
 
 target_link_libraries(
     ${TARGET_NAME} PUBLIC
     spdlog::spdlog
-    # glfw
+    glfw
     Vulkan::Vulkan
     # glm::glm_static
     third_party

@@ -89,22 +89,4 @@ void Application::_process_events() {
     _mouse_button_press_events.process_queue();
 }
 
-// =============================================================================
-void Application::_recreate_swapchain() {
-    this->destroy_swapchain_resources();
-
-    while(_running) {
-        auto window_size = _target_window->size();
-        if(window_size.width != 0u && window_size.height != 0u) {
-            break;
-        }
-        _process_events();
-    }
-
-    if(_running) {
-        _renderer->recreate_swapchain();
-        this->recreate_swapchain_resources();
-    }
-}
-
 } // namespace btx

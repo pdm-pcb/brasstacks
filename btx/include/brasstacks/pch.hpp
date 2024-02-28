@@ -1,6 +1,23 @@
 #ifndef BRASSTACKS_PCH_HPP
 #define BRASSTACKS_PCH_HPP
 
+#include <cstdint>
+#include <cstdlib>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <cmath>
+#include <numbers>
+#include <limits>
+#include <set>
+#include <list>
+#include <filesystem>
+#include <fstream>
+#include <queue>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 // Allow for the use of designated initializers
 // https://github.com/KhronosGroup/Vulkan-Hpp#designated-initializers
 #define VULKAN_HPP_NO_CONSTRUCTORS
@@ -12,10 +29,6 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #ifdef BTX_LINUX
-    #include <X11/Xlib.h>
-    #include <X11/Xutil.h>
-    #include <X11/Xatom.h>
-
     #define VK_USE_PLATFORM_XLIB_KHR
     #include <vulkan/vulkan.hpp>
     #include <vulkan/vulkan_xlib.h>
@@ -49,32 +62,21 @@
 
     #define UNICODE
 
-    #include <Windows.h>
-    #include <hidusage.h>
-    #include <WinUser.h>
-    #include <dwmapi.h>
-
     #define VK_USE_PLATFORM_WIN32_KHR
     #include <vulkan/vulkan.hpp>
     #include <vulkan/vulkan_win32.h>
+
+    #include <dwmapi.h>
 #endif // BTX platform
 
-#include <cstdint>
-#include <cstdlib>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <cmath>
-#include <numbers>
-#include <limits>
-#include <set>
-#include <list>
-#include <filesystem>
-#include <fstream>
-#include <queue>
+#ifdef BTX_LINUX
+    #define GLFW_EXPOSE_NATIVE_X11
+#elif BTX_WINDOWS
+    #define GLFW_EXPOSE_NATIVE_WIN32
+#endif // BTX platform
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 #ifdef BTX_DEBUG
     static std::filesystem::path const BTX_ASSET_PATH("demo/assets");

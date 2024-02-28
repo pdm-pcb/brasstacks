@@ -3,46 +3,58 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/x11/X11TargetWindow.hpp"
-#include "brasstacks/platform/win32/Win32TargetWindow.hpp"
+// #include "brasstacks/platform/x11/X11TargetWindow.hpp"
+// #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
 
 namespace btx {
 
-#ifdef BTX_LINUX
-    using TargetWindow = X11TargetWindow;
-#elif BTX_WINDOWS
-    using TargetWindow = Win32TargetWindow;
-#endif // BTX platform
-
-// class TargetWindow final {
-// public:
-//     explicit TargetWindow(std::string_view const app_name);
-//     ~TargetWindow();
-
-//     inline void show_window() { ::glfwShowWindow(_window); }
-//     inline void hide_window() { ::glfwHideWindow(_window); }
-
-//     void poll_events();
-
 // #ifdef BTX_LINUX
-//     auto native() const { return ::glfwGetX11Window(_window); }
+//     using TargetWindow = X11TargetWindow;
 // #elif BTX_WINDOWS
-//     auto native() const { return ::glfwGetWin32Window(_window); }
+//     using TargetWindow = Win32TargetWindow;
 // #endif // BTX platform
 
-//     TargetWindow() = delete;
+class TargetWindow final {
+public:
+    explicit TargetWindow(std::string_view const app_name);
+    ~TargetWindow();
 
-//     TargetWindow(TargetWindow &&) = delete;
-//     TargetWindow(TargetWindow const &) = delete;
+    inline void show() { ::glfwShowWindow(_window); }
+    inline void hide() { ::glfwHideWindow(_window); }
 
-//     TargetWindow & operator=(TargetWindow &&) = delete;
-//     TargetWindow & operator=(TargetWindow const &) = delete;
+    void poll_events();
 
-// private:
-//     GLFWwindow *_window;
+#ifdef BTX_LINUX
+    inline auto native() const { return ::glfwGetX11Window(_window); }
+#elif BTX_WINDOWS
+    inline auto * native() const { return ::glfwGetWin32Window(_window); }
+#endif // BTX platform
 
-//     void _set_window_dimensions();
-// };
+    inline auto const & size()      const { return _window_size; }
+    inline auto const & posiotion() const { return _window_position; }
+
+    TargetWindow() = delete;
+
+    TargetWindow(TargetWindow &&) = delete;
+    TargetWindow(TargetWindow const &) = delete;
+
+    TargetWindow & operator=(TargetWindow &&) = delete;
+    TargetWindow & operator=(TargetWindow const &) = delete;
+
+private:
+    GLFWwindow *_window;
+
+    RenderConfig::Size   _screen_size;
+    RenderConfig::Offset _screen_center;
+
+    RenderConfig::Size   _window_size;
+    RenderConfig::Offset _window_position;
+
+    void _get_window_dimensions();
+    static void _glfw_error_callback(int code, char const *message);
+    static void _glfw_key_callback(GLFWwindow *window, int key, int scancode,
+                                   int action, int mods);
+};
 
 } // namespace btx
 
