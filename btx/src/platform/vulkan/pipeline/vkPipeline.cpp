@@ -118,9 +118,9 @@ vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
 
     _shader_stages.emplace_back(
         vk::PipelineShaderStageCreateInfo {
-            .stage = stage,
+            .stage  = stage,
             .module = _shaders.back()->native(),
-            .pName = entry_point.data(),
+            .pName  = entry_point.data(),
         }
     );
 
