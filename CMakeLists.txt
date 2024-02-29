@@ -9,7 +9,7 @@ project(
 
 find_package(Vulkan 1.2 REQUIRED COMPONENTS glslc)
 
-add_subdirectory(btx)
+add_subdirectory(lib)
 add_subdirectory(third_party)
 
 # Only touch tests and demos when we're not being pulled in by something else
