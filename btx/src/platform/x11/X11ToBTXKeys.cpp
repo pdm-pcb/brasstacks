@@ -1,3 +1,5 @@
+#ifdef BTX_UNUSED
+
 #ifdef BTX_LINUX
 
 #include "brasstacks/platform/x11/X11ToBTXKeys.hpp"
@@ -119,3 +121,5 @@ X11ToBTXKeys::X11ToBTXKeys() :
 } // namespace btx
 
 #endif // BTX_LINUX
+
+#endif // BTX_UNUSED

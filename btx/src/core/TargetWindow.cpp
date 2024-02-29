@@ -7,9 +7,15 @@
 
 namespace btx {
 
+GLFWToBTXKeys TargetWindow::_keymap { };
+
 // =============================================================================
 TargetWindow::TargetWindow(std::string_view const app_name) :
-    _window  { nullptr }
+    _window  { nullptr },
+    _screen_size { },
+    _screen_center { },
+    _window_size { },
+    _window_position { }
 {
     if(::glfwInit() == 0) {
         BTX_CRITICAL("Failed to initialize GLFW");
@@ -102,8 +108,11 @@ void TargetWindow::_glfw_key_callback([[maybe_unused]] GLFWwindow *window,
                                       [[maybe_unused]] int action,
                                       [[maybe_unused]] int mods)
 {
-    if(key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-        EventBus::publish(KeyReleaseEvent { .code = BTX_KB_ESCAPE });
+    if(action == GLFW_PRESS) {
+        EventBus::publish(KeyPressEvent { .code =  _keymap.translate(key)});
+    }
+    else if(action == GLFW_RELEASE) {
+        EventBus::publish(KeyReleaseEvent { .code =  _keymap.translate(key)});
     }
 }
 

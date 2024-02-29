@@ -1,97 +1,101 @@
-// #ifndef BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
-// #define BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
+#ifdef BTX_UNUSED
 
-// #ifdef BTX_WINDOWS
+#ifndef BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
+#define BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
 
-// #include "brasstacks/pch.hpp"
+#ifdef BTX_WINDOWS
 
-// #include "brasstacks/config/RenderConfig.hpp"
-// #include "brasstacks/platform/win32/Win32MsgToStr.hpp"
-// #include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
+#include "brasstacks/pch.hpp"
 
-// namespace btx {
+#include "brasstacks/config/RenderConfig.hpp"
+#include "brasstacks/platform/win32/Win32MsgToStr.hpp"
+#include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
 
-// class Win32TargetWindow final {
-// public:
-//     explicit Win32TargetWindow(std::string_view const app_name);
-//     ~Win32TargetWindow();
+namespace btx {
 
-//     void show();
-//     void hide();
+class Win32TargetWindow final {
+public:
+    explicit Win32TargetWindow(std::string_view const app_name);
+    ~Win32TargetWindow();
 
-//     void poll_events();
+    void show();
+    void hide();
 
-//     inline auto const & native() const { return _window_handle; }
+    void poll_events();
 
-//     inline RenderConfig::Size const size() {
-//         std::unique_lock<std::mutex> read_lock(_size_mutex);
-//         return { .width = _window_size.width, .height = _window_size.height };
-//     }
+    inline auto const & native() const { return _window_handle; }
 
-//     inline RenderConfig::Offset const posiotion() {
-//         std::unique_lock<std::mutex> read_lock(_position_mutex);
-//         return { .x = _window_position.x, .y = _window_position.y };
-//     }
+    inline RenderConfig::Size const size() {
+        std::unique_lock<std::mutex> read_lock(_size_mutex);
+        return { .width = _window_size.width, .height = _window_size.height };
+    }
 
-//     Win32TargetWindow() = delete;
+    inline RenderConfig::Offset const posiotion() {
+        std::unique_lock<std::mutex> read_lock(_position_mutex);
+        return { .x = _window_position.x, .y = _window_position.y };
+    }
 
-//     Win32TargetWindow(Win32TargetWindow &&) = delete;
-//     Win32TargetWindow(Win32TargetWindow const &) = delete;
+    Win32TargetWindow() = delete;
 
-//     Win32TargetWindow & operator=(Win32TargetWindow &&) = delete;
-//     Win32TargetWindow & operator=(Win32TargetWindow const &) = delete;
+    Win32TargetWindow(Win32TargetWindow &&) = delete;
+    Win32TargetWindow(Win32TargetWindow const &) = delete;
 
-// private:
-//     // win32 specifics
-//     std::wstring  _class_name;
-//     ::WNDCLASSEXW _window_class;
-//     std::wstring  _window_title;
-//     ::HWND        _window_handle;
+    Win32TargetWindow & operator=(Win32TargetWindow &&) = delete;
+    Win32TargetWindow & operator=(Win32TargetWindow const &) = delete;
 
-//     std::byte *_raw_msg;
+private:
+    // win32 specifics
+    std::wstring  _class_name;
+    ::WNDCLASSEXW _window_class;
+    std::wstring  _window_title;
+    ::HWND        _window_handle;
 
-//     // For message loop debugging
-//     static Win32MsgToStr const _msg_map;
+    std::byte *_raw_msg;
 
-//     // For brasstacks/win32 interop
-//     static Win32ToBTXKeys const _keymap;
+    // For message loop debugging
+    static Win32MsgToStr const _msg_map;
 
-//     // Details for later
-//     RenderConfig::Size   _screen_size;
-//     RenderConfig::Offset _screen_center;
+    // For brasstacks/win32 interop
+    static Win32ToBTXKeys const _keymap;
 
-//     RenderConfig::Size   _window_size;
-//     RenderConfig::Offset _window_position;
+    // Details for later
+    RenderConfig::Size   _screen_size;
+    RenderConfig::Offset _screen_center;
 
-//     std::mutex _size_mutex;
-//     std::mutex _position_mutex;
+    RenderConfig::Size   _window_size;
+    RenderConfig::Offset _window_position;
 
-//     bool _minimized;
+    std::mutex _size_mutex;
+    std::mutex _position_mutex;
 
-//     void _register_class();
-//     void _create_window();
-//     void _destroy_window();
-//     void _size_and_place();
-//     void _register_raw_input();
-//     static void _deregister_raw_input();
-//     void _restrict_cursor();
-//     void _release_cursor();
+    bool _minimized;
 
-//     // Static wndproc for Windows to call, per the Raymond Chen article:
-//     // https://devblogs.microsoft.com/oldnewthing/20140203-00/?p=1893
-//     static ::LRESULT CALLBACK _static_wndproc(::HWND hWnd, ::UINT uMsg,
-//                                               ::WPARAM wParam, ::LPARAM lParam);
+    void _register_class();
+    void _create_window();
+    void _destroy_window();
+    void _size_and_place();
+    void _register_raw_input();
+    static void _deregister_raw_input();
+    void _restrict_cursor();
+    void _release_cursor();
 
-//     // Per-instance wndproc to actually handle the OS messages
-//     ::LRESULT CALLBACK _inst_wndproc(::HWND hWnd, ::UINT uMsg,
-//                                      ::WPARAM wParam, ::LPARAM lParam);
+    // Static wndproc for Windows to call, per the Raymond Chen article:
+    // https://devblogs.microsoft.com/oldnewthing/20140203-00/?p=1893
+    static ::LRESULT CALLBACK _static_wndproc(::HWND hWnd, ::UINT uMsg,
+                                              ::WPARAM wParam, ::LPARAM lParam);
 
-//     static void _parse_raw_keyboard(::RAWKEYBOARD const &raw);
-//     static void _parse_raw_mouse(::RAWMOUSE const &raw);
-// };
+    // Per-instance wndproc to actually handle the OS messages
+    ::LRESULT CALLBACK _inst_wndproc(::HWND hWnd, ::UINT uMsg,
+                                     ::WPARAM wParam, ::LPARAM lParam);
 
-// } // namespace btx
+    static void _parse_raw_keyboard(::RAWKEYBOARD const &raw);
+    static void _parse_raw_mouse(::RAWMOUSE const &raw);
+};
 
-// #endif // BTX_WINDOWS
+} // namespace btx
 
-// #endif // BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
+#endif // BTX_WINDOWS
+
+#endif // BRASSTACKS_PLATFORM_WIN32_WIN32TARGETWINDOW_HPP
+
+#endif // BTX_UNUSED

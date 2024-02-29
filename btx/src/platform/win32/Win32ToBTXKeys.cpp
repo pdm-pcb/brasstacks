@@ -1,3 +1,5 @@
+#ifdef BTX_UNUSED
+
 #ifdef BTX_WINDOWS
 
 #include "brasstacks/platform/win32/Win32ToBTXKeys.hpp"
@@ -119,3 +121,5 @@ Win32ToBTXKeys::Win32ToBTXKeys() :
 } // namespace btx
 
 #endif // BTX_WINDOWS
+
+#endif // BTX_UNUSED

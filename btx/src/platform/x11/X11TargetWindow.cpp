@@ -1,3 +1,5 @@
+#ifdef BTX_UNUSED
+
 #ifdef BTX_LINUX
 
 #include "brasstacks/brasstacks.hpp"
@@ -680,3 +682,5 @@ void X11TargetWindow::_message_loop() {
 } // namespace btx
 
 #endif // BTX_LINUX
+
+#endif // BTX_UNUSED

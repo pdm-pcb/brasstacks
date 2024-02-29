@@ -3,16 +3,9 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-// #include "brasstacks/platform/x11/X11TargetWindow.hpp"
-// #include "brasstacks/platform/win32/Win32TargetWindow.hpp"
+#include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
 
 namespace btx {
-
-// #ifdef BTX_LINUX
-//     using TargetWindow = X11TargetWindow;
-// #elif BTX_WINDOWS
-//     using TargetWindow = Win32TargetWindow;
-// #endif // BTX platform
 
 class TargetWindow final {
 public:
@@ -49,6 +42,8 @@ private:
 
     RenderConfig::Size   _window_size;
     RenderConfig::Offset _window_position;
+
+    static GLFWToBTXKeys _keymap;
 
     void _get_window_dimensions();
     static void _glfw_error_callback(int code, char const *message);

@@ -1,3 +1,5 @@
+#ifdef BTX_UNUSED
+
 #ifdef BTX_LINUX
 
 #include "brasstacks/platform/x11/X11MsgToStr.hpp"
@@ -265,3 +267,5 @@ X11MsgToStr::X11MsgToStr() :
 } // namespace btx
 
 #endif // BTX_LINUX
+
+#endif // BTX_UNUSED
