@@ -19,6 +19,7 @@ public:
 
 #ifdef BTX_LINUX
     inline auto native() const { return ::glfwGetX11Window(_window); }
+    inline auto * display() const { return ::glfwGetX11Display(); }
 #elif BTX_WINDOWS
     inline auto * native() const { return ::glfwGetWin32Window(_window); }
 #endif // BTX platform
