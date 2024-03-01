@@ -279,11 +279,11 @@ void Renderer::_create_device() {
         return;
     }
 
-    _device = new vkDevice(
+    _device = new vkDevice(vkDevice::Layers {
 #ifdef BTX_DEBUG
-        { "VK_LAYER_KHRONOS_validation", }
+        "VK_LAYER_KHRONOS_validation",
 #endif // BTX_DEBUG
-    );
+    });
 }
 
 // =============================================================================

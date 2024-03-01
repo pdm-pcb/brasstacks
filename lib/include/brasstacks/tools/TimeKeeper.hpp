@@ -34,8 +34,8 @@ public:
         return 1e-9f * static_cast<float>(_frame_delta.load());
     }
 
-    inline static auto sim_tick_delta() {
-        return 1e-9f * static_cast<float>(_sim_tick_delta.load());
+    inline static auto tick_delta() {
+        return 1e-9f * static_cast<float>(_tick_delta.load());
     }
 
     TimeKeeper() = delete;
@@ -51,14 +51,14 @@ private:
     static SteadyClock::time_point _app_start_time;
 
     static SteadyClock::time_point _frame_start;
-    static SteadyClock::time_point _sim_tick_start;
-    static SteadyClock::time_point _sim_tick_end;
+    static SteadyClock::time_point _tick_start;
+    static SteadyClock::time_point _last_tick_end;
 
     static std::atomic<uint64_t> _app_run_time;
     static std::atomic<uint64_t> _sim_run_time;
 
     static std::atomic<uint64_t> _frame_delta;
-    static std::atomic<uint64_t> _sim_tick_delta;
+    static std::atomic<uint64_t> _tick_delta;
 };
 
 } // namespace btx

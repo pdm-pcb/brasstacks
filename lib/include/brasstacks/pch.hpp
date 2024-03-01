@@ -82,7 +82,7 @@
     static std::filesystem::path const BTX_ASSET_PATH("demo/assets");
     static std::string           const BTX_SHADER_EXT("-debug.spv");
 #else
-    static std::filesystem::path const BTX_ASSET_PATH("assets");
+    static std::filesystem::path const BTX_ASSET_PATH("demo/assets");
     static std::string           const BTX_SHADER_EXT("-release.spv");
 #endif // BTX build config
 

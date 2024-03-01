@@ -29,7 +29,7 @@ public:
      * @param layers A list of string literals corresponding to logical device
      * layers to enable
      */
-    explicit vkDevice(Layers const &layers = { });
+    explicit vkDevice(Layers const &layers);
 
     ~vkDevice();
 

@@ -5,15 +5,15 @@ namespace btx {
 
 TimeKeeper::TimePoint TimeKeeper::_app_start_time { TimeKeeper::now() };
 
-TimeKeeper::TimePoint TimeKeeper::_frame_start    { };
-TimeKeeper::TimePoint TimeKeeper::_sim_tick_start { };
-TimeKeeper::TimePoint TimeKeeper::_sim_tick_end   { };
+TimeKeeper::TimePoint TimeKeeper::_frame_start   { };
+TimeKeeper::TimePoint TimeKeeper::_tick_start    { };
+TimeKeeper::TimePoint TimeKeeper::_last_tick_end { };
 
 std::atomic<uint64_t> TimeKeeper::_app_run_time = 0u;
 std::atomic<uint64_t> TimeKeeper::_sim_run_time = 0u;
 
-std::atomic<uint64_t> TimeKeeper::_frame_delta    = 0u;
-std::atomic<uint64_t> TimeKeeper::_sim_tick_delta = 0u;
+std::atomic<uint64_t> TimeKeeper::_frame_delta = 0u;
+std::atomic<uint64_t> TimeKeeper::_tick_delta  = 0u;
 
 // =============================================================================
 void TimeKeeper::update_app_run_time() {
@@ -34,14 +34,14 @@ void TimeKeeper::frame_end() {
 
 // =============================================================================
 void TimeKeeper::sim_tick_end() {
-    auto const tick_end = now();
-    auto const duration = tick_end - _sim_tick_end;
+    auto const this_tick_end = now();
+    auto const duration = this_tick_end - _last_tick_end;
     auto const delta = static_cast<uint64_t>(duration.count());
 
-    _sim_tick_delta.store(delta);
+    _tick_delta.store(delta);
     _sim_run_time.store(_sim_run_time.load() + delta);
 
-    _sim_tick_end = tick_end;
+    _last_tick_end = this_tick_end;
 }
 
 // =============================================================================

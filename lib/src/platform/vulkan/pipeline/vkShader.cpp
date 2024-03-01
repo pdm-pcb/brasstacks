@@ -46,7 +46,7 @@ vkShader::BinaryData vkShader::_spirv_to_binary(std::string_view filepath) {
     );
 
     if(!input_file.good()) {
-        BTX_CRITICAL("Unable to open binary '{}'", filepath);
+        BTX_CRITICAL("Unable to open SPIRV '{}'", shader_path.string());
         return BinaryData { };
     }
 
