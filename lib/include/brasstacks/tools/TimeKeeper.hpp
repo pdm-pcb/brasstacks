@@ -58,7 +58,7 @@ private:
     static std::atomic<uint64_t> _frame_delta;
     static std::atomic<uint64_t> _tick_delta;
 
-    static std::atomic<uint64_t> _last_sim_pause;
+    static uint64_t _last_sim_pause;
 };
 
 } // namespace btx

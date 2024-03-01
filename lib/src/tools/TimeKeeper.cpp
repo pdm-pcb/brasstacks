@@ -12,7 +12,7 @@ std::atomic<uint64_t> TimeKeeper::_sim_run_time = 0u;
 std::atomic<uint64_t> TimeKeeper::_frame_delta = 0u;
 std::atomic<uint64_t> TimeKeeper::_tick_delta  = 0u;
 
-std::atomic<uint64_t> TimeKeeper::_last_sim_pause = 0u;
+uint64_t TimeKeeper::_last_sim_pause = 0u;
 
 // =============================================================================
 void TimeKeeper::update_run_times() {
@@ -46,13 +46,13 @@ void TimeKeeper::tick_start() {
 // =============================================================================
 void TimeKeeper::tick_end() {
     auto const interval = static_cast<uint64_t>((now() - _tick_start).count());
-    _tick_delta.store(interval - _last_sim_pause.load());
-    _last_sim_pause.store(0u);
+    _tick_delta.store(interval - _last_sim_pause);
+    _last_sim_pause = 0u;
 }
 
 // =============================================================================
 void TimeKeeper::sim_pause_offset(SteadyClock::duration const &offset) {
-    _last_sim_pause.store(static_cast<uint64_t>(offset.count()));
+    _last_sim_pause = static_cast<uint64_t>(offset.count());
 
     if(_last_sim_pause > _sim_run_time.load()) {
         _sim_run_time.store(0);
