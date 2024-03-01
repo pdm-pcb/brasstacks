@@ -117,7 +117,6 @@ void Renderer::run() {
             }
 
         TimeKeeper::frame_end();
-        // BTX_TRACE("Frame time: {:.09f}", TimeKeeper::frame_time());
     }
 }
 
