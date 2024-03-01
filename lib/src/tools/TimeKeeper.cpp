@@ -3,11 +3,8 @@
 
 namespace btx {
 
-TimeKeeper::TimePoint TimeKeeper::_app_start_time { TimeKeeper::now() };
-
 TimeKeeper::TimePoint TimeKeeper::_frame_start   { };
 TimeKeeper::TimePoint TimeKeeper::_tick_start    { };
-TimeKeeper::TimePoint TimeKeeper::_last_tick_end { };
 
 std::atomic<uint64_t> TimeKeeper::_app_run_time = 0u;
 std::atomic<uint64_t> TimeKeeper::_sim_run_time = 0u;
@@ -15,10 +12,19 @@ std::atomic<uint64_t> TimeKeeper::_sim_run_time = 0u;
 std::atomic<uint64_t> TimeKeeper::_frame_delta = 0u;
 std::atomic<uint64_t> TimeKeeper::_tick_delta  = 0u;
 
+std::atomic<uint64_t> TimeKeeper::_last_sim_pause = 0u;
+
 // =============================================================================
-void TimeKeeper::update_app_run_time() {
-    auto const interval = now() - _app_start_time;
-    _app_run_time.store(static_cast<uint64_t>(interval.count()));
+void TimeKeeper::update_run_times() {
+    static auto last_update = now();
+
+    auto const current_time = now();
+    auto const interval = (current_time - last_update).count();
+
+    _app_run_time.store(_app_run_time.load() + static_cast<uint64_t>(interval));
+    _sim_run_time.store(_sim_run_time.load() + static_cast<uint64_t>(interval));
+
+    last_update = current_time;
 }
 
 // =============================================================================
@@ -33,29 +39,27 @@ void TimeKeeper::frame_end() {
 }
 
 // =============================================================================
-void TimeKeeper::sim_tick_end() {
-    auto const this_tick_end = now();
-    auto const duration = this_tick_end - _last_tick_end;
-    auto const delta = static_cast<uint64_t>(duration.count());
+void TimeKeeper::tick_start() {
+    _tick_start = now();
+}
 
-    _tick_delta.store(delta);
-    _sim_run_time.store(_sim_run_time.load() + delta);
-
-    _last_tick_end = this_tick_end;
+// =============================================================================
+void TimeKeeper::tick_end() {
+    auto const interval = static_cast<uint64_t>((now() - _tick_start).count());
+    _tick_delta.store(interval - _last_sim_pause.load());
+    _last_sim_pause.store(0u);
 }
 
 // =============================================================================
 void TimeKeeper::sim_pause_offset(SteadyClock::duration const &offset) {
-    auto const offset_ns = static_cast<uint64_t>(offset.count());
+    _last_sim_pause.store(static_cast<uint64_t>(offset.count()));
 
-    BTX_TRACE("Offsetting simulation run time by -{}ns", offset_ns);
-    if(offset_ns > _sim_run_time.load()) {
+    if(_last_sim_pause > _sim_run_time.load()) {
         _sim_run_time.store(0);
     }
     else {
-        _sim_run_time.store(_sim_run_time.load() - offset_ns);
+        _sim_run_time.store(_sim_run_time.load() - _last_sim_pause);
     }
-    BTX_TRACE("New run time: {}ns", _sim_run_time.load());
 }
 
 } // namespace btx

@@ -68,7 +68,6 @@ void Simulation::toggle_loop() {
 
 // =============================================================================
 void Simulation::run() {
-    TimeKeeper::TimePoint tick_start { };
     TimeKeeper::TimePoint next_tick { };
 
     BTX_TRACE("Simulation ready to run...");
@@ -85,19 +84,24 @@ void Simulation::run() {
             TimeKeeper::sim_pause_offset(TimeKeeper::now() - pause_begin);
         }
 
-        tick_start = TimeKeeper::now();
+        auto const now = TimeKeeper::now();
 
-        if(tick_start >= next_tick) {
+        if(now >= next_tick) {
+            // The last tick must now be done
+            TimeKeeper::tick_end();
+
+            // And we'll begin the next
+            TimeKeeper::tick_start();
+
+            // Do the work
             _application.update();
 
-            // Find the next step
+            // And find the next step
             {
                 std::unique_lock<std::mutex> interval_lock(_interval_mutex);
-                next_tick = tick_start + _tick_interval;
+                next_tick = now + _tick_interval;
             }
 
-            // The work is done
-            TimeKeeper::sim_tick_end();
         }
         else {
             std::this_thread::yield();

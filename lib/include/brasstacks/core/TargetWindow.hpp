@@ -24,9 +24,6 @@ public:
     inline auto * native() const { return ::glfwGetWin32Window(_window); }
 #endif // BTX platform
 
-    inline auto const & size()      const { return _window_size; }
-    inline auto const & posiotion() const { return _window_position; }
-
     TargetWindow() = delete;
 
     TargetWindow(TargetWindow &&) = delete;
@@ -46,7 +43,7 @@ private:
 
     static GLFWToBTXKeys _keymap;
 
-    void _get_window_dimensions();
+    void _calc_window_dimensions();
     static void _glfw_error_callback(int code, char const *message);
     static void _glfw_key_callback(GLFWwindow *window, int key, int scancode,
                                    int action, int mods);

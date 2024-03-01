@@ -26,7 +26,7 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
 
     ::glfwSetErrorCallback(TargetWindow::_glfw_error_callback);
 
-    _get_window_dimensions();
+    _calc_window_dimensions();
 
     ::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     ::glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -76,7 +76,7 @@ void TargetWindow::poll_events() {
 }
 
 // =============================================================================
-void TargetWindow::_get_window_dimensions() {
+void TargetWindow::_calc_window_dimensions() {
     auto const *video_mode = ::glfwGetVideoMode(::glfwGetPrimaryMonitor());
 
     auto const width  = static_cast<float>(video_mode->width)  * 0.75f;
@@ -109,10 +109,10 @@ void TargetWindow::_glfw_key_callback([[maybe_unused]] GLFWwindow *window,
                                       [[maybe_unused]] int mods)
 {
     if(action == GLFW_PRESS) {
-        EventBus::publish(KeyPressEvent { .code =  _keymap.translate(key)});
+        EventBus::publish(KeyPressEvent { .code =  _keymap.translate(key) });
     }
     else if(action == GLFW_RELEASE) {
-        EventBus::publish(KeyReleaseEvent { .code =  _keymap.translate(key)});
+        EventBus::publish(KeyReleaseEvent { .code =  _keymap.translate(key) });
     }
 }
 

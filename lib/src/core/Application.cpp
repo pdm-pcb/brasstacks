@@ -35,7 +35,7 @@ void Application::run() {
     _target_window->show();
 
     while(_running) {
-        TimeKeeper::update_app_run_time();
+        TimeKeeper::update_run_times();
         _target_window->poll_events();
         _process_events();
 

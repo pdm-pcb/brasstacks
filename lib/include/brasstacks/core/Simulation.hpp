@@ -13,12 +13,12 @@ public:
     Simulation(Application &application, uint32_t ticks_per_second);
     ~Simulation() = default;
 
-    void set_ticks_per_second(uint32_t const ticks_per_second);
-
     void start_thread();
     void stop_thread();
     void toggle_loop();
     void run();
+
+    void set_ticks_per_second(uint32_t const ticks_per_second);
 
     Simulation() = delete;
 

@@ -13,12 +13,13 @@ public:
 
     inline static auto now() { return SteadyClock::now(); }
 
-    static void update_app_run_time();
+    static void update_run_times();
 
     static void frame_start();
     static void frame_end();
 
-    static void sim_tick_end();
+    static void tick_start();
+    static void tick_end();
 
     static void sim_pause_offset(SteadyClock::duration const &offset);
 
@@ -48,17 +49,16 @@ public:
     TimeKeeper& operator=(const TimeKeeper &other) = delete;
 
 private:
-    static SteadyClock::time_point _app_start_time;
-
     static SteadyClock::time_point _frame_start;
     static SteadyClock::time_point _tick_start;
-    static SteadyClock::time_point _last_tick_end;
 
     static std::atomic<uint64_t> _app_run_time;
     static std::atomic<uint64_t> _sim_run_time;
 
     static std::atomic<uint64_t> _frame_delta;
     static std::atomic<uint64_t> _tick_delta;
+
+    static std::atomic<uint64_t> _last_sim_pause;
 };
 
 } // namespace btx
