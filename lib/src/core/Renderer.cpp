@@ -89,9 +89,12 @@ void Renderer::run() {
 
     while(_thread_running.test()) {
         if(!_loop_running.test()) {
-            BTX_TRACE("Renderer loop paused...");
+            BTX_TRACE("Render loop paused...");
+            auto const pause_begin = TimeKeeper::now();
             _loop_running.wait(false);
-            BTX_TRACE("Renderer loop playing!");
+
+            BTX_TRACE("Render loop resumed!");
+            TimeKeeper::render_pause_offset(TimeKeeper::now() - pause_begin);
         }
 
         TimeKeeper::frame_start();

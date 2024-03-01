@@ -80,7 +80,7 @@ void Simulation::run() {
             auto const pause_begin = TimeKeeper::now();
             _loop_running.wait(false);
 
-            BTX_TRACE("Simulation loop playing!");
+            BTX_TRACE("Simulation loop resumed!");
             TimeKeeper::sim_pause_offset(TimeKeeper::now() - pause_begin);
         }
 

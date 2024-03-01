@@ -21,6 +21,7 @@ public:
     static void tick_start();
     static void tick_end();
 
+    static void render_pause_offset(SteadyClock::duration const &offset);
     static void sim_pause_offset(SteadyClock::duration const &offset);
 
     inline static auto app_run_time() {
@@ -58,6 +59,7 @@ private:
     static std::atomic<uint64_t> _frame_delta;
     static std::atomic<uint64_t> _tick_delta;
 
+    static uint64_t _last_render_pause;
     static uint64_t _last_sim_pause;
 };
 
