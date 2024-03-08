@@ -15,8 +15,7 @@ Application::Application(std::string_view const app_name) :
     _simulation                { new Simulation(*this, 120) },
     _simulation_thread         { &Simulation::run, _simulation },
     _window_close_events       { *this, &Application::on_window_close },
-    _key_press_events          { *this, &Application::on_key_press },
-    _mouse_button_press_events { *this, &Application::on_mouse_button_press }
+    _key_press_events          { *this, &Application::on_key_press }
 { }
 
 // =============================================================================
@@ -79,14 +78,9 @@ void Application::on_key_press(KeyPressEvent const &event) {
 }
 
 // =============================================================================
-void Application::on_mouse_button_press(MouseButtonPressEvent const &event) {
-}
-
-// =============================================================================
 void Application::_process_events() {
     _window_close_events.process_queue();
     _key_press_events.process_queue();
-    _mouse_button_press_events.process_queue();
 }
 
 } // namespace btx

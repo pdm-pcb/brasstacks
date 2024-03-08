@@ -33,7 +33,6 @@ public:
 
     void on_window_close(WindowCloseEvent const &event);
     void on_key_press(KeyPressEvent const &event);
-    void on_mouse_button_press(MouseButtonPressEvent const &event);
 
     Application() = delete;
 
@@ -56,7 +55,6 @@ private:
 
     EventQueue<WindowCloseEvent>      _window_close_events;
     EventQueue<KeyPressEvent>         _key_press_events;
-    EventQueue<MouseButtonPressEvent> _mouse_button_press_events;
 
     void _process_events();
 };
