@@ -5,7 +5,7 @@
 #include "brasstacks/events/EventQueue.hpp"
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
-#include "brasstacks/events/mouse_events.hpp"
+#include "brasstacks/events/renderer_events.hpp"
 #include "brasstacks/core/TargetWindow.hpp"
 
 namespace btx {
@@ -31,9 +31,6 @@ public:
 
     inline auto const & target_window() const { return *_target_window; }
 
-    void on_window_close(WindowCloseEvent const &event);
-    void on_key_press(KeyPressEvent const &event);
-
     Application() = delete;
 
     Application(Application &&) = delete;
@@ -53,10 +50,14 @@ private:
     Simulation *_simulation;
     std::thread _simulation_thread;
 
-    EventQueue<WindowCloseEvent>      _window_close_events;
-    EventQueue<KeyPressEvent>         _key_press_events;
+    EventQueue<WindowCloseEvent>     _window_close_events;
+    EventQueue<KeyPressEvent>        _key_press_events;
+    EventQueue<SwapchainResizeEvent> _swapchain_resize_events;
 
     void _process_events();
+    void _on_window_close(WindowCloseEvent const &event);
+    void _on_key_press(KeyPressEvent const &event);
+    void _on_swapchain_resize(SwapchainResizeEvent const &event);
 };
 
 } // namespace btx

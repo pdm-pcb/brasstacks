@@ -71,8 +71,6 @@ private:
 
     void _destroy_swapchain();
     void _destroy_frame_sync();
-
-    void _recreate_swapchain();
 };
 
 } // namespace btx

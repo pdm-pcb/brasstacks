@@ -9,6 +9,8 @@
 #include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
+#include "brasstacks/events/EventBus.hpp"
+#include "brasstacks/events/renderer_events.hpp"
 
 namespace btx {
 
@@ -101,7 +103,9 @@ void Renderer::run() {
 
             uint32_t const image_index = _acquire_next_image();
             if(image_index == std::numeric_limits<uint32_t>::max()) {
-                _recreate_swapchain();
+                BTX_ERROR("Swapchain provided invalid index.");
+                EventBus::publish(SwapchainResizeEvent { });
+                toggle_loop();
                 continue;
             }
 
@@ -113,7 +117,9 @@ void Renderer::run() {
             _submit_commands();
 
             if(!_present_image()) {
-                _recreate_swapchain();
+                BTX_ERROR("Swapchain presentation failed.");
+                EventBus::publish(SwapchainResizeEvent { });
+                toggle_loop();
             }
 
         TimeKeeper::frame_end();
@@ -343,11 +349,6 @@ void Renderer::_destroy_frame_sync() {
 
         _image_acquire_sems.pop();
     }
-}
-
-// =============================================================================
-void Renderer::_recreate_swapchain() {
-    // ...?
 }
 
 } // namespace btx
