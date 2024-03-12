@@ -16,13 +16,7 @@ vkShader::vkShader(vkDevice const &device, std::string_view filepath) :
         .pCode = shader_binary.data(),
     };
 
-    auto const result = _device.native().createShaderModule(module_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_ERROR("Failed to create shader from file '{}'", filepath);
-        return;
-    }
-
-    _handle = result.value;
+    _handle = _device.native().createShaderModule(module_info);
     BTX_TRACE("Created vkShader module {} from '{}'", _handle, filepath);
 }
 

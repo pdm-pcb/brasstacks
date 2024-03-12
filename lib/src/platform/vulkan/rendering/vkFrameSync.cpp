@@ -76,32 +76,9 @@ void vkFrameSync::_create_sync_primitives() {
         .flags = vk::FenceCreateFlagBits::eSignaled
     };
 
-    auto const fence_result = _device.native().createFence(fence_info);
-    if(fence_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Unable to create fence: '{}'",
-                      vk::to_string(fence_result.result));
-        return;
-    }
-
-    _queue_fence = fence_result.value;
-
-    auto img_sem_result = _device.native().createSemaphore({ });
-    if(img_sem_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Unable to create semaphore: '{}'",
-                        vk::to_string(img_sem_result.result));
-        return;
-    }
-
-    _image_acquire_sem = img_sem_result.value;
-
-    auto const cmd_sem_result = _device.native().createSemaphore({ });
-    if(cmd_sem_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Unable to create semaphore: '{}'",
-                     vk::to_string(cmd_sem_result.result));
-        return;
-    }
-
-    _cmds_complete_sem = cmd_sem_result.value;
+    _queue_fence       = _device.native().createFence(fence_info);
+    _image_acquire_sem = _device.native().createSemaphore({ });
+    _cmds_complete_sem = _device.native().createSemaphore({ });
 
     BTX_TRACE("\nCreated frame sync primitives:"
               "\n\tdevice queue fence          {}"

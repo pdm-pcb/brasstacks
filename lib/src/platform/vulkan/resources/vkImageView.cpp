@@ -35,14 +35,7 @@ vkImageView::vkImageView(vkDevice const &device, vkImage const &image,
         }
     };
 
-    auto const result = _device.native().createImageView(view_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create view for image {}: '{}'",
-                     image.native(), vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
+    _handle = _device.native().createImageView(view_info);
     BTX_TRACE("Created view {} for image {}", _handle, image.native());
 }
 

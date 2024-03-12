@@ -26,14 +26,7 @@ vkFramebuffer::vkFramebuffer(vkDevice const &device,
         .layers          = 1u,
     };
 
-    auto const result = _device.native().createFramebuffer(create_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create framebuffer: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
+    _handle = _device.native().createFramebuffer(create_info);
     BTX_TRACE("Created framebuffer {} for render pass {} with extent {}x{}",
               _handle, render_pass.native(), size.width, size.height);
 }

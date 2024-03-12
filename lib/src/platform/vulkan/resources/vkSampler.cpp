@@ -31,13 +31,7 @@ vkSampler::vkSampler(vkDevice const &device,
         .unnormalizedCoordinates = VK_FALSE
     };
 
-    auto const result = _device.native().createSampler(create_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create image sampler.");
-        return;
-    }
-
-    _handle = result.value;
+    _handle = _device.native().createSampler(create_info);
     BTX_TRACE(
         "\nCreated image sampler {}"
         "\n\tMag Filter: {}"

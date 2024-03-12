@@ -28,14 +28,7 @@ vkBuffer::vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
         .pQueueFamilyIndices   = nullptr,
     };
 
-    auto const result = _device.native().createBuffer(create_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create buffer: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
+    _handle = _device.native().createBuffer(create_info);
     BTX_TRACE("Created buffer {}", _handle);
 
     _allocate(memory_flags);
@@ -116,24 +109,12 @@ void vkBuffer::_allocate(vk::MemoryPropertyFlags const flags) {
         .memoryTypeIndex = type_index,
     };
 
-    auto const alloc_result = _device.native().allocateMemory(alloc_info);
-    if(alloc_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to allocate {} bytes for buffer {}: '{}'",
-                     _size_bytes, _handle, vk::to_string(alloc_result.result));
-        return;
-    }
-
-    _memory = alloc_result.value;
+    _memory = _device.native().allocateMemory(alloc_info);
     BTX_TRACE("\n\tAllocated {} bytes: Device memory {}"
               "\n\tFor buffer {}",
               _size_bytes, _memory, _handle);
 
-    auto const bind_result = _device.native().bindBufferMemory(_handle,
-                                                               _memory, 0u);
-    if(bind_result != vk::Result::eSuccess) {
-        BTX_TRACE("Failed to bind device memory {} to buffer {}: '{}'",
-                  _memory, _handle, vk::to_string(bind_result));
-    }
+    _device.native().bindBufferMemory(_handle, _memory, 0u);
 }
 
 // =============================================================================

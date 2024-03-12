@@ -419,14 +419,7 @@ void vkPipeline::_init_layout() {
         .pPushConstantRanges    = _push_constants.data()
     };
 
-    auto const result = _device.native().createPipelineLayout(layout_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create pipeline layout: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _layout = result.value;
+    _layout = _device.native().createPipelineLayout(layout_info);
     BTX_TRACE("Created pipeline layout {}", _layout);
 }
 

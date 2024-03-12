@@ -33,13 +33,7 @@ void vkInstance::create(uint32_t const api_version) {
         _init_layers();         // Init the validation layer, if we're in debug
         _init_extensions();     // Extensions are often implementation defined
 
-        auto const ext_result = vk::enumerateInstanceExtensionProperties();
-        if(ext_result.result != vk::Result::eSuccess) {
-            BTX_CRITICAL("Failed to enumerate instance extensions.");
-            return;
-        }
-
-        auto const &extensions = ext_result.value;
+        auto const extensions = vk::enumerateInstanceExtensionProperties();
         BTX_TRACE("Found {} instance extensions.", extensions.size());
 
         // Run through the extensions the driver offers and make sure we've got

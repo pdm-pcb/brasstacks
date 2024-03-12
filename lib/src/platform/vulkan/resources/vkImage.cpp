@@ -73,15 +73,7 @@ vkImage::vkImage(vkDevice const &device, std::string_view const filename,
         .initialLayout = vk::ImageLayout::eUndefined,
     };
 
-    auto const result = _device.native().createImage(create_info);
-
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create image: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
+    _handle = _device.native().createImage(create_info);
     BTX_TRACE("Created image {}", _handle);
 
     _allocate(image_info.memory_flags);
@@ -124,15 +116,7 @@ vkImage::vkImage(vkDevice const &device, vk::Extent2D const &extent,
         .initialLayout = vk::ImageLayout::eUndefined,
     };
 
-    auto const result = _device.native().createImage(create_info);
-
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create image: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
+    _handle = _device.native().createImage(create_info);
     BTX_TRACE("Created image {} with extent {}x{}, samples {}", _handle,
               extent.width, extent.height, vk::to_string(image_info.samples));
 
@@ -213,23 +197,11 @@ void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
         .memoryTypeIndex = type_index,
     };
 
-    auto const alloc_result = _device.native().allocateMemory(alloc_info);
-    if(alloc_result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create device memory for image {}: '{}'",
-                     _handle, vk::to_string(alloc_result.result));
-    }
-
-    _memory = alloc_result.value;
+    _memory = _device.native().allocateMemory(alloc_info);
     BTX_TRACE("Allocated {} bytes {} for image {}",
               mem_reqs.size, _memory, _handle);
 
-    auto const bind_result =
-        _device.native().bindImageMemory(_handle, _memory, 0u);
-
-    if(bind_result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to bind device memory {} to image {}: '{}'",
-                     _memory, _handle, vk::to_string(bind_result));
-    }
+    _device.native().bindImageMemory(_handle, _memory, 0u);
 }
 
 // =============================================================================

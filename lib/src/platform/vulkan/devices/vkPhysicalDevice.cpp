@@ -84,13 +84,8 @@ void vkPhysicalDevice::select(vkSurface     const &surface,
 // =============================================================================
 void vkPhysicalDevice::_enumerate_and_sort(vk::Instance const &instance) {
     // Populate the list of physical devices
-    auto const result = instance.enumeratePhysicalDevices();
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to enumerate physical devices.");
-        return;
-    }
+    auto const devices = instance.enumeratePhysicalDevices();
 
-    auto const &devices = result.value;
     BTX_TRACE("Found {} {}", devices.size(),
               (devices.size() == 1 ? "device" : "devices"));
 
@@ -161,7 +156,7 @@ bool vkPhysicalDevice::_check_queue_families(DeviceProps &device,
 
             // And the second is if this device can present on the surface
             // we've been given
-            if(present_support.result == vk::Result::eSuccess) {
+            if(present_support == vk::True) {
                 found_unified_family = true;
                 device.graphics_queue_index = i;
                 break;
@@ -221,13 +216,9 @@ vkPhysicalDevice::_check_extensions(DeviceProps &device,
     bool all_extensions_supported = true;
 
     // Get the list of supported extensions
-    auto const result = device.handle.enumerateDeviceExtensionProperties();
-    if(result.result != vk::Result::eSuccess) {
-        BTX_ERROR("Failed to enumerate physical device extensions.");
-        return false;
-    }
+    auto const supported_extensions =
+        device.handle.enumerateDeviceExtensionProperties();
 
-    auto const &supported_extensions = result.value;
     BTX_TRACE("Found {} extensions for {}", supported_extensions.size(),
                                             device.name);
 

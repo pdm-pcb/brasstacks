@@ -25,14 +25,7 @@ vkDescriptorPool::vkDescriptorPool(vkDevice const &device,
         .pPoolSizes    = pool_sizes.data(),
     };
 
-    auto const result = _device.native().createDescriptorPool(create_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create descriptor set pool: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
+    _handle = _device.native().createDescriptorPool(create_info);
     BTX_TRACE("Created descriptor pool {}", _handle);
 }
 

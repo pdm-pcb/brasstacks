@@ -12,14 +12,7 @@ vkRenderPass::vkRenderPass(Renderer const &renderer) :
 
 // =============================================================================
 void vkRenderPass::_create(vk::RenderPassCreateInfo const &create_info) {
-    auto const result = device().native().createRenderPass(create_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create render pass: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
+    _handle = device().native().createRenderPass(create_info);
     BTX_TRACE("Created render pass {}", _handle);
 }
 

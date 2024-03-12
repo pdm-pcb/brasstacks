@@ -52,18 +52,12 @@ void vkCmdBuffer::begin_one_time_submit() const {
         .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
     };
 
-    auto const result = _handle.begin(begin_info);
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to begin recording to one-shot command buffer.");
-    }
+    _handle.begin(begin_info);
 }
 
 // =============================================================================
 void vkCmdBuffer::end_recording() const {
-    auto const result = _handle.end();
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to end command buffer recording.");
-    }
+    _handle.end();
 }
 
 // =============================================================================
@@ -88,15 +82,9 @@ void vkCmdBuffer::submit_and_wait_on_device() const {
         .signalSemaphoreCount = 0u,
         .pSignalSemaphores    = nullptr,
     };
-    auto result = _device.graphics_queue().native().submit(submit_info);
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to submit command buffer to device.");
-    }
 
-    result = _device.native().waitIdle();
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to wait on device idle.");
-    }
+    _device.graphics_queue().native().submit(submit_info);
+    _device.native().waitIdle();
 }
 
 } // namespace btx

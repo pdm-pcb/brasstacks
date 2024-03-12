@@ -26,12 +26,7 @@ vkDescriptorSet::vkDescriptorSet(vkDevice const &device,
     };
 
     auto const result = _device.native().allocateDescriptorSets(alloc_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not allocate descriptor sets: '{}'",
-                     vk::to_string(result.result));
-    }
-
-    _handle = result.value.front();
+    _handle = result.front();
     BTX_TRACE("Allocated descriptor set {}", _handle);
 }
 

@@ -25,9 +25,6 @@
 // Prevent needing to load every function by hand
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 
-// I'll check the return values
-#define VULKAN_HPP_NO_EXCEPTIONS
-
 #ifdef BTX_LINUX
     #define VK_USE_PLATFORM_XLIB_KHR
     #include <vulkan/vulkan.hpp>

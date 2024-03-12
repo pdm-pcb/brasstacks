@@ -83,10 +83,8 @@ vkDevice::~vkDevice() {
 
 // =============================================================================
 void vkDevice::wait_idle() const {
-    auto const result = _handle.waitIdle();
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to wait for logical device idle.");
-    }
+    BTX_TRACE("Waiting for device idle...");
+    _handle.waitIdle();
 }
 
 } // namespace btx

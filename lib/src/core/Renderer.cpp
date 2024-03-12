@@ -317,14 +317,9 @@ void Renderer::_create_frame_sync() {
     // semaphore before releasing the old one for that frame, there has to be
     // one semaphore spare.
     auto result = _device->native().createSemaphore({ });
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Unable to create semaphore: '{}'",
-                        vk::to_string(result.result));
-        return;
-    }
 
-    BTX_TRACE("Created image acquire semaphore {}", result.value);
-    _image_acquire_sems.push(result.value);
+    BTX_TRACE("Created image acquire semaphore {}", result);
+    _image_acquire_sems.push(result);
 }
 
 // =============================================================================

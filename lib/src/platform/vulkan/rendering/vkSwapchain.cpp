@@ -40,14 +40,7 @@ vkSwapchain::vkSwapchain(vkDevice const &device, vkSurface const &surface) :
     auto const create_info = _populate_create_info(surface.native());
 
     // Finally, create the swapchain
-    auto const result = _device.native().createSwapchainKHR(create_info);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to create swapchain: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
+    _handle = _device.native().createSwapchainKHR(create_info);
     BTX_TRACE("Created swapchain {}", _handle);
 
     // Now that we've got the swapchain itself, we'll need its images
@@ -135,15 +128,9 @@ bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
 
 // =============================================================================
 void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
-    auto const result =
+    auto const capabilities =
         vkPhysicalDevice::native().getSurfaceCapabilitiesKHR(surface);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not get surface capabilities: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
 
-    auto const &capabilities = result.value;
     BTX_TRACE(
         "\nSurface Capabilities:"
         "\n\t Minimum Image Count: {}"
@@ -178,15 +165,9 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
 
 // =============================================================================
 void vkSwapchain::_query_surface_format(vk::SurfaceKHR const &surface) {
-    auto const result =
+    auto const formats =
         vkPhysicalDevice::native().getSurfaceFormatsKHR(surface);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not get surface formats: '{}'",
-                      vk::to_string(result.result));
-        return;
-    }
 
-    auto const &formats = result.value;
     BTX_TRACE("Found {} surface formats.", formats.size());
 
     // These format details were chosen to produce the most intuitive and/or
@@ -229,15 +210,9 @@ void vkSwapchain::_query_surface_format(vk::SurfaceKHR const &surface) {
 
 // =============================================================================
 void vkSwapchain::_query_surface_present_modes(vk::SurfaceKHR const &surface) {
-    auto const result =
+    auto const modes =
         vkPhysicalDevice::native().getSurfacePresentModesKHR(surface);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not query surface present modes: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
 
-    auto const &modes = result.value;
     BTX_TRACE("Found {} present modes.", modes.size());
 
     // This is the order of preference for present modes:
@@ -348,14 +323,9 @@ vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
 
 // =============================================================================
 void vkSwapchain::_get_swapchain_images() {
-    auto const result = _device.native().getSwapchainImagesKHR(_handle);
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Could not get swapchain images: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
+    auto const swapchain_images =
+        _device.native().getSwapchainImagesKHR(_handle);
 
-    auto const &swapchain_images = result.value;
     if(swapchain_images.size() != _images.size()) {
         BTX_CRITICAL("Swapchain provided {} images, expected {}",
                      swapchain_images.size(), _images.size());
