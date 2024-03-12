@@ -113,7 +113,7 @@ bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
 
     try {
         result = _device.graphics_queue().native().presentKHR(present_info);
-    } catch(vk::OutOfDateKHRError const &exception) {
+    } catch([[maybe_unused]] vk::OutOfDateKHRError const &exception) {
         return false;
     }
 
