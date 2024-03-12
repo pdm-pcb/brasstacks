@@ -109,17 +109,15 @@ bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
         .pImageIndices   = &image_index,
     };
 
-    auto const result =
-        _device.graphics_queue().native().presentKHR(present_info);
+    static vk::Result result = vk::Result::eSuccess;
 
-    if(result != vk::Result::eSuccess) {
-        if(result != vk::Result::eSuboptimalKHR &&
-           result != vk::Result::eErrorOutOfDateKHR)
-        {
-            BTX_CRITICAL("Failed to submit swapchain image {}: '{}",
-                         image_index, vk::to_string(result));
-        }
+    try {
+        result = _device.graphics_queue().native().presentKHR(present_info);
+    } catch(vk::OutOfDateKHRError const &exception) {
+        return false;
+    }
 
+    if(result == vk::Result::eSuboptimalKHR) {
         return false;
     }
 
