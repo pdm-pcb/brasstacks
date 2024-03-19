@@ -22,7 +22,7 @@
 // https://github.com/KhronosGroup/Vulkan-Hpp#designated-initializers
 #define VULKAN_HPP_NO_CONSTRUCTORS
 
-// Prevent needing to load every function by hand
+// No need to load every function by hand
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 
 #ifdef BTX_LINUX

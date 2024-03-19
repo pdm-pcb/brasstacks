@@ -24,7 +24,7 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
 
     BTX_INFO("Initialized GLFW {:s}", ::glfwGetVersionString());
 
-    ::glfwSetErrorCallback(TargetWindow::_glfw_error_callback);
+    ::glfwSetErrorCallback(TargetWindow::_error_callback);
 
     _calc_window_dimensions();
 
@@ -39,14 +39,17 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
         nullptr
     );
 
-    ::glfwSetWindowPos(_window, _window_position.x, _window_position.y);
-
     if(_window == nullptr) {
         BTX_CRITICAL("GLFW window creation failed");
         return;
     }
 
-    ::glfwSetKeyCallback(_window, TargetWindow::_glfw_key_callback);
+    ::glfwSetWindowPos(_window, _window_position.x, _window_position.y);
+
+    ::glfwSetKeyCallback(_window, TargetWindow::_key_callback);
+    ::glfwSetWindowSizeCallback(_window, TargetWindow::_window_size_callback);
+    ::glfwSetWindowIconifyCallback(_window,
+                                   TargetWindow::_window_iconify_callback);
 
 #ifdef BTX_WINDOWS
     ::BOOL value = TRUE;
@@ -97,22 +100,47 @@ void TargetWindow::_calc_window_dimensions() {
 }
 
 // =============================================================================
-void TargetWindow::_glfw_error_callback(int code, char const *message) {
+void TargetWindow::_error_callback(int code, char const *message) {
     BTX_ERROR("GLFW Error {}: '{:s}'", code, message);
 }
 
 // =============================================================================
-void TargetWindow::_glfw_key_callback([[maybe_unused]] GLFWwindow *window,
-                                      [[maybe_unused]] int key,
-                                      [[maybe_unused]] int scancode,
-                                      [[maybe_unused]] int action,
-                                      [[maybe_unused]] int mods)
+void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
+                                 [[maybe_unused]] int key,
+                                 [[maybe_unused]] int scancode,
+                                 [[maybe_unused]] int action,
+                                 [[maybe_unused]] int mods)
 {
     if(action == GLFW_PRESS) {
-        EventBus::publish(KeyPressEvent { .code =  _keymap.translate(key) });
+        EventBus::publish(KeyPressEvent { .code = _keymap.translate(key) });
     }
     else if(action == GLFW_RELEASE) {
-        EventBus::publish(KeyReleaseEvent { .code =  _keymap.translate(key) });
+        EventBus::publish(KeyReleaseEvent { .code = _keymap.translate(key) });
+    }
+}
+
+// =============================================================================
+void TargetWindow::_window_size_callback([[maybe_unused]] GLFWwindow* window,
+                                         [[maybe_unused]] int width,
+                                         [[maybe_unused]] int height)
+{
+    EventBus::publish(WindowSizeEvent {
+        .size = {
+            .width  = static_cast<uint32_t>(width),
+            .height = static_cast<uint32_t>(height)
+        }
+    });
+}
+
+// =============================================================================
+void TargetWindow::_window_iconify_callback([[maybe_unused]] GLFWwindow* window,
+                                            [[maybe_unused]] int iconified)
+{
+    if(iconified == GLFW_TRUE) {
+        EventBus::publish(WindowMinimizeEvent { });
+    }
+    else {
+        EventBus::publish(WindowRestoreEvent { });
     }
 }
 

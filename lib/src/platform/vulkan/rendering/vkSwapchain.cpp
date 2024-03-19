@@ -126,7 +126,7 @@ bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
 
 // =============================================================================
 void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
-    auto const capabilities =
+    auto const caps =
         vkPhysicalDevice::native().getSurfaceCapabilitiesKHR(surface);
 
     BTX_TRACE(
@@ -137,28 +137,66 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
         "\n\t Minimum Extent: {} x {}"
         "\n\t Maximum Extent: {} x {}"
         "\n\t Maximum Image Array Layers: {}",
-        capabilities.minImageCount,
-        capabilities.maxImageCount,
-        capabilities.currentExtent.width,
-        capabilities.currentExtent.height,
-        capabilities.minImageExtent.width,
-        capabilities.minImageExtent.height,
-        capabilities.maxImageExtent.width,
-        capabilities.maxImageExtent.height,
-        capabilities.maxImageArrayLayers
+        caps.minImageCount,
+        caps.maxImageCount,
+        caps.currentExtent.width,
+        caps.currentExtent.height,
+        caps.minImageExtent.width,
+        caps.minImageExtent.height,
+        caps.maxImageExtent.width,
+        caps.maxImageExtent.height,
+        caps.maxImageArrayLayers
     );
 
+    if(caps.currentExtent.width == 0u || caps.currentExtent.height == 0u
+       || caps.minImageExtent.width == 0u || caps.minImageExtent.height == 0u
+       || caps.maxImageExtent.width == 0u || caps.maxImageExtent.height == 0u)
+    {
+        BTX_CRITICAL("Cannot create swapchain with zero width or height.");
+        return;
+    }
+
     // We intend to draw to the whole surface
-    _size.width = capabilities.currentExtent.width;
-    _size.height = capabilities.currentExtent.height;
+    _size.width = caps.currentExtent.width;
+    _size.height = caps.currentExtent.height;
+
+    if(_size.width < caps.minImageExtent.width) {
+        BTX_WARN("Surface width {} capped to minimum {}",
+                 _size.width,
+                 caps.minImageExtent.width);
+
+        _size.width = caps.minImageExtent.width;
+    }
+    else if(_size.width > caps.maxImageExtent.width) {
+        BTX_WARN("Surface width {} capped to maximum {}",
+                 _size.width,
+                 caps.minImageExtent.width);
+
+        _size.width = caps.maxImageExtent.width;
+    }
+
+    if(_size.height < caps.minImageExtent.height) {
+        BTX_WARN("Surface height {} capped to minimum {}",
+                 _size.height,
+                 caps.minImageExtent.height);
+
+        _size.height = caps.minImageExtent.height;
+    }
+    else if(_size.height > caps.maxImageExtent.height) {
+        BTX_WARN("Surface height {} capped to maximum {}",
+                 _size.height,
+                 caps.minImageExtent.height);
+
+        _size.height = caps.maxImageExtent.height;
+    }
 
     // Update the aspect ratio
     _aspect_ratio = static_cast<float>(_size.width) /
                     static_cast<float>(_size.height);
 
     // TODO: this +1 merits some actual rationale
-    _images.resize(capabilities.minImageCount + 1);
-    _image_views.resize(capabilities.minImageCount + 1);
+    _images.resize(caps.minImageCount + 1);
+    _image_views.resize(caps.minImageCount + 1);
 }
 
 // =============================================================================

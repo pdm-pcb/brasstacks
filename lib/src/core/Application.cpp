@@ -9,14 +9,18 @@ namespace btx {
 // =============================================================================
 Application::Application(std::string_view const app_name) :
     _running                 { true },
+    _swapchain_destroyed     { false },
     _target_window           { new TargetWindow(app_name) },
     _renderer                { new Renderer(*this) },
     _renderer_thread         { &Renderer::run, _renderer },
     _simulation              { new Simulation(*this, 120) },
     _simulation_thread       { &Simulation::run, _simulation },
     _window_close_events     { *this, &Application::_on_window_close },
-    _key_press_events        { *this, &Application::_on_key_press },
-    _swapchain_resize_events { *this, &Application::_on_swapchain_resize }
+    _window_size_events      { *this, &Application::_on_window_size },
+    _window_minimize_events  { *this, &Application::_on_window_minimize },
+    _window_restore_events   { *this, &Application::_on_window_restore },
+    _swapchain_resize_events { *this, &Application::_on_swapchain_resize },
+    _key_press_events        { *this, &Application::_on_key_press }
 { }
 
 // =============================================================================
@@ -58,13 +62,109 @@ void Application::run() {
 // =============================================================================
 void Application::_process_events() {
     _window_close_events.process_queue();
+    _window_size_events.process_queue();
+    _window_minimize_events.process_queue();
+    _window_restore_events.process_queue();
+    _swapchain_resize_events.process_queue();
     _key_press_events.process_queue();
 }
 
 // =============================================================================
-void
-Application::_on_window_close([[maybe_unused]] WindowCloseEvent const &event) {
+void Application::_on_window_close(
+    [[maybe_unused]] WindowCloseEvent const &event)
+{
     _running = false;
+}
+
+// =============================================================================
+void Application::_on_window_size(WindowSizeEvent const &event) {
+
+    if(!_swapchain_destroyed
+       && (event.size.width == 0u || event.size.height == 0u))
+    {
+        BTX_TRACE("Application received window size {}x{}.",
+                  event.size.width,
+                  event.size.height);
+
+        _renderer->toggle_loop();
+        _simulation->toggle_loop();
+
+        _renderer->wait_device_idle();
+
+        this->destroy_swapchain_resources();
+
+        _swapchain_destroyed = true;
+
+        return;
+    }
+
+    if(_swapchain_destroyed && event.size.width > 0u && event.size.height > 0u)
+    {
+        BTX_TRACE("Application received window size {}x{}.",
+                  event.size.width,
+                  event.size.height);
+
+        _renderer->recreate_swapchain();
+        this->recreate_swapchain_resources();
+
+        _renderer->toggle_loop();
+        _simulation->toggle_loop();
+
+        _swapchain_destroyed = false;
+    }
+}
+
+// =============================================================================
+void Application::_on_window_minimize(
+    [[maybe_unused]] WindowMinimizeEvent const &event)
+{
+    BTX_TRACE("Application received window minimize.");
+
+    if(!_swapchain_destroyed) {
+        _renderer->toggle_loop();
+        _simulation->toggle_loop();
+
+        _renderer->wait_device_idle();
+
+        this->destroy_swapchain_resources();
+
+        _swapchain_destroyed = true;
+    }
+}
+
+// =============================================================================
+void Application::_on_window_restore(
+    [[maybe_unused]] WindowRestoreEvent const &event)
+{
+    BTX_TRACE("Application received window restore.");
+
+    if(_swapchain_destroyed) {
+        _renderer->recreate_swapchain();
+        this->recreate_swapchain_resources();
+
+        _renderer->toggle_loop();
+        _simulation->toggle_loop();
+
+        _swapchain_destroyed = false;
+    }
+}
+
+// =============================================================================
+void Application::_on_swapchain_resize(
+    [[maybe_unused]] SwapchainResizeEvent const &event)
+{
+    BTX_TRACE("Application received swapchain resize.");
+
+    if(!_swapchain_destroyed) {
+        _simulation->toggle_loop();
+
+        this->destroy_swapchain_resources();
+        _renderer->recreate_swapchain();
+        this->recreate_swapchain_resources();
+
+        _renderer->toggle_loop();
+        _simulation->toggle_loop();
+    }
 }
 
 // =============================================================================
@@ -82,24 +182,6 @@ void Application::_on_key_press(KeyPressEvent const &event) {
             _renderer->toggle_loop();
             break;
     }
-}
-
-// =============================================================================
-void Application::_on_swapchain_resize(
-    [[maybe_unused]] SwapchainResizeEvent const &event)
-{
-    BTX_TRACE("Application coordinating swapchain recreation");
-
-    _simulation->toggle_loop();
-    _renderer->wait_device_idle();
-
-    this->destroy_swapchain_resources();
-    _renderer->recreate_swapchain();
-    this->recreate_swapchain_resources();
-
-    _renderer->wait_device_idle();
-    _renderer->toggle_loop();
-    _simulation->toggle_loop();
 }
 
 } // namespace btx

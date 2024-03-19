@@ -44,9 +44,13 @@ private:
     static GLFWToBTXKeys _keymap;
 
     void _calc_window_dimensions();
-    static void _glfw_error_callback(int code, char const *message);
-    static void _glfw_key_callback(GLFWwindow *window, int key, int scancode,
-                                   int action, int mods);
+    static void _error_callback(int code, char const *message);
+    static void _key_callback(GLFWwindow *window, int key, int scancode,
+                              int action, int mods);
+    static void _window_size_callback(GLFWwindow* window, int width,
+                                      int height);
+    static void _window_iconify_callback(GLFWwindow* window, int iconified);
+
 };
 
 } // namespace btx

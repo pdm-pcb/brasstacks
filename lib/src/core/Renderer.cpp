@@ -103,9 +103,14 @@ void Renderer::run() {
 
             uint32_t const image_index = _acquire_next_image();
             if(image_index == std::numeric_limits<uint32_t>::max()) {
+                if(!_loop_running.test()) {
+                    continue;
+                }
+
                 BTX_ERROR("Swapchain provided invalid index.");
-                EventBus::publish(SwapchainResizeEvent { });
+                wait_device_idle();
                 toggle_loop();
+                EventBus::publish(SwapchainResizeEvent { });
                 continue;
             }
 
@@ -117,9 +122,15 @@ void Renderer::run() {
             _submit_commands();
 
             if(!_present_image()) {
+                if(!_loop_running.test()) {
+                    continue;
+                }
+
                 BTX_ERROR("Swapchain presentation failed.");
-                EventBus::publish(SwapchainResizeEvent { });
+                wait_device_idle();
                 toggle_loop();
+                EventBus::publish(SwapchainResizeEvent { });
+                continue;
             }
 
         TimeKeeper::frame_end();
@@ -151,8 +162,7 @@ uint32_t Renderer::_acquire_next_image() {
     // Something has gone wrong with the swapchain
     if(_image_index == std::numeric_limits<uint32_t>::max()) {
         _image_acquire_sems.push(acquire_sem); // Put the sem back
-        wait_device_idle();                    // Wait for the device to finish
-        return _image_index;                   // Now tell Application
+        return _image_index;                   // Report a problem
     }
 
     // Wrap the corresponding frame's data for convenience
@@ -222,13 +232,7 @@ void Renderer::_submit_commands() {
 // =============================================================================
 bool Renderer::_present_image() {
     auto &frame_sync = *_frame_sync[_image_index];
-    auto const present_success = _swapchain->present(frame_sync, _image_index);
-
-    if(!present_success) {
-        wait_device_idle();
-    }
-
-    return present_success;
+    return _swapchain->present(frame_sync, _image_index);
 }
 
 // =============================================================================

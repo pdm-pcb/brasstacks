@@ -41,6 +41,7 @@ public:
 
 private:
     bool _running;
+    bool _swapchain_destroyed;
 
     TargetWindow *_target_window;
 
@@ -51,13 +52,19 @@ private:
     std::thread _simulation_thread;
 
     EventQueue<WindowCloseEvent>     _window_close_events;
-    EventQueue<KeyPressEvent>        _key_press_events;
+    EventQueue<WindowSizeEvent>      _window_size_events;
+    EventQueue<WindowMinimizeEvent>  _window_minimize_events;
+    EventQueue<WindowRestoreEvent>   _window_restore_events;
     EventQueue<SwapchainResizeEvent> _swapchain_resize_events;
+    EventQueue<KeyPressEvent>        _key_press_events;
 
     void _process_events();
     void _on_window_close(WindowCloseEvent const &event);
-    void _on_key_press(KeyPressEvent const &event);
+    void _on_window_size(WindowSizeEvent const &event);
+    void _on_window_minimize(WindowMinimizeEvent const &event);
+    void _on_window_restore(WindowRestoreEvent const &event);
     void _on_swapchain_resize(SwapchainResizeEvent const &event);
+    void _on_key_press(KeyPressEvent const &event);
 };
 
 } // namespace btx
