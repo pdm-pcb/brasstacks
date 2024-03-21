@@ -48,7 +48,7 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
 
     ::glfwSetWindowSizeLimits(
         _window,
-        854, 480,   // Minimum dimensions
+        320, 240, // Minimum dimensions
         GLFW_DONT_CARE, GLFW_DONT_CARE // Maximum dimensions
     );
 
