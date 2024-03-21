@@ -34,7 +34,7 @@ void Simulation::set_ticks_per_second(uint32_t const ticks_per_second) {
 }
 
 // =============================================================================
-void Simulation::start_thread() {
+void Simulation::begin_thread() {
     BTX_TRACE("Starting simulation thread...");
     _loop_running.test_and_set();
     _loop_running.notify_one();
@@ -44,7 +44,7 @@ void Simulation::start_thread() {
 }
 
 // =============================================================================
-void Simulation::stop_thread() {
+void Simulation::end_thread() {
     BTX_TRACE("Stopping simulation thread...");
 
     // First, make sure the loop can proceed
@@ -56,14 +56,17 @@ void Simulation::stop_thread() {
 }
 
 // =============================================================================
-void Simulation::toggle_loop() {
-    BTX_TRACE("Toggling simulation loop...");
+void Simulation::run_loop() {
+    BTX_TRACE("Staring simulation loop...");
     if(!_loop_running.test_and_set()) {
         _loop_running.notify_one();
     }
-    else {
-        _loop_running.clear();
-    }
+}
+
+// =============================================================================
+void Simulation::pause_loop() {
+    BTX_TRACE("Pausing simulation loop...");
+    _loop_running.clear();
 }
 
 // =============================================================================

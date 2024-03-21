@@ -17,9 +17,10 @@ public:
     explicit Renderer(Application const &application);
     ~Renderer();
 
-    void start_thread();
-    void stop_thread();
-    void toggle_loop();
+    void begin_thread();
+    void end_thread();
+    void run_loop();
+    void pause_loop();
     void run();
 
     inline void wait_device_idle() const { _device->wait_idle(); }

@@ -48,7 +48,7 @@ Renderer::~Renderer() {
 }
 
 // =============================================================================
-void Renderer::start_thread() {
+void Renderer::begin_thread() {
     BTX_TRACE("Starting renderer thread...");
 
     // If we just set _thread_running but not _loop_running, the renderer's
@@ -61,7 +61,7 @@ void Renderer::start_thread() {
 }
 
 // =============================================================================
-void Renderer::stop_thread() {
+void Renderer::end_thread() {
     BTX_TRACE("Stopping renderer thread...");
 
     // First, make sure the loop can proceed
@@ -73,14 +73,17 @@ void Renderer::stop_thread() {
 }
 
 // =============================================================================
-void Renderer::toggle_loop() {
-    BTX_TRACE("Toggling renderer loop...");
+void Renderer::run_loop() {
+    BTX_TRACE("Staring renderer loop...");
     if(!_loop_running.test_and_set()) {
         _loop_running.notify_one();
     }
-    else {
-        _loop_running.clear();
-    }
+}
+
+// =============================================================================
+void Renderer::pause_loop() {
+    BTX_TRACE("Pausing renderer loop...");
+    _loop_running.clear();
 }
 
 // =============================================================================
@@ -107,9 +110,9 @@ void Renderer::run() {
                     continue;
                 }
 
-                BTX_ERROR("Swapchain provided invalid index.");
+                BTX_WARN("Swapchain provided invalid index.");
                 wait_device_idle();
-                toggle_loop();
+                pause_loop();
                 EventBus::publish(SwapchainResizeEvent { });
                 continue;
             }
@@ -126,9 +129,9 @@ void Renderer::run() {
                     continue;
                 }
 
-                BTX_ERROR("Swapchain presentation failed.");
+                BTX_WARN("Swapchain presentation failed.");
                 wait_device_idle();
-                toggle_loop();
+                pause_loop();
                 EventBus::publish(SwapchainResizeEvent { });
                 continue;
             }

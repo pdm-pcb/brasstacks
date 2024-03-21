@@ -46,6 +46,12 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
 
     ::glfwSetWindowPos(_window, _window_position.x, _window_position.y);
 
+    ::glfwSetWindowSizeLimits(
+        _window,
+        854, 480,   // Minimum dimensions
+        GLFW_DONT_CARE, GLFW_DONT_CARE // Maximum dimensions
+    );
+
     ::glfwSetKeyCallback(_window, TargetWindow::_key_callback);
     ::glfwSetWindowSizeCallback(_window, TargetWindow::_window_size_callback);
     ::glfwSetWindowIconifyCallback(_window,

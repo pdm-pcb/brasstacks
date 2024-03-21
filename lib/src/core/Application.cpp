@@ -34,8 +34,8 @@ Application::~Application() {
 void Application::run() {
     this->init(*_renderer);
 
-    _renderer->start_thread();
-    _simulation->start_thread();
+    _renderer->begin_thread();
+    _simulation->begin_thread();
     _target_window->show();
 
     while(_running) {
@@ -48,10 +48,10 @@ void Application::run() {
 
     _target_window->hide();
 
-    _simulation->stop_thread();
+    _simulation->end_thread();
     _simulation_thread.join();
 
-    _renderer->stop_thread();
+    _renderer->end_thread();
     _renderer_thread.join();
 
     _renderer->wait_device_idle();
@@ -86,8 +86,8 @@ void Application::_on_window_size(WindowSizeEvent const &event) {
                   event.size.width,
                   event.size.height);
 
-        _renderer->toggle_loop();
-        _simulation->toggle_loop();
+        _renderer->pause_loop();
+        _simulation->pause_loop();
 
         _renderer->wait_device_idle();
 
@@ -107,8 +107,8 @@ void Application::_on_window_size(WindowSizeEvent const &event) {
         _renderer->recreate_swapchain();
         this->recreate_swapchain_resources();
 
-        _renderer->toggle_loop();
-        _simulation->toggle_loop();
+        _renderer->run_loop();
+        _simulation->run_loop();
 
         _swapchain_destroyed = false;
     }
@@ -121,8 +121,8 @@ void Application::_on_window_minimize(
     BTX_TRACE("Application received window minimize.");
 
     if(!_swapchain_destroyed) {
-        _renderer->toggle_loop();
-        _simulation->toggle_loop();
+        _renderer->pause_loop();
+        _simulation->pause_loop();
 
         _renderer->wait_device_idle();
 
@@ -142,8 +142,8 @@ void Application::_on_window_restore(
         _renderer->recreate_swapchain();
         this->recreate_swapchain_resources();
 
-        _renderer->toggle_loop();
-        _simulation->toggle_loop();
+        _renderer->run_loop();
+        _simulation->run_loop();
 
         _swapchain_destroyed = false;
     }
@@ -156,14 +156,14 @@ void Application::_on_swapchain_resize(
     BTX_TRACE("Application received swapchain resize.");
 
     if(!_swapchain_destroyed) {
-        _simulation->toggle_loop();
+        _simulation->pause_loop();
 
         this->destroy_swapchain_resources();
         _renderer->recreate_swapchain();
         this->recreate_swapchain_resources();
 
-        _renderer->toggle_loop();
-        _simulation->toggle_loop();
+        _renderer->run_loop();
+        _simulation->run_loop();
     }
 }
 
@@ -172,14 +172,6 @@ void Application::_on_key_press(KeyPressEvent const &event) {
     switch(event.code) {
         case BTX_KB_ESCAPE:
             _running = false;
-            break;
-
-        case BTX_KB_PERIOD:
-            _simulation->toggle_loop();
-            break;
-
-        case BTX_KB_FRONT_SLASH:
-            _renderer->toggle_loop();
             break;
     }
 }
