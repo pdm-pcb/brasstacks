@@ -15,7 +15,9 @@
                     "value": "${env:PATH}:${command:cmake.getLaunchTargetDirectory}"
                 }
             ],
-            "MIMode": "gdb"
+            "MIMode": "gdb",
+            "externalConsole": true
+
         },
         {
             "name": "(lldb) Launch",
@@ -31,7 +33,9 @@
                     "value": "${env:PATH}:${command:cmake.getLaunchTargetDirectory}"
                 }
             ],
-            "MIMode": "lldb"
+            "MIMode": "lldb",
+            "externalConsole": true
+
         },
         {
             "name": "(msvc) Launch",
@@ -48,6 +52,7 @@
                 }
             ],
             "console": "externalTerminal",
+            "externalConsole": true
         }
     ]
 }
