@@ -1,9 +1,9 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
@@ -12,7 +12,7 @@ namespace btx {
 
 vkColorDepthPass::vkColorDepthPass(Renderer const &renderer,
                                    bool const present) :
-    vkRenderPass  { renderer },
+    vkRenderPassBase  { renderer },
     _depth_format { vk::Format::eUndefined },
     _msaa_samples {
         vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples)

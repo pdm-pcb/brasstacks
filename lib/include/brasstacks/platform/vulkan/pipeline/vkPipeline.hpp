@@ -8,7 +8,7 @@ namespace btx {
 
 class vkDevice;
 class vkShader;
-class vkRenderPass;
+class vkRenderPassBase;
 class vkCmdBuffer;
 class vkDescriptorSet;
 class vkDescriptorSetLayout;
@@ -71,7 +71,7 @@ public:
         uint32_t subpass_index = 0u;
     };
 
-    void create(vkRenderPass const &render_pass, Config const &config);
+    void create(vkRenderPassBase const &render_pass, Config const &config);
 
     using PushConstants = std::vector<PushConstant>;
     void send_push_constants(PushConstants const &push_constants);

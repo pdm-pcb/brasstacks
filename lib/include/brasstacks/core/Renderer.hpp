@@ -3,7 +3,7 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 
 namespace btx {
 

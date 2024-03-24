@@ -3,9 +3,9 @@
 
 #include "brasstacks/rendering/meshes/Mesh.hpp"
 
-#include "brasstacks/platform/vulkan/rendering/vkColorDepthPass.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 

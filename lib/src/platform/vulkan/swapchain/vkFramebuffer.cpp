@@ -1,16 +1,16 @@
 #include "brasstacks/brasstacks.hpp"
 
-#include "brasstacks/platform/vulkan/rendering/vkFramebuffer.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkFramebuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
 
 // =============================================================================
 vkFramebuffer::vkFramebuffer(vkDevice const &device,
-                             vkRenderPass const &render_pass,
+                             vkRenderPassBase const &render_pass,
                              RenderConfig::Size const &size,
                              std::vector<vk::ImageView> const &attachments) :
     _device { device }

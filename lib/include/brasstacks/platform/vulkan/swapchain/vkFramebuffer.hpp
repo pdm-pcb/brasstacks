@@ -1,10 +1,10 @@
 /**
- * @file vkFramebuffer.hpp
+ * @file swapchain/vkFramebuffer.hpp
  * @brief Simple wrapper for a Vulkan framebuffer
  */
 
-#ifndef BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAMEBUFFER_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAMEBUFFER_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMEBUFFER_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMEBUFFER_HPP
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
@@ -12,14 +12,14 @@
 namespace btx {
 
 class vkDevice;
-class vkRenderPass;
+class vkRenderPassBase;
 
 /**
  * @brief Simple wrapper for a Vulkan framebuffer
  */
 class vkFramebuffer final {
 public:
-    vkFramebuffer(vkDevice const &device, vkRenderPass const &render_pass,
+    vkFramebuffer(vkDevice const &device, vkRenderPassBase const &render_pass,
                   RenderConfig::Size const &size,
                   std::vector<vk::ImageView> const &attachments);
 
@@ -53,4 +53,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAMEBUFFER_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMEBUFFER_HPP

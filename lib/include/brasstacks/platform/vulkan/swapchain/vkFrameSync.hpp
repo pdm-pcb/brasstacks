@@ -1,10 +1,10 @@
 /**
- * @file vkFrameSync.hpp
+ * @file swapchain/vkFrameSync.hpp
  * @brief A container for various frame-related data
  */
 
-#ifndef BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAME_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAME_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMESYNC_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMESYNC_HPP
 
 #include "brasstacks/pch.hpp"
 
@@ -125,4 +125,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKFRAME_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMESYNC_HPP

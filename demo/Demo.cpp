@@ -8,7 +8,7 @@
 #include "brasstacks/rendering/meshes/CubeMesh.hpp"
 #include "brasstacks/tools/FPSCamera.hpp"
 
-#include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"

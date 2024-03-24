@@ -1,15 +1,15 @@
 #include "brasstacks/brasstacks.hpp"
 
-#include "brasstacks/platform/vulkan/rendering/vkSwapchain.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkFrameSync.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 
 namespace btx {
 

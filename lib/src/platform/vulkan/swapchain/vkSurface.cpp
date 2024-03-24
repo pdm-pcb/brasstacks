@@ -1,5 +1,5 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 

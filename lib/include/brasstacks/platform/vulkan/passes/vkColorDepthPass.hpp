@@ -1,8 +1,8 @@
-#ifndef BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORPASS_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORPASS_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORPASS_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORPASS_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkRenderPass.hpp"
+#include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"
 
 namespace btx {
 
@@ -11,7 +11,7 @@ class Renderer;
 class vkImage;
 class vkImageView;
 
-class vkColorDepthPass final : public vkRenderPass {
+class vkColorDepthPass final : public vkRenderPassBase {
 public:
 
     vkColorDepthPass(Renderer const &renderer, bool const present);
@@ -61,4 +61,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKCOLORPASSPRESENT_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORPASS_HPP

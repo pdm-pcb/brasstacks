@@ -2,7 +2,7 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
-#include "brasstacks/platform/vulkan/rendering/vkSurface.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 

@@ -1,10 +1,10 @@
 /**
- * @file vkSurface.hpp
+ * @file swapchain/vkSurface.hpp
  * @brief A wrapper class for a Vulkan surface.
  */
 
-#ifndef BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKSURFACE_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKSURFACE_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKSURFACE_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKSURFACE_HPP
 
 #include "brasstacks/pch.hpp"
 
@@ -60,4 +60,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_RENDERING_VKSURFACE_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKSURFACE_HPP
