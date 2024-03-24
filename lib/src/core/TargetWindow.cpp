@@ -4,10 +4,9 @@
 #include "brasstacks/events/EventBus.hpp"
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
+#include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
 
 namespace btx {
-
-GLFWToBTXKeys TargetWindow::_keymap { };
 
 // =============================================================================
 TargetWindow::TargetWindow(std::string_view const app_name) :
@@ -118,10 +117,10 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
                                  [[maybe_unused]] int mods)
 {
     if(action == GLFW_PRESS) {
-        EventBus::publish(KeyPressEvent(_keymap.translate(key)));
+        EventBus::publish(KeyPressEvent(GLFWToBTXKeys::translate(key)));
     }
     else if(action == GLFW_RELEASE) {
-        EventBus::publish(KeyReleaseEvent(_keymap.translate(key)));
+        EventBus::publish(KeyReleaseEvent(GLFWToBTXKeys::translate(key)));
     }
 }
 

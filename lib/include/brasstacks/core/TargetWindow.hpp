@@ -3,7 +3,6 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
 
 namespace btx {
 
@@ -40,8 +39,6 @@ private:
 
     RenderConfig::Size   _window_size;
     RenderConfig::Offset _window_position;
-
-    static GLFWToBTXKeys _keymap;
 
     void _calc_window_dimensions();
     static void _error_callback(int code, char const *message);
