@@ -5,7 +5,18 @@
 
 namespace btx {
 
-struct EventBase { };
+struct EventBase {
+
+protected:
+    EventBase() = default;
+    ~EventBase() = default;
+
+    EventBase(EventBase &&) = default;
+    EventBase(EventBase const &) = default;
+
+    EventBase & operator=(EventBase &&) = default;
+    EventBase & operator=(EventBase const &) = default;
+};
 
 } // namespace btx
 

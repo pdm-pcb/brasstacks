@@ -21,6 +21,7 @@ public:
             }
         }
     {
+        EventBus::register_event<EventType>();
         EventBus::subscribe<EventType>(*this, &EventQueue<EventType>::push);
     }
 
@@ -41,7 +42,7 @@ public:
     }
 
     void process_queue() {
-        assert(_back_queue->empty());
+        assert(_back_queue->empty() && "Back queue not yet empty!");
         {
             std::unique_lock<std::mutex> swap_lock(_front_queue_mutex);
             if(_front_queue->empty()) {
@@ -57,15 +58,17 @@ public:
             _callback(event);
         }
 
-        assert(_back_queue->empty());
+        assert(_back_queue->empty() && "Back queue never finished!");
     }
 
 private:
-    std::queue<EventType> _queue_a;
-    std::queue<EventType> _queue_b;
+    using Queue = std::queue<EventType>;
 
-    std::queue<EventType> *_front_queue;
-    std::queue<EventType> *_back_queue;
+    Queue _queue_a;
+    Queue _queue_b;
+
+    Queue *_front_queue;
+    Queue *_back_queue;
 
     std::mutex _front_queue_mutex;
 

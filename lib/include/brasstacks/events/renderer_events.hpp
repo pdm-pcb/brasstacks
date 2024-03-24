@@ -6,7 +6,9 @@
 
 namespace btx {
 
-struct SwapchainResizeEvent : public EventBase { };
+struct SwapchainRecreateEvent : public EventBase {
+    SwapchainRecreateEvent() : EventBase() { }
+};
 
 } // namespace btx
 

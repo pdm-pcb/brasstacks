@@ -8,21 +8,40 @@
 namespace btx {
 
 struct MouseMoveEvent final : public EventBase {
-    int32_t x_offset = 0;
-    int32_t y_offset = 0;
+    MouseMoveEvent(int32_t const x, int32_t const y) :
+        EventBase(),
+        x_offset(x),
+        y_offset(y)
+    { }
+
+    MouseMoveEvent() = delete;
+
+    int32_t x_offset;
+    int32_t y_offset;
 };
 
 struct MouseButtonPressEvent final : public EventBase {
+    MouseButtonPressEvent() : EventBase() { }
     Keycode code;
 };
 
 struct MouseButtonReleaseEvent final : public EventBase {
+    MouseButtonReleaseEvent() : EventBase() { }
+
     Keycode code;
 };
 
 struct MouseScrollEvent final : public EventBase {
-    int32_t vert_offset = 0;
-    int32_t horiz_offset = 0;
+    MouseScrollEvent(int32_t const vert, int32_t const horiz) :
+        EventBase(),
+        vert_offset { vert },
+        horiz_offset { horiz }
+    { }
+
+    MouseScrollEvent() = delete;
+
+    int32_t vert_offset;
+    int32_t horiz_offset;
 };
 
 } //namespace btx

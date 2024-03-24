@@ -9,11 +9,31 @@ namespace btx {
 
 class EventBus final {
 public:
-    template<typename EventType, typename Queue, typename PushFnPtr>
-    static void subscribe(Queue &queue, PushFnPtr callback) {
+    template<typename EventType>
+    static void register_event() {
         auto const event_id = _event_id<EventType>();
-        BTX_TRACE("Subscribing to event {}", event_id);
-        _queues_by_event[event_id].emplace_back(
+
+        static std::mutex registration_mutex;
+        std::unique_lock<std::mutex> lock(registration_mutex);
+
+        if(event_id == _callbacks_by_event.size()) {
+            _callbacks_by_event.emplace_back(0);
+            BTX_TRACE("Registered event type with ID {}", event_id);
+        }
+    }
+
+    template<typename EventType, typename Queue, typename Callback>
+    static void subscribe(Queue &queue, Callback callback) {
+        auto const event_id = _event_id<EventType>();
+
+        if(event_id >= _callbacks_by_event.size()) {
+            BTX_CRITICAL("Attempting to subscribe to unknown event ID {}. "
+                         "Did you forget to call EventBus::init()?",
+                          event_id);
+            return;
+        }
+
+        _callbacks_by_event[event_id].emplace_back(
             [&queue, callback](const EventBase &event) {
                 (queue.*callback)(event);
             }
@@ -23,28 +43,25 @@ public:
     template <typename EventType>
     static void publish(EventType const &event) {
         auto const event_id = _event_id<EventType>();
-        for(auto const &callback : _queues_by_event[event_id]) {
+        for(auto const &callback : _callbacks_by_event[event_id]) {
             callback(event);
         }
     }
 
 private:
-    using PushFn = std::function<void(EventBase const &)>;
-    static std::vector<std::vector<PushFn>> _queues_by_event;
+    using QueueCallback = std::function<void(EventBase const &)>;
+    using QueueCallbacks = std::vector<QueueCallback>;
+
+    static std::vector<QueueCallbacks> _callbacks_by_event;
 
     template <typename Event>
     static uint32_t _event_id() {
-        static uint32_t const event_id = _register_event();
-        _queues_by_event.push_back({ });
+        static auto const event_id =
+            static_cast<uint32_t>(_callbacks_by_event.size());
         return event_id;
     }
 
-    static uint32_t _register_event() {
-        auto const event_id = static_cast<uint32_t>(_queues_by_event.size());
-        BTX_TRACE("Registered event with ID {}", event_id);
-        return event_id;
-    }
-};
+    };
 
 } // namespace btx
 

@@ -118,10 +118,10 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
                                  [[maybe_unused]] int mods)
 {
     if(action == GLFW_PRESS) {
-        EventBus::publish(KeyPressEvent { .code = _keymap.translate(key) });
+        EventBus::publish(KeyPressEvent(_keymap.translate(key)));
     }
     else if(action == GLFW_RELEASE) {
-        EventBus::publish(KeyReleaseEvent { .code = _keymap.translate(key) });
+        EventBus::publish(KeyReleaseEvent(_keymap.translate(key)));
     }
 }
 
@@ -130,12 +130,10 @@ void TargetWindow::_window_size_callback([[maybe_unused]] GLFWwindow* window,
                                          [[maybe_unused]] int width,
                                          [[maybe_unused]] int height)
 {
-    EventBus::publish(WindowSizeEvent {
-        .size = {
-            .width  = static_cast<uint32_t>(width),
-            .height = static_cast<uint32_t>(height)
-        }
-    });
+    EventBus::publish(WindowSizeEvent({
+        .width  = static_cast<uint32_t>(width),
+        .height = static_cast<uint32_t>(height)
+    }));
 }
 
 // =============================================================================

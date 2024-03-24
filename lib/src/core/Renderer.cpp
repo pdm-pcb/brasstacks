@@ -113,7 +113,7 @@ void Renderer::run() {
                 BTX_WARN("Swapchain provided invalid index.");
                 wait_device_idle();
                 pause_loop();
-                EventBus::publish(SwapchainResizeEvent { });
+                EventBus::publish(SwapchainRecreateEvent { });
                 continue;
             }
 
@@ -132,7 +132,7 @@ void Renderer::run() {
                 BTX_WARN("Swapchain presentation failed.");
                 wait_device_idle();
                 pause_loop();
-                EventBus::publish(SwapchainResizeEvent { });
+                EventBus::publish(SwapchainRecreateEvent { });
                 continue;
             }
 

@@ -18,6 +18,16 @@ void ConsoleLog::_init() {
 
         // Default to everything
         _logger->set_level(spdlog::level::trace);
+
+        auto const fmt_major = FMT_VERSION / 10000;
+        auto const fmt_minor = (FMT_VERSION - fmt_major * 10000) / 100;
+        auto const fmt_patch = (FMT_VERSION - fmt_major * 10000 - fmt_minor * 100);
+
+        _logger->info(
+            "spdlog v{}.{}.{} using libfmt {}.{}.{}",
+            SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH,
+            fmt_major, fmt_minor, fmt_patch
+        );
     });
 }
 

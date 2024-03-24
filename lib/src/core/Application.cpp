@@ -19,7 +19,7 @@ Application::Application(std::string_view const app_name) :
     _window_size_events      { *this, &Application::_on_window_size },
     _window_minimize_events  { *this, &Application::_on_window_minimize },
     _window_restore_events   { *this, &Application::_on_window_restore },
-    _swapchain_resize_events { *this, &Application::_on_swapchain_resize },
+    _swapchain_resize_events { *this, &Application::_on_swapchain_recreate },
     _key_press_events        { *this, &Application::_on_key_press }
 { }
 
@@ -150,8 +150,8 @@ void Application::_on_window_restore(
 }
 
 // =============================================================================
-void Application::_on_swapchain_resize(
-    [[maybe_unused]] SwapchainResizeEvent const &event)
+void Application::_on_swapchain_recreate(
+    [[maybe_unused]] SwapchainRecreateEvent const &event)
 {
     BTX_TRACE("Application received swapchain resize.");
 
