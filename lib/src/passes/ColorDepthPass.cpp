@@ -1,7 +1,7 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/rendering/passes/ColorDepthPass.hpp"
+#include "brasstacks/passes/ColorDepthPass.hpp"
 
-#include "brasstacks/rendering/meshes/Mesh.hpp"
+#include "brasstacks/assets/meshes/Mesh.hpp"
 
 #include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"

@@ -2,10 +2,10 @@
 #include "brasstacks/brasstacks.hpp"
 
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/rendering/passes/ColorDepthPass.hpp"
+#include "brasstacks/passes/ColorDepthPass.hpp"
 
-#include "brasstacks/rendering/meshes/PlaneMesh.hpp"
-#include "brasstacks/rendering/meshes/CubeMesh.hpp"
+#include "brasstacks/assets/meshes/PlaneMesh.hpp"
+#include "brasstacks/assets/meshes/CubeMesh.hpp"
 #include "brasstacks/tools/FPSCamera.hpp"
 
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"

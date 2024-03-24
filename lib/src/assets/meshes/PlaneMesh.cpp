@@ -1,4 +1,4 @@
-#include "brasstacks/rendering/meshes/PlaneMesh.hpp"
+#include "brasstacks/assets/meshes/PlaneMesh.hpp"
 
 #include "brasstacks/math/math.hpp"
 

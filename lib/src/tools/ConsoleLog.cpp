@@ -24,7 +24,7 @@ void ConsoleLog::_init() {
         auto const fmt_patch = (FMT_VERSION - fmt_major * 10000 - fmt_minor * 100);
 
         _logger->info(
-            "spdlog v{}.{}.{} using libfmt {}.{}.{}",
+            "spdlog v{}.{}.{} using libfmt v{}.{}.{}",
             SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH,
             fmt_major, fmt_minor, fmt_patch
         );

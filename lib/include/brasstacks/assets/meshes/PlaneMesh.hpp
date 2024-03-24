@@ -1,8 +1,8 @@
-#ifndef BRASSTACKS_RENDERING_MESHES_PLANEMESH_HPP
-#define BRASSTACKS_RENDERING_MESHES_PLANEMESH_HPP
+#ifndef BRASSTACKS_ASSETS_MESHES_PLANEMESH_HPP
+#define BRASSTACKS_ASSETS_MESHES_PLANEMESH_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/rendering/meshes/Mesh.hpp"
+#include "brasstacks/assets/meshes/Mesh.hpp"
 #include "brasstacks/math/colors.hpp"
 
 namespace btx {
@@ -30,4 +30,4 @@ public:
 
 } // namespace btx
 
-#endif // BRASSTACKS_RENDERING_MESHES_PLANEMESH_HPP
+#endif // BRASSTACKS_ASSETS_MESHES_PLANEMESH_HPP

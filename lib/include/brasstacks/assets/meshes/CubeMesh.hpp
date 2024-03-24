@@ -1,8 +1,8 @@
-#ifndef BRASSTACKS_RENDERING_MESHES_CUBEMESH_HPP
-#define BRASSTACKS_RENDERING_MESHES_CUBEMESH_HPP
+#ifndef BRASSTACKS_ASSETS_MESHES_CUBEMESH_HPP
+#define BRASSTACKS_ASSETS_MESHES_CUBEMESH_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/rendering/meshes/Mesh.hpp"
+#include "brasstacks/assets/meshes/Mesh.hpp"
 
 namespace btx {
 
@@ -30,4 +30,4 @@ public:
 
 } // namespace btx
 
-#endif // BRASSTACKS_RENDERING_MESHES_CUBEMESH_HPP
+#endif // BRASSTACKS_ASSETS_MESHES_CUBEMESH_HPP

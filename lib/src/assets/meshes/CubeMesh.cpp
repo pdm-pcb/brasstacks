@@ -1,4 +1,4 @@
-#include "brasstacks/rendering/meshes/CubeMesh.hpp"
+#include "brasstacks/assets/meshes/CubeMesh.hpp"
 
 #include "brasstacks/math/math.hpp"
 

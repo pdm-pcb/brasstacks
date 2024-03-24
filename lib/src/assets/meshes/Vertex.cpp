@@ -1,4 +1,4 @@
-#include "brasstacks/rendering/meshes/Vertex.hpp"
+#include "brasstacks/assets/meshes/Vertex.hpp"
 
 namespace btx {
 

@@ -1,4 +1,4 @@
-#include "brasstacks/rendering/meshes/Mesh.hpp"
+#include "brasstacks/assets/meshes/Mesh.hpp"
 
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"

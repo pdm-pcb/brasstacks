@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_RENDERING_MESHES_INDEX_HPP
-#define BRASSTACKS_RENDERING_MESHES_INDEX_HPP
+#ifndef BRASSTACKS_ASSETS_MESHES_INDEX_HPP
+#define BRASSTACKS_ASSETS_MESHES_INDEX_HPP
 
 #include "brasstacks/pch.hpp"
 
@@ -10,4 +10,4 @@ static constexpr vk::IndexType INDEX_TYPE = vk::IndexType::eUint32;
 
 } // namespace btx
 
-#endif // BRASSTACKS_RENDERING_MESHES_INDEX_HPP
+#endif // BRASSTACKS_ASSETS_MESHES_INDEX_HPP

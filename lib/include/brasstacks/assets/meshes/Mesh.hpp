@@ -1,9 +1,9 @@
-#ifndef BRASSTACKS_RENDERING_MESHES_MESH_HPP
-#define BRASSTACKS_RENDERING_MESHES_MESH_HPP
+#ifndef BRASSTACKS_ASSETS_MESHES_MESH_HPP
+#define BRASSTACKS_ASSETS_MESHES_MESH_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/rendering/meshes/Vertex.hpp"
-#include "brasstacks/rendering/meshes/Index.hpp"
+#include "brasstacks/assets/meshes/Vertex.hpp"
+#include "brasstacks/assets/meshes/Index.hpp"
 
 namespace btx {
 
@@ -42,4 +42,4 @@ private:
 } // namespace btx
 
 
-#endif // BRASSTACKS_RENDERING_MESHES_MESH_HPP
+#endif // BRASSTACKS_ASSETS_MESHES_MESH_HPP

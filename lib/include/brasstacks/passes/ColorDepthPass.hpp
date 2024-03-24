@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_RENDERING_PASSES_COLORDEPTHPASS_HPP
-#define BRASSTACKS_RENDERING_PASSES_COLORDEPTHPASS_HPP
+#ifndef BRASSTACKS_PASSES_COLORDEPTHPASS_HPP
+#define BRASSTACKS_PASSES_COLORDEPTHPASS_HPP
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
@@ -57,4 +57,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_RENDERING_PASSES_COLORDEPTHPASS_HPP
+#endif // BRASSTACKS_PASSES_COLORDEPTHPASS_HPP
