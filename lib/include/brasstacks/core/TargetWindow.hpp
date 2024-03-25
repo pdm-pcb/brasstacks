@@ -14,14 +14,8 @@ public:
     inline void show() { ::glfwShowWindow(_window); }
     inline void hide() { ::glfwHideWindow(_window); }
 
-    inline void capture_mouse() {
-        ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        ::glfwGetCursorPos(_window, &_last_cursor_x, &_last_cursor_y);
-    }
-
-    inline void release_mouse() {
-        ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
+    void capture_mouse();
+    void release_mouse();
 
     void poll_events();
 
@@ -59,6 +53,8 @@ private:
                               int action, int mods);
 
     static void _mouse_move_callback(GLFWwindow* window, double x, double y);
+    static void _mouse_button_callback(GLFWwindow* window, int button,
+                                       int action, int mods);
 
     static void _window_size_callback(GLFWwindow* window, int width,
                                       int height);

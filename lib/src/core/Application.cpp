@@ -3,28 +3,42 @@
 
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/core/Renderer.hpp"
+#include "brasstacks/core/state/AppStateMenu.hpp"
+#include "brasstacks/core/state/AppStatePlay.hpp"
 
 namespace btx {
 
 // =============================================================================
 Application::Application(std::string_view const app_name) :
-    _running                 { true },
-    _swapchain_destroyed     { false },
-    _target_window           { new TargetWindow(app_name) },
-    _renderer                { new Renderer(*this) },
-    _renderer_thread         { &Renderer::run, _renderer },
-    _simulation              { new Simulation(*this, 120) },
-    _simulation_thread       { &Simulation::run, _simulation },
-    _window_close_events     { *this, &Application::_on_window_close },
-    _window_size_events      { *this, &Application::_on_window_size },
-    _window_minimize_events  { *this, &Application::_on_window_minimize },
-    _window_restore_events   { *this, &Application::_on_window_restore },
-    _swapchain_resize_events { *this, &Application::_on_swapchain_recreate },
-    _key_press_events        { *this, &Application::_on_key_press }
-{ }
+    _current_state             { nullptr },
+    _menu_state                { nullptr },
+    _play_state                { nullptr },
+    _running                   { true },
+    _swapchain_destroyed       { false },
+    _target_window             { new TargetWindow(app_name) },
+    _renderer                  { new Renderer(*this) },
+    _renderer_thread           { &Renderer::run, _renderer },
+    _simulation                { new Simulation(*this, 120) },
+    _simulation_thread         { &Simulation::run, _simulation },
+    _state_events              { *this, &Application::_state_transition },
+    _window_close_events       { *this, &Application::_window_close },
+    _window_size_events        { *this, &Application::_window_size },
+    _window_minimize_events    { *this, &Application::_window_minimize },
+    _window_restore_events     { *this, &Application::_window_restore },
+    _swapchain_recreate_events { *this, &Application::_swapchain_recreate },
+    _key_press_events          { *this, &Application::_key_press },
+    _mouse_button_press_events { *this, &Application::_mouse_button_press }
+{
+    _menu_state = new AppStateMenu(*this);
+    _play_state = new AppStatePlay(*_target_window);
+    _current_state = _menu_state;
+}
 
 // =============================================================================
 Application::~Application() {
+    delete _menu_state;
+    delete _play_state;
+
     delete _simulation;
     delete _renderer;
     delete _target_window;
@@ -37,7 +51,6 @@ void Application::run() {
     _renderer->begin_thread();
     _simulation->begin_thread();
 
-    _target_window->capture_mouse();
     _target_window->show();
 
     while(_running) {
@@ -45,11 +58,12 @@ void Application::run() {
         _target_window->poll_events();
         _process_events();
 
+        _current_state->execute();
+
         std::this_thread::yield();
     }
 
     _target_window->hide();
-    _target_window->release_mouse();
 
     _simulation->end_thread();
     _simulation_thread.join();
@@ -64,24 +78,38 @@ void Application::run() {
 
 // =============================================================================
 void Application::_process_events() {
+    _state_events.process_queue();
     _window_close_events.process_queue();
     _window_size_events.process_queue();
     _window_minimize_events.process_queue();
     _window_restore_events.process_queue();
-    _swapchain_resize_events.process_queue();
+    _swapchain_recreate_events.process_queue();
     _key_press_events.process_queue();
+    _mouse_button_press_events.process_queue();
 }
 
 // =============================================================================
-void Application::_on_window_close(
-    [[maybe_unused]] WindowCloseEvent const &event)
+void Application::_state_transition(AppStateTransition const &event) {
+    if(_current_state != nullptr) {
+        _current_state->exit();
+    }
+
+    switch(event.next_state_type) {
+        case AppState::MENU_STATE: _current_state = _menu_state; break;
+        case AppState::PLAY_STATE: _current_state = _play_state; break;
+    }
+
+    _current_state->enter();
+}
+
+// =============================================================================
+void Application::_window_close([[maybe_unused]] WindowCloseEvent const &event)
 {
     _running = false;
 }
 
 // =============================================================================
-void Application::_on_window_size(WindowSizeEvent const &event) {
-
+void Application::_window_size(WindowSizeEvent const &event) {
     if(!_swapchain_destroyed
        && (event.size.width == 0u || event.size.height == 0u))
     {
@@ -118,7 +146,7 @@ void Application::_on_window_size(WindowSizeEvent const &event) {
 }
 
 // =============================================================================
-void Application::_on_window_minimize(
+void Application::_window_minimize(
     [[maybe_unused]] WindowMinimizeEvent const &event)
 {
     BTX_TRACE("Application received window minimize.");
@@ -136,7 +164,7 @@ void Application::_on_window_minimize(
 }
 
 // =============================================================================
-void Application::_on_window_restore(
+void Application::_window_restore(
     [[maybe_unused]] WindowRestoreEvent const &event)
 {
     BTX_TRACE("Application received window restore.");
@@ -153,7 +181,7 @@ void Application::_on_window_restore(
 }
 
 // =============================================================================
-void Application::_on_swapchain_recreate(
+void Application::_swapchain_recreate(
     [[maybe_unused]] SwapchainRecreateEvent const &event)
 {
     BTX_TRACE("Application received swapchain resize.");
@@ -171,12 +199,23 @@ void Application::_on_swapchain_recreate(
 }
 
 // =============================================================================
-void Application::_on_key_press(KeyPressEvent const &event) {
-    switch(event.code) {
-        case BTX_KB_ESCAPE:
-            _running = false;
-            break;
+void Application::_key_press(KeyPressEvent const &event) {
+    if(_current_state == nullptr) {
+        BTX_CRITICAL("Application::_key_press before state assigned.");
+        return;
     }
+
+    _current_state->key_press(event);
+}
+
+// =============================================================================
+void Application::_mouse_button_press(MouseButtonPressEvent const &event) {
+    if(_current_state == nullptr) {
+        BTX_CRITICAL("Application::_mouse_button_press before state assigned.");
+        return;
+    }
+
+    _current_state->mouse_button_press(event);
 }
 
 } // namespace btx

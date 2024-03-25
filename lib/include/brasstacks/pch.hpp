@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <fstream>
 #include <queue>
+#include <stack>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>

@@ -47,10 +47,7 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
         return;
     }
 
-    if(::glfwRawMouseMotionSupported() == GLFW_TRUE) {
-        ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-    }
-    else {
+    if(::glfwRawMouseMotionSupported() != GLFW_TRUE) {
         BTX_CRITICAL("Raw mouse input not supported by this platform.");
         return;
     }
@@ -64,6 +61,7 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
     );
 
     ::glfwSetKeyCallback(_window, TargetWindow::_key_callback);
+    ::glfwSetMouseButtonCallback(_window, TargetWindow::_mouse_button_callback);
     ::glfwSetCursorPosCallback(_window, _mouse_move_callback);
     ::glfwSetWindowSizeCallback(_window, TargetWindow::_window_size_callback);
     ::glfwSetWindowIconifyCallback(_window,
@@ -85,6 +83,19 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
 TargetWindow::~TargetWindow() {
     ::glfwDestroyWindow(_window);
     ::glfwTerminate();
+}
+
+// =============================================================================
+void TargetWindow::capture_mouse() {
+    ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    ::glfwGetCursorPos(_window, &_last_cursor_x, &_last_cursor_y);
+}
+
+// =============================================================================
+void TargetWindow::release_mouse() {
+    ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 }
 
 // =============================================================================
@@ -129,11 +140,12 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
                                  [[maybe_unused]] int action,
                                  [[maybe_unused]] int mods)
 {
+    auto const code = GLFWToBTXKeys::translate(key);
     if(action == GLFW_PRESS) {
-        EventBus::publish(KeyPressEvent(GLFWToBTXKeys::translate(key)));
+        EventBus::publish(KeyPressEvent(code));
     }
     else if(action == GLFW_RELEASE) {
-        EventBus::publish(KeyReleaseEvent(GLFWToBTXKeys::translate(key)));
+        EventBus::publish(KeyReleaseEvent(code));
     }
 }
 
@@ -141,19 +153,33 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
 void TargetWindow::_mouse_move_callback([[maybe_unused]] GLFWwindow* window,
                                         double x, double y)
 {
-    static double x_offset = 0.0;
-    static double y_offset = 0.0;
+    // static double x_offset = 0.0;
+    // static double y_offset = 0.0;
 
-    x_offset = x - _last_cursor_x;
-    y_offset = y - _last_cursor_y;
+    // x_offset = x - _last_cursor_x;
+    // y_offset = y - _last_cursor_y;
 
-    _last_cursor_x = x;
-    _last_cursor_y = y;
+    // _last_cursor_x = x;
+    // _last_cursor_y = y;
 
-    EventBus::publish(
-        MouseMoveEvent(static_cast<int32_t>(x_offset),
-                       static_cast<int32_t>(y_offset))
-    );
+    // EventBus::publish(
+    //     MouseMoveEvent(static_cast<int32_t>(x_offset),
+    //                    static_cast<int32_t>(y_offset))
+    // );
+}
+
+// =============================================================================
+void TargetWindow::_mouse_button_callback(GLFWwindow* window, int button,
+                                          int action, int mods)
+{
+    auto const code = GLFWToBTXKeys::translate(button);
+
+    if(action == GLFW_PRESS) {
+        EventBus::publish(MouseButtonPressEvent(code));
+    }
+    // else if(action == GLFW_RELEASE) {
+    //     EventBus::publish(MouseButtonReleaseEvent(code));
+    // }
 }
 
 // =============================================================================

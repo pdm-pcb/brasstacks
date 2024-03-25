@@ -21,12 +21,23 @@ struct MouseMoveEvent final : public EventBase {
 };
 
 struct MouseButtonPressEvent final : public EventBase {
-    MouseButtonPressEvent() : EventBase() { }
+    explicit MouseButtonPressEvent(Keycode code) :
+        EventBase(),
+        code { code }
+    { }
+
+    MouseButtonPressEvent() = delete;
+
     Keycode code;
 };
 
 struct MouseButtonReleaseEvent final : public EventBase {
-    MouseButtonReleaseEvent() : EventBase() { }
+    explicit MouseButtonReleaseEvent(Keycode code) :
+        EventBase(),
+        code { code }
+    { }
+
+    MouseButtonReleaseEvent() = delete;
 
     Keycode code;
 };
