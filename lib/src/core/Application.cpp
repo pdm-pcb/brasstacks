@@ -10,9 +10,6 @@ namespace btx {
 
 // =============================================================================
 Application::Application(std::string_view const app_name) :
-    _current_state             { nullptr },
-    _menu_state                { nullptr },
-    _play_state                { nullptr },
     _running                   { true },
     _swapchain_destroyed       { false },
     _target_window             { new TargetWindow(app_name) },

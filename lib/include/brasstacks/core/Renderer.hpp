@@ -4,12 +4,12 @@
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 
 namespace btx {
 
 class Application;
 class vkSurface;
-class vkSwapchain;
 class vkCmdBuffer;
 
 class Renderer final {
@@ -29,6 +29,10 @@ public:
 
     inline auto const & device()    const { return *_device; }
     inline auto const & swapchain() const { return *_swapchain; }
+
+    inline auto render_surface_aspect_ratio() const {
+        return _swapchain->aspect_ratio();
+    }
 
     inline auto image_index() const { return _image_index; }
     inline auto const & cmd_buffer() const {

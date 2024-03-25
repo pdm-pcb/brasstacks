@@ -1,5 +1,5 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/tools/FPSCamera.hpp"
+#include "brasstacks/tools/cameras/PerspectiveCamera.hpp"
 
 #include "brasstacks/events/EventBus.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
@@ -8,11 +8,11 @@
 namespace btx {
 
 // =============================================================================
-FPSCamera::FPSCamera(Orientation const &orientation,
-                     PerspectiveParams const &persp_params) :
-    _key_press_queue   { *this, &FPSCamera::on_key_press },
-    _key_release_queue { *this, &FPSCamera::on_key_release },
-    _mouse_move_queue  { *this, &FPSCamera::on_mouse_move }
+PerspectiveCamera::PerspectiveCamera(Orientation const &orientation,
+                                     PerspectiveParams const &persp_params) :
+    _key_press_queue   { *this, &PerspectiveCamera::on_key_press },
+    _key_release_queue { *this, &PerspectiveCamera::on_key_release },
+    _mouse_move_queue  { *this, &PerspectiveCamera::on_mouse_move }
 {
     _state = {
         .position = orientation.position,
@@ -24,7 +24,7 @@ FPSCamera::FPSCamera(Orientation const &orientation,
 }
 
 // =============================================================================
-void FPSCamera::update() {
+void PerspectiveCamera::update() {
     _process_events();
 
     auto const cos_yaw   = std::cos(math::radians(_state.yaw));
@@ -63,7 +63,7 @@ void FPSCamera::update() {
 }
 
 // =============================================================================
-void FPSCamera::on_key_press(KeyPressEvent const &event) {
+void PerspectiveCamera::on_key_press(KeyPressEvent const &event) {
     switch(event.code) {
         case BTX_KB_W          : _kb.w      = true; break;
         case BTX_KB_A          : _kb.a      = true; break;
@@ -77,7 +77,7 @@ void FPSCamera::on_key_press(KeyPressEvent const &event) {
 }
 
 // =============================================================================
-void FPSCamera::on_key_release(KeyReleaseEvent const &event) {
+void PerspectiveCamera::on_key_release(KeyReleaseEvent const &event) {
     switch(event.code) {
         case BTX_KB_W          : _kb.w      = false; break;
         case BTX_KB_A          : _kb.a      = false; break;
@@ -91,7 +91,7 @@ void FPSCamera::on_key_release(KeyReleaseEvent const &event) {
 }
 
 // =============================================================================
-void FPSCamera::on_mouse_move(MouseMoveEvent const &event) {
+void PerspectiveCamera::on_mouse_move(MouseMoveEvent const &event) {
     _state.pitch += static_cast<float>(-event.y_offset) * _config.look_speed;
     _state.yaw   += static_cast<float>(event.x_offset) * _config.look_speed;
 
@@ -103,7 +103,8 @@ void FPSCamera::on_mouse_move(MouseMoveEvent const &event) {
 }
 
 // =============================================================================
-void FPSCamera::set_perspective_proj(PerspectiveParams const &persp_params) {
+void
+PerspectiveCamera::set_perspective_proj(PerspectiveParams const &persp_params) {
     _proj_matrix = math::persp_proj_rh_zo(
         persp_params.vfov_degrees,
         persp_params.aspect_ratio,
@@ -113,7 +114,7 @@ void FPSCamera::set_perspective_proj(PerspectiveParams const &persp_params) {
 }
 
 // =============================================================================
-void FPSCamera::_process_events() {
+void PerspectiveCamera::_process_events() {
     _key_press_queue.process_queue();
     _key_release_queue.process_queue();
     _mouse_move_queue.process_queue();

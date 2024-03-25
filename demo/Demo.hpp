@@ -10,7 +10,7 @@ namespace btx {
     class PlaneMesh;
     class CubeMesh;
 
-    class FPSCamera;
+    class PerspectiveCamera;
 
     class vkImage;
     class vkImageView;
@@ -57,7 +57,7 @@ private:
     btx::vkDescriptorSetLayout *_texture_set_layout;
     btx::vkDescriptorSet       *_texture_set;
 
-    btx::FPSCamera                     *_camera;
+    btx::PerspectiveCamera             *_camera;
     std::vector<btx::vkBuffer *>        _camera_ubos;
     btx::vkDescriptorSetLayout         *_camera_ubo_layout;
     std::vector<btx::vkDescriptorSet *> _camera_ubo_sets;

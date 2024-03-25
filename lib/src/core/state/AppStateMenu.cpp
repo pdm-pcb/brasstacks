@@ -11,20 +11,6 @@ AppStateMenu::AppStateMenu(Application &application) :
 { }
 
 // =============================================================================
-void AppStateMenu::enter() {
-    BTX_INFO("Entering AppStateMenu");
-}
-
-// =============================================================================
-void AppStateMenu::exit() {
-    BTX_INFO("Exiting AppStateMenu");
-}
-
-// =============================================================================
-void AppStateMenu::execute() {
-}
-
-// =============================================================================
 void AppStateMenu::key_press(KeyPressEvent const &event) {
     switch(event.code) {
         case BTX_KB_ESCAPE:

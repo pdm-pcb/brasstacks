@@ -13,9 +13,9 @@ public:
     explicit AppStateMenu(Application &application);
     ~AppStateMenu() = default;
 
-    void enter() override;
-    void exit() override;
-    void execute() override;
+    void enter()   override { };
+    void exit()    override { };
+    void execute() override { };
 
     void key_press(KeyPressEvent const &event) override;
     void mouse_button_press(MouseButtonPressEvent const &event) override;

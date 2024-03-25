@@ -6,7 +6,7 @@
 
 #include "brasstacks/assets/meshes/PlaneMesh.hpp"
 #include "brasstacks/assets/meshes/CubeMesh.hpp"
-#include "brasstacks/tools/FPSCamera.hpp"
+#include "brasstacks/tools/cameras/PerspectiveCamera.hpp"
 
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
@@ -178,7 +178,7 @@ void Demo::recreate_swapchain_resources() {
 
 // =============================================================================
 void Demo::_create_camera() {
-    _camera = new btx::FPSCamera(
+    _camera = new btx::PerspectiveCamera(
        {
             .position = { 0.0f, 0.0f, 4.0f },
             .forward  = { 0.0f, 0.0f, 0.0f },

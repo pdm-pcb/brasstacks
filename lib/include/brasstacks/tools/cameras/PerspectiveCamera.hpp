@@ -1,11 +1,8 @@
-#ifndef BRASSTACKS_TOOLS_FPSCAMERA_HPP
-#define BRASSTACKS_TOOLS_FPSCAMERA_HPP
+#ifndef BRASSTACKS_TOOLS_CAMERAS_PERSPECTIVECAMERA_HPP
+#define BRASSTACKS_TOOLS_CAMERAS_PERSPECTIVECAMERA_HPP
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/math/math.hpp"
-#include "brasstacks/events/EventQueue.hpp"
-#include "brasstacks/events/keyboard_events.hpp"
-#include "brasstacks/events/mouse_events.hpp"
 
 namespace btx {
 
@@ -13,7 +10,7 @@ struct KeyPressEvent;
 struct KeyReleaseEvent;
 struct MouseMoveEvent;
 
-class FPSCamera final {
+class PerspectiveCamera final {
 public:
     struct Orientation {
         math::Vec3 position = math::Vec3::zero;
@@ -31,9 +28,9 @@ public:
         float far_plane = 1000.0f;
     };
 
-    FPSCamera(Orientation const &orientation,
-              PerspectiveParams const &persp_params);
-    ~FPSCamera() = default;
+    PerspectiveCamera(Orientation const &orientation,
+                      PerspectiveParams const &persp_params);
+    ~PerspectiveCamera() = default;
 
     void update();
 
@@ -46,13 +43,13 @@ public:
     inline auto const & view_matrix() const { return _view_matrix; }
     inline auto const & proj_matrix() const { return _proj_matrix; }
 
-    FPSCamera() = delete;
+    PerspectiveCamera() = delete;
 
-    FPSCamera(FPSCamera &&) = delete;
-    FPSCamera(FPSCamera const &) = delete;
+    PerspectiveCamera(PerspectiveCamera &&) = delete;
+    PerspectiveCamera(PerspectiveCamera const &) = delete;
 
-    FPSCamera & operator=(FPSCamera &&) = delete;
-    FPSCamera & operator=(FPSCamera const &) = delete;
+    PerspectiveCamera & operator=(PerspectiveCamera &&) = delete;
+    PerspectiveCamera & operator=(PerspectiveCamera const &) = delete;
 
 private:
     math::Mat4 _view_matrix;
@@ -92,4 +89,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_TOOLS_FPSCAMERA_HPP
+#endif // BRASSTACKS_TOOLS_CAMERAS_PERSPECTIVECAMERA_HPP
