@@ -13,7 +13,6 @@ class vkImageView;
 
 class vkColorDepthPass final : public vkRenderPassBase {
 public:
-
     vkColorDepthPass(Renderer const &renderer, bool const present);
     ~vkColorDepthPass() override;
 
