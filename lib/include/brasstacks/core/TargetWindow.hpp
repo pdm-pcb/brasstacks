@@ -14,6 +14,15 @@ public:
     inline void show() { ::glfwShowWindow(_window); }
     inline void hide() { ::glfwHideWindow(_window); }
 
+    inline void capture_mouse() {
+        ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        ::glfwGetCursorPos(_window, &_last_cursor_x, &_last_cursor_y);
+    }
+
+    inline void release_mouse() {
+        ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
     void poll_events();
 
 #ifdef BTX_LINUX
@@ -40,10 +49,17 @@ private:
     RenderConfig::Size   _window_size;
     RenderConfig::Offset _window_position;
 
+    static double _last_cursor_x;
+    static double _last_cursor_y;
+
     void _calc_window_dimensions();
     static void _error_callback(int code, char const *message);
+
     static void _key_callback(GLFWwindow *window, int key, int scancode,
                               int action, int mods);
+
+    static void _mouse_move_callback(GLFWwindow* window, double x, double y);
+
     static void _window_size_callback(GLFWwindow* window, int width,
                                       int height);
     static void _window_iconify_callback(GLFWwindow* window, int iconified);

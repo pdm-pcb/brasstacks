@@ -4,16 +4,20 @@
 #include "brasstacks/events/EventBus.hpp"
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
+#include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
 
 namespace btx {
 
+double TargetWindow::_last_cursor_x { 0.0 };
+double TargetWindow::_last_cursor_y { 0.0 };
+
 // =============================================================================
 TargetWindow::TargetWindow(std::string_view const app_name) :
-    _window  { nullptr },
-    _screen_size { },
-    _screen_center { },
-    _window_size { },
+    _window          { nullptr },
+    _screen_size     { },
+    _screen_center   { },
+    _window_size     { },
     _window_position { }
 {
     if(::glfwInit() == 0) {
@@ -43,6 +47,14 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
         return;
     }
 
+    if(::glfwRawMouseMotionSupported() == GLFW_TRUE) {
+        ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    }
+    else {
+        BTX_CRITICAL("Raw mouse input not supported by this platform.");
+        return;
+    }
+
     ::glfwSetWindowPos(_window, _window_position.x, _window_position.y);
 
     ::glfwSetWindowSizeLimits(
@@ -52,6 +64,7 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
     );
 
     ::glfwSetKeyCallback(_window, TargetWindow::_key_callback);
+    ::glfwSetCursorPosCallback(_window, _mouse_move_callback);
     ::glfwSetWindowSizeCallback(_window, TargetWindow::_window_size_callback);
     ::glfwSetWindowIconifyCallback(_window,
                                    TargetWindow::_window_iconify_callback);
@@ -122,6 +135,25 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
     else if(action == GLFW_RELEASE) {
         EventBus::publish(KeyReleaseEvent(GLFWToBTXKeys::translate(key)));
     }
+}
+
+// =============================================================================
+void TargetWindow::_mouse_move_callback([[maybe_unused]] GLFWwindow* window,
+                                        double x, double y)
+{
+    static double x_offset = 0.0;
+    static double y_offset = 0.0;
+
+    x_offset = x - _last_cursor_x;
+    y_offset = y - _last_cursor_y;
+
+    _last_cursor_x = x;
+    _last_cursor_y = y;
+
+    EventBus::publish(
+        MouseMoveEvent(static_cast<int32_t>(x_offset),
+                       static_cast<int32_t>(y_offset))
+    );
 }
 
 // =============================================================================

@@ -36,6 +36,8 @@ void Application::run() {
 
     _renderer->begin_thread();
     _simulation->begin_thread();
+
+    _target_window->capture_mouse();
     _target_window->show();
 
     while(_running) {
@@ -47,6 +49,7 @@ void Application::run() {
     }
 
     _target_window->hide();
+    _target_window->release_mouse();
 
     _simulation->end_thread();
     _simulation_thread.join();

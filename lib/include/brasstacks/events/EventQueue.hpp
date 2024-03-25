@@ -17,7 +17,7 @@ public:
         _back_queue  { &_queue_b },
         _callback {
             [&subscriber, callback](EventBase const &event) {
-                (subscriber.*callback)(reinterpret_cast<EventType const &>(event));
+                (subscriber.*callback)(static_cast<EventType const &>(event));
             }
         }
     {
@@ -36,7 +36,7 @@ public:
     EventQueue & operator=(EventQueue const &) = delete;
 
     void push(EventBase const &event) {
-        auto const &event_casted = reinterpret_cast<EventType const &>(event);
+        auto const &event_casted = static_cast<EventType const &>(event);
         std::unique_lock<std::mutex> push_lock(_front_queue_mutex);
         _front_queue->push(event_casted);
     }
