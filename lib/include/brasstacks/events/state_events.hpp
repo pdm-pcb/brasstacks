@@ -12,9 +12,9 @@ enum class AppState : uint8_t {
 };
 
 struct AppStateTransition final : public EventBase {
-    explicit AppStateTransition(AppState const next_state_type) :
+    explicit AppStateTransition(AppState const next_state) :
         EventBase(),
-        next_state_type { next_state_type }
+        next_state_type { next_state }
     { }
 
     AppStateTransition() = delete;

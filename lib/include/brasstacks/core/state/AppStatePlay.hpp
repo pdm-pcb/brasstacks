@@ -11,14 +11,14 @@ class TargetWindow;
 class AppStatePlay final : public AppStateBase {
 public:
     explicit AppStatePlay(TargetWindow &target_window);
-    ~AppStatePlay() = default;
+    ~AppStatePlay() override = default;
 
     void enter() override;
     void exit() override;
     void execute() override;
 
     void key_press(KeyPressEvent const &event) override;
-    void mouse_button_press(MouseButtonPressEvent const &event) { }
+    void mouse_button_press(MouseButtonPressEvent const &event) override { }
 
 
     AppStatePlay(AppStatePlay &&) = delete;

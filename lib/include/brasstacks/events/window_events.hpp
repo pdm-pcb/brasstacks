@@ -13,9 +13,9 @@ struct WindowCloseEvent final : public EventBase {
 };
 
 struct WindowSizeEvent final : public EventBase {
-    explicit WindowSizeEvent(RenderConfig::Size const size) :
+    explicit WindowSizeEvent(RenderConfig::Size const new_size) :
         EventBase(),
-        size { size }
+        size { new_size }
     { }
 
     WindowSizeEvent() = delete;

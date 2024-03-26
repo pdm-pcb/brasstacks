@@ -134,11 +134,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 
     target_compile_options(
         ${TARGET_NAME} PUBLIC
-        "/Wall"         # All warnings not disabled by default
-        "/wd4820"       # Ignore warning for padding
-        "/wd5045"       # Ignore warning for spectre mitigation
-        "/wd4710"       # "function not inlined"
-        "/wd4711"       # "selected for automatic inline expansion"
+        "/W4" # All warnings not disabled by default
     )
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64")

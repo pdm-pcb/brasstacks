@@ -11,7 +11,7 @@ struct MouseButtonPressEvent;
 
 class AppStateBase : public StateBase {
 public:
-    virtual ~AppStateBase() = default;
+    virtual ~AppStateBase() override = default;
 
     virtual void key_press(KeyPressEvent const &event) = 0;
     virtual void mouse_button_press(MouseButtonPressEvent const &event) = 0;

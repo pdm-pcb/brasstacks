@@ -8,9 +8,9 @@
 namespace btx {
 
 struct KeyPressEvent final : public EventBase {
-    explicit KeyPressEvent(Keycode const code) :
+    explicit KeyPressEvent(Keycode const key) :
         EventBase(),
-        code { code }
+        code { key }
     { }
 
     KeyPressEvent() = delete;
@@ -19,9 +19,9 @@ struct KeyPressEvent final : public EventBase {
 };
 
 struct KeyReleaseEvent final : public EventBase  {
-    explicit KeyReleaseEvent(Keycode const code) :
+    explicit KeyReleaseEvent(Keycode const key) :
         EventBase(),
-        code { code }
+        code { key }
     { }
 
     KeyReleaseEvent() = delete;
