@@ -6,7 +6,7 @@
 
 namespace btx {
 
-constexpr enum class AppState : uint8_t {
+enum class AppState : uint8_t {
     MENU_STATE = 0u,
     PLAY_STATE
 };
