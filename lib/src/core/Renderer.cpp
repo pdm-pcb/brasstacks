@@ -277,8 +277,8 @@ void Renderer::_select_physical_device() {
     vkPhysicalDevice::select(
         *_surface,
         {
-            vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
             vkPhysicalDevice::Features::FILL_MODE_NONSOLID,
+            vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
         },
         {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,

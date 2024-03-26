@@ -36,7 +36,7 @@ endif()
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompileShaders.cmake")
 compile_shader(
     ${TARGET_NAME}
-    ENV vulkan1.3
+    ENV vulkan1.2
     SOURCES ${SHADER_SOURCE}
 )
 

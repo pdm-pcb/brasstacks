@@ -24,7 +24,7 @@ public:
      * @param api_version The version of the Vulkan API to request from the
      * driver. Defaults to Vulkan 1.2.
      */
-    static void create(uint32_t const api_version = VK_API_VERSION_1_3);
+    static void create(uint32_t const api_version = VK_API_VERSION_1_2);
     static void destroy();
 
     /**

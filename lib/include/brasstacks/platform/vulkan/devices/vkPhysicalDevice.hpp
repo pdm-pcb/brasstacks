@@ -33,8 +33,8 @@ public:
      * @brief A means by which to request physical device features.
      */
     enum class Features {
-        SAMPLER_ANISOTROPY,
         FILL_MODE_NONSOLID,
+        SAMPLER_ANISOTROPY,
     };
     using FeatureList = std::vector<Features>;
 

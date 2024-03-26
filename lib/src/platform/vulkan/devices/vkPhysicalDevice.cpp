@@ -231,13 +231,13 @@ vkPhysicalDevice::_check_extensions(DeviceProps &device,
             if(::strcmp(required.data(), supported.extensionName) == 0) {
                 device.enabled_extensions.push_back(required.data());
                 extension_found = true;
+                BTX_TRACE("{} supports '{}'", device.name, required);
                 break;
             }
         }
 
         if(extension_found == false) {
-            BTX_WARN("{} does not support extension '{}'",
-                     device.name, required);
+            BTX_WARN("{} does not support '{}'", device.name, required);
             all_extensions_supported = false;
         }
     }
