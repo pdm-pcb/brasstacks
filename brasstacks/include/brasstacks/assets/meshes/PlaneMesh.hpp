@@ -12,12 +12,10 @@ class vkDevice;
 class PlaneMesh final : public Mesh {
 public:
     PlaneMesh(vkDevice const &device,
-              float const scale = 1.0f,
-              std::array<math::Vec3, 4> const &color =
-                  { colors::white, colors::white, colors::white, colors::white }
-             );
+              std::array<Color, 4> const &corner_colors,
+              float const scale = 1.0f);
 
-    ~PlaneMesh() = default;
+    ~PlaneMesh() override = default;
 
     PlaneMesh() = delete;
 

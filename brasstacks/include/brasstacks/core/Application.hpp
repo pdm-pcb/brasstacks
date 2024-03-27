@@ -11,13 +11,15 @@
 
 namespace btx {
 
-class TargetWindow;
-class Renderer;
-class Simulation;
-
 class AppStateBase;
 class AppStateMenu;
 class AppStatePlay;
+
+class MeshLibrary;
+
+class TargetWindow;
+class Renderer;
+class Simulation;
 
 class Application {
 public:
@@ -44,6 +46,9 @@ public:
 
     Application & operator=(Application &&) = delete;
     Application & operator=(Application const &) = delete;
+
+protected:
+    MeshLibrary *_mesh_library;
 
 private:
     AppStateBase *_current_state;

@@ -2,13 +2,12 @@
 #define DEMO_HPP
 
 #include "brasstacks/core/Application.hpp"
+
 #include "brasstacks/math/Mat4.hpp"
+#include "brasstacks/assets/libraries/MeshLibrary.hpp"
 
 namespace btx {
     class ColorDepthPass;
-
-    class PlaneMesh;
-    class CubeMesh;
 
     class PerspectiveCamera;
 
@@ -42,11 +41,11 @@ private:
 
     btx::ColorDepthPass *_color_depth_pass;
 
-    btx::PlaneMesh *_plane_mesh;
-    btx::math::Mat4 _plane_mat;
+    btx::MeshLibrary::MeshIter _plane_mesh;
+    btx::math::Mat4            _plane_mat;
 
-    btx::CubeMesh  *_cube_mesh;
-    btx::math::Mat4 _cube_mat;
+    btx::MeshLibrary::MeshIter _cube_mesh;
+    btx::math::Mat4            _cube_mat;
 
     btx::vkDescriptorPool *_descriptor_pool;
 

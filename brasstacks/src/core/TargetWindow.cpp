@@ -33,6 +33,7 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
 
     ::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     ::glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    ::glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
     _window = ::glfwCreateWindow(
         static_cast<int>(_window_size.width),
@@ -66,17 +67,6 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
     ::glfwSetWindowSizeCallback(_window, TargetWindow::_window_size_callback);
     ::glfwSetWindowIconifyCallback(_window,
                                    TargetWindow::_window_iconify_callback);
-
-#ifdef BTX_WINDOWS
-    ::BOOL value = TRUE;
-    ::DwmSetWindowAttribute(
-        this->native(),
-        DWMWA_USE_IMMERSIVE_DARK_MODE,
-        &value,
-        sizeof(value)
-    );
-#endif
-
 }
 
 // =============================================================================
@@ -151,7 +141,8 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
 
 // =============================================================================
 void TargetWindow::_mouse_move_callback([[maybe_unused]] GLFWwindow* window,
-                                        double x, double y)
+                                        [[maybe_unused]] double x,
+                                        [[maybe_unused]] double y)
 {
     // static double x_offset = 0.0;
     // static double y_offset = 0.0;
@@ -169,8 +160,10 @@ void TargetWindow::_mouse_move_callback([[maybe_unused]] GLFWwindow* window,
 }
 
 // =============================================================================
-void TargetWindow::_mouse_button_callback(GLFWwindow* window, int button,
-                                          int action, int mods)
+void TargetWindow::_mouse_button_callback([[maybe_unused]] GLFWwindow* window,
+                                          [[maybe_unused]] int button,
+                                          [[maybe_unused]] int action,
+                                          [[maybe_unused]] int mods)
 {
     auto const code = GLFWToBTXKeys::translate(button);
 

@@ -4,8 +4,9 @@
 
 namespace btx {
 
-CubeMesh::CubeMesh(vkDevice const &device, float const scale,
-                   std::array<math::Vec3, 8> const &corner_colors) :
+CubeMesh::CubeMesh(vkDevice const &device,
+                   std::array<Color, 8> const &corner_colors,
+                   float const scale) :
     Mesh(device)
 {
     Mesh::_set_vertices({

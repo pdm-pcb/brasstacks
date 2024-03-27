@@ -5,11 +5,13 @@
 #include "brasstacks/core/Renderer.hpp"
 #include "brasstacks/core/state/AppStateMenu.hpp"
 #include "brasstacks/core/state/AppStatePlay.hpp"
+#include "brasstacks/assets/libraries/MeshLibrary.hpp"
 
 namespace btx {
 
 // =============================================================================
 Application::Application(std::string_view const app_name) :
+    _current_state             { nullptr },
     _running                   { true },
     _swapchain_destroyed       { false },
     _target_window             { new TargetWindow(app_name) },
@@ -28,13 +30,18 @@ Application::Application(std::string_view const app_name) :
 {
     _menu_state = new AppStateMenu(*this);
     _play_state = new AppStatePlay(*_target_window);
-    _current_state = _menu_state;
+
+    EventBus::publish(AppStateTransition(AppState::MENU_STATE));
+
+    _mesh_library = new MeshLibrary(*_renderer);
 }
 
 // =============================================================================
 Application::~Application() {
     delete _menu_state;
     delete _play_state;
+
+    delete _mesh_library;
 
     delete _simulation;
     delete _renderer;
@@ -94,6 +101,10 @@ void Application::_state_transition(AppStateTransition const &event) {
     switch(event.next_state_type) {
         case AppState::MENU_STATE: _current_state = _menu_state; break;
         case AppState::PLAY_STATE: _current_state = _play_state; break;
+    }
+
+    if(_current_state == nullptr) {
+        BTX_CRITICAL("Application transitioned to state that doesn't exist.");
     }
 
     _current_state->enter();

@@ -4,8 +4,6 @@
 #include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/passes/ColorDepthPass.hpp"
 
-#include "brasstacks/assets/meshes/PlaneMesh.hpp"
-#include "brasstacks/assets/meshes/CubeMesh.hpp"
 #include "brasstacks/tools/cameras/PerspectiveCamera.hpp"
 
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
@@ -24,9 +22,9 @@ Demo::Demo() :
     Application("Demo"),
     _renderer           { nullptr },
     _color_depth_pass   { nullptr },
-    _plane_mesh         { nullptr },
+    _plane_mesh         { },
     _plane_mat          { },
-    _cube_mesh          { nullptr },
+    _cube_mesh          { },
     _cube_mat           { },
     _descriptor_pool    { nullptr },
     _texture            { nullptr },
@@ -52,20 +50,17 @@ void Demo::init(btx::Renderer const &renderer) {
         }
     );
 
-    _plane_mesh = new btx::PlaneMesh(
-        _renderer->device(),
-        0.75f,
+    _plane_mesh = this->_mesh_library->new_plane_mesh(
         {{
             { 1.0f, 0.0f, 0.0f },
             { 0.0f, 1.0f, 0.0f },
             { 0.0f, 0.0f, 1.0f },
             { 0.25f, 0.25f, 0.25f }
-        }}
+        }},
+        0.75f
     );
 
-    _cube_mesh = new btx::CubeMesh(
-        _renderer->device(),
-        0.75f,
+    _cube_mesh = this->_mesh_library->new_cube_mesh(
         {{
             { 1.0f, 0.0f, 0.0f },
             { 0.0f, 1.0f, 0.0f },
@@ -75,7 +70,8 @@ void Demo::init(btx::Renderer const &renderer) {
             { 0.0f, 1.0f, 0.0f },
             { 0.0f, 0.0f, 1.0f },
             { 0.5f, 0.5f, 0.5f },
-        }}
+        }},
+        0.75f
     );
 
     _create_camera();
@@ -98,8 +94,6 @@ void Demo::init(btx::Renderer const &renderer) {
 
 // =============================================================================
 void Demo::shutdown() {
-    delete _cube_mesh;
-    delete _plane_mesh;
     delete _descriptor_pool;
     delete _color_depth_pass;
 
@@ -144,7 +138,7 @@ void Demo::record_commands() const {
             }
         });
 
-        _plane_mesh->draw_indexed(_renderer->cmd_buffer());
+        (*_plane_mesh)->draw_indexed(_renderer->cmd_buffer());
 
         _color_depth_pass->send_push_constants({
             btx::vkPipeline::PushConstant {
@@ -154,7 +148,7 @@ void Demo::record_commands() const {
             }
         });
 
-        _cube_mesh->draw_indexed(_renderer->cmd_buffer());
+        (*_cube_mesh)->draw_indexed(_renderer->cmd_buffer());
 
     _color_depth_pass->end();
 }

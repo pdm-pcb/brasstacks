@@ -15,6 +15,8 @@ class Mesh {
 public:
     void draw_indexed(vkCmdBuffer const &cmd_buffer) const;
 
+    virtual ~Mesh();
+
     Mesh(Mesh &&) = delete;
     Mesh(const Mesh &) = delete;
 
@@ -23,7 +25,6 @@ public:
 
 protected:
     explicit Mesh(vkDevice const &device);
-    ~Mesh();
 
     void _set_vertices(std::vector<Vertex> const &vertices);
     void _set_indices(std::vector<Index> const &indices);
