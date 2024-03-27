@@ -1,51 +1,36 @@
-file(
-    GLOB_RECURSE TARGET_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-)
+set(target_name "brasstacks_demo")
 
-file(
-    GLOB_RECURSE TARGET_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
-)
+add_executable(${target_name})
 
-set(TARGET_NAME brasstacks_demo)
-
-add_executable(${TARGET_NAME})
+file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+file(GLOB_RECURSE headers "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 
 target_sources(
-    ${TARGET_NAME} PRIVATE
-	${TARGET_SOURCES}
-	${TARGET_HEADERS}
+    ${target_name} PRIVATE
+	${sources}
+	${headers}
 )
 
+add_compiler_definitions(${target_name})
+add_warning_flags(${target_name})
+add_debug_flags(${target_name})
+add_release_flags(${target_name})
+
 target_link_libraries(
-    ${TARGET_NAME} PRIVATE
+    ${target_name} PRIVATE
     brasstacks
 )
 
 file(
-    GLOB SHADER_SOURCE
+    GLOB shader_sources
     "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/*.vert"
     "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/*.frag"
 )
 
-if("${SHADER_SOURCE}" STREQUAL "")
-    message(FATAL_ERROR "Shader source glob was empty")
-endif()
-
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompileShaders.cmake")
-compile_shader(
-    ${TARGET_NAME}
-    ENV vulkan1.2
-    SOURCES ${SHADER_SOURCE}
-)
+compile_shader(${target_name} "${shader_sources}")
 
 set_target_properties(
-	${TARGET_NAME} PROPERTIES
-	CXX_STANDARD 20
-	CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF
-
+	${target_name} PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/debug/bin"
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/demo"
 )

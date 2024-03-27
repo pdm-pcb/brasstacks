@@ -1,19 +1,13 @@
 # Thanks to diapir for this one. Slightly modified for my own uses:
 # https://stackoverflow.com/a/60472877/1464937
 
-find_package(Vulkan REQUIRED)
+find_package(Vulkan REQUIRED COMPONENTS glslc)
 find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
 cmake_policy(SET CMP0116 NEW)
 
-function(compile_shader target)
-    cmake_parse_arguments(
-        PARSE_ARGV 1 arg
-        ""
-        "ENV"
-        "SOURCES"
-    )
-    foreach(source ${arg_SOURCES})
+function(compile_shader target_name sources)
+    foreach(source ${sources})
         if(CMAKE_BUILD_TYPE MATCHES "Debug")
             set(output_filename "${source}-debug.spv")
             set(shader_optimization "-O0")
@@ -31,16 +25,17 @@ function(compile_shader target)
             DEPFILE ${source}.d
             COMMAND
                 ${glslc_executable}
-                $<$<BOOL:${arg_ENV}>:--target-env=${arg_ENV}>
+                --target-env=vulkan${target_vulkan_version}
                 -mfmt=bin
-                -MD -MF ${source}.d
+                -MD
+                -MF ${source}.d
                 ${shader_debug}
                 -o ${output_filename}
                 ${source}
         )
 
         target_sources(
-            ${target} PRIVATE
+            ${target_name} PRIVATE
             ${source}
             ${output_filename}
         )
