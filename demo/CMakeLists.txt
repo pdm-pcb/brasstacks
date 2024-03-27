@@ -28,9 +28,3 @@ file(
 )
 
 compile_shader(${target_name} "${shader_sources}")
-
-set_target_properties(
-	${target_name} PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/debug/bin"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/demo"
-)

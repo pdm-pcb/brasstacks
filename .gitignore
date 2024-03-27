@@ -5,6 +5,7 @@
 build/
 debug/
 release/
+third_party/fetched
 
 docs/
 !docs/custom.css
@@ -13,11 +14,12 @@ imgui.ini
 
 **/version.hpp
 
+**/*.spv
+**/*.vert.d
+**/*.frag.d
+
 **/*.ilk
 **/*.pdb
 **/*.exe.manifest
 **/*.exe
 
-**/*.spv
-**/*.vert.d
-**/*.frag.d

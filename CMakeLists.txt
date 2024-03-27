@@ -36,6 +36,9 @@ include("fetch_glfw")
 include("fetch_glm")
 include("fetch_vma")
 
+# So different targets can share downloaded dependencies
+set(FETCHCONTENT_BASE_DIR "${PROJECT_SOURCE_DIR}/third_party/fetched")
+
 fetch_fmtlib()
 fetch_spdlog()
 fetch_glfw()
