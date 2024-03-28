@@ -14,8 +14,8 @@ Mesh::~Mesh() {
     delete _index_buffer;
 }
 
-void Mesh::_set_vertices(std::vector<Vertex> const &vertices) {
-    _vertex_data = vertices;
+void Mesh::_set_vertices(std::span<Vertex const> const vertices) {
+    _vertex_data = { vertices.begin(), vertices.end() };
 
     _vertex_buffer = new vkBuffer(
         _device, sizeof(Vertex) * _vertex_data.size(),
@@ -29,8 +29,8 @@ void Mesh::_set_vertices(std::vector<Vertex> const &vertices) {
     _vertex_offsets.emplace_back(0u);
 }
 
-void Mesh::_set_indices(std::vector<Index> const &indices) {
-    _index_data = indices;
+void Mesh::_set_indices(std::span<Index const> const indices) {
+    _index_data = { indices.begin(), indices.end() };
 
     _index_buffer = new vkBuffer(
         _device, sizeof(Index) * _index_data.size(),

@@ -26,17 +26,17 @@ public:
 protected:
     explicit Mesh(vkDevice const &device);
 
-    void _set_vertices(std::vector<Vertex> const &vertices);
-    void _set_indices(std::vector<Index> const &indices);
+    void _set_vertices(std::span<Vertex const> const vertices);
+    void _set_indices(std::span<Index const> const indices);
 
 private:
     vkDevice const &_device;
 
-    vkBuffer           *_vertex_buffer;
+    vkBuffer *_vertex_buffer;
     std::vector<Vertex> _vertex_data;
     std::vector<vk::DeviceSize> _vertex_offsets;
 
-    vkBuffer          *_index_buffer;
+    vkBuffer *_index_buffer;
     std::vector<Index> _index_data;
 };
 
