@@ -5,7 +5,6 @@
 build/
 debug/
 release/
-third_party/fetched
 
 docs/
 !docs/custom.css
