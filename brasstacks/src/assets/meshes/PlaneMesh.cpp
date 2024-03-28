@@ -6,7 +6,7 @@
 namespace btx {
 
 PlaneMesh::PlaneMesh(vkDevice const &device,
-                     std::span<Color const, 4> const &corner_colors,
+                     std::span<Color const, 4> const corner_colors,
                      float const scale) :
     Mesh(device)
 {
