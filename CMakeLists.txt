@@ -36,9 +36,6 @@ include("fetch_glfw")
 include("fetch_glm")
 include("fetch_vma")
 
-# So different targets can share downloaded dependencies
-set(FETCHCONTENT_BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}/../fetched")
-
 fetch_fmtlib()
 fetch_spdlog()
 fetch_glfw()

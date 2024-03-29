@@ -2,6 +2,7 @@
 #define BRASSTACKS_BRASSTACKS_HPP
 
 #include "brasstacks/version.hpp"
+#include "brasstacks/tools/MemTracker.hpp"
 #include "brasstacks/tools/ConsoleLog.hpp"
 #include "brasstacks/tools/TimeKeeper.hpp"
 #include "brasstacks/core/Application.hpp"

@@ -11,6 +11,14 @@ function(add_compiler_definitions target_name)
         )
     endif()
 
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        add_compile_options("BTX_GCC")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+         add_compile_options("BTX_CLANG")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+        add_compile_options("BTX_MSVC")
+    endif()
+
     if(LINUX)
         target_compile_definitions(
             ${target_name} PUBLIC
