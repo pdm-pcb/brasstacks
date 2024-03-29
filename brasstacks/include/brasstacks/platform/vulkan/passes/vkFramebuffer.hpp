@@ -1,10 +1,10 @@
 /**
- * @file swapchain/vkFramebuffer.hpp
+ * @file passes/vkFramebuffer.hpp
  * @brief Simple wrapper for a Vulkan framebuffer
  */
 
-#ifndef BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMEBUFFER_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMEBUFFER_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_PASSES_VKFRAMEBUFFER_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_PASSES_VKFRAMEBUFFER_HPP
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
@@ -53,4 +53,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMEBUFFER_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_PASSES_VKFRAMEBUFFER_HPP

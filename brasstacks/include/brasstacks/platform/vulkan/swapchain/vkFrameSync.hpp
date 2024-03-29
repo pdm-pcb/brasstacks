@@ -47,7 +47,7 @@ class vkFrameSync final {
      * @brief Return the last semaphore used to acquire a swapchain image
      * @return vk::Semaphore&
      */
-    inline auto & image_acquire_semaphore() { return _image_acquire_sem; }
+    inline auto & present_complete_semaphore() { return _present_complete_sem; }
 
     /**
      * @brief Return this frame's command batch complete semaphore
@@ -92,7 +92,7 @@ private:
      * Renderer backend. They'll be recycled between all vkFrameSyncs that request
      * images from the swapchain.
      */
-    vk::Semaphore _image_acquire_sem;
+    vk::Semaphore _present_complete_sem;
 
     /**
      * @brief A semaphore that's signaled when this frame's command buffer has

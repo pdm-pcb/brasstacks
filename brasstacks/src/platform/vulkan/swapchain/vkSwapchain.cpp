@@ -63,7 +63,7 @@ vkSwapchain::~vkSwapchain() {
 }
 
 // =============================================================================
-uint32_t vkSwapchain::acquire_image_index(vk::Semaphore const &semaphore) {
+uint32_t vkSwapchain::get_next_image_index(vk::Semaphore const &semaphore) {
     uint32_t next_image_index;
 
     // Wait for no more than one second

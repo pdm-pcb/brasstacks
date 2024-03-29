@@ -18,7 +18,7 @@ public:
 
     ~vkSwapchain();
 
-    uint32_t acquire_image_index(vk::Semaphore const &semaphore);
+    uint32_t get_next_image_index(vk::Semaphore const &semaphore);
 
     [[nodiscard]] bool present(vkFrameSync const &frame,
                                uint32_t const image_index);

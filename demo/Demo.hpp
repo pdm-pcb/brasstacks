@@ -34,7 +34,7 @@ public:
     void record_commands() const override;
 
     void destroy_swapchain_resources() override;
-    void recreate_swapchain_resources() override;
+    void create_swapchain_resources() override;
 
 private:
     btx::Renderer const *_renderer;

@@ -13,15 +13,16 @@ class vkImageView;
 
 class vkColorDepthPass final : public vkRenderPassBase {
 public:
-    vkColorDepthPass(Renderer const &renderer, bool const present);
-    ~vkColorDepthPass() override;
+    vkColorDepthPass(Renderer const &renderer);
+    ~vkColorDepthPass() override = default;
 
     void destroy_swapchain_resources();
-    void recreate_swapchain_resources();
+    void create_swapchain_resources();
 
     auto const & color_views() const { return _color_views; }
-    auto const & depth_views() const { return _depth_views; }
+    auto const & depth_view() const { return *_depth_view; }
     auto msaa_samples() const { return _msaa_samples; }
+    auto depth_format() const { return _depth_format; }
 
     vkColorDepthPass() = delete;
 
@@ -38,8 +39,9 @@ private:
 
     std::vector<vkImage *>     _color_buffers;
     std::vector<vkImageView *> _color_views;
-    std::vector<vkImage *>     _depth_buffers;
-    std::vector<vkImageView *> _depth_views;
+
+    vkImage     *_depth_buffer;
+    vkImageView *_depth_view;
 
     std::vector<vk::AttachmentDescription> _attachment_descriptions;
     std::vector<vk::AttachmentReference>   _color_attachments;
@@ -49,13 +51,13 @@ private:
     std::vector<vk::SubpassDependency>     _subpass_dependencies;
 
     void _find_depth_stencil_format();
-    void _init_attachments(bool const present);
+    void _init_attachment_details();
     void _init_subpasses();
 
     void _create_color_buffers();
-    void _create_depth_buffers();
+    void _create_depth_buffer();
     void _destroy_color_buffers();
-    void _destroy_depth_buffers();
+    void _destroy_depth_buffer();
 };
 
 } // namespace btx

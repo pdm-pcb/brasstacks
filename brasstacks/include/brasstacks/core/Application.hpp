@@ -35,7 +35,7 @@ public:
     virtual void record_commands() const = 0;
 
     virtual void destroy_swapchain_resources() = 0;
-    virtual void recreate_swapchain_resources() = 0;
+    virtual void create_swapchain_resources() = 0;
 
     inline auto const & target_window() const { return *_target_window; }
 

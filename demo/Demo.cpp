@@ -159,8 +159,8 @@ void Demo::destroy_swapchain_resources() {
 }
 
 // =============================================================================
-void Demo::recreate_swapchain_resources() {
-    _color_depth_pass->recreate_swapchain_resources();
+void Demo::create_swapchain_resources() {
+    _color_depth_pass->create_swapchain_resources();
 
     _camera->set_perspective_proj({
         .vfov_degrees = 45.0f,

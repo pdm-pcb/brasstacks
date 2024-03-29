@@ -144,7 +144,7 @@ void Application::_window_size(WindowSizeEvent const &event) {
                   event.size.height);
 
         _renderer->recreate_swapchain();
-        this->recreate_swapchain_resources();
+        this->create_swapchain_resources();
 
         _renderer->run_loop();
         _simulation->run_loop();
@@ -179,7 +179,7 @@ void Application::_window_restore(
 
     if(_swapchain_destroyed) {
         _renderer->recreate_swapchain();
-        this->recreate_swapchain_resources();
+        this->create_swapchain_resources();
 
         _renderer->run_loop();
         _simulation->run_loop();
@@ -199,7 +199,7 @@ void Application::_swapchain_recreate(
 
         this->destroy_swapchain_resources();
         _renderer->recreate_swapchain();
-        this->recreate_swapchain_resources();
+        this->create_swapchain_resources();
 
         _renderer->run_loop();
         _simulation->run_loop();

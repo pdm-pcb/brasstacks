@@ -1,6 +1,6 @@
 #include "brasstacks/brasstacks.hpp"
 
-#include "brasstacks/platform/vulkan/swapchain/vkFramebuffer.hpp"
+#include "brasstacks/platform/vulkan/passes/vkFramebuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"

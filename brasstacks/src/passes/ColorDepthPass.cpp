@@ -5,7 +5,7 @@
 
 #include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/swapchain/vkFramebuffer.hpp"
+#include "brasstacks/platform/vulkan/passes/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
@@ -14,11 +14,13 @@ namespace btx {
 // =============================================================================
 ColorDepthPass::ColorDepthPass(Renderer const &renderer) :
     _renderer     { renderer },
-    _render_pass  { new vkColorDepthPass(_renderer, true)},
+    _render_pass  { new vkColorDepthPass(_renderer)},
     _pipeline     { new vkPipeline(_renderer.device()) },
     _framebuffers { },
     _cmd_buffer   { nullptr }
-{ }
+{
+    _render_pass->create_swapchain_resources();
+}
 
 // =============================================================================
 ColorDepthPass::~ColorDepthPass() {
@@ -48,8 +50,8 @@ void ColorDepthPass::destroy_swapchain_resources() {
 }
 
 // =============================================================================
-void ColorDepthPass::recreate_swapchain_resources() {
-    _render_pass->recreate_swapchain_resources();
+void ColorDepthPass::create_swapchain_resources() {
+    _render_pass->create_swapchain_resources();
 
     _pipeline->update_dimensions(_renderer.swapchain().size(),
                                  _renderer.swapchain().offset());
@@ -137,7 +139,7 @@ void ColorDepthPass::_create_pipeline() {
             *_render_pass,
             {
                 .color_formats     = { _renderer.swapchain().image_format() },
-                .depth_format      = vk::Format::eUndefined,
+                .depth_format      = _render_pass->depth_format(),
                 .viewport_extent   = _renderer.swapchain().size(),
                 .viewport_offset   = _renderer.swapchain().offset(),
                 .sample_flags      = _render_pass->msaa_samples(),
@@ -156,7 +158,7 @@ void ColorDepthPass::_create_framebuffers() {
             _renderer.swapchain().size(),
             {{
                 _render_pass->color_views()[i]->native(),
-                _render_pass->depth_views()[i]->native(),
+                _render_pass->depth_view().native(),
                 _renderer.swapchain().image_views()[i]->native()
             }}
         ));

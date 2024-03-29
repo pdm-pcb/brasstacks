@@ -13,7 +13,7 @@ namespace btx {
 vkFrameSync::vkFrameSync(vkDevice const &device) :
     _device            { device },
     _queue_fence       { nullptr },
-    _image_acquire_sem { nullptr },
+    _present_complete_sem { nullptr },
     _cmds_complete_sem { nullptr },
     _cmd_pool          { nullptr },
     _cmd_buffer        { nullptr }
@@ -29,12 +29,12 @@ vkFrameSync::~vkFrameSync() {
 
     BTX_TRACE("\nDestroying frame sync primitives:"
               "\n\tdevice queue fence          {}"
-              "\n\timage acquire semaphore     {}"
+              "\n\tpresent complete semaphore  {}"
               "\n\tcommands complete semaphore {}",
-              _queue_fence, _image_acquire_sem, _cmds_complete_sem);
+              _queue_fence, _present_complete_sem, _cmds_complete_sem);
 
     _device.native().destroyFence(_queue_fence);
-    _device.native().destroySemaphore(_image_acquire_sem);
+    _device.native().destroySemaphore(_present_complete_sem);
     _device.native().destroySemaphore(_cmds_complete_sem);
 }
 
@@ -77,14 +77,14 @@ void vkFrameSync::_create_sync_primitives() {
     };
 
     _queue_fence       = _device.native().createFence(fence_info);
-    _image_acquire_sem = _device.native().createSemaphore({ });
+    _present_complete_sem = _device.native().createSemaphore({ });
     _cmds_complete_sem = _device.native().createSemaphore({ });
 
     BTX_TRACE("\nCreated frame sync primitives:"
               "\n\tdevice queue fence          {}"
               "\n\timage acquire semaphore     {}"
               "\n\tcommands complete semaphore {}",
-              _queue_fence, _image_acquire_sem, _cmds_complete_sem);
+              _queue_fence, _present_complete_sem, _cmds_complete_sem);
 }
 
 } // namespace btx
