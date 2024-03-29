@@ -89,7 +89,8 @@ void Demo::init(btx::Renderer const &renderer) {
         .add_push_constant({ .stage_flags = vk::ShaderStageFlagBits::eVertex,
                              .size_bytes = sizeof(btx::math::Mat4) });
 
-    _color_depth_pass->create();
+    _color_depth_pass->create_pipeline();
+    _color_depth_pass->create_swapchain_resources();
 }
 
 // =============================================================================

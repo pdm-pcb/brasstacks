@@ -26,7 +26,7 @@ void vkPhysicalDevice::select(vkSurface     const &surface,
         // Check that the card supports receiving graphics and presentation
         // commands on the same queue family. Most consumer GPUs will support
         // this on index zero.
-        if(_check_queue_families(device, surface) == false) {
+        if(!_check_queue_families(device, surface)) {
             BTX_WARN("Skipping {}", device.name);
             continue;
         }
@@ -34,18 +34,22 @@ void vkPhysicalDevice::select(vkSurface     const &surface,
                   device.graphics_queue_index);
 
         // Check that the card supports all the features passed in
-        if(_check_features(device, required_features) == false) {
+        if(!_check_features(device, required_features)) {
             BTX_WARN("Skipping {}", device.name);
             continue;
         }
-        BTX_TRACE("Found {} required features.", required_features.size());
+        BTX_TRACE("Found {} required feature{}.",
+                  required_features.size(),
+                  (required_features.size() == 1 ? '\0' : 's'));
 
         // Check that the card supports all the extensions passed in
-        if(_check_extensions(device, required_extensions) == false) {
+        if(!_check_extensions(device, required_extensions)) {
             BTX_WARN("Skipping {}", device.name);
             continue;
         }
-        BTX_TRACE("Found {} required extensions.", required_extensions.size());
+        BTX_TRACE("Found {} required extension{}.",
+                  required_extensions.size(),
+                  (required_extensions.size() == 1 ? '\0' : 's'));
 
         // If we've made it this far, this is our card!
         _chosen_device = device;
@@ -180,23 +184,29 @@ bool vkPhysicalDevice::_check_features(DeviceProps &device,
     // just a bunch of boolean values, so we have to add an explicit block to
     // check each one we're interested in.
     for(auto const &feature : required_features) {
-        if(feature == Features::SAMPLER_ANISOTROPY) {
-            if(supported_features.samplerAnisotropy != VK_TRUE) {
-                BTX_WARN("No support for sampler anisotropy.");
-                all_features_supported = false;
-                break;
-            }
-
-            device.enabled_features.samplerAnisotropy = VK_TRUE;
-        }
-        else if(feature == Features::FILL_MODE_NONSOLID) {
+        if(feature == Features::FILL_MODE_NONSOLID) {
             if(supported_features.fillModeNonSolid != VK_TRUE) {
-                BTX_WARN("No support for non-solid fill modes.");
+                BTX_WARN("{} does not support non-solid fill mode.",
+                         device.name);
+
                 all_features_supported = false;
                 break;
             }
 
+            BTX_TRACE("{} supports non-solid fill mode.", device.name);
             device.enabled_features.fillModeNonSolid = VK_TRUE;
+        }
+        else if(feature == Features::SAMPLER_ANISOTROPY) {
+            if(supported_features.samplerAnisotropy != VK_TRUE) {
+                BTX_WARN("{} does not support sampler anisotropy.",
+                         device.name);
+
+                all_features_supported = false;
+                break;
+            }
+
+            BTX_TRACE("{} supports sampler anisotropy", device.name);
+            device.enabled_features.samplerAnisotropy = VK_TRUE;
         }
         else {
             BTX_CRITICAL("Unknown physical device feature requested.");
@@ -321,31 +331,43 @@ void vkPhysicalDevice::_print_family_flags(uint32_t const family,
     flags_str = std::format("{}: ", family);
 
     if(flags & vk::QueueFlagBits::eGraphics) {
-        flags_str += "Graphics       ";
+        flags_str += "Graphics        ";
     }
     if(flags & vk::QueueFlagBits::eCompute) {
-        flags_str += "Compute        ";
+        flags_str += "Compute         ";
     }
     if(flags & vk::QueueFlagBits::eTransfer) {
-        flags_str += "Transfer       ";
+        flags_str += "Transfer        ";
     }
     if(flags & vk::QueueFlagBits::eSparseBinding) {
-        flags_str += "Sparse Binding ";
+        flags_str += "Sparse Binding  ";
     }
+
+#ifdef VK_VERSION_1_1
     if(flags & vk::QueueFlagBits::eProtected) {
-        flags_str += "Protected      ";
+        flags_str += "Protected       ";
     }
+#endif // VK_VERSION_1_1
 
-#ifdef VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_KHR_video_decode_queue
     if(flags & vk::QueueFlagBits::eVideoDecodeKHR) {
-        flags_str += "Video Decode   ";
+        flags_str += "Video Decode    ";
     }
-    if(flags & vk::QueueFlagBits::eVideoEncodeKHR) {
-        flags_str += "Video Encode   ";
-    }
-#endif // VK_ENABLE_BETA_EXTENSIONS
+#endif // VK_KHR_video_decode_queue
 
-    BTX_TRACE("    {}", flags_str);
+#ifdef VK_KHR_video_encode_queue
+    if(flags & vk::QueueFlagBits::eVideoEncodeKHR) {
+        flags_str += "Video Encode    ";
+    }
+#endif // VK_KHR_video_encode_queue
+
+#ifdef VK_NV_optical_flow
+    if(flags & vk::QueueFlagBits::eOpticalFlowNV) {
+        flags_str += "Optical Flow    ";
+    }
+#endif // VK_NV_optical_flow
+
+    BTX_TRACE("  {}", flags_str);
 }
 
 } // namespace btx

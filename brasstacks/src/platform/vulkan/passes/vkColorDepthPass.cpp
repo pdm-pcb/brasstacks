@@ -58,19 +58,18 @@ void vkColorDepthPass::create_swapchain_resources() {
 
 // =============================================================================
 void vkColorDepthPass::_find_depth_stencil_format() {
-    const std::vector<vk::Format> depth_options {
-        vk::Format::eD32Sfloat,
-        vk::Format::eD32SfloatS8Uint,
-        vk::Format::eD24UnormS8Uint
+    static std::array<vk::Format, 2> const depth_formats {
+        vk::Format::eD32SfloatS8Uint, // One of these two will always be
+        vk::Format::eD24UnormS8Uint,  // supported, according to the Guide.
     };
 
-    for(auto const& option : depth_options) {
-        auto props = vkPhysicalDevice::native().getFormatProperties(option);
+    for(auto const format : depth_formats) {
+        auto props = vkPhysicalDevice::native().getFormatProperties(format);
         if(props.optimalTilingFeatures &
            vk::FormatFeatureFlagBits::eDepthStencilAttachment)
         {
-            BTX_TRACE("Using depth stencil format {}", vk::to_string(option));
-            _depth_format = option;
+            BTX_TRACE("Using depth stencil format {}", vk::to_string(format));
+            _depth_format = format;
             return;
         }
     }

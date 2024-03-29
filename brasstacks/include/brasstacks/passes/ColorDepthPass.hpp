@@ -20,10 +20,9 @@ public:
     explicit ColorDepthPass(Renderer const &renderer);
     ~ColorDepthPass();
 
-    void create();
-
-    void destroy_swapchain_resources();
+    void create_pipeline();
     void create_swapchain_resources();
+    void destroy_swapchain_resources();
 
     void begin();
     void end();
@@ -51,8 +50,8 @@ private:
 
     vkCmdBuffer const *_cmd_buffer;
 
-    void _create_pipeline();
     void _create_framebuffers();
+    void _destroy_framebuffers();
 };
 
 } // namespace btx

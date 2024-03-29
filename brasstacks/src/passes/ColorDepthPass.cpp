@@ -18,9 +18,7 @@ ColorDepthPass::ColorDepthPass(Renderer const &renderer) :
     _pipeline     { new vkPipeline(_renderer.device()) },
     _framebuffers { },
     _cmd_buffer   { nullptr }
-{
-    _render_pass->create_swapchain_resources();
-}
+{ }
 
 // =============================================================================
 ColorDepthPass::~ColorDepthPass() {
@@ -34,17 +32,24 @@ ColorDepthPass::~ColorDepthPass() {
 }
 
 // =============================================================================
-void ColorDepthPass::create() {
-    _create_pipeline();
-    _create_framebuffers();
+void ColorDepthPass::create_pipeline() {
+    (*_pipeline)
+        .create(
+            *_render_pass,
+            {
+                .color_formats     = { _renderer.swapchain().image_format() },
+                .depth_format      = _render_pass->depth_format(),
+                .viewport_extent   = _renderer.swapchain().size(),
+                .viewport_offset   = _renderer.swapchain().offset(),
+                .sample_flags      = _render_pass->msaa_samples(),
+                .enable_depth_test = VK_TRUE,
+            }
+        );
 }
 
 // =============================================================================
 void ColorDepthPass::destroy_swapchain_resources() {
-    for(auto *framebuffer : _framebuffers) {
-        delete framebuffer;
-    }
-    _framebuffers.clear();
+    _destroy_framebuffers();
 
     _render_pass->destroy_swapchain_resources();
 }
@@ -53,6 +58,8 @@ void ColorDepthPass::destroy_swapchain_resources() {
 void ColorDepthPass::create_swapchain_resources() {
     _render_pass->create_swapchain_resources();
 
+    // This is redundant when the render pass has just been created, but
+    // necessary when the swapchain has changed size
     _pipeline->update_dimensions(_renderer.swapchain().size(),
                                  _renderer.swapchain().offset());
 
@@ -133,22 +140,6 @@ void ColorDepthPass::send_push_constants(
 }
 
 // =============================================================================
-void ColorDepthPass::_create_pipeline() {
-    (*_pipeline)
-        .create(
-            *_render_pass,
-            {
-                .color_formats     = { _renderer.swapchain().image_format() },
-                .depth_format      = _render_pass->depth_format(),
-                .viewport_extent   = _renderer.swapchain().size(),
-                .viewport_offset   = _renderer.swapchain().offset(),
-                .sample_flags      = _render_pass->msaa_samples(),
-                .enable_depth_test = VK_TRUE,
-            }
-        );
-}
-
-// =============================================================================
 void ColorDepthPass::_create_framebuffers() {
     auto const image_count = _renderer.swapchain().image_views().size();
     for(size_t i = 0; i < image_count; ++i) {
@@ -163,6 +154,14 @@ void ColorDepthPass::_create_framebuffers() {
             }}
         ));
     }
+}
+
+// =============================================================================
+void ColorDepthPass::_destroy_framebuffers() {
+    for(auto *framebuffer : _framebuffers) {
+        delete framebuffer;
+    }
+    _framebuffers.clear();
 }
 
 } // namespace btx
