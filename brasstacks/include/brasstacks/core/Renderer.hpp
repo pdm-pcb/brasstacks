@@ -54,7 +54,7 @@ private:
     vkDevice    *_device;
     vkSwapchain *_swapchain;
 
-    std::queue<vk::Semaphore>  _present_complete_sems;
+    std::queue<vk::Semaphore>  _present_sems;
     std::vector<vkFrameSync *> _frame_sync;
 
     uint32_t _image_index;

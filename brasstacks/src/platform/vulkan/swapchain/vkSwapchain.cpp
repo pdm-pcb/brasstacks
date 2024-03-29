@@ -99,11 +99,11 @@ uint32_t vkSwapchain::get_next_image_index(vk::Semaphore const &semaphore) {
 // =============================================================================
 bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
 {
-    // This present call will wait on frame.cmds_complete_sem to ensure the
+    // This present call will wait on frame.queue_sem to ensure the
     // submitted batch of commands has finished
     vk::PresentInfoKHR const present_info {
         .waitSemaphoreCount = 1u,
-        .pWaitSemaphores = &frame.cmds_complete_semaphore(),
+        .pWaitSemaphores = &frame.queue_semaphore(),
         .swapchainCount  = 1u,
         .pSwapchains     = &_handle,
         .pImageIndices   = &image_index,
