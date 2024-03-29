@@ -2,7 +2,7 @@
 #include "brasstacks/tools/MemTracker.hpp"
 
 #ifdef BTX_DEBUG
-#define MEMLOG
+// #define MEMLOG
 
 #ifdef BTX_CLANG
     #pragma clang diagnostic push
@@ -22,7 +22,7 @@ void * operator new(size_t bytes) {
     MemTracker::total_bytes += bytes;
 #ifdef MEMLOG
     ::printf(
-        "%zu bytes allocated; %zu total, %zu / %zu\n",
+        "%zu\tbytes allcd;\t%zu total, %zu / %zu\n",
         bytes, MemTracker::total_bytes, ++MemTracker::alloc_count,
         MemTracker::free_count
     );
@@ -40,8 +40,9 @@ void * operator new[](size_t bytes) {
     MemTracker::total_bytes += bytes;
 #ifdef MEMLOG
     ::printf(
-        "%zu bytes []allocated; %zu total, %zu / %zu\n",
-        bytes, MemTracker::total_bytes, ++MemTracker::alloc_count,
+        "%zu\tbytes []allcd;\t%zu total, %zu / %zu\n",
+        bytes, MemTracker::total_bytes,
+        ++MemTracker::alloc_count,
         MemTracker::free_count
     );
 #endif
@@ -54,8 +55,9 @@ void * operator new(size_t bytes, const std::nothrow_t&) noexcept {
     MemTracker::total_bytes += bytes;
 #ifdef MEMLOG
     ::printf(
-        "%zu bytes allocated; %zu total, %zu / %zu\n",
-        bytes, MemTracker::total_bytes, ++MemTracker::alloc_count,
+        "%zu\tbytes allcd;\t%zu total, %zu / %zu\n",
+        bytes, MemTracker::total_bytes,
+        ++MemTracker::alloc_count,
         MemTracker::free_count
     );
 #endif
@@ -78,10 +80,13 @@ void operator delete(void *memory) noexcept {
     MemTracker::total_bytes -= bytes;
 
 #ifdef MEMLOG
+    MemTracker::free_count++;
     ::printf(
-        "%zu bytes freed; %zu total, %zu / %zu\n",
-        bytes, MemTracker::total_bytes, MemTracker::alloc_count,
-        ++MemTracker::free_count
+        "%zu\tbytes freed;\t%zu total, %zu / %zu (%zu)\n",
+        bytes, MemTracker::total_bytes,
+        MemTracker::alloc_count,
+        MemTracker::free_count,
+        MemTracker::alloc_count - MemTracker::free_count
     );
 #endif
 
@@ -100,10 +105,13 @@ void operator delete[](void *memory) noexcept {
     MemTracker::total_bytes -= bytes;
 
 #ifdef MEMLOG
+    MemTracker::free_count++;
     ::printf(
-        "%zu bytes []freed; %zu total, %zu / %zu\n",
-        bytes, MemTracker::total_bytes, MemTracker::alloc_count,
-        ++MemTracker::free_count
+        "%zu\tbytes []freed;\t%zu total, %zu / %zu (%zu) \n",
+        bytes, MemTracker::total_bytes,
+        MemTracker::alloc_count,
+        MemTracker::free_count,
+        MemTracker::alloc_count - MemTracker::free_count
     );
 #endif
     ::free(&(static_cast<size_t *>(memory)[-1]));
@@ -123,10 +131,13 @@ void operator delete(void *memory, size_t bytes) noexcept {
     MemTracker::total_bytes -= bytes;
 
 #ifdef MEMLOG
+    MemTracker::free_count++;
     ::printf(
-        "%zu bytes freed; %zu total, %zu / %zu\n",
-        bytes, MemTracker::total_bytes, MemTracker::alloc_count,
-        ++MemTracker::free_count
+        "%zu\tbytes freed;\t%zu total, %zu / %zu (%zu)\n",
+        bytes, MemTracker::total_bytes,
+        MemTracker::alloc_count,
+        MemTracker::free_count,
+        MemTracker::alloc_count - MemTracker::free_count
     );
 #endif
 
@@ -146,10 +157,13 @@ void operator delete[](void *memory, size_t bytes) noexcept {
     MemTracker::total_bytes -= bytes;
 
 #ifdef MEMLOG
+    MemTracker::free_count++;
     ::printf(
-        "%zu bytes []freed; %zu total, %zu / %zu\n",
-        bytes, MemTracker::total_bytes, MemTracker::alloc_count,
-        ++MemTracker::free_count
+        "%zu\tbytes []freed;\t%zu total, %zu / %zu (%zu)\n",
+        bytes, MemTracker::total_bytes,
+        MemTracker::alloc_count,
+        MemTracker::free_count,
+        MemTracker::alloc_count - MemTracker::free_count
     );
 #endif
     ::free(&(static_cast<size_t *>(memory)[-1]));
@@ -168,10 +182,13 @@ void operator delete(void *memory, const std::nothrow_t&) noexcept {
     MemTracker::total_bytes -= bytes;
 
 #ifdef MEMLOG
+    MemTracker::free_count++;
     ::printf(
-        "%zu bytes []freed; %zu total, %zu / %zu\n",
-        bytes, MemTracker::total_bytes, MemTracker::alloc_count,
-        ++MemTracker::free_count
+        "%zu\tbytes []freed;\t%zu total, %zu / %zu (%zu)\n",
+        bytes, MemTracker::total_bytes,
+        MemTracker::alloc_count,
+        MemTracker::free_count,
+        MemTracker::alloc_count - MemTracker::free_count
     );
 #endif
     ::free(&(static_cast<size_t *>(memory)[-1]));

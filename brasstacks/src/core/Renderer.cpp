@@ -18,7 +18,6 @@ Renderer::Renderer(Application &application) :
     _surface         { nullptr },
     _device          { nullptr },
     _swapchain       { nullptr },
-    _present_sems    { },
     _frame_sync      { },
     _image_index     { std::numeric_limits<uint32_t>::max() }
 {
@@ -78,39 +77,14 @@ void Renderer::recreate_swapchain() {
 
 // =============================================================================
 void Renderer::_acquire_next_image() {
-    if(_present_sems.empty()) {
-        BTX_CRITICAL("Swapchain ran out of present complete semaphores.");
-        return;
-    }
-
-    // Grab the first available semaphore
-    auto const image_sem = _present_sems.front();
-    _present_sems.pop();
-
-    // And ask the swapchain which index comes next
-    _image_index = _swapchain->get_next_image_index(image_sem);
-
-    // Something has gone wrong with the swapchain
-    if(_image_index == std::numeric_limits<uint32_t>::max()) {
-        _present_sems.push(image_sem); // Put the sem back
-        return;
-    }
-
-    // Wrap the corresponding frame's data for convenience
+    _image_index = (_image_index + 1u) % _swapchain->images().size();
     auto &frame = *_frame_sync[_image_index];
-
-    // Wait on this frame's queue fence, which should always be signaled by
-    // the time we get here. After waiting, reset the submit fence and
-    // command pool.
     frame.wait_and_reset();
 
-    // Now swap this frame's image acquire semaphore out for the one we just
-    // submitted
-    if(frame.present_semaphore()) {
-        _present_sems.push(frame.present_semaphore());
-    }
+    auto const swapchain_says =
+        _swapchain->get_next_image_index(frame.present_semaphore());
 
-    frame.present_semaphore() = image_sem;
+    assert(_image_index == swapchain_says);
 }
 
 // =============================================================================
@@ -239,16 +213,6 @@ void Renderer::_create_frame_sync() {
     for(uint32_t i = 0; i < image_count; ++i) {
         _frame_sync.push_back(new vkFrameSync(*_device));
     }
-
-    // Create one extra semaphore because by the time the first n frames have
-    // requested images from the swapchain, the queue of semaphores will be
-    // empty. And since the logic in acquire_next_image() tries to get a new
-    // semaphore before releasing the old one for that frame, there has to be
-    // one semaphore spare.
-    auto result = _device->native().createSemaphore({ });
-
-    BTX_TRACE("Created image acquire semaphore {}", result);
-    _present_sems.push(result);
 }
 
 // =============================================================================
@@ -262,17 +226,7 @@ void Renderer::_destroy_frame_sync() {
     for(auto *frame : _frame_sync) {
         delete frame;
     }
-
     _frame_sync.clear();
-
-    while(!_present_sems.empty()) {
-        auto const sem = _present_sems.front();
-
-        BTX_TRACE("Destroying image acquire semaphore {}", sem);
-        _device->native().destroySemaphore(sem);
-
-        _present_sems.pop();
-    }
 }
 
 } // namespace btx

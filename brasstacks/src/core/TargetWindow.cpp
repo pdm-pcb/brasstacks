@@ -70,15 +70,15 @@ TargetWindow::~TargetWindow() {
 
 // =============================================================================
 void TargetWindow::capture_mouse() const {
-    ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-    ::glfwGetCursorPos(_window, &_last_cursor_x, &_last_cursor_y);
+    // ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    // ::glfwGetCursorPos(_window, &_last_cursor_x, &_last_cursor_y);
 }
 
 // =============================================================================
 void TargetWindow::release_mouse() const {
-    ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+    // ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    // ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 }
 
 // =============================================================================

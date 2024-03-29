@@ -118,6 +118,22 @@ void Demo::update() {
 
 // =============================================================================
 void Demo::record_commands() const {
+    static std::array<btx::vkPipeline::PushConstant, 1> const plane_pcs {
+        btx::vkPipeline::PushConstant {
+            .stage_flags = vk::ShaderStageFlagBits::eVertex,
+            .size_bytes = sizeof(btx::math::Mat4),
+            .data = &_plane_mat,
+        }
+    };
+
+    static std::array<btx::vkPipeline::PushConstant, 1> const cube_pcs {
+        btx::vkPipeline::PushConstant {
+            .stage_flags = vk::ShaderStageFlagBits::eVertex,
+            .size_bytes = sizeof(btx::math::Mat4),
+            .data = &_cube_mat,
+        }
+    };
+
     auto const image_index = _renderer->image_index();
 
     std::array<btx::math::Mat4, 2> const vp {{ _camera->view_matrix(),
@@ -129,24 +145,10 @@ void Demo::record_commands() const {
 
         _color_depth_pass->bind_descriptor_set(*_camera_ubo_sets[image_index]);
 
-        _color_depth_pass->send_push_constants({
-            btx::vkPipeline::PushConstant {
-                .stage_flags = vk::ShaderStageFlagBits::eVertex,
-                .size_bytes = sizeof(btx::math::Mat4),
-                .data = &_plane_mat,
-            }
-        });
-
+        _color_depth_pass->send_push_constants(plane_pcs);
         (*_plane_mesh)->draw_indexed(_renderer->cmd_buffer());
 
-        _color_depth_pass->send_push_constants({
-            btx::vkPipeline::PushConstant {
-                .stage_flags = vk::ShaderStageFlagBits::eVertex,
-                .size_bytes = sizeof(btx::math::Mat4),
-                .data = &_cube_mat,
-            }
-        });
-
+        _color_depth_pass->send_push_constants(cube_pcs);
         (*_cube_mesh)->draw_indexed(_renderer->cmd_buffer());
 
     _color_depth_pass->end();

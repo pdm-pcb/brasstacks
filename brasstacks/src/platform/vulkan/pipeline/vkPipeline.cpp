@@ -233,9 +233,10 @@ void vkPipeline::create(vkRenderPassBase const &render_pass, Config const &confi
 }
 
 // =============================================================================
-void vkPipeline::send_push_constants(PushConstants const &push_constants) {
+void
+vkPipeline::send_push_constants(std::span<PushConstant> const push_constants) {
     size_t offset = 0u;
-    for(auto const& push_constant : push_constants) {
+    for(auto const &push_constant : push_constants) {
         _cmd_buffer->native().pushConstants(
             _layout,
             push_constant.stage_flags,

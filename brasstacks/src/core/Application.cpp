@@ -41,6 +41,7 @@ Application::Application(std::string_view const app_name) :
 Application::~Application() {
     delete _menu_state;
     delete _play_state;
+    delete _pause_state;
 
     delete _mesh_library;
 

@@ -73,8 +73,7 @@ public:
 
     void create(vkRenderPassBase const &render_pass, Config const &config);
 
-    using PushConstants = std::vector<PushConstant>;
-    void send_push_constants(PushConstants const &push_constants);
+    void send_push_constants(std::span<PushConstant> const push_constants);
 
     void update_dimensions(RenderConfig::Size const &size,
                            RenderConfig::Offset const &offset);

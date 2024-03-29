@@ -122,9 +122,7 @@ void ColorDepthPass::bind_descriptor_set(vkDescriptorSet const &set) const {
 }
 
 // =============================================================================
-void ColorDepthPass::send_push_constants(
-    vkPipeline::PushConstants const &push_constants)
-{
+void ColorDepthPass::send_push_constants(PushConstants const push_constants) {
     size_t offset = 0u;
     for(auto const& push_constant : push_constants) {
         _cmd_buffer->native().pushConstants(

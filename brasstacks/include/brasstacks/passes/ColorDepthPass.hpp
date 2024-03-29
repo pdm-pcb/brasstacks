@@ -16,6 +16,8 @@ class vkDescriptorSetLayout;
 class vkDescriptorSet;
 
 class ColorDepthPass final {
+    using PushConstants = std::span<vkPipeline::PushConstant const>;
+
 public:
     explicit ColorDepthPass(Renderer const &renderer);
     ~ColorDepthPass();
@@ -29,7 +31,7 @@ public:
 
     void bind_descriptor_set(vkDescriptorSet const &set) const;
 
-    void send_push_constants(vkPipeline::PushConstants const &push_constants);
+    void send_push_constants(PushConstants const push_constants);
 
     auto & pipeline() { return *_pipeline; }
 

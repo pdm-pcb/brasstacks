@@ -23,8 +23,6 @@ public:
     [[nodiscard]] bool present(vkFrameSync const &frame,
                                uint32_t const image_index);
 
-    void recreate();
-
     inline auto const &size() const { return _size; }
     inline auto const &offset() const { return _offset; }
     inline auto aspect_ratio() const { return _aspect_ratio; }
