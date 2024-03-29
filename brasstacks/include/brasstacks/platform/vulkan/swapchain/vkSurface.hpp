@@ -21,7 +21,6 @@ public:
 #ifdef BTX_LINUX
     /**
      * @brief Construct the X11 vkSurface object.
-     * @param instance An established Vulkan instance
      * @param create_info Surface creation details
      */
     vkSurface(vk::XlibSurfaceCreateInfoKHR const &create_info);

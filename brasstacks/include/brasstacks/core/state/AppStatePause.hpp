@@ -6,11 +6,9 @@
 
 namespace btx {
 
-class Application;
-
 class AppStatePause final : public AppStateBase {
 public:
-    explicit AppStatePause(Application &target_window);
+    AppStatePause();
     ~AppStatePause() override = default;
 
     void enter() override;
@@ -25,9 +23,6 @@ public:
 
     AppStatePause & operator=(AppStatePause &&) = delete;
     AppStatePause & operator=(AppStatePause const &) = delete;
-
-private:
-    Application &_application;
 };
 
 } // namespace btx

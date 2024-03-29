@@ -18,7 +18,7 @@ function(add_warning_flags target_name)
                 "-Wno-newline-eof"  # I'm willing to accept this risk
                 "-Wno-global-constructors"   # There are some statics I like
                 "-Wno-exit-time-destructors" # Same as above
-                # "-Wno-c99-designator" # And
+                "-Wno-padded" # Dont worry about padded structs etc
             )
         endif()
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
