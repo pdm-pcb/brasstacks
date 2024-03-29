@@ -85,7 +85,7 @@ void Demo::init(btx::Renderer const &renderer) {
                            vk::ShaderStageFlagBits::eFragment)
         .describe_vertex_input(btx::Vertex::bindings,
                                btx::Vertex::attributes)
-        .add_descriptor_set(*_camera_ubo_layout)
+        .add_descriptor_set_layout(*_camera_ubo_layout)
         .add_push_constant({ .stage_flags = vk::ShaderStageFlagBits::eVertex,
                              .size_bytes = sizeof(btx::math::Mat4) });
 

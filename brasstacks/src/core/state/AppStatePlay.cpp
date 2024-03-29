@@ -4,20 +4,20 @@
 namespace btx {
 
 // =============================================================================
-AppStatePlay::AppStatePlay(TargetWindow &target_window) :
-    _target_window { target_window }
+AppStatePlay::AppStatePlay(Application &application) :
+    _application { application }
 { }
 
 // =============================================================================
 void AppStatePlay::enter() {
     BTX_INFO("Entering AppStatePlay");
-    _target_window.capture_mouse();
+    _application.target_window().capture_mouse();
 }
 
 // =============================================================================
 void AppStatePlay::exit() {
     BTX_INFO("Exiting AppStatePlay");
-    _target_window.release_mouse();
+    _application.target_window().release_mouse();
 }
 
 // =============================================================================

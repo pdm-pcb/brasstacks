@@ -33,7 +33,7 @@ public:
     vkPipeline & describe_vertex_input(VertBindings const &bindings,
                                        VertAttribs const &attributes);
 
-    vkPipeline & add_descriptor_set(vkDescriptorSetLayout const &layout);
+    vkPipeline & add_descriptor_set_layout(vkDescriptorSetLayout const &layout);
 
     struct PushConstant {
         vk::ShaderStageFlags const stage_flags = vk::ShaderStageFlagBits::eAll;

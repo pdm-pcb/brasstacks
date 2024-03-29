@@ -147,7 +147,7 @@ vkPipeline & vkPipeline::describe_vertex_input(VertBindings const &bindings,
 
 // =============================================================================
 vkPipeline &
-vkPipeline::add_descriptor_set(vkDescriptorSetLayout const &layout) {
+vkPipeline::add_descriptor_set_layout(vkDescriptorSetLayout const &layout) {
     if(_handle) {
         BTX_CRITICAL("Adding a descriptor set to a pipeline that's already "
                      "been created.");

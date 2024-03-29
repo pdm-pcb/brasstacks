@@ -6,11 +6,6 @@
 namespace btx {
 
 // =============================================================================
-AppStateMenu::AppStateMenu(Application &application) :
-    _application { application }
-{ }
-
-// =============================================================================
 void AppStateMenu::key_press(KeyPressEvent const &event) {
     switch(event.code) {
         case BTX_KB_ESCAPE:

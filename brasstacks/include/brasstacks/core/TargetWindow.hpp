@@ -14,8 +14,8 @@ public:
     inline void show() { ::glfwShowWindow(_window); }
     inline void hide() { ::glfwHideWindow(_window); }
 
-    void capture_mouse();
-    void release_mouse();
+    void capture_mouse() const;
+    void release_mouse() const;
 
     void poll_events();
 

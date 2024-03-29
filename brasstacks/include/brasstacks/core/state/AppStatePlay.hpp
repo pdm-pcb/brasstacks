@@ -6,11 +6,11 @@
 
 namespace btx {
 
-class TargetWindow;
+class Application;
 
 class AppStatePlay final : public AppStateBase {
 public:
-    explicit AppStatePlay(TargetWindow &target_window);
+    explicit AppStatePlay(Application &target_window);
     ~AppStatePlay() override = default;
 
     void enter() override;
@@ -28,7 +28,7 @@ public:
     AppStatePlay & operator=(AppStatePlay const &) = delete;
 
 private:
-    TargetWindow &_target_window;
+    Application &_application;
 };
 
 } // namespace btx

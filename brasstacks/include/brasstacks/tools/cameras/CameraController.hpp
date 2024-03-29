@@ -12,6 +12,7 @@ class Renderer;
 class PerspectiveCamera;
 
 class vkBuffer;
+class vkDescriptorPool;
 class vkDescriptorSetLayout;
 class vkDescriptorSet;
 
@@ -34,6 +35,7 @@ private:
     PerspectiveCamera *_perspective_camera;
 
     std::vector<vkBuffer *>        _camera_ubos;
+    vkDescriptorPool              *_descriptor_pool;
     vkDescriptorSetLayout         *_camera_ubo_layout;
     std::vector<vkDescriptorSet *> _camera_ubo_sets;
 };

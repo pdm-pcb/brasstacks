@@ -38,6 +38,7 @@ public:
     virtual void create_swapchain_resources() = 0;
 
     inline auto const & target_window() const { return *_target_window; }
+    inline auto const & renderer() const { return *_renderer; }
 
     Application() = delete;
 

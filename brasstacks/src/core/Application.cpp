@@ -28,8 +28,8 @@ Application::Application(std::string_view const app_name) :
     _key_press_events          { *this, &Application::_key_press },
     _mouse_button_press_events { *this, &Application::_mouse_button_press }
 {
-    _menu_state = new AppStateMenu(*this);
-    _play_state = new AppStatePlay(*_target_window);
+    _menu_state = new AppStateMenu;
+    _play_state = new AppStatePlay(*this);
 
     EventBus::publish(AppStateTransition(AppState::MENU_STATE));
 
