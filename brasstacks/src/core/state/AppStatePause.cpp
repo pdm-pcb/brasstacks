@@ -4,7 +4,7 @@
 namespace btx {
 
 // =============================================================================
-AppStatePause::AppStatePause(Application &application) :
+AppStatePause::AppStatePause() :
     AppStateBase(AppState::PAUSE_STATE)
 { }
 

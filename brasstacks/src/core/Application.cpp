@@ -30,7 +30,7 @@ Application::Application(std::string_view const app_name) :
 
     _menu_state  = new AppStateMenu(*this);
     _play_state  = new AppStatePlay(*this);
-    _pause_state = new AppStatePause(*this);
+    _pause_state = new AppStatePause;
 
     EventBus::publish(AppStateTransition(AppState::MENU_STATE));
 
