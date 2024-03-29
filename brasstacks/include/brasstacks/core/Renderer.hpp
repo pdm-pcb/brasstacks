@@ -14,13 +14,9 @@ class vkCmdBuffer;
 
 class Renderer final {
 public:
-    explicit Renderer(Application const &application);
+    explicit Renderer(Application &application);
     ~Renderer();
 
-    void begin_thread();
-    void end_thread();
-    void run_loop();
-    void pause_loop();
     void run();
 
     inline void wait_device_idle() const { _device->wait_idle(); }
@@ -48,7 +44,7 @@ public:
     Renderer & operator=(Renderer const &) = delete;
 
 private:
-    Application const &_application;
+    Application &_application;
 
     vkSurface   *_surface;
     vkDevice    *_device;
@@ -59,10 +55,7 @@ private:
 
     uint32_t _image_index;
 
-    std::atomic_flag _thread_running;
-    std::atomic_flag _loop_running;
-
-    uint32_t _acquire_next_image();
+    void _acquire_next_image();
     void _begin_recording();
     void _end_recording();
     void _submit_commands();

@@ -10,16 +10,10 @@ class Application;
 
 class Simulation {
 public:
-    Simulation(Application &application, uint32_t ticks_per_second);
+    Simulation(Application &application);
     ~Simulation() = default;
 
-    void begin_thread();
-    void end_thread();
-    void run_loop();
-    void pause_loop();
     void run();
-
-    void set_ticks_per_second(uint32_t const ticks_per_second);
 
     Simulation() = delete;
 
@@ -31,12 +25,6 @@ public:
 
 private:
     Application &_application;
-
-    std::mutex _interval_mutex;
-    TimeKeeper::Nanoseconds _tick_interval;
-
-    std::atomic_flag _thread_running;
-    std::atomic_flag _loop_running;
 };
 
 } // namespace btx

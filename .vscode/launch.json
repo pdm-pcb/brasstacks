@@ -51,8 +51,7 @@
                     "value": "${env:PATH}:${command:cmake.getLaunchTargetDirectory}"
                 }
             ],
-            "console": "externalTerminal",
-            "externalConsole": true
+            "console": "externalTerminal"
         }
     ]
 }

@@ -36,6 +36,10 @@ public:
     void destroy_swapchain_resources() override;
     void create_swapchain_resources() override;
 
+    void activate_camera() override;
+    void deactivate_camera() override;
+    void update_camera() override;
+
 private:
     btx::Renderer const *_renderer;
 

@@ -8,7 +8,8 @@ namespace btx {
 
 enum class AppState : uint8_t {
     MENU_STATE = 0u,
-    PLAY_STATE
+    PLAY_STATE,
+    PAUSE_STATE
 };
 
 struct AppStateTransition final : public EventBase {

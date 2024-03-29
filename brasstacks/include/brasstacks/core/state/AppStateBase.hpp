@@ -6,18 +6,26 @@
 
 namespace btx {
 
-struct KeyPressEvent;
-struct MouseButtonPressEvent;
+struct KeyboardEvent;
+struct MouseButtonEvent;
 
 class AppStateBase : public StateBase {
 public:
+    AppStateBase() = delete;
     virtual ~AppStateBase() override = default;
 
-    virtual void key_press(KeyPressEvent const &event) = 0;
-    virtual void mouse_button_press(MouseButtonPressEvent const &event) = 0;
+    auto type() const { return _state_type; }
+
+    virtual void keyboard_event(KeyboardEvent const &event) = 0;
+    virtual void mouse_button_event(MouseButtonEvent const &event) = 0;
 
 protected:
-    AppStateBase() = default;
+    explicit AppStateBase(AppState const state_type) :
+        _state_type { state_type }
+    { }
+
+private:
+    AppState const _state_type;
 };
 
 } // namespace btx

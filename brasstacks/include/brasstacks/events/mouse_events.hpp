@@ -16,30 +16,26 @@ struct MouseMoveEvent final : public EventBase {
 
     MouseMoveEvent() = delete;
 
-    int32_t x_offset;
-    int32_t y_offset;
+    int32_t const x_offset;
+    int32_t const y_offset;
 };
 
-struct MouseButtonPressEvent final : public EventBase {
-    explicit MouseButtonPressEvent(Keycode button) :
-        EventBase(),
-        code { button }
-    { }
-
-    MouseButtonPressEvent() = delete;
-
-    Keycode code;
+enum class MouseButtonEventType : uint8_t {
+    BUTTON_PRESS = 0u,
+    BUTTON_RELEASE
 };
 
-struct MouseButtonReleaseEvent final : public EventBase {
-    explicit MouseButtonReleaseEvent(Keycode button) :
+struct MouseButtonEvent final : public EventBase {
+    MouseButtonEvent(MouseButtonEventType const type, Keycode const code) :
         EventBase(),
-        code { button }
+        event_type { type },
+        event_code { code }
     { }
 
-    MouseButtonReleaseEvent() = delete;
+    MouseButtonEvent() = delete;
 
-    Keycode code;
+    MouseButtonEventType event_type;
+    Keycode event_code;
 };
 
 struct MouseScrollEvent final : public EventBase {
@@ -51,8 +47,8 @@ struct MouseScrollEvent final : public EventBase {
 
     MouseScrollEvent() = delete;
 
-    int32_t vert_offset;
-    int32_t horiz_offset;
+    int32_t const vert_offset;
+    int32_t const horiz_offset;
 };
 
 } //namespace btx

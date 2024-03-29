@@ -103,18 +103,16 @@ void Demo::shutdown() {
 
 // =============================================================================
 void Demo::update() {
-    _camera->update();
-
     using namespace btx::math;
 
     _plane_mat = translate(Mat4::identity, -Vec3::unit_x * 1.25f) *
                  rotate(Mat4::identity,
-                        20.0f * btx::TimeKeeper::sim_run_time(),
+                        20.0f * btx::TimeKeeper::app_run_time(),
                         Vec3::unit_z);
 
     _cube_mat = translate(Mat4::identity, Vec3::unit_x * 1.25f) *
                 rotate(Mat4::identity,
-                       10.0f * btx::TimeKeeper::sim_run_time(),
+                       10.0f * btx::TimeKeeper::app_run_time(),
                        Vec3::unit_y - Vec3::unit_x);
 }
 
@@ -170,6 +168,10 @@ void Demo::create_swapchain_resources() {
         .far_plane = 1000.0f,
     });
 }
+
+void Demo::activate_camera() { _camera->subscribe_to_input(); }
+void Demo::deactivate_camera() { _camera->unsubscribe_from_input(); }
+void Demo::update_camera() { _camera->update(); }
 
 // =============================================================================
 void Demo::_create_camera() {

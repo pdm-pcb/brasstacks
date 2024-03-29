@@ -10,21 +10,24 @@ class Application;
 
 class AppStateMenu final : public AppStateBase {
 public:
-    AppStateMenu() = default;
+    explicit AppStateMenu(Application &target_window);
     ~AppStateMenu() override = default;
 
     void enter()   override { }
     void exit()    override { }
-    void execute() override { }
+    void execute() override;
 
-    void key_press(KeyPressEvent const &event) override;
-    void mouse_button_press(MouseButtonPressEvent const &event) override;
+    void keyboard_event(KeyboardEvent const &event) override;
+    void mouse_button_event(MouseButtonEvent const &event) override;
 
     AppStateMenu(AppStateMenu &&) = delete;
     AppStateMenu(AppStateMenu const &) = delete;
 
     AppStateMenu & operator=(AppStateMenu &&) = delete;
     AppStateMenu & operator=(AppStateMenu const &) = delete;
+
+private:
+    Application &_application;
 };
 
 } // namespace btx

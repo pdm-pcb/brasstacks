@@ -96,34 +96,37 @@ private:
 // Implementations
 
 template<typename ...T>
-void ConsoleLog::btx_trace(fmt::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_trace(fmt::format_string<T...> fstring, T&& ...args) {
     _init();
-    _logger->trace(fmt, std::forward<T>(args)...);
+    _logger->trace(fstring, std::forward<T>(args)...);
 }
 
 template<typename ...T>
-void ConsoleLog::btx_info(fmt::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_info(fmt::format_string<T...> fstring, T&& ...args) {
     _init();
-    _logger->info(fmt, std::forward<T>(args)...);
+    _logger->info(fstring, std::forward<T>(args)...);
 }
 
 template<typename ...T>
-void ConsoleLog::btx_warn(fmt::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_warn(fmt::format_string<T...> fstring, T&& ...args) {
     _init();
-    _logger->warn(fmt, std::forward<T>(args)...);
+    _logger->warn(fstring, std::forward<T>(args)...);
 }
 
 template<typename ...T>
-void ConsoleLog::btx_error(fmt::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_error(fmt::format_string<T...> fstring, T&& ...args) {
     _init();
-    _logger->error(fmt, std::forward<T>(args)...);
+    _logger->error(fstring, std::forward<T>(args)...);
 }
 
 template<typename ...T>
-void ConsoleLog::btx_critical(fmt::format_string<T...> fmt, T&& ...args) {
+void ConsoleLog::btx_critical(fmt::format_string<T...> fstring, T&& ...args) {
     _init();
-    _logger->critical(fmt, std::forward<T>(args)...);
-    assert(false);
+
+    auto const errmsg = fmt::format(fstring, std::forward<T>(args)...);
+
+    _logger->critical(errmsg);
+    throw std::runtime_error(errmsg);
 }
 
 } // namespace btx

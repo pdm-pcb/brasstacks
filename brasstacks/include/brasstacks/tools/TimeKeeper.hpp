@@ -13,31 +13,14 @@ public:
 
     inline static auto now() { return SteadyClock::now(); }
 
-    static void update_run_times();
+    static void update_run_time();
 
-    static void frame_start();
-    static void frame_end();
-
-    static void tick_start();
-    static void tick_end();
-
-    static void render_pause_offset(SteadyClock::duration const &offset);
-    static void sim_pause_offset(SteadyClock::duration const &offset);
+    inline static auto delta_time() {
+        return 1e-9f * static_cast<float>(_delta_time);
+    }
 
     inline static auto app_run_time() {
-        return 1e-9f * static_cast<float>(_app_run_time.load());
-    }
-
-    inline static auto sim_run_time() {
-        return 1e-9f * static_cast<float>(_sim_run_time.load());
-    }
-
-    inline static auto frame_delta() {
-        return 1e-9f * static_cast<float>(_frame_delta.load());
-    }
-
-    inline static auto tick_delta() {
-        return 1e-9f * static_cast<float>(_tick_delta.load());
+        return 1e-9f * static_cast<float>(_app_run_time);
     }
 
     TimeKeeper() = delete;
@@ -50,17 +33,8 @@ public:
     TimeKeeper& operator=(const TimeKeeper &other) = delete;
 
 private:
-    static SteadyClock::time_point _frame_start;
-    static SteadyClock::time_point _tick_start;
-
-    static std::atomic<uint64_t> _app_run_time;
-    static std::atomic<uint64_t> _sim_run_time;
-
-    static std::atomic<uint64_t> _frame_delta;
-    static std::atomic<uint64_t> _tick_delta;
-
-    static uint64_t _last_render_pause;
-    static uint64_t _last_sim_pause;
+    static uint64_t _app_run_time;
+    static uint64_t _delta_time;
 };
 
 } // namespace btx

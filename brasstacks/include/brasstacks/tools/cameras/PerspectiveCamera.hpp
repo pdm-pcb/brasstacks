@@ -6,8 +6,7 @@
 
 namespace btx {
 
-struct KeyPressEvent;
-struct KeyReleaseEvent;
+struct KeyboardEvent;
 struct MouseMoveEvent;
 
 class PerspectiveCamera final {
@@ -32,11 +31,12 @@ public:
                       PerspectiveParams const &persp_params);
     ~PerspectiveCamera() = default;
 
+    void subscribe_to_input();
+    void unsubscribe_from_input();
     void update();
 
-    void on_key_press(KeyPressEvent const &event);
-    void on_key_release(KeyReleaseEvent const &event);
-    void on_mouse_move(MouseMoveEvent const &event);
+    void keyboard_event(KeyboardEvent const &event);
+    void mouse_move_event(MouseMoveEvent const &event);
 
     void set_perspective_proj(PerspectiveParams const &persp_params);
 
@@ -80,9 +80,8 @@ private:
         float yaw   = -90.0f;
     } _state;
 
-    EventQueue<KeyPressEvent>   _key_press_queue;
-    EventQueue<KeyReleaseEvent> _key_release_queue;
-    EventQueue<MouseMoveEvent>  _mouse_move_queue;
+    EventQueue<KeyboardEvent>   _keyboard_events;
+    EventQueue<MouseMoveEvent>  _mouse_move_events;
 
     void _process_events();
 };

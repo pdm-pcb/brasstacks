@@ -9,21 +9,18 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/events/EventBus.hpp"
-#include "brasstacks/events/renderer_events.hpp"
 
 namespace btx {
 
 // =============================================================================
-Renderer::Renderer(Application const &application) :
-    _application    { application },
-    _surface        { nullptr },
-    _device         { nullptr },
-    _swapchain      { nullptr },
-    _present_sems   { },
-    _frame_sync     { },
-    _image_index    { std::numeric_limits<uint32_t>::max() },
-    _thread_running { },
-    _loop_running   { }
+Renderer::Renderer(Application &application) :
+    _application     { application },
+    _surface         { nullptr },
+    _device          { nullptr },
+    _swapchain       { nullptr },
+    _present_sems    { },
+    _frame_sync      { },
+    _image_index     { std::numeric_limits<uint32_t>::max() }
 {
     vkInstance::create();
 
@@ -32,9 +29,6 @@ Renderer::Renderer(Application const &application) :
     _create_device();
     _create_swapchain();
     _create_frame_sync();
-
-    _thread_running.clear();
-    _loop_running.clear();
 }
 
 // =============================================================================
@@ -47,111 +41,46 @@ Renderer::~Renderer() {
 }
 
 // =============================================================================
-void Renderer::begin_thread() {
-    BTX_TRACE("Starting renderer thread...");
-
-    // If we just set _thread_running but not _loop_running, the renderer's
-    // main loop will just pause right away
-    _loop_running.test_and_set();
-    _loop_running.notify_one();
-
-    _thread_running.test_and_set();
-    _thread_running.notify_one();
-}
-
-// =============================================================================
-void Renderer::end_thread() {
-    BTX_TRACE("Stopping renderer thread...");
-
-    // First, make sure the loop can proceed
-    _loop_running.test_and_set();
-    _loop_running.notify_one();
-
-    // Next, allow the loop to exit
-    _thread_running.clear();
-}
-
-// =============================================================================
-void Renderer::run_loop() {
-    BTX_TRACE("Staring renderer loop...");
-    if(!_loop_running.test_and_set()) {
-        _loop_running.notify_one();
-    }
-}
-
-// =============================================================================
-void Renderer::pause_loop() {
-    BTX_TRACE("Pausing renderer loop...");
-    _loop_running.clear();
-}
-
-// =============================================================================
 void Renderer::run() {
-    BTX_TRACE("Renderer ready to run...");
-    _thread_running.wait(false);
-    BTX_TRACE("Renderer running!");
+    _acquire_next_image();
+    if(_image_index == std::numeric_limits<uint32_t>::max()) {
+        BTX_WARN("Swapchain provided invalid index.");
+        recreate_swapchain();
+        return;
+    }
 
-    while(_thread_running.test()) {
-        if(!_loop_running.test()) {
-            BTX_TRACE("Render loop paused...");
-            auto const pause_begin = TimeKeeper::now();
-            _loop_running.wait(false);
+    _begin_recording();
 
-            BTX_TRACE("Render loop resumed!");
-            TimeKeeper::render_pause_offset(TimeKeeper::now() - pause_begin);
-        }
+    _application.record_commands();
 
-        TimeKeeper::frame_start();
+    _end_recording();
+    _submit_commands();
 
-            uint32_t const image_index = _acquire_next_image();
-            if(image_index == std::numeric_limits<uint32_t>::max()) {
-                if(!_loop_running.test()) {
-                    continue;
-                }
-
-                BTX_WARN("Swapchain provided invalid index.");
-                wait_device_idle();
-                pause_loop();
-                EventBus::publish(SwapchainRecreateEvent { });
-                continue;
-            }
-
-            _begin_recording();
-
-            _application.record_commands();
-
-            _end_recording();
-            _submit_commands();
-
-            if(!_present_image()) {
-                if(!_loop_running.test()) {
-                    continue;
-                }
-
-                BTX_WARN("Swapchain presentation failed.");
-                wait_device_idle();
-                pause_loop();
-                EventBus::publish(SwapchainRecreateEvent { });
-                continue;
-            }
-
-        TimeKeeper::frame_end();
+    if(!_present_image()) {
+        BTX_WARN("Swapchain presentation failed.");
+        recreate_swapchain();
     }
 }
 
 // =============================================================================
 void Renderer::recreate_swapchain() {
+    wait_device_idle();
+
+    _application.destroy_swapchain_resources();
+
     _destroy_frame_sync();
     _destroy_swapchain();
     _create_swapchain();
     _create_frame_sync();
+
+    _application.create_swapchain_resources();
 }
 
 // =============================================================================
-uint32_t Renderer::_acquire_next_image() {
+void Renderer::_acquire_next_image() {
     if(_present_sems.empty()) {
         BTX_CRITICAL("Swapchain ran out of present complete semaphores.");
-        return std::numeric_limits<uint32_t>::max();
+        return;
     }
 
     // Grab the first available semaphore
@@ -164,7 +93,7 @@ uint32_t Renderer::_acquire_next_image() {
     // Something has gone wrong with the swapchain
     if(_image_index == std::numeric_limits<uint32_t>::max()) {
         _present_sems.push(image_sem); // Put the sem back
-        return _image_index;                    // Report a problem
+        return;
     }
 
     // Wrap the corresponding frame's data for convenience
@@ -182,8 +111,6 @@ uint32_t Renderer::_acquire_next_image() {
     }
 
     frame.present_semaphore() = image_sem;
-
-    return _image_index;
 }
 
 // =============================================================================

@@ -55,16 +55,9 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
 
     ::glfwSetWindowPos(_window, _window_position.x, _window_position.y);
 
-    ::glfwSetWindowSizeLimits(
-        _window,
-        320, 240, // Minimum dimensions
-        GLFW_DONT_CARE, GLFW_DONT_CARE // Maximum dimensions
-    );
-
     ::glfwSetKeyCallback(_window, TargetWindow::_key_callback);
     ::glfwSetMouseButtonCallback(_window, TargetWindow::_mouse_button_callback);
     ::glfwSetCursorPosCallback(_window, _mouse_move_callback);
-    ::glfwSetWindowSizeCallback(_window, TargetWindow::_window_size_callback);
     ::glfwSetWindowIconifyCallback(_window,
                                    TargetWindow::_window_iconify_callback);
 }
@@ -93,7 +86,7 @@ void TargetWindow::poll_events() {
     ::glfwPollEvents();
 
     if(::glfwWindowShouldClose(_window)) {
-        EventBus::publish(WindowCloseEvent { });
+        EventBus::publish(WindowEvent(WindowEventType::WINDOW_CLOSE));
     }
 }
 
@@ -132,10 +125,10 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
 {
     auto const code = GLFWToBTXKeys::translate(key);
     if(action == GLFW_PRESS) {
-        EventBus::publish(KeyPressEvent(code));
+        EventBus::publish(KeyboardEvent(KeyboardEventType::KEY_PRESS, code));
     }
     else if(action == GLFW_RELEASE) {
-        EventBus::publish(KeyReleaseEvent(code));
+        EventBus::publish(KeyboardEvent(KeyboardEventType::KEY_RELEASE, code));
     }
 }
 
@@ -144,19 +137,19 @@ void TargetWindow::_mouse_move_callback([[maybe_unused]] GLFWwindow* window,
                                         [[maybe_unused]] double x,
                                         [[maybe_unused]] double y)
 {
-    // static double x_offset = 0.0;
-    // static double y_offset = 0.0;
+    static double x_offset = 0.0;
+    static double y_offset = 0.0;
 
-    // x_offset = x - _last_cursor_x;
-    // y_offset = y - _last_cursor_y;
+    x_offset = x - _last_cursor_x;
+    y_offset = y - _last_cursor_y;
 
-    // _last_cursor_x = x;
-    // _last_cursor_y = y;
+    _last_cursor_x = x;
+    _last_cursor_y = y;
 
-    // EventBus::publish(
-    //     MouseMoveEvent(static_cast<int32_t>(x_offset),
-    //                    static_cast<int32_t>(y_offset))
-    // );
+    EventBus::publish(
+        MouseMoveEvent(static_cast<int32_t>(x_offset),
+                       static_cast<int32_t>(y_offset))
+    );
 }
 
 // =============================================================================
@@ -168,22 +161,15 @@ void TargetWindow::_mouse_button_callback([[maybe_unused]] GLFWwindow* window,
     auto const code = GLFWToBTXKeys::translate(button);
 
     if(action == GLFW_PRESS) {
-        EventBus::publish(MouseButtonPressEvent(code));
+        EventBus::publish(
+            MouseButtonEvent(MouseButtonEventType::BUTTON_PRESS, code)
+        );
     }
-    // else if(action == GLFW_RELEASE) {
-    //     EventBus::publish(MouseButtonReleaseEvent(code));
-    // }
-}
-
-// =============================================================================
-void TargetWindow::_window_size_callback([[maybe_unused]] GLFWwindow* window,
-                                         [[maybe_unused]] int width,
-                                         [[maybe_unused]] int height)
-{
-    EventBus::publish(WindowSizeEvent({
-        .width  = static_cast<uint32_t>(width),
-        .height = static_cast<uint32_t>(height)
-    }));
+    else if(action == GLFW_RELEASE) {
+        EventBus::publish(
+            MouseButtonEvent(MouseButtonEventType::BUTTON_RELEASE, code)
+        );
+    }
 }
 
 // =============================================================================
@@ -191,10 +177,10 @@ void TargetWindow::_window_iconify_callback([[maybe_unused]] GLFWwindow* window,
                                             [[maybe_unused]] int iconified)
 {
     if(iconified == GLFW_TRUE) {
-        EventBus::publish(WindowMinimizeEvent { });
+        EventBus::publish(WindowEvent(WindowEventType::WINDOW_MINIMIZE));
     }
     else {
-        EventBus::publish(WindowRestoreEvent { });
+        EventBus::publish(WindowEvent(WindowEventType::WINDOW_RESTORE));
     }
 }
 

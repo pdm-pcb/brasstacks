@@ -22,15 +22,18 @@ public:
         }
     }
 
+    using QueueCallback = std::function<void(EventBase const &)>;
+    using QueueCallbacks = std::list<QueueCallback>;
+    using QueueCallbackIter = QueueCallbacks::iterator;
+
     template<typename EventType, typename Queue, typename Callback>
-    static void subscribe(Queue &queue, Callback callback) {
+    static QueueCallbackIter const subscribe(Queue &queue, Callback callback) {
         auto const event_id = _event_id<EventType>();
 
         if(event_id >= _callbacks_by_event.size()) {
-            BTX_CRITICAL("Attempting to subscribe to unknown event ID {}. "
-                         "Did you forget to call EventBus::init()?",
+            BTX_CRITICAL("Attempting to subscribe to unknown event ID {}.",
                           event_id);
-            return;
+            return _callbacks_by_event[event_id].end();
         }
 
         _callbacks_by_event[event_id].emplace_back(
@@ -38,6 +41,21 @@ public:
                 (queue.*callback)(event);
             }
         );
+
+        return --_callbacks_by_event[event_id].end();
+    }
+
+    template<typename EventType>
+    static void unsubscribe(QueueCallbackIter const iter) {
+        auto const event_id = _event_id<EventType>();
+
+        if(event_id >= _callbacks_by_event.size()) {
+            BTX_CRITICAL("Attempting to unsubscribe to unknown event ID {}.",
+                          event_id);
+            return;
+        }
+
+        _callbacks_by_event[event_id].erase(iter);
     }
 
     template <typename EventType>
@@ -49,13 +67,10 @@ public:
     }
 
 private:
-    using QueueCallback = std::function<void(EventBase const &)>;
-    using QueueCallbacks = std::vector<QueueCallback>;
-
     static std::vector<QueueCallbacks> _callbacks_by_event;
 
     template <typename Event>
-    static uint32_t _event_id() {
+    static inline uint32_t _event_id() {
         static auto const event_id =
             static_cast<uint32_t>(_callbacks_by_event.size());
         return event_id;

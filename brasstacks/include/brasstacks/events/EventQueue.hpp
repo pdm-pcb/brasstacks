@@ -11,18 +11,15 @@ class EventQueue final {
 public:
     template<typename Subscriber, typename CallbackPtr>
     explicit EventQueue(Subscriber &subscriber, CallbackPtr const &callback) :
-        _queue_a     { },
-        _queue_b     { },
-        _front_queue { &_queue_a },
-        _back_queue  { &_queue_b },
+        _event_queue { },
         _callback {
             [&subscriber, callback](EventBase const &event) {
                 (subscriber.*callback)(static_cast<EventType const &>(event));
             }
-        }
+        },
+        _subscriber_handle { }
     {
         EventBus::register_event<EventType>();
-        EventBus::subscribe<EventType>(*this, &EventQueue<EventType>::push);
     }
 
     ~EventQueue() = default;
@@ -35,45 +32,40 @@ public:
     EventQueue & operator=(EventQueue &&) = delete;
     EventQueue & operator=(EventQueue const &) = delete;
 
+    void subscribe() {
+        _subscriber_handle =
+            EventBus::subscribe<EventType>(*this, &EventQueue<EventType>::push);
+    }
+
+    void unsubscribe() {
+        if(_subscriber_handle.has_value()) {
+            EventBus::unsubscribe<EventType>(_subscriber_handle.value());
+        }
+    }
+
     void push(EventBase const &event) {
         auto const &event_casted = static_cast<EventType const &>(event);
-        std::unique_lock<std::mutex> push_lock(_front_queue_mutex);
-        _front_queue->push(event_casted);
+        _event_queue.push(event_casted);
     }
 
     void process_queue() {
-        assert(_back_queue->empty() && "Back queue not yet empty!");
-        {
-            std::unique_lock<std::mutex> swap_lock(_front_queue_mutex);
-            if(_front_queue->empty()) {
-                return;
-            }
-            std::swap(_front_queue, _back_queue);
+        while(_event_queue.size() > 0) {
+            _callback(_event_queue.front());
+            _event_queue.pop();
         }
+    }
 
-        auto const message_count = _back_queue->size();
-        for(size_t count = 0; count < message_count; ++count) {
-            auto const event = _back_queue->front();
-            _back_queue->pop();
-            _callback(event);
-        }
-
-        assert(_back_queue->empty() && "Back queue never finished!");
+    void clear() {
+        _event_queue = { };
     }
 
 private:
-    using Queue = std::queue<EventType>;
-
-    Queue _queue_a;
-    Queue _queue_b;
-
-    Queue *_front_queue;
-    Queue *_back_queue;
-
-    std::mutex _front_queue_mutex;
+    std::queue<EventType> _event_queue;
 
     using Callback = std::function<void(EventType const &)>;
     Callback const _callback;
+
+    std::optional<EventBus::QueueCallbackIter> _subscriber_handle;
 };
 
 } // namespace btx

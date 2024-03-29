@@ -17,8 +17,8 @@ public:
     void exit() override;
     void execute() override;
 
-    void key_press(KeyPressEvent const &event) override;
-    void mouse_button_press(MouseButtonPressEvent const &) override { }
+    void keyboard_event(KeyboardEvent const &event) override;
+    void mouse_button_event(MouseButtonEvent const &) override { }
 
 
     AppStatePlay(AppStatePlay &&) = delete;

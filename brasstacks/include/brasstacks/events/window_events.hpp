@@ -3,32 +3,24 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/events/EventBase.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
-// Empty struct to carry the signal
-struct WindowCloseEvent final : public EventBase {
-    WindowCloseEvent() : EventBase() { }
+enum class WindowEventType : uint8_t {
+    WINDOW_CLOSE = 0u,
+    WINDOW_MINIMIZE,
+    WINDOW_RESTORE
 };
 
-struct WindowSizeEvent final : public EventBase {
-    explicit WindowSizeEvent(RenderConfig::Size const new_size) :
+struct WindowEvent final : public EventBase {
+    explicit WindowEvent(WindowEventType const type) :
         EventBase(),
-        size { new_size }
+        event_type { type }
     { }
 
-    WindowSizeEvent() = delete;
+    WindowEvent() = delete;
 
-    RenderConfig::Size size;
-};
-
-struct WindowMinimizeEvent final : public EventBase {
-    WindowMinimizeEvent() : EventBase() { }
-};
-
-struct WindowRestoreEvent final : public EventBase {
-    WindowRestoreEvent() : EventBase() { }
+    WindowEventType const event_type;
 };
 
 } //namespace btx

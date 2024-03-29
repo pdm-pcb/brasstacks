@@ -10,9 +10,8 @@ namespace btx {
 // =============================================================================
 PerspectiveCamera::PerspectiveCamera(Orientation const &orientation,
                                      PerspectiveParams const &persp_params) :
-    _key_press_queue   { *this, &PerspectiveCamera::on_key_press },
-    _key_release_queue { *this, &PerspectiveCamera::on_key_release },
-    _mouse_move_queue  { *this, &PerspectiveCamera::on_mouse_move }
+    _keyboard_events   { *this, &PerspectiveCamera::keyboard_event },
+    _mouse_move_events { *this, &PerspectiveCamera::mouse_move_event }
 {
     _state = {
         .position = orientation.position,
@@ -21,6 +20,17 @@ PerspectiveCamera::PerspectiveCamera(Orientation const &orientation,
     };
 
     set_perspective_proj(persp_params);
+    update();
+}
+
+void PerspectiveCamera::subscribe_to_input() {
+    _keyboard_events.subscribe();
+    _mouse_move_events.subscribe();
+}
+
+void PerspectiveCamera::unsubscribe_from_input() {
+    _keyboard_events.unsubscribe();
+    _mouse_move_events.unsubscribe();
 }
 
 // =============================================================================
@@ -42,7 +52,7 @@ void PerspectiveCamera::update() {
     );
     _state.up = math::cross(_state.side, _state.forward);
 
-    auto move_speed = _config.move_speed * TimeKeeper::tick_delta();
+    auto move_speed = _config.move_speed * TimeKeeper::delta_time();
     if(_kb.lshift) {
         move_speed *= 3.0f;
     }
@@ -63,35 +73,24 @@ void PerspectiveCamera::update() {
 }
 
 // =============================================================================
-void PerspectiveCamera::on_key_press(KeyPressEvent const &event) {
-    switch(event.code) {
-        case BTX_KB_W          : _kb.w      = true; break;
-        case BTX_KB_A          : _kb.a      = true; break;
-        case BTX_KB_S          : _kb.s      = true; break;
-        case BTX_KB_D          : _kb.d      = true; break;
-        case BTX_KB_LEFT_CTRL  : _kb.lctrl  = true; break;
-        case BTX_KB_SPACE      : _kb.space  = true; break;
-        case BTX_KB_LEFT_SHIFT : _kb.lshift = true; break;
+void PerspectiveCamera::keyboard_event(KeyboardEvent const &event) {
+    auto const key_state =
+        (event.event_type == KeyboardEventType::KEY_PRESS) ? true : false;
+
+    switch(event.event_code) {
+        case BTX_KB_W          : _kb.w      = key_state; break;
+        case BTX_KB_A          : _kb.a      = key_state; break;
+        case BTX_KB_S          : _kb.s      = key_state; break;
+        case BTX_KB_D          : _kb.d      = key_state; break;
+        case BTX_KB_LEFT_CTRL  : _kb.lctrl  = key_state; break;
+        case BTX_KB_SPACE      : _kb.space  = key_state; break;
+        case BTX_KB_LEFT_SHIFT : _kb.lshift = key_state; break;
         default: break;
     }
 }
 
 // =============================================================================
-void PerspectiveCamera::on_key_release(KeyReleaseEvent const &event) {
-    switch(event.code) {
-        case BTX_KB_W          : _kb.w      = false; break;
-        case BTX_KB_A          : _kb.a      = false; break;
-        case BTX_KB_S          : _kb.s      = false; break;
-        case BTX_KB_D          : _kb.d      = false; break;
-        case BTX_KB_LEFT_CTRL  : _kb.lctrl  = false; break;
-        case BTX_KB_SPACE      : _kb.space  = false; break;
-        case BTX_KB_LEFT_SHIFT : _kb.lshift = false; break;
-        default: break;
-    }
-}
-
-// =============================================================================
-void PerspectiveCamera::on_mouse_move(MouseMoveEvent const &event) {
+void PerspectiveCamera::mouse_move_event(MouseMoveEvent const &event) {
     _state.pitch += static_cast<float>(-event.y_offset) * _config.look_speed;
     _state.yaw   += static_cast<float>(event.x_offset) * _config.look_speed;
 
@@ -115,9 +114,8 @@ PerspectiveCamera::set_perspective_proj(PerspectiveParams const &persp_params) {
 
 // =============================================================================
 void PerspectiveCamera::_process_events() {
-    _key_press_queue.process_queue();
-    _key_release_queue.process_queue();
-    _mouse_move_queue.process_queue();
+    _keyboard_events.process_queue();
+    _mouse_move_events.process_queue();
 }
 
 } // namespace btx

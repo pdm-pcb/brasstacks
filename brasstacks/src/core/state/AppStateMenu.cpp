@@ -6,19 +6,35 @@
 namespace btx {
 
 // =============================================================================
-void AppStateMenu::key_press(KeyPressEvent const &event) {
-    switch(event.code) {
+AppStateMenu::AppStateMenu(Application &application) :
+    AppStateBase(AppState::MENU_STATE),
+    _application { application }
+{ }
+
+// =============================================================================
+void AppStateMenu::execute() {
+    _application.simulation().run();
+    _application.renderer().run();
+}
+
+// =============================================================================
+void AppStateMenu::keyboard_event(KeyboardEvent const &event) {
+    switch(event.event_code) {
         case BTX_KB_ESCAPE:
-            EventBus::publish(WindowCloseEvent { });
+            if(event.event_type == KeyboardEventType::KEY_RELEASE) {
+                EventBus::publish(WindowEvent(WindowEventType::WINDOW_CLOSE));
+            }
             break;
     }
 }
 
 // =============================================================================
-void AppStateMenu::mouse_button_press(MouseButtonPressEvent const &event) {
-    switch(event.code) {
+void AppStateMenu::mouse_button_event(MouseButtonEvent const &event) {
+    switch(event.event_code) {
         case BTX_MB_LEFT:
-            EventBus::publish(AppStateTransition(AppState::PLAY_STATE));
+            if(event.event_type == MouseButtonEventType::BUTTON_RELEASE) {
+                EventBus::publish(AppStateTransition(AppState::PLAY_STATE));
+            }
             break;
     }
 }

@@ -7,26 +7,22 @@
 
 namespace btx {
 
-struct KeyPressEvent final : public EventBase {
-    explicit KeyPressEvent(Keycode const key) :
-        EventBase(),
-        code { key }
-    { }
-
-    KeyPressEvent() = delete;
-
-    Keycode code;
+enum class KeyboardEventType : uint8_t {
+    KEY_PRESS = 0u,
+    KEY_RELEASE
 };
 
-struct KeyReleaseEvent final : public EventBase  {
-    explicit KeyReleaseEvent(Keycode const key) :
+struct KeyboardEvent final : public EventBase {
+    KeyboardEvent(KeyboardEventType const type, Keycode const code) :
         EventBase(),
-        code { key }
+        event_type { type },
+        event_code { code }
     { }
 
-    KeyReleaseEvent() = delete;
+    KeyboardEvent() = delete;
 
-    Keycode code;
+    KeyboardEventType const event_type;
+    Keycode const event_code;
 };
 
 } //namespace btx
