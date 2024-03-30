@@ -12,10 +12,6 @@ public:
     vkImage();
     ~vkImage();
 
-    // For referencing a prexisting image, such as a swapchain image
-    void create(vk::Image const &handle, vk::Format const format);
-    void destroy();
-
     struct ImageInfo final {
         vk::ImageType type = { };
         vk::SampleCountFlagBits samples = { };
@@ -30,6 +26,8 @@ public:
     // For render targets, eg color buffer
     void create(vk::Extent2D const &extent, vk::Format const format,
                 ImageInfo const &image_info);
+
+    void destroy();
 
     inline auto const & native() const { return _handle; }
     inline auto format()         const { return _format; }
@@ -55,8 +53,6 @@ private:
     uint32_t        _array_layers;
 
     void *_raw_data;
-
-    bool _is_swapchain;
 
     void * _load_from_file(std::string_view const filename);
 

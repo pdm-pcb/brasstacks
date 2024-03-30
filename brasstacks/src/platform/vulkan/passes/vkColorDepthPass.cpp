@@ -234,7 +234,8 @@ void vkColorDepthPass::_create_color_buffers() {
         );
 
         _color_views[i]->create(
-            *_color_buffers[i],
+            _color_buffers[i]->native(),
+            _color_buffers[i]->format(),
             vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor
         );
@@ -261,7 +262,8 @@ void vkColorDepthPass::_create_depth_buffer() {
     );
 
     _depth_view->create(
-        *_depth_buffer,
+        _depth_buffer->native(),
+        _depth_buffer->format(),
         vk::ImageViewType::e2D,
         vk::ImageAspectFlagBits::eDepth
     );

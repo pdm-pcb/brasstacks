@@ -5,14 +5,13 @@
 
 namespace btx {
 
-class vkImage;
-
 class vkImageView final {
 public:
     vkImageView();
     ~vkImageView() = default;
 
-    void create(vkImage const &image,
+    void create(vk::Image const &image,
+                vk::Format const format,
                 vk::ImageViewType const type,
                 vk::ImageAspectFlags const aspect_flags);
 

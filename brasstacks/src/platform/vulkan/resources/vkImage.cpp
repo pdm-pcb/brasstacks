@@ -4,8 +4,6 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
-#include "brasstacks/platform/vulkan/resources/vkSampler.hpp"
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 
 #include <stb/stb_image.h>
@@ -23,8 +21,7 @@ vkImage::vkImage() :
     _size_bytes    { 0 },
     _mip_levels    { 1u },
     _array_layers  { 1u },
-    _raw_data      { nullptr },
-    _is_swapchain  { false }
+    _raw_data      { nullptr }
 { }
 
 // =============================================================================
@@ -36,19 +33,6 @@ vkImage::~vkImage() {
     if(_handle != nullptr || _memory_handle != nullptr) {
         destroy();
     }
-}
-
-// =============================================================================
-void vkImage::create(vk::Image const &handle, vk::Format const format) {
-    if(_handle != nullptr) {
-        BTX_CRITICAL("Image {} already exists", _handle);
-    }
-
-    _device = Renderer::device().native();
-
-    _handle       = handle;
-    _format       = format;
-    _is_swapchain = true;
 }
 
 // =============================================================================
@@ -147,17 +131,12 @@ void vkImage::create(vk::Extent2D const &extent, vk::Format const format,
 // =============================================================================
 void vkImage::destroy() {
     BTX_TRACE("Destroying image {}", _handle);
-    if(!_is_swapchain && _handle) {
-        _device.destroyImage(_handle);
-    }
+    _device.destroyImage(_handle);
     _handle = nullptr;
 
     BTX_TRACE("Freeing image device memory {}", _memory_handle);
-    if(_memory_handle) {
-        BTX_TRACE("Freeing image device memory {}", _memory_handle);
-        _device.freeMemory(_memory_handle);
-        _memory_handle = nullptr;
-    }
+    _device.freeMemory(_memory_handle);
+    _memory_handle = nullptr;
 }
 
 // =============================================================================

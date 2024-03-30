@@ -1,5 +1,4 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
@@ -13,7 +12,8 @@ vkImageView::vkImageView() :
 { }
 
 // =============================================================================
-void vkImageView::create(vkImage const &image,
+void vkImageView::create(vk::Image const &image,
+                         vk::Format const format,
                          vk::ImageViewType const type,
                          vk::ImageAspectFlags const aspect_flags)
 {
@@ -23,9 +23,9 @@ void vkImageView::create(vkImage const &image,
     }
 
     vk::ImageViewCreateInfo const view_create_info {
-        .image    = image.native(),
+        .image    = image,
         .viewType = type,
-        .format   = image.format(),
+        .format   = format,
         .components = {
             .r = vk::ComponentSwizzle::eR,  // If color channel values are
             .g = vk::ComponentSwizzle::eG,  // swapped for some reason, these
@@ -45,7 +45,7 @@ void vkImageView::create(vkImage const &image,
     };
 
     _handle = Renderer::device().native().createImageView(view_create_info);
-    BTX_TRACE("Created view {} for image {}", _handle, image.native());
+    BTX_TRACE("Created view {} for image {}", _handle, image);
 }
 
 // =============================================================================

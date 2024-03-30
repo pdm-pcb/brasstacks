@@ -3,7 +3,7 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkSwapchainImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
@@ -47,8 +47,8 @@ private:
     vk::SurfaceFormatKHR _image_format;
     vk::PresentModeKHR   _present_mode;
 
-    std::vector<std::unique_ptr<vkImage>>     _images;
-    std::vector<std::unique_ptr<vkImageView>> _image_views;
+    std::vector<std::unique_ptr<vkSwapchainImage>> _images;
+    std::vector<std::unique_ptr<vkImageView>>      _image_views;
 
     RenderConfig::Size   _size;
     RenderConfig::Offset _offset;

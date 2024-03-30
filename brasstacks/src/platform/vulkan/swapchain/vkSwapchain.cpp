@@ -62,13 +62,12 @@ void vkSwapchain::create(vkSurface const &surface) {
 
 // =============================================================================
 void vkSwapchain::destroy() {
-    for(auto &image : _images) {
-        image->destroy();
-    }
+    _images.clear();
 
     for(auto &view : _image_views) {
         view->destroy();
     }
+    _image_views.clear();
 
     BTX_TRACE("Destroying swapchain {}", _handle);
     _device.destroy(_handle);
@@ -223,7 +222,7 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
             std::back_inserter(_images),
             _images.capacity(),
             []() {
-                return std::make_unique<vkImage>();
+                return std::make_unique<vkSwapchainImage>();
             }
         );
 
@@ -410,10 +409,6 @@ void vkSwapchain::_get_swapchain_images() {
     BTX_TRACE("Acquired {} swapchain images", swapchain_images.size());
 
     for(uint32_t i = 0u; i < _images.size(); ++i) {
-        if(_images[i]->native() != nullptr) {
-            _images[i]->destroy();
-        }
-
         _images[i]->create(
             swapchain_images[i],
             _image_format.format
@@ -424,7 +419,8 @@ void vkSwapchain::_get_swapchain_images() {
         }
 
         _image_views[i]->create(
-            *_images[i],
+            _images[i]->native(),
+            _images[i]->format(),
             vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor
         );
