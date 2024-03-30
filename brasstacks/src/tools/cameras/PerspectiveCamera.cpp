@@ -7,27 +7,42 @@
 
 namespace btx {
 
-// =============================================================================
-PerspectiveCamera::PerspectiveCamera(Orientation const &orientation,
-                                     PerspectiveParams const &persp_params) :
+PerspectiveCamera::PerspectiveCamera() :
+    _view_matrix       { },
+    _proj_matrix       { },
+    _config            { },
+    _kb                { },
+    _state             { },
     _keyboard_events   { *this, &PerspectiveCamera::keyboard_event },
     _mouse_move_events { *this, &PerspectiveCamera::mouse_move_event }
-{
+{ }
+
+// =============================================================================
+void PerspectiveCamera::orient(Orientation const &orientation) {
     _state = {
         .position = orientation.position,
         .forward  = orientation.forward,
         .up       = orientation.up,
     };
-
-    set_perspective_proj(persp_params);
-    update();
 }
 
+// =============================================================================
+void PerspectiveCamera::set_perspective(PerspectiveParams const &persp_params) {
+    _proj_matrix = math::persp_proj_rh_zo(
+        persp_params.vfov_degrees,
+        persp_params.aspect_ratio,
+        persp_params.near_plane,
+        persp_params.far_plane
+    );
+}
+
+// =============================================================================
 void PerspectiveCamera::subscribe_to_input() {
     _keyboard_events.subscribe();
     _mouse_move_events.subscribe();
 }
 
+// =============================================================================
 void PerspectiveCamera::unsubscribe_from_input() {
     _keyboard_events.unsubscribe();
     _mouse_move_events.unsubscribe();
@@ -99,17 +114,6 @@ void PerspectiveCamera::mouse_move_event(MouseMoveEvent const &event) {
 
     if(_state.yaw > 360.0f)    { _state.yaw -= 360.0f; }
     else if(_state.yaw < 0.0f) { _state.yaw += 360.0f; }
-}
-
-// =============================================================================
-void
-PerspectiveCamera::set_perspective_proj(PerspectiveParams const &persp_params) {
-    _proj_matrix = math::persp_proj_rh_zo(
-        persp_params.vfov_degrees,
-        persp_params.aspect_ratio,
-        persp_params.near_plane,
-        persp_params.far_plane
-    );
 }
 
 // =============================================================================

@@ -11,6 +11,9 @@ struct MouseMoveEvent;
 
 class PerspectiveCamera final {
 public:
+    PerspectiveCamera();
+    ~PerspectiveCamera() = default;
+
     struct Orientation {
         math::Vec3 position = math::Vec3::zero;
         math::Vec3 forward = math::Vec3::zero;
@@ -27,9 +30,8 @@ public:
         float far_plane = 1000.0f;
     };
 
-    PerspectiveCamera(Orientation const &orientation,
-                      PerspectiveParams const &persp_params);
-    ~PerspectiveCamera() = default;
+    void orient(Orientation const &orientation);
+    void set_perspective(PerspectiveParams const &persp_params);
 
     void subscribe_to_input();
     void unsubscribe_from_input();
@@ -38,12 +40,8 @@ public:
     void keyboard_event(KeyboardEvent const &event);
     void mouse_move_event(MouseMoveEvent const &event);
 
-    void set_perspective_proj(PerspectiveParams const &persp_params);
-
     inline auto const & view_matrix() const { return _view_matrix; }
     inline auto const & proj_matrix() const { return _proj_matrix; }
-
-    PerspectiveCamera() = delete;
 
     PerspectiveCamera(PerspectiveCamera &&) = delete;
     PerspectiveCamera(PerspectiveCamera const &) = delete;
@@ -80,8 +78,8 @@ private:
         float yaw   = -90.0f;
     } _state;
 
-    EventQueue<KeyboardEvent>   _keyboard_events;
-    EventQueue<MouseMoveEvent>  _mouse_move_events;
+    EventQueue<KeyboardEvent>  _keyboard_events;
+    EventQueue<MouseMoveEvent> _mouse_move_events;
 
     void _process_events();
 };
