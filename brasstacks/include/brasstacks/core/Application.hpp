@@ -2,14 +2,17 @@
 #define BRASSTACKS_CORE_APPLICATION_HPP
 
 #include "brasstacks/pch.hpp"
+
 #include "brasstacks/core/state/AppStateMenu.hpp"
 #include "brasstacks/core/state/AppStatePlay.hpp"
 #include "brasstacks/core/state/AppStatePause.hpp"
+
 #include "brasstacks/events/EventQueue.hpp"
 #include "brasstacks/events/state_events.hpp"
 #include "brasstacks/events/window_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
+
 #include "brasstacks/core/Simulation.hpp"
 #include "brasstacks/core/TargetWindow.hpp"
 

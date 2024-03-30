@@ -2,7 +2,6 @@
 #include "brasstacks/core/Application.hpp"
 
 #include "brasstacks/core/Renderer.hpp"
-
 #include "brasstacks/assets/libraries/MeshLibrary.hpp"
 
 namespace btx {
@@ -22,14 +21,15 @@ Application::Application(std::string_view const app_name) :
     _keyboard_events     { *this, &Application::_keyboard_event },
     _mouse_button_events { *this, &Application::_mouse_button_event }
 {
-    Renderer::init(this);
-
     _state_events.subscribe();
     _window_events.subscribe();
     _keyboard_events.subscribe();
     _mouse_button_events.subscribe();
 
     EventBus::publish(AppStateTransition(AppState::MENU_STATE));
+
+    Renderer::init(this);
+    MeshLibrary::init();
 }
 
 // =============================================================================
