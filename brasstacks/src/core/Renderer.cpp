@@ -3,6 +3,7 @@
 
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
+#include "brasstacks/platform/vulkan/vkAllocator.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
@@ -25,12 +26,13 @@ auto Renderer::_descriptor_pool { std::make_unique<vkDescriptorPool>() };
 
 // =============================================================================
 void Renderer::init(Application *application) {
-    vkInstance::create();
+    vkInstance::create(VK_TARGET_VERSION);
 
     _application = application;
     _create_surface();
     _select_physical_device();
     _create_device();
+    _create_allocator(VK_TARGET_VERSION);
     _create_swapchain();
     _create_frame_sync();
 
@@ -50,13 +52,11 @@ void Renderer::init(Application *application) {
 void Renderer::shutdown() {
     CameraController::shutdown();
     _descriptor_pool->destroy();
-
     _destroy_frame_sync();
     _destroy_swapchain();
-
     _device->destroy();
+    vkAllocator::destroy();
     _surface->destroy();
-
     vkInstance::destroy();
 }
 
@@ -221,6 +221,11 @@ void Renderer::_create_device() {
         "VK_LAYER_KHRONOS_validation",
 #endif // BTX_DEBUG
     });
+}
+
+// =============================================================================
+void Renderer::_create_allocator(uint32_t const api_version) {
+    vkAllocator::create(api_version);
 }
 
 // =============================================================================

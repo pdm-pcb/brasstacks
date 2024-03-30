@@ -69,6 +69,7 @@ private:
     static void _create_surface();
     static void _select_physical_device();
     static void _create_device();
+    static void _create_allocator(uint32_t const api_version);
     static void _create_swapchain();
     static void _create_frame_sync();
 

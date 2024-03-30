@@ -7,10 +7,11 @@ namespace btx {
 
 class vkInstance final {
 public:
-    static void create(uint32_t const api_version = VK_API_VERSION_1_2);
+    static void create(uint32_t const api_version);
     static void destroy();
 
     static inline auto const & native() { return _handle; }
+    static inline auto const & loader() { return _loader; }
 
     vkInstance() = delete;
     ~vkInstance() = delete;

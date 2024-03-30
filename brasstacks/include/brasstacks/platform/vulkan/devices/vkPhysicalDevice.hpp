@@ -104,18 +104,18 @@ private:
      * @brief Details of a given device
      */
     struct DeviceProps {
-        vk::PhysicalDevice handle = nullptr;
+        vk::PhysicalDevice handle { nullptr };
         vk::PhysicalDeviceMemoryProperties memory { };
         vk::PhysicalDeviceType type = vk::PhysicalDeviceType::eOther;
 
-        vk::DeviceSize vram_bytes = 0;
+        vk::DeviceSize vram_bytes { 0u };
 
         std::string name { };
         std::string driver_version { };
         std::string vkapi_version { };
 
         vk::SampleCountFlags max_samples = vk::SampleCountFlagBits::e1;
-        float max_aniso = 0.0f;
+        float max_aniso { 0.0f };
 
         uint32_t graphics_queue_index = std::numeric_limits<uint32_t>::max();
 

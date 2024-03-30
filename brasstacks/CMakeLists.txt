@@ -36,6 +36,7 @@ target_link_libraries(
     spdlog::spdlog
     glfw
     Vulkan::Vulkan
+    GPUOpen::VulkanMemoryAllocator
     # glm::glm_static
     third_party
 )

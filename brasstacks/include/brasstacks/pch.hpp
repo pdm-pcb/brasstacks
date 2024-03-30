@@ -15,9 +15,6 @@
 #include <queue>
 #include <stack>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-
 // Allow for the use of designated initializers
 // https://github.com/KhronosGroup/Vulkan-Hpp#designated-initializers
 #define VULKAN_HPP_NO_CONSTRUCTORS
@@ -65,6 +62,16 @@
 
     #include <dwmapi.h>
 #endif // BTX platform
+
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
+auto constexpr VK_TARGET_VERSION = VK_API_VERSION_1_2;
+
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+#define VMA_VULKLAN_VERSION VK_TARGET_VERSION
+#include <vk_mem_alloc.h>
 
 #ifdef BTX_LINUX
     #define GLFW_EXPOSE_NATIVE_X11

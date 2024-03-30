@@ -7,14 +7,18 @@ project(
     LANGUAGES CXX C
 )
 
+# Everything depends on Vulkan
+set(target_vulkan_version 1.2)
+find_package(Vulkan ${target_vulkan_version})
+
 # Unless otherwise specified, stick to the standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Everything depends on Vulkan
-set(target_vulkan_version 1.2)
-find_package(Vulkan ${target_vulkan_version})
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
 # Where we keep the helpful extra CMake
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
