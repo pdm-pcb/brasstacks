@@ -54,6 +54,8 @@ void Renderer::shutdown() {
 
     delete _device;
     delete _surface;
+
+    vkInstance::destroy();
 }
 
 // =============================================================================

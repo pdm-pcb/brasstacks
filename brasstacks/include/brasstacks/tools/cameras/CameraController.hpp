@@ -33,6 +33,7 @@ public:
     static void update_ubo();
 
     static inline auto & camera_ubo_layout() { return *_camera_ubo_layout; }
+
     static inline auto & camera_ubo_set() {
         return *_camera_ubo_sets[Renderer::image_index()];
     }
