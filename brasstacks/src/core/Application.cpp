@@ -30,13 +30,11 @@ Application::Application(std::string_view const app_name) :
     _mouse_button_events.subscribe();
 
     EventBus::publish(AppStateTransition(AppState::MENU_STATE));
-
-    _mesh_library = new MeshLibrary();
 }
 
 // =============================================================================
 Application::~Application() {
-    delete _mesh_library;
+    MeshLibrary::shutdown();
     Renderer::shutdown();
 }
 

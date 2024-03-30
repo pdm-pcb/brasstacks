@@ -48,7 +48,7 @@ void Demo::init() {
         }
     );
 
-    _plane_mesh = this->_mesh_library->new_plane_mesh(
+    _plane_mesh = btx::MeshLibrary::new_plane_mesh(
         {{
             { 1.0f, 0.0f, 0.0f },
             { 0.0f, 1.0f, 0.0f },
@@ -58,7 +58,7 @@ void Demo::init() {
         0.75f
     );
 
-    _cube_mesh = this->_mesh_library->new_cube_mesh(
+    _cube_mesh = btx::MeshLibrary::new_cube_mesh(
         {{
             { 1.0f, 0.0f, 0.0f },
             { 0.0f, 1.0f, 0.0f },

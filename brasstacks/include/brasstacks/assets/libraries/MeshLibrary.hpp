@@ -13,18 +13,21 @@ public:
     using MeshList = std::list<Mesh *>;
     using MeshIter = MeshList::iterator;
 
-    MeshLibrary();
-    ~MeshLibrary();
+    static void init() { };
+    static void shutdown();
 
-    MeshIter const
+    static MeshIter const
     new_plane_mesh(std::span<Color const, 4> const corner_colors,
                    float const scale);
 
-    MeshIter const
+    static MeshIter const
     new_cube_mesh(std::span<Color const, 8> const corner_colors,
                   float const scale);
 
-    void unload_mesh(MeshIter const iter);
+    static void unload_mesh(MeshIter const iter);
+
+    MeshLibrary() = delete;
+    ~MeshLibrary() = delete;
 
     MeshLibrary(MeshLibrary &&) = delete;
     MeshLibrary(MeshLibrary const &) = delete;
@@ -33,7 +36,7 @@ public:
     MeshLibrary & operator=(MeshLibrary const &) = delete;
 
 private:
-    MeshList _loaded_meshes;
+    static MeshList _loaded_meshes;
 };
 
 } // namespace btx

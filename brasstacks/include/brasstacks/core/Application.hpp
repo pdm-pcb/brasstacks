@@ -15,8 +15,6 @@
 
 namespace btx {
 
-class MeshLibrary;
-
 class Application {
 public:
     explicit Application(std::string_view const app_name);
@@ -47,9 +45,6 @@ public:
 
     Application & operator=(Application &&) = delete;
     Application & operator=(Application const &) = delete;
-
-protected:
-    MeshLibrary *_mesh_library;
 
 private:
     AppStateBase *_current_state;

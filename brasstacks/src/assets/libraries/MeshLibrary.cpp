@@ -5,13 +5,10 @@
 
 namespace btx {
 
-// =============================================================================
-MeshLibrary::MeshLibrary() :
-    _loaded_meshes { }
-{ }
+MeshLibrary::MeshList MeshLibrary::_loaded_meshes { };
 
 // =============================================================================
-MeshLibrary::~MeshLibrary() {
+void MeshLibrary::shutdown() {
     for(auto iter : _loaded_meshes) {
         delete iter;
     }
