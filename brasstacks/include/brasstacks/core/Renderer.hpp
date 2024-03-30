@@ -4,6 +4,7 @@
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/vkAllocator.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 

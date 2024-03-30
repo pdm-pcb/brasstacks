@@ -10,6 +10,8 @@ public:
     static void create(uint32_t const api_version);
     static void destroy();
 
+    static auto const & native() { return _handle; }
+
     vkAllocator() = delete;
     ~vkAllocator() = delete;
 

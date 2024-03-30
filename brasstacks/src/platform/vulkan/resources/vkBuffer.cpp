@@ -11,9 +11,9 @@ namespace btx {
 // =============================================================================
 vkBuffer::vkBuffer() :
     _handle        { nullptr },
-    _device        { nullptr },
+    _memory_handle { nullptr },
     _size_bytes    { 0u },
-    _memory_handle { nullptr }
+    _device        { nullptr }
 { }
 
 // =============================================================================

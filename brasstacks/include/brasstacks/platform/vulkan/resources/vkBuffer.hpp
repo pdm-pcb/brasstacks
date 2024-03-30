@@ -30,9 +30,9 @@ public:
 
 private:
     vk::Buffer       _handle;
-    vk::Device       _device;
-    vk::DeviceSize   _size_bytes;
     vk::DeviceMemory _memory_handle;
+    vk::DeviceSize   _size_bytes;
+    vk::Device       _device;
 
     static uint32_t _get_memory_type_index(vk::MemoryPropertyFlags const flags,
                                            vk::MemoryRequirements const &reqs);
