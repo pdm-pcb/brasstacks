@@ -10,7 +10,7 @@ class Application;
 
 class AppStatePlay final : public AppStateBase {
 public:
-    explicit AppStatePlay(Application &target_window);
+    explicit AppStatePlay(Application &application);
     ~AppStatePlay() override = default;
 
     void enter() override;

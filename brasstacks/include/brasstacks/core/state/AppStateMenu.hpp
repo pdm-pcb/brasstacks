@@ -10,7 +10,7 @@ class Application;
 
 class AppStateMenu final : public AppStateBase {
 public:
-    explicit AppStateMenu(Application &target_window);
+    explicit AppStateMenu(Application &application);
     ~AppStateMenu() override = default;
 
     void enter()   override { }

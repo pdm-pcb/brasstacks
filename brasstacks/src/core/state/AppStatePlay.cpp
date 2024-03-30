@@ -12,14 +12,14 @@ AppStatePlay::AppStatePlay(Application &application) :
 // =============================================================================
 void AppStatePlay::enter() {
     BTX_INFO("Entering AppStatePlay");
-    _application.target_window().capture_mouse();
+    TargetWindow::capture_mouse();
     _application.activate_camera();
 }
 
 // =============================================================================
 void AppStatePlay::exit() {
     BTX_INFO("Exiting AppStatePlay");
-    _application.target_window().release_mouse();
+    TargetWindow::release_mouse();
     _application.deactivate_camera();
 }
 

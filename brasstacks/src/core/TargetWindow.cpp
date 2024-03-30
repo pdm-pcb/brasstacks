@@ -8,18 +8,18 @@
 #include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
 
 namespace btx {
+GLFWwindow *TargetWindow::_window { nullptr };
+
+RenderConfig::Size   TargetWindow::_screen_size     { };
+RenderConfig::Offset TargetWindow::_screen_center   { };
+RenderConfig::Size   TargetWindow::_window_size     { };
+RenderConfig::Offset TargetWindow::_window_position { };
 
 double TargetWindow::_last_cursor_x { 0.0 };
 double TargetWindow::_last_cursor_y { 0.0 };
 
 // =============================================================================
-TargetWindow::TargetWindow(std::string_view const app_name) :
-    _window          { nullptr },
-    _screen_size     { },
-    _screen_center   { },
-    _window_size     { },
-    _window_position { }
-{
+void TargetWindow::init(std::string_view const app_name) {
     if(::glfwInit() == 0) {
         BTX_CRITICAL("Failed to initialize GLFW");
         return;
@@ -63,20 +63,20 @@ TargetWindow::TargetWindow(std::string_view const app_name) :
 }
 
 // =============================================================================
-TargetWindow::~TargetWindow() {
+void TargetWindow::shutdown() {
     ::glfwDestroyWindow(_window);
     ::glfwTerminate();
 }
 
 // =============================================================================
-void TargetWindow::capture_mouse() const {
+void TargetWindow::capture_mouse() {
     ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     ::glfwGetCursorPos(_window, &_last_cursor_x, &_last_cursor_y);
 }
 
 // =============================================================================
-void TargetWindow::release_mouse() const {
+void TargetWindow::release_mouse() {
     ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 }

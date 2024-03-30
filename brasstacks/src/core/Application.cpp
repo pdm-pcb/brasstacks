@@ -14,7 +14,6 @@ Application::Application(std::string_view const app_name) :
     _pause_state         { },
     _state_to_resume     { AppState::MENU_STATE },
     _running             { true },
-    _target_window       { std::make_unique<TargetWindow>(app_name) },
     _simulation          { std::make_unique<Simulation>(*this) },
     _state_events        { *this, &Application::_state_transition },
     _window_events       { *this, &Application::_window_event },
@@ -28,6 +27,7 @@ Application::Application(std::string_view const app_name) :
 
     EventBus::publish(AppStateTransition(AppState::MENU_STATE));
 
+    TargetWindow::init(app_name);
     Renderer::init(this);
     MeshLibrary::init();
 }
@@ -36,24 +36,25 @@ Application::Application(std::string_view const app_name) :
 Application::~Application() {
     MeshLibrary::shutdown();
     Renderer::shutdown();
+    TargetWindow::shutdown();
 }
 
 // =============================================================================
 void Application::run() {
     this->init();
 
-    _target_window->show();
+    TargetWindow::show();
 
     while(_running) {
         TimeKeeper::update_run_time();
 
-        _target_window->poll_events();
+        TargetWindow::poll_events();
         _process_events();
 
         _current_state->execute();
     }
 
-    _target_window->hide();
+    TargetWindow::hide();
 
     Renderer::wait_device_idle();
 

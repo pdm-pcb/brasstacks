@@ -38,11 +38,13 @@ void * operator new(size_t bytes) {
 
 void * operator new[](size_t bytes) {
     MemTracker::total_bytes += bytes;
+    MemTracker::alloc_count++;
+
 #ifdef MEMLOG
     ::printf(
         "%zu\tbytes []allcd;\t%zu total, %zu / %zu\n",
         bytes, MemTracker::total_bytes,
-        ++MemTracker::alloc_count,
+        MemTracker::alloc_count,
         MemTracker::free_count
     );
 #endif
@@ -53,11 +55,13 @@ void * operator new[](size_t bytes) {
 
 void * operator new(size_t bytes, const std::nothrow_t&) noexcept {
     MemTracker::total_bytes += bytes;
+    MemTracker::alloc_count++;
+
 #ifdef MEMLOG
     ::printf(
         "%zu\tbytes allcd;\t%zu total, %zu / %zu\n",
         bytes, MemTracker::total_bytes,
-        ++MemTracker::alloc_count,
+        MemTracker::alloc_count,
         MemTracker::free_count
     );
 #endif
@@ -78,9 +82,9 @@ void operator delete(void *memory) noexcept {
     // imaginary-array-of-size_t approach is perfect for my needs.
     const size_t bytes = static_cast<size_t *>(memory)[-1];
     MemTracker::total_bytes -= bytes;
+    MemTracker::free_count++;
 
 #ifdef MEMLOG
-    MemTracker::free_count++;
     ::printf(
         "%zu\tbytes freed;\t%zu total, %zu / %zu (%zu)\n",
         bytes, MemTracker::total_bytes,
@@ -103,9 +107,9 @@ void operator delete[](void *memory) noexcept {
 
     const size_t bytes = static_cast<size_t *>(memory)[-1];
     MemTracker::total_bytes -= bytes;
+    MemTracker::free_count++;
 
 #ifdef MEMLOG
-    MemTracker::free_count++;
     ::printf(
         "%zu\tbytes []freed;\t%zu total, %zu / %zu (%zu) \n",
         bytes, MemTracker::total_bytes,
@@ -129,9 +133,9 @@ void operator delete(void *memory, size_t bytes) noexcept {
     const size_t expected_bytes = static_cast<size_t *>(memory)[-1];
     assert(expected_bytes == bytes);
     MemTracker::total_bytes -= bytes;
+    MemTracker::free_count++;
 
 #ifdef MEMLOG
-    MemTracker::free_count++;
     ::printf(
         "%zu\tbytes freed;\t%zu total, %zu / %zu (%zu)\n",
         bytes, MemTracker::total_bytes,
@@ -155,9 +159,9 @@ void operator delete[](void *memory, size_t bytes) noexcept {
     const size_t expected_bytes = static_cast<size_t *>(memory)[-1];
     assert(expected_bytes == bytes);
     MemTracker::total_bytes -= bytes;
+    MemTracker::free_count++;
 
 #ifdef MEMLOG
-    MemTracker::free_count++;
     ::printf(
         "%zu\tbytes []freed;\t%zu total, %zu / %zu (%zu)\n",
         bytes, MemTracker::total_bytes,
@@ -180,9 +184,9 @@ void operator delete(void *memory, const std::nothrow_t&) noexcept {
 
     const size_t bytes = static_cast<size_t *>(memory)[-1];
     MemTracker::total_bytes -= bytes;
+    MemTracker::free_count++;
 
 #ifdef MEMLOG
-    MemTracker::free_count++;
     ::printf(
         "%zu\tbytes []freed;\t%zu total, %zu / %zu (%zu)\n",
         bytes, MemTracker::total_bytes,

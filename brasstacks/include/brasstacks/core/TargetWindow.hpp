@@ -8,25 +8,26 @@ namespace btx {
 
 class TargetWindow final {
 public:
-    explicit TargetWindow(std::string_view const app_name);
-    ~TargetWindow();
+    static void init(std::string_view const app_name);
+    static void shutdown();
 
-    inline void show() { ::glfwShowWindow(_window); }
-    inline void hide() { ::glfwHideWindow(_window); }
+    static inline void show() { ::glfwShowWindow(_window); }
+    static inline void hide() { ::glfwHideWindow(_window); }
 
-    void capture_mouse() const;
-    void release_mouse() const;
+    static void capture_mouse();
+    static void release_mouse();
 
-    void poll_events();
+    static void poll_events();
 
 #ifdef BTX_LINUX
-    inline auto native() const { return ::glfwGetX11Window(_window); }
-    inline auto * display() const { return ::glfwGetX11Display(); }
+    static inline auto native() { return ::glfwGetX11Window(_window); }
+    static inline auto * display() { return ::glfwGetX11Display(); }
 #elif BTX_WINDOWS
-    inline auto * native() const { return ::glfwGetWin32Window(_window); }
+    static inline auto * native() { return ::glfwGetWin32Window(_window); }
 #endif // BTX platform
 
     TargetWindow() = delete;
+    ~TargetWindow() = delete;
 
     TargetWindow(TargetWindow &&) = delete;
     TargetWindow(TargetWindow const &) = delete;
@@ -35,18 +36,19 @@ public:
     TargetWindow & operator=(TargetWindow const &) = delete;
 
 private:
-    GLFWwindow *_window;
+    static GLFWwindow *_window;
 
-    RenderConfig::Size   _screen_size;
-    RenderConfig::Offset _screen_center;
+    static RenderConfig::Size   _screen_size;
+    static RenderConfig::Offset _screen_center;
 
-    RenderConfig::Size   _window_size;
-    RenderConfig::Offset _window_position;
+    static RenderConfig::Size   _window_size;
+    static RenderConfig::Offset _window_position;
 
     static double _last_cursor_x;
     static double _last_cursor_y;
 
-    void _calc_window_dimensions();
+    static void _calc_window_dimensions();
+
     static void _error_callback(int code, char const *message);
 
     static void _key_callback(GLFWwindow *window, int key, int scancode,

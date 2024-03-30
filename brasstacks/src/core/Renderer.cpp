@@ -147,8 +147,8 @@ void Renderer::_create_surface() {
     vk::XlibSurfaceCreateInfoKHR const create_info {
         .pNext = nullptr,
         .flags = { },
-        .dpy = _application->target_window().display(),
-        .window = _application->target_window().native()
+        .dpy = TargetWindow::display(),
+        .window = TargetWindow::native()
     };
 
 #elif BTX_WINDOWS
@@ -157,7 +157,7 @@ void Renderer::_create_surface() {
         .pNext = nullptr,
         .flags = { },
         .hinstance = nullptr,
-        .hwnd = _application->target_window().native()
+        .hwnd = TargetWindow::native()
     };
 
 #endif // BTX platform
