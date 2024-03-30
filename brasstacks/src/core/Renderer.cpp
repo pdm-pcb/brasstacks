@@ -31,15 +31,6 @@ Renderer::Renderer(Application &application) :
 }
 
 // =============================================================================
-Renderer::~Renderer() {
-    _destroy_frame_sync();
-    _destroy_swapchain();
-
-    delete _device;
-    delete _surface;
-}
-
-// =============================================================================
 void Renderer::run() {
     _acquire_next_image();
     if(_image_index == std::numeric_limits<uint32_t>::max()) {
@@ -73,6 +64,15 @@ void Renderer::recreate_swapchain() {
     _create_frame_sync();
 
     _application.create_swapchain_resources();
+}
+
+// =============================================================================
+void Renderer::shutdown() {
+    _destroy_frame_sync();
+    _destroy_swapchain();
+
+    delete _device;
+    delete _surface;
 }
 
 // =============================================================================

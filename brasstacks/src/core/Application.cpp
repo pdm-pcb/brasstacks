@@ -15,9 +15,9 @@ Application::Application(std::string_view const app_name) :
     _current_state             { nullptr },
     _state_to_resume           { AppState::MENU_STATE },
     _running                   { true },
-    _target_window             { new TargetWindow(app_name) },
-    _renderer                  { new Renderer(*this) },
-    _simulation                { new Simulation(*this) },
+    _target_window             { std::make_unique<TargetWindow>(app_name) },
+    _renderer                  { std::make_unique<Renderer>(*this) },
+    _simulation                { std::make_unique<Simulation>(*this) },
     _state_events              { *this, &Application::_state_transition },
     _window_events             { *this, &Application::_window_event },
     _keyboard_events           { *this, &Application::_keyboard_event },
@@ -28,9 +28,9 @@ Application::Application(std::string_view const app_name) :
     _keyboard_events.subscribe();
     _mouse_button_events.subscribe();
 
-    _menu_state  = new AppStateMenu(*this);
-    _play_state  = new AppStatePlay(*this);
-    _pause_state = new AppStatePause;
+    _menu_state  = std::make_unique<AppStateMenu>(*this);
+    _play_state  = std::make_unique<AppStatePlay>(*this);
+    _pause_state = std::make_unique<AppStatePause>();
 
     EventBus::publish(AppStateTransition(AppState::MENU_STATE));
 
@@ -39,15 +39,9 @@ Application::Application(std::string_view const app_name) :
 
 // =============================================================================
 Application::~Application() {
-    delete _menu_state;
-    delete _play_state;
-    delete _pause_state;
-
     delete _mesh_library;
 
-    delete _simulation;
-    delete _renderer;
-    delete _target_window;
+    _renderer->shutdown();
 }
 
 // =============================================================================
@@ -87,9 +81,9 @@ void Application::_state_transition(AppStateTransition const &event) {
     }
 
     switch(event.next_state_type) {
-        case AppState::MENU_STATE:  _current_state = _menu_state; break;
-        case AppState::PLAY_STATE:  _current_state = _play_state; break;
-        case AppState::PAUSE_STATE: _current_state = _pause_state; break;
+        case AppState::MENU_STATE:  _current_state = _menu_state.get();  break;
+        case AppState::PLAY_STATE:  _current_state = _play_state.get();  break;
+        case AppState::PAUSE_STATE: _current_state = _pause_state.get(); break;
     }
 
     if(_current_state == nullptr) {

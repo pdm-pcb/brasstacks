@@ -57,18 +57,18 @@ protected:
     MeshLibrary *_mesh_library;
 
 private:
-    AppStateBase  *_current_state;
-    AppStateMenu  *_menu_state;
-    AppStatePlay  *_play_state;
-    AppStatePause *_pause_state;
+    AppStateBase *_current_state;
+    std::unique_ptr<AppStateMenu>  _menu_state;
+    std::unique_ptr<AppStatePlay>  _play_state;
+    std::unique_ptr<AppStatePause> _pause_state;
 
     AppState _state_to_resume;
 
     bool _running;
 
-    TargetWindow *_target_window;
-    Renderer *_renderer;
-    Simulation *_simulation;
+    std::unique_ptr<TargetWindow> _target_window;
+    std::unique_ptr<Renderer>     _renderer;
+    std::unique_ptr<Simulation>   _simulation;
 
     EventQueue<AppStateTransition> _state_events;
     EventQueue<WindowEvent>        _window_events;

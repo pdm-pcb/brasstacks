@@ -15,13 +15,13 @@ class vkCmdBuffer;
 class Renderer final {
 public:
     explicit Renderer(Application &application);
-    ~Renderer();
+    ~Renderer() = default;
 
     void run();
+    void recreate_swapchain();
+    void shutdown();
 
     inline void wait_device_idle() const { _device->wait_idle(); }
-
-    void recreate_swapchain();
 
     inline auto const & device()    const { return *_device; }
     inline auto const & swapchain() const { return *_swapchain; }
