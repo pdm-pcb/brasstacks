@@ -9,6 +9,7 @@
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/core/Simulation.hpp"
 #include "brasstacks/core/Renderer.hpp"
+#include "brasstacks/tools/cameras/CameraController.hpp"
 
 #include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 

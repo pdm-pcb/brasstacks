@@ -6,11 +6,9 @@
 
 namespace btx {
 
-class Application;
-
 class AppStatePlay final : public AppStateBase {
 public:
-    explicit AppStatePlay(Application &application);
+    AppStatePlay() : AppStateBase(AppState::PLAY_STATE) { }
     ~AppStatePlay() override = default;
 
     void enter() override;
@@ -26,9 +24,6 @@ public:
 
     AppStatePlay & operator=(AppStatePlay &&) = delete;
     AppStatePlay & operator=(AppStatePlay const &) = delete;
-
-private:
-    Application &_application;
 };
 
 } // namespace btx

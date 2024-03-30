@@ -11,6 +11,7 @@ namespace btx {
 class Application;
 class vkSurface;
 class vkCmdBuffer;
+class vkDescriptorPool;
 
 class Renderer final {
 public:
@@ -33,6 +34,8 @@ public:
         return _frame_sync[_image_index]->cmd_buffer();
     }
 
+    static inline auto & descriptor_pool() { return *_descriptor_pool; }
+
     Renderer() = delete;
     ~Renderer() = delete;
 
@@ -52,6 +55,8 @@ private:
     static std::vector<vkFrameSync *> _frame_sync;
 
     static uint32_t _image_index;
+
+    static vkDescriptorPool *_descriptor_pool;
 
     static void _acquire_next_image();
     static void _begin_recording();

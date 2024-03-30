@@ -10,7 +10,7 @@ namespace btx {
 Application::Application(std::string_view const app_name) :
     _current_state       { nullptr },
     _menu_state          { },
-    _play_state          { *this },
+    _play_state          { },
     _pause_state         { },
     _state_to_resume     { AppState::MENU_STATE },
     _running             { true },
@@ -27,14 +27,18 @@ Application::Application(std::string_view const app_name) :
     EventBus::publish(AppStateTransition(AppState::MENU_STATE));
 
     TargetWindow::init(app_name);
+    Simulation::init(this);
     Renderer::init(this);
+    CameraController::init();
     MeshLibrary::init();
 }
 
 // =============================================================================
 Application::~Application() {
     MeshLibrary::shutdown();
+    CameraController::shutdown();
     Renderer::shutdown();
+    Simulation::shutdown();
     TargetWindow::shutdown();
 }
 

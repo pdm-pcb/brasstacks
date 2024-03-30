@@ -17,7 +17,6 @@ namespace btx {
 
     class vkBuffer;
 
-    class vkDescriptorPool;
     class vkDescriptorSetLayout;
     class vkDescriptorSet;
 } // namespace btx
@@ -36,10 +35,6 @@ public:
     void destroy_swapchain_resources() override;
     void create_swapchain_resources() override;
 
-    void activate_camera() override;
-    void deactivate_camera() override;
-    void update_camera() override;
-
 private:
     btx::ColorDepthPass *_color_depth_pass;
 
@@ -49,22 +44,12 @@ private:
     btx::MeshLibrary::MeshIter _cube_mesh;
     btx::math::Mat4            _cube_mat;
 
-    btx::vkDescriptorPool *_descriptor_pool;
-
     btx::vkImage     *_texture;
     btx::vkImageView *_texture_view;
     btx::vkSampler   *_texture_sampler;
 
     btx::vkDescriptorSetLayout *_texture_set_layout;
     btx::vkDescriptorSet       *_texture_set;
-
-    btx::PerspectiveCamera             *_camera;
-    std::vector<btx::vkBuffer *>        _camera_ubos;
-    btx::vkDescriptorSetLayout         *_camera_ubo_layout;
-    std::vector<btx::vkDescriptorSet *> _camera_ubo_sets;
-
-    void _create_camera();
-    void _destroy_camera();
 };
 
 #endif // DEMO_HPP

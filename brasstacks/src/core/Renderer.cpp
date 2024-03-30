@@ -10,14 +10,19 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/events/EventBus.hpp"
 
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
+
 namespace btx {
 
 Application *Renderer::_application { nullptr };
-vkSurface *Renderer::_surface       { nullptr };
-vkDevice *Renderer::_device         { nullptr };
+vkSurface   *Renderer::_surface     { nullptr };
+vkDevice    *Renderer::_device      { nullptr };
+
 vkSwapchain *Renderer::_swapchain   { nullptr };
 std::vector<vkFrameSync *> Renderer::_frame_sync;
 uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
+
+vkDescriptorPool *Renderer::_descriptor_pool { nullptr };
 
 // =============================================================================
 void Renderer::init(Application *application) {
@@ -29,10 +34,21 @@ void Renderer::init(Application *application) {
     _create_device();
     _create_swapchain();
     _create_frame_sync();
+
+    _descriptor_pool = new vkDescriptorPool(
+        vk::DescriptorPoolCreateFlags { },
+        1000u,
+        {
+            { vk::DescriptorType::eUniformBuffer,        1000u, },
+            { vk::DescriptorType::eCombinedImageSampler, 1000u, },
+        }
+    );
 }
 
 // =============================================================================
 void Renderer::shutdown() {
+    delete _descriptor_pool;
+
     _destroy_frame_sync();
     _destroy_swapchain();
 
@@ -51,6 +67,7 @@ void Renderer::run() {
 
     _begin_recording();
 
+    CameraController::update_ubo();
     _application->record_commands();
 
     _end_recording();
@@ -74,6 +91,8 @@ void Renderer::recreate_swapchain() {
     _create_frame_sync();
 
     _application->create_swapchain_resources();
+
+    CameraController::update_perspective();
 }
 
 // =============================================================================
