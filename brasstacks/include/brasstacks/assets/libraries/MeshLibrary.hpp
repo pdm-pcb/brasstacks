@@ -13,7 +13,7 @@ public:
     using MeshList = std::list<Mesh *>;
     using MeshIter = MeshList::iterator;
 
-    static void init() { };
+    static void init() { }
     static void shutdown();
 
     static MeshIter const
