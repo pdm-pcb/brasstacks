@@ -14,16 +14,17 @@ namespace btx {
 
 // =============================================================================
 vkImage::vkImage() :
-    _handle       { nullptr },
-    _memory       { nullptr },
-    _format       { vk::Format::eUndefined },
-    _layout       { vk::ImageLayout::eUndefined },
-    _extent       { },
-    _size_bytes   { 0 },
-    _mip_levels   { 1u },
-    _array_layers { 1u },
-    _raw_data     { nullptr },
-    _is_swapchain { false }
+    _handle        { nullptr },
+    _memory_handle { nullptr },
+    _device        { nullptr },
+    _format        { vk::Format::eUndefined },
+    _layout        { vk::ImageLayout::eUndefined },
+    _extent        { },
+    _size_bytes    { 0 },
+    _mip_levels    { 1u },
+    _array_layers  { 1u },
+    _raw_data      { nullptr },
+    _is_swapchain  { false }
 { }
 
 // =============================================================================
@@ -31,10 +32,20 @@ vkImage::~vkImage() {
     if(_raw_data != nullptr) {
         ::stbi_image_free(_raw_data);
     }
+
+    if(_handle != nullptr || _memory_handle != nullptr) {
+        destroy();
+    }
 }
 
 // =============================================================================
 void vkImage::create(vk::Image const &handle, vk::Format const format) {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Image {} already exists", _handle);
+    }
+
+    _device = Renderer::device().native();
+
     _handle       = handle;
     _format       = format;
     _is_swapchain = true;
@@ -45,6 +56,12 @@ void vkImage::create(std::string_view const filename,
                      ImageInfo const &image_info,
                      uint32_t const array_layers)
 {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Image {} already exists", _handle);
+    }
+
+    _device = Renderer::device().native();
+
     _array_layers = array_layers;
 
     _raw_data = _load_from_file(filename);
@@ -79,7 +96,7 @@ void vkImage::create(std::string_view const filename,
         .initialLayout = vk::ImageLayout::eUndefined,
     };
 
-    _handle = Renderer::device().native().createImage(create_info);
+    _handle = _device.createImage(create_info);
     BTX_TRACE("Created image {}", _handle);
 
     _allocate(image_info.memory_flags);
@@ -90,6 +107,12 @@ void vkImage::create(std::string_view const filename,
 void vkImage::create(vk::Extent2D const &extent, vk::Format const format,
                      ImageInfo const &image_info)
 {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Image {} already exists", _handle);
+    }
+
+    _device = Renderer::device().native();
+
     _format = format;
     _extent = {
         .width = extent.width,
@@ -114,7 +137,7 @@ void vkImage::create(vk::Extent2D const &extent, vk::Format const format,
         .initialLayout = vk::ImageLayout::eUndefined,
     };
 
-    _handle = Renderer::device().native().createImage(create_info);
+    _handle = _device.createImage(create_info);
     BTX_TRACE("Created image {} with extent {}x{}, samples {}", _handle,
               extent.width, extent.height, vk::to_string(image_info.samples));
 
@@ -123,14 +146,17 @@ void vkImage::create(vk::Extent2D const &extent, vk::Format const format,
 
 // =============================================================================
 void vkImage::destroy() {
+    BTX_TRACE("Destroying image {}", _handle);
     if(!_is_swapchain && _handle) {
-        Renderer::device().native().destroyImage(_handle);
-        _handle = nullptr;
+        _device.destroyImage(_handle);
     }
+    _handle = nullptr;
 
-    if(_memory) {
-        Renderer::device().native().freeMemory(_memory);
-        _memory = nullptr;
+    BTX_TRACE("Freeing image device memory {}", _memory_handle);
+    if(_memory_handle) {
+        BTX_TRACE("Freeing image device memory {}", _memory_handle);
+        _device.freeMemory(_memory_handle);
+        _memory_handle = nullptr;
     }
 }
 
@@ -184,7 +210,7 @@ void vkImage::_calc_mip_levels() {
 void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
     vk::MemoryRequirements mem_reqs { };
 
-    Renderer::device().native().getImageMemoryRequirements(_handle, &mem_reqs);
+    _device.getImageMemoryRequirements(_handle, &mem_reqs);
 
     auto type_index = _memory_type_index(memory_flags, mem_reqs);
 
@@ -193,11 +219,11 @@ void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
         .memoryTypeIndex = type_index,
     };
 
-    _memory = Renderer::device().native().allocateMemory(alloc_info);
+    _memory_handle = _device.allocateMemory(alloc_info);
     BTX_TRACE("Allocated {} bytes {} for image {}",
-              mem_reqs.size, _memory, _handle);
+              mem_reqs.size, _memory_handle, _handle);
 
-    Renderer::device().native().bindImageMemory(_handle, _memory, 0u);
+    _device.bindImageMemory(_handle, _memory_handle, 0u);
 }
 
 // =============================================================================

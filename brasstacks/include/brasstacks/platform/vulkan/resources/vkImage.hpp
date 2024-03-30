@@ -5,10 +5,7 @@
 
 namespace btx {
 
-class vkPhysicalDevice;
 class vkCmdBuffer;
-class vkImageView;
-class vkSampler;
 
 class vkImage final {
 public:
@@ -46,14 +43,16 @@ public:
 
 private:
     vk::Image        _handle;
+    vk::DeviceMemory _memory_handle;
 
-    vk::DeviceMemory _memory;
-    vk::Format       _format;
-    vk::ImageLayout  _layout;
-    vk::Extent3D     _extent;
-    size_t           _size_bytes;
-    uint32_t         _mip_levels;
-    uint32_t         _array_layers;
+    vk::Device _device;
+
+    vk::Format      _format;
+    vk::ImageLayout _layout;
+    vk::Extent3D    _extent;
+    size_t          _size_bytes;
+    uint32_t        _mip_levels;
+    uint32_t        _array_layers;
 
     void *_raw_data;
 

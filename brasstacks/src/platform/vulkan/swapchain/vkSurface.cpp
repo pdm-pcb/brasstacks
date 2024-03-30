@@ -20,11 +20,21 @@ vkSurface::~vkSurface() {
 // =============================================================================
 #ifdef BTX_LINUX
     void vkSurface::create(vk::XlibSurfaceCreateInfoKHR const &create_info) {
+        if(_handle != nullptr) {
+            BTX_CRITICAL("Surface {} already exists", _handle);
+            return;
+        }
+
         _handle = vkInstance::native().createXlibSurfaceKHR(create_info);
         BTX_TRACE("Created Vulkan surface {}", _handle);
     }
 #elif BTX_WINDOWS
     void vkSurface::create(vk::Win32SurfaceCreateInfoKHR const &create_info) {
+        if(_handle != nullptr) {
+            BTX_CRITICAL("Surface {} already exists", _handle);
+            return;
+        }
+
         _handle = vkInstance::native().createWin32SurfaceKHR(create_info);
         BTX_TRACE("Created Vulkan surface {}", _handle);
     }

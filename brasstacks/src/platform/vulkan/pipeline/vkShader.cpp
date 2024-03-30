@@ -41,6 +41,7 @@ void vkShader::create(std::string_view const filepath) {
 void vkShader::destroy() {
     BTX_TRACE("Destroying shader module {}", _handle);
     _device.destroyShaderModule(_handle);
+    _handle = nullptr;
 }
 
 // =============================================================================

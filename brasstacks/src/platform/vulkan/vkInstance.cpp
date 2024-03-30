@@ -9,95 +9,98 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace btx {
 
-vk::DynamicLoader         vkInstance::_loader = { };
-uint32_t                  vkInstance::_target_api_version = { };
-vk::ApplicationInfo       vkInstance::_app_info = { };
-std::vector<char const *> vkInstance::_enabled_layers = { };
-std::vector<char const *> vkInstance::_enabled_extensions = { };
+vk::DynamicLoader         vkInstance::_loader { };
+uint32_t                  vkInstance::_target_api_version { };
+vk::ApplicationInfo       vkInstance::_app_info { };
+std::vector<char const *> vkInstance::_enabled_layers { };
+std::vector<char const *> vkInstance::_enabled_extensions { };
 
 #ifdef BTX_DEBUG
-    vkInstance::ValidationFeatures vkInstance::_validation_features = { };
-    vk::ValidationFeaturesEXT      vkInstance::_validation_extensions = { };
+    vkInstance::ValidationFeatures vkInstance::_validation_features { };
+    vk::ValidationFeaturesEXT      vkInstance::_validation_extensions { };
 #endif // BTX_DEBUG
 
-vk::Instance vkInstance::_handle = nullptr;
+vk::Instance vkInstance::_handle { nullptr };
 
 // =============================================================================
 void vkInstance::create(uint32_t const api_version) {
-    static std::once_flag initialized;
-    std::call_once(initialized, [&] {
-        _target_api_version = api_version;
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Vulkan instance {} already exists", _handle);
+        return;
+    }
 
-        _init_dynamic_loader(); // The first step for using the dynamic loader
-        _init_app_info();       // Provide hints about this app to the driver
-        _init_layers();         // Init the validation layer, if we're in debug
-        _init_extensions();     // Extensions are often implementation defined
+    _target_api_version = api_version;
 
-        auto const extensions = vk::enumerateInstanceExtensionProperties();
-        BTX_TRACE("Found {} instance extensions.", extensions.size());
+    _init_dynamic_loader(); // The first step for using the dynamic loader
+    _init_app_info();       // Provide hints about this app to the driver
+    _init_layers();         // Init the validation layer, if we're in debug
+    _init_extensions();     // Extensions are often implementation defined
 
-        // Run through the extensions the driver offers and make sure we've got
-        // what we need
-        if(!_check_extensions(extensions)) {
-            BTX_CRITICAL("Could not get support for all requested instance "
-                         "extensions.");
-            return;
-        }
+    auto const extensions = vk::enumerateInstanceExtensionProperties();
+    BTX_TRACE("Found {} instance extensions.", extensions.size());
 
-        // Bringing it all together. If we want validation layer functionality,
-        // the pNext member of vk::InstanceCreateInfo must point to the
-        // structure assembled above.
-        const vk::InstanceCreateInfo instance_info {
+    // Run through the extensions the driver offers and make sure we've got
+    // what we need
+    if(!_check_extensions(extensions)) {
+        BTX_CRITICAL("Could not get support for all requested instance "
+                     "extensions.");
+        return;
+    }
+
+    // Bringing it all together. If we want validation layer functionality,
+    // the pNext member of vk::InstanceCreateInfo must point to the
+    // structure assembled above.
+    const vk::InstanceCreateInfo instance_info {
 #ifdef BTX_DEBUG
-            .pNext = reinterpret_cast<void *>(&_validation_extensions),
+        .pNext = reinterpret_cast<void *>(&_validation_extensions),
 #else
-            .pNext = nullptr,
+        .pNext = nullptr,
 #endif // BTX_DEBUG
-            .flags = { },
-            .pApplicationInfo = &_app_info,
-            .enabledLayerCount =
-                static_cast<uint32_t>(_enabled_layers.size()),
-            .ppEnabledLayerNames = _enabled_layers.data(),
-            .enabledExtensionCount =
-                static_cast<uint32_t>(_enabled_extensions.size()),
-            .ppEnabledExtensionNames = _enabled_extensions.data()
-        };
+        .flags = { },
+        .pApplicationInfo = &_app_info,
+        .enabledLayerCount =
+            static_cast<uint32_t>(_enabled_layers.size()),
+        .ppEnabledLayerNames = _enabled_layers.data(),
+        .enabledExtensionCount =
+            static_cast<uint32_t>(_enabled_extensions.size()),
+        .ppEnabledExtensionNames = _enabled_extensions.data()
+    };
 
-        auto const result = vk::createInstance(
-            &instance_info,
-            nullptr,
-            &_handle
+    auto const result = vk::createInstance(
+        &instance_info,
+        nullptr,
+        &_handle
+    );
+
+    // If this didn't work, we can go no further.
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL(
+            "Failed to create Vulkan instance: '{}'",
+            vk::to_string(result)
         );
+        return;
+    }
 
-        // If this didn't work, we can go no further.
-        if(result != vk::Result::eSuccess) {
-            BTX_CRITICAL(
-                "Failed to create Vulkan instance: '{}'",
-                vk::to_string(result)
-            );
-            return;
-        }
+    // Inform the dynamic dispatcher that we've got an instance.
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-        // Inform the dynamic dispatcher that we've got an instance.
-        VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
-
-        BTX_INFO(
-            "Created Vulkan v{}.{}.{} instance",
-            VK_API_VERSION_MAJOR(_app_info.apiVersion),
-            VK_API_VERSION_MINOR(_app_info.apiVersion),
-            VK_API_VERSION_PATCH(_app_info.apiVersion)
-        );
+    BTX_INFO(
+        "Created Vulkan v{}.{}.{} instance: {}",
+        VK_API_VERSION_MAJOR(_app_info.apiVersion),
+        VK_API_VERSION_MINOR(_app_info.apiVersion),
+        VK_API_VERSION_PATCH(_app_info.apiVersion),
+        _handle
+    );
 
 #ifdef BTX_DEBUG
-        vkDebugger::init(_handle);
+    vkDebugger::create();
 #endif // BTX_DEBUG
-    });
 }
 
 // =============================================================================
 void vkInstance::destroy() {
 #ifdef BTX_DEBUG
-    vkDebugger::shutdown(_handle);
+    vkDebugger::destroy();
 #endif // BTX_DEBUG
 
     _handle.destroy();

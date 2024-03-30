@@ -3,6 +3,19 @@
 
 #include "brasstacks/pch.hpp"
 
+template <> struct fmt::formatter<vk::Instance> {
+    constexpr auto parse(fmt::format_parse_context &ctx) {
+        return ctx.begin();
+    }
+
+    auto format(vk::Instance const &instance, fmt::format_context &ctx) const {
+        return fmt::format_to(
+            ctx.out(), "{:#x}",
+            reinterpret_cast<uint64_t>(VkInstance(instance))
+        );
+    }
+};
+
 template <> struct fmt::formatter<vk::DebugUtilsMessengerEXT> {
     constexpr auto parse(fmt::format_parse_context &ctx) {
         return ctx.begin();
@@ -14,6 +27,20 @@ template <> struct fmt::formatter<vk::DebugUtilsMessengerEXT> {
         return fmt::format_to(
             ctx.out(), "{:#x}",
             reinterpret_cast<uint64_t>(VkDebugUtilsMessengerEXT(debug))
+        );
+    }
+};
+
+template <> struct fmt::formatter<vk::PhysicalDevice> {
+    constexpr auto parse(fmt::format_parse_context &ctx) {
+        return ctx.begin();
+    }
+
+    auto
+    format(vk::PhysicalDevice const &device, fmt::format_context &ctx) const {
+        return fmt::format_to(
+            ctx.out(), "{:#x}",
+            reinterpret_cast<uint64_t>(VkPhysicalDevice(device))
         );
     }
 };

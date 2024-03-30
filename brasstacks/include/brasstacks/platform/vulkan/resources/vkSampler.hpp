@@ -5,22 +5,19 @@
 
 namespace btx {
 
-class vkDevice;
-
 class vkSampler final {
 public:
-    vkSampler(vkDevice const &device,
-              vk::Filter const min_filter,
-              vk::Filter const mag_filter,
-              vk::SamplerMipmapMode const mip_filter,
-              vk::SamplerAddressMode const mode_u,
-              vk::SamplerAddressMode const mode_v);
-
+    vkSampler();
     ~vkSampler();
 
-    auto const & native() const { return _handle; }
+    void create(vk::Filter const min_filter,
+                vk::Filter const mag_filter,
+                vk::SamplerMipmapMode const mip_filter,
+                vk::SamplerAddressMode const mode_u,
+                vk::SamplerAddressMode const mode_v);
+    void destroy();
 
-    vkSampler() = delete;
+    auto const & native() const { return _handle; }
 
     vkSampler(vkSampler &&) = delete;
     vkSampler(vkSampler const &) = delete;
@@ -29,8 +26,8 @@ public:
     vkSampler & operator=(vkSampler const &) = delete;
 
 private:
-    vkDevice const &_device;
     vk::Sampler _handle;
+    vk::Device _device;
 };
 
 } // namespace btx

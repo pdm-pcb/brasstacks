@@ -17,6 +17,11 @@ void vkImageView::create(vkImage const &image,
                          vk::ImageViewType const type,
                          vk::ImageAspectFlags const aspect_flags)
 {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Image view {} already exists", _handle);
+        return;
+    }
+
     vk::ImageViewCreateInfo const view_create_info {
         .image    = image.native(),
         .viewType = type,

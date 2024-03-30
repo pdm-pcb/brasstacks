@@ -1,12 +1,12 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/vkDebugger.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 
 namespace btx {
 
-vk::DebugUtilsMessengerEXT vkDebugger::_debug_messenger { };
+vk::DebugUtilsMessengerEXT vkDebugger::_handle   { nullptr };
+vk::Instance               vkDebugger::_instance { nullptr };
 
 // =============================================================================
 VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
@@ -33,7 +33,14 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
 }
 
 // =============================================================================
-void vkDebugger::init(vk::Instance &instance) {
+void vkDebugger::create() {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Debugger already initialized with {}", _handle);
+        return;
+    }
+
+    _instance = vkInstance::native();
+
     // Populate the create info struct with the severity levels we're
     // interested in, the types we're interested in, and offer a callback
     // pointer to the API
@@ -54,10 +61,10 @@ void vkDebugger::init(vk::Instance &instance) {
     };
 
     // Give it a shot
-    auto const result = instance.createDebugUtilsMessengerEXT(
+    auto const result = _instance.createDebugUtilsMessengerEXT(
         &messenger_info,
         nullptr,
-        &_debug_messenger
+        &_handle
     );
 
     // React accordingly
@@ -66,14 +73,15 @@ void vkDebugger::init(vk::Instance &instance) {
                      vk::to_string(result));
     }
     else {
-        BTX_TRACE("Created vkDebugger messenger {}", _debug_messenger);
+        BTX_TRACE("Created vkDebugger messenger {}", _handle);
     }
 }
 
 // =============================================================================
-void vkDebugger::shutdown(vk::Instance &instance) {
-    BTX_TRACE("Destroying vkDebugger messenger {}", _debug_messenger);
-    instance.destroy(_debug_messenger);
+void vkDebugger::destroy() {
+    BTX_TRACE("Destroying vkDebugger messenger {}", _handle);
+    _instance.destroy(_handle);
+    _handle = nullptr;
 }
 
 } // namespace btx

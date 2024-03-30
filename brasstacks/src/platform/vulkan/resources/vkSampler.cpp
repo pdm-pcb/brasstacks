@@ -6,13 +6,25 @@
 
 namespace btx {
 
-vkSampler::vkSampler(vkDevice const &device,
-                     vk::Filter const min_filter,
-                     vk::Filter const mag_filter,
-                     vk::SamplerMipmapMode const mip_filter,
-                     vk::SamplerAddressMode const mode_u,
-                     vk::SamplerAddressMode const mode_v) :
-    _device { device }
+// =============================================================================
+vkSampler::vkSampler() :
+    _handle { nullptr },
+    _device { nullptr }
+{ }
+
+// =============================================================================
+vkSampler::~vkSampler() {
+    if(_handle != nullptr) {
+        destroy();
+    }
+}
+
+// =============================================================================
+void vkSampler::create(vk::Filter const min_filter,
+                       vk::Filter const mag_filter,
+                       vk::SamplerMipmapMode const mip_filter,
+                       vk::SamplerAddressMode const mode_u,
+                       vk::SamplerAddressMode const mode_v)
 {
     vk::SamplerCreateInfo const create_info {
         .magFilter        = mag_filter,
@@ -31,7 +43,7 @@ vkSampler::vkSampler(vkDevice const &device,
         .unnormalizedCoordinates = VK_FALSE
     };
 
-    _handle = _device.native().createSampler(create_info);
+    _handle = _device.createSampler(create_info);
     BTX_TRACE(
         "\nCreated image sampler {}"
         "\n\tMag Filter: {}"
@@ -51,10 +63,10 @@ vkSampler::vkSampler(vkDevice const &device,
 }
 
 // =============================================================================
-vkSampler::~vkSampler() {
+void vkSampler::destroy() {
     BTX_TRACE("Destroying image sampler {}", _handle);
-
-    _device.native().destroySampler(_handle);
+    _device.destroySampler(_handle);
+    _handle = nullptr;
 }
 
 } // namespace btx

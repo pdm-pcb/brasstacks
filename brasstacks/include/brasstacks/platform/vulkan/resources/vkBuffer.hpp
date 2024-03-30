@@ -5,8 +5,6 @@
 
 namespace btx {
 
-class vkDevice;
-
 class vkBuffer final {
 public:
     vkBuffer();

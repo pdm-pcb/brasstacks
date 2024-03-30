@@ -1,6 +1,8 @@
 #ifndef BRASSTACKS_PLATFORM_VULKAN_PIPELINE_VKSHADER_HPP
 #define BRASSTACKS_PLATFORM_VULKAN_PIPELINE_VKSHADER_HPP
 
+#include "brasstacks/pch.hpp"
+
 namespace btx {
 
 class vkShader final {

@@ -42,6 +42,8 @@ public:
 private:
     vk::SwapchainKHR _handle;
 
+    vk::Device _device;
+
     vk::SurfaceFormatKHR _image_format;
     vk::PresentModeKHR   _present_mode;
 

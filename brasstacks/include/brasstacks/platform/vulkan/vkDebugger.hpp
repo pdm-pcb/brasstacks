@@ -22,13 +22,14 @@ public:
         void                                         *user_data
     );
 
-    static void init(vk::Instance &instance);
-    static void shutdown(vk::Instance &instance);
+    static void create();
+    static void destroy();
 
     vkDebugger() = delete;
 
 private:
-    static vk::DebugUtilsMessengerEXT _debug_messenger;
+    static vk::DebugUtilsMessengerEXT _handle;
+    static vk::Instance _instance;
 };
 
 } // namespace btx

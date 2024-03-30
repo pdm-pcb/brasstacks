@@ -13,6 +13,7 @@ namespace btx {
 // =============================================================================
 vkSwapchain::vkSwapchain() :
     _handle       { nullptr },
+    _device       { nullptr },
     _image_format { vk::Format::eUndefined },
     _present_mode { vk::PresentModeKHR::eImmediate },
     _images       { },
@@ -31,6 +32,12 @@ vkSwapchain::~vkSwapchain() {
 
 // =============================================================================
 void vkSwapchain::create(vkSurface const &surface) {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Swapchain {} already exists", _handle);
+    }
+
+    _device = Renderer::device().native();
+
     // Grab the supported image counts, resolutions, etc from the surface
     _query_surface_capabilities(surface.native());
 
@@ -46,7 +53,7 @@ void vkSwapchain::create(vkSurface const &surface) {
     auto const create_info = _populate_create_info(surface.native());
 
     // Finally, create the swapchain
-    _handle = Renderer::device().native().createSwapchainKHR(create_info);
+    _handle = _device.createSwapchainKHR(create_info);
     BTX_TRACE("Created swapchain {}", _handle);
 
     // Now that we've got the swapchain itself, we'll need its images
@@ -64,7 +71,7 @@ void vkSwapchain::destroy() {
     }
 
     BTX_TRACE("Destroying swapchain {}", _handle);
-    Renderer::device().native().destroy(_handle);
+    _device.destroy(_handle);
     _handle = nullptr;
 }
 
@@ -79,7 +86,7 @@ uint32_t vkSwapchain::get_next_image_index(vk::Semaphore const &semaphore) {
 
     // Request the next image index and signal the provided semaphore when the
     // acquisition is complete
-    auto const result = Renderer::device().native().acquireNextImageKHR(
+    auto const result = _device.acquireNextImageKHR(
         _handle,          // The swapchain we're trying to get an image from
         wait_period,      // How long to wait for a new image
         semaphore,        // A semaphore to signal when an image is released
@@ -201,7 +208,8 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
     _aspect_ratio = static_cast<float>(_size.width) /
                     static_cast<float>(_size.height);
 
-    // TODO: this +1 merits some actual rationale
+    // Reserve minimum image count plus one so the CPU always has something to
+    // work on while the GPU does its thing
     auto const image_count = caps.minImageCount + 1;
     if(_images.size() != image_count && _image_views.size() != image_count) {
         _images.clear();
@@ -391,7 +399,7 @@ vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
 // =============================================================================
 void vkSwapchain::_get_swapchain_images() {
     auto const swapchain_images =
-        Renderer::device().native().getSwapchainImagesKHR(_handle);
+        _device.getSwapchainImagesKHR(_handle);
 
     if(swapchain_images.size() != _images.size()) {
         BTX_CRITICAL("Swapchain provided {} images, expected {}",

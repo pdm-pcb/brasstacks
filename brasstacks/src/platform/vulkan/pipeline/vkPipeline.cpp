@@ -1,9 +1,7 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
 #include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"

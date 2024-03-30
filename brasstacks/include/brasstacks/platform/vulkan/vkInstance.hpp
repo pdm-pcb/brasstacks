@@ -1,8 +1,3 @@
-/**
- * @file vkInstance.hpp
- * @brief A wrapper class for a Vulkan instance.
- */
-
 #ifndef BRASSTACKS_PLATFORM_VULKAN_VKINSTANCE_HPP
 #define BRASSTACKS_PLATFORM_VULKAN_VKINSTANCE_HPP
 
@@ -10,27 +5,11 @@
 
 namespace btx {
 
-/**
- * @brief A wrapper class for a Vulkan instance.
- *
- * This class manages creation of the Vulkan instance, initial setup of the
- * dynamic loader provided by VulkanHpp, and validating/enabling any requested
- * instance extensions.
- */
 class vkInstance final {
 public:
-    /**
-     * @brief Creates the vkInstance object
-     * @param api_version The version of the Vulkan API to request from the
-     * driver. Defaults to Vulkan 1.2.
-     */
     static void create(uint32_t const api_version = VK_API_VERSION_1_2);
     static void destroy();
 
-    /**
-     * @brief Return the native Vulkan instance handle
-     * @return vk::Instance const &
-     */
     static inline auto const & native() { return _handle; }
 
     vkInstance() = delete;
