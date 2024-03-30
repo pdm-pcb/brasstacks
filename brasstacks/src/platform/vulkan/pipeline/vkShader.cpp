@@ -1,5 +1,4 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
@@ -7,23 +6,21 @@
 namespace btx {
 
 // =============================================================================
-vkShader::vkShader(vkDevice const &device, std::string_view filepath) :
-    _device { device }
-{
+vkShader::vkShader(std::string_view const filepath) {
     auto const shader_binary = _spirv_to_binary(filepath);
     const vk::ShaderModuleCreateInfo module_info {
         .codeSize = shader_binary.size() * sizeof(uint32_t),
         .pCode = shader_binary.data(),
     };
 
-    _handle = _device.native().createShaderModule(module_info);
+    _handle = Renderer::device().native().createShaderModule(module_info);
     BTX_TRACE("Created vkShader module {} from '{}'", _handle, filepath);
 }
 
 // =============================================================================
 vkShader::~vkShader() {
     BTX_TRACE("Destroying shader module {}", _handle);
-    _device.native().destroyShaderModule(_handle);
+    Renderer::device().native().destroyShaderModule(_handle);
 }
 
 // =============================================================================

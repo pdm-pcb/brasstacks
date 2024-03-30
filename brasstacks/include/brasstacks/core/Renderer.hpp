@@ -14,28 +14,27 @@ class vkCmdBuffer;
 
 class Renderer final {
 public:
-    explicit Renderer(Application &application);
-    ~Renderer() = default;
+    static void init(Application *application);
+    static void shutdown();
+    static void run();
+    static void recreate_swapchain();
 
-    void run();
-    void recreate_swapchain();
-    void shutdown();
+    static inline void wait_device_idle() { _device->wait_idle(); }
 
-    inline void wait_device_idle() const { _device->wait_idle(); }
+    static inline auto const & device()    { return *_device; }
+    static inline auto const & swapchain() { return *_swapchain; }
 
-    inline auto const & device()    const { return *_device; }
-    inline auto const & swapchain() const { return *_swapchain; }
-
-    inline auto render_surface_aspect_ratio() const {
+    static inline auto render_surface_aspect_ratio() {
         return _swapchain->aspect_ratio();
     }
 
-    inline auto image_index() const { return _image_index; }
-    inline auto const & cmd_buffer() const {
+    static inline auto image_index() { return _image_index; }
+    static inline auto const & cmd_buffer() {
         return _frame_sync[_image_index]->cmd_buffer();
     }
 
     Renderer() = delete;
+    ~Renderer() = delete;
 
     Renderer(Renderer &&) = delete;
     Renderer(Renderer const &) = delete;
@@ -44,30 +43,30 @@ public:
     Renderer & operator=(Renderer const &) = delete;
 
 private:
-    Application &_application;
+    static Application *_application;
 
-    vkSurface   *_surface;
-    vkDevice    *_device;
-    vkSwapchain *_swapchain;
+    static vkSurface   *_surface;
+    static vkDevice    *_device;
+    static vkSwapchain *_swapchain;
 
-    std::vector<vkFrameSync *> _frame_sync;
+    static std::vector<vkFrameSync *> _frame_sync;
 
-    uint32_t _image_index;
+    static uint32_t _image_index;
 
-    void _acquire_next_image();
-    void _begin_recording();
-    void _end_recording();
-    void _submit_commands();
-    [[nodiscard]] bool _present_image();
+    static void _acquire_next_image();
+    static void _begin_recording();
+    static void _end_recording();
+    static void _submit_commands();
+    [[nodiscard]] static bool _present_image();
 
-    void _create_surface();
-    void _select_physical_device();
-    void _create_device();
-    void _create_swapchain();
-    void _create_frame_sync();
+    static void _create_surface();
+    static void _select_physical_device();
+    static void _create_device();
+    static void _create_swapchain();
+    static void _create_frame_sync();
 
-    void _destroy_swapchain();
-    void _destroy_frame_sync();
+    static void _destroy_swapchain();
+    static void _destroy_frame_sync();
 };
 
 } // namespace btx

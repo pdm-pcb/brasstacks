@@ -1,52 +1,48 @@
 #include "brasstacks/brasstacks.hpp"
 #include "brasstacks/core/Application.hpp"
 
-#include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/core/Renderer.hpp"
-#include "brasstacks/core/state/AppStateMenu.hpp"
-#include "brasstacks/core/state/AppStatePlay.hpp"
-#include "brasstacks/core/state/AppStatePause.hpp"
+
 #include "brasstacks/assets/libraries/MeshLibrary.hpp"
 
 namespace btx {
 
 // =============================================================================
 Application::Application(std::string_view const app_name) :
-    _current_state             { nullptr },
-    _state_to_resume           { AppState::MENU_STATE },
-    _running                   { true },
-    _target_window             { std::make_unique<TargetWindow>(app_name) },
-    _renderer                  { std::make_unique<Renderer>(*this) },
-    _simulation                { std::make_unique<Simulation>(*this) },
-    _state_events              { *this, &Application::_state_transition },
-    _window_events             { *this, &Application::_window_event },
-    _keyboard_events           { *this, &Application::_keyboard_event },
-    _mouse_button_events       { *this, &Application::_mouse_button_event }
+    _current_state       { nullptr },
+    _menu_state          { *this },
+    _play_state          { *this },
+    _pause_state         { },
+    _state_to_resume     { AppState::MENU_STATE },
+    _running             { true },
+    _target_window       { std::make_unique<TargetWindow>(app_name) },
+    _simulation          { std::make_unique<Simulation>(*this) },
+    _state_events        { *this, &Application::_state_transition },
+    _window_events       { *this, &Application::_window_event },
+    _keyboard_events     { *this, &Application::_keyboard_event },
+    _mouse_button_events { *this, &Application::_mouse_button_event }
 {
+    Renderer::init(this);
+
     _state_events.subscribe();
     _window_events.subscribe();
     _keyboard_events.subscribe();
     _mouse_button_events.subscribe();
 
-    _menu_state  = std::make_unique<AppStateMenu>(*this);
-    _play_state  = std::make_unique<AppStatePlay>(*this);
-    _pause_state = std::make_unique<AppStatePause>();
-
     EventBus::publish(AppStateTransition(AppState::MENU_STATE));
 
-    _mesh_library = new MeshLibrary(*_renderer);
+    _mesh_library = new MeshLibrary();
 }
 
 // =============================================================================
 Application::~Application() {
     delete _mesh_library;
-
-    _renderer->shutdown();
+    Renderer::shutdown();
 }
 
 // =============================================================================
 void Application::run() {
-    this->init(*_renderer);
+    this->init();
 
     _target_window->show();
 
@@ -61,7 +57,7 @@ void Application::run() {
 
     _target_window->hide();
 
-    _renderer->wait_device_idle();
+    Renderer::wait_device_idle();
 
     this->shutdown();
 }
@@ -81,9 +77,9 @@ void Application::_state_transition(AppStateTransition const &event) {
     }
 
     switch(event.next_state_type) {
-        case AppState::MENU_STATE:  _current_state = _menu_state.get();  break;
-        case AppState::PLAY_STATE:  _current_state = _play_state.get();  break;
-        case AppState::PAUSE_STATE: _current_state = _pause_state.get(); break;
+        case AppState::MENU_STATE:  _current_state = &_menu_state;  break;
+        case AppState::PLAY_STATE:  _current_state = &_play_state;  break;
+        case AppState::PAUSE_STATE: _current_state = &_pause_state; break;
     }
 
     if(_current_state == nullptr) {

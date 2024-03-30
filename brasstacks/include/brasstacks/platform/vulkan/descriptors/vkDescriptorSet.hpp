@@ -9,7 +9,6 @@
 
 namespace btx {
 
-class vkDevice;
 class vkDescriptorPool;
 class vkDescriptorSetLayout;
 
@@ -18,7 +17,7 @@ class vkSampler;
 
 class vkDescriptorSet final {
 public:
-    vkDescriptorSet(vkDevice const &device, vkDescriptorPool const &pool,
+    vkDescriptorSet(vkDescriptorPool const &pool,
                     vkDescriptorSetLayout const &layout);
 
     ~vkDescriptorSet() = default;
@@ -44,7 +43,6 @@ public:
     vkDescriptorSet& operator=(const vkDescriptorSet &) = delete;
 
 private:
-    vkDevice const &_device;
     vkDescriptorPool const &_pool;
     vkDescriptorSetLayout const &_layout;
 

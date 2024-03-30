@@ -10,8 +10,8 @@
 
 namespace btx {
 
-vkColorDepthPass::vkColorDepthPass(Renderer const &renderer) :
-    vkRenderPassBase  { renderer },
+vkColorDepthPass::vkColorDepthPass() :
+    vkRenderPassBase { },
     _depth_format { vk::Format::eUndefined },
     _msaa_samples {
         vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples)
@@ -81,7 +81,7 @@ void vkColorDepthPass::_find_depth_stencil_format() {
 void vkColorDepthPass::_init_attachment_details() {
     _attachment_descriptions = {{
         // color buffer (msaa) attachment description
-        .format         = swapchain().image_format(),
+        .format         = Renderer::swapchain().image_format(),
         .samples        = _msaa_samples,
         .loadOp         = vk::AttachmentLoadOp::eClear,
         .storeOp        = vk::AttachmentStoreOp::eDontCare,
@@ -101,7 +101,7 @@ void vkColorDepthPass::_init_attachment_details() {
         .finalLayout    = vk::ImageLayout::eDepthStencilAttachmentOptimal,
     },
     {   // final presentation/resolve attachment
-        .format         = swapchain().image_format(),
+        .format         = Renderer::swapchain().image_format(),
         .samples        = vk::SampleCountFlagBits::e1,
         .loadOp         = vk::AttachmentLoadOp::eDontCare,
         .storeOp        = vk::AttachmentStoreOp::eStore,
@@ -186,23 +186,21 @@ void vkColorDepthPass::_create_color_buffers() {
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
     };
 
-    auto const image_count = swapchain().images().size();
+    auto const image_count = Renderer::swapchain().images().size();
     for(size_t i = 0; i < image_count; ++i) {
         _color_buffers.emplace_back(
             new vkImage(
-                this->device(),
                 vk::Extent2D {
-                    .width = swapchain().size().width,
-                    .height = swapchain().size().height
+                    .width = Renderer::swapchain().size().width,
+                    .height = Renderer::swapchain().size().height
                 },
-                swapchain().image_format(),
+                Renderer::swapchain().image_format(),
                 color_buffer_info
             )
         );
 
         _color_views.emplace_back(
             new vkImageView(
-                this->device(),
                 *_color_buffers.back(),
                 vk::ImageViewType::e2D,
                 vk::ImageAspectFlagBits::eColor
@@ -223,17 +221,15 @@ void vkColorDepthPass::_create_depth_buffer() {
     };
 
     _depth_buffer = new vkImage(
-        this->device(),
         vk::Extent2D {
-            .width = swapchain().size().width,
-            .height = swapchain().size().height
+            .width = Renderer::swapchain().size().width,
+            .height = Renderer::swapchain().size().height
         },
         _depth_format,
         depth_stencil_info
     );
 
     _depth_view =  new vkImageView(
-        this->device(),
         *_depth_buffer,
         vk::ImageViewType::e2D,
         vk::ImageAspectFlagBits::eDepth

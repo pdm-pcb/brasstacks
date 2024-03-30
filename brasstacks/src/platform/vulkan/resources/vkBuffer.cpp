@@ -9,10 +9,9 @@
 namespace btx {
 
 // =============================================================================
-vkBuffer::vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
+vkBuffer::vkBuffer(vk::DeviceSize size_bytes,
                    vk::BufferUsageFlags const usage_flags,
                    vk::MemoryPropertyFlags const memory_flags) :
-    _device      { device },
     _size_bytes  { size_bytes }
 {
     vk::BufferCreateInfo const create_info {
@@ -28,7 +27,7 @@ vkBuffer::vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
         .pQueueFamilyIndices   = nullptr,
     };
 
-    _handle = _device.native().createBuffer(create_info);
+    _handle = Renderer::device().native().createBuffer(create_info);
     BTX_TRACE("Created buffer {}", _handle);
 
     _allocate(memory_flags);
@@ -38,29 +37,33 @@ vkBuffer::vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
 vkBuffer::~vkBuffer() {
     BTX_TRACE("Freeing memory {} and destroying buffer {}", _memory, _handle);
 
-    _device.native().destroyBuffer(_handle);
-    _device.native().freeMemory(_memory);
+    Renderer::device().native().destroyBuffer(_handle);
+    Renderer::device().native().freeMemory(_memory);
 }
 
 // =============================================================================
 void vkBuffer::fill_buffer(void const *data) const {
     void *mapped_memory;
 
-    auto const result = _device.native().mapMemory(_memory, 0, VK_WHOLE_SIZE,
-                                                   { }, &mapped_memory);
+    auto const &device = Renderer::device().native();
+    auto const result = device.mapMemory(_memory,
+                                         0,
+                                         VK_WHOLE_SIZE,
+                                         { },
+                                         &mapped_memory);
     if(result != vk::Result::eSuccess) {
         BTX_CRITICAL("Failed to map buffer {} memory {}", _handle, _memory);
     }
 
     ::memcpy(mapped_memory, data, _size_bytes);
 
-    _device.native().unmapMemory(_memory);
+    Renderer::device().native().unmapMemory(_memory);
 }
 
 // =============================================================================
 void vkBuffer::send_to_device(void const *data) const {
     vkBuffer const staging_buffer(
-        _device, _size_bytes,
+        _size_bytes,
         vk::BufferUsageFlagBits::eTransferSrc,
         (vk::MemoryPropertyFlagBits::eHostVisible |
          vk::MemoryPropertyFlagBits::eHostCoherent)
@@ -74,7 +77,7 @@ void vkBuffer::send_to_device(void const *data) const {
         .size = _size_bytes
     };
 
-    vkCmdBuffer const cmd_buffer(_device, _device.transient_pool());
+    vkCmdBuffer const cmd_buffer(Renderer::device().transient_pool());
     cmd_buffer.begin_one_time_submit();
 
         cmd_buffer.native().copyBuffer(
@@ -95,7 +98,7 @@ void vkBuffer::_allocate(vk::MemoryPropertyFlags const flags) {
     // allocation we're after is the whole size of the buffer we've already
     // described with no offset.
     vk::MemoryRequirements mem_reqs { };
-    _device.native().getBufferMemoryRequirements(_handle, &mem_reqs);
+    Renderer::device().native().getBufferMemoryRequirements(_handle, &mem_reqs);
 
     // This function call will check the joint requirements of ourselves and
     // the logical device against the types of memory offered by the physical
@@ -109,12 +112,12 @@ void vkBuffer::_allocate(vk::MemoryPropertyFlags const flags) {
         .memoryTypeIndex = type_index,
     };
 
-    _memory = _device.native().allocateMemory(alloc_info);
+    _memory = Renderer::device().native().allocateMemory(alloc_info);
     BTX_TRACE("\n\tAllocated {} bytes: Device memory {}"
               "\n\tFor buffer {}",
               _size_bytes, _memory, _handle);
 
-    _device.native().bindBufferMemory(_handle, _memory, 0u);
+    Renderer::device().native().bindBufferMemory(_handle, _memory, 0u);
 }
 
 // =============================================================================

@@ -9,7 +9,7 @@ class vkDevice;
 
 class vkBuffer final {
 public:
-    vkBuffer(vkDevice const &device, vk::DeviceSize size_bytes,
+    vkBuffer(vk::DeviceSize size_bytes,
              vk::BufferUsageFlags const usage_flags,
              vk::MemoryPropertyFlags const memory_flags);
     ~vkBuffer();
@@ -28,8 +28,6 @@ public:
     vkBuffer & operator=(vkBuffer const &) = delete;
 
 private:
-    vkDevice const &_device;
-
     vk::Buffer       _handle;
     vk::DeviceSize   _size_bytes;
     vk::DeviceMemory _memory;

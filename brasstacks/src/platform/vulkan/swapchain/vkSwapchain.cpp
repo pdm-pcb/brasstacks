@@ -376,13 +376,11 @@ void vkSwapchain::_get_swapchain_images() {
         }
 
         _images[i] = new vkImage(
-            _device,
             swapchain_images[i],
             _image_format.format
         );
 
         _image_views[i] = new vkImageView(
-            _device,
             *_images[i],
             vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor

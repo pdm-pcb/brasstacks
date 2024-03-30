@@ -5,11 +5,9 @@
 
 namespace btx {
 
-class vkDevice;
-
 class vkDescriptorSetLayout final {
 public:
-    explicit vkDescriptorSetLayout(vkDevice const &device);
+    vkDescriptorSetLayout() = default;
     ~vkDescriptorSetLayout();
 
     vkDescriptorSetLayout & add_binding(vk::DescriptorType const type,
@@ -21,8 +19,6 @@ public:
     inline auto const& native()   const { return _handle;   }
     inline auto const& bindings() const { return _bindings; }
 
-    vkDescriptorSetLayout() = delete;
-
     vkDescriptorSetLayout(vkDescriptorSetLayout &&) = delete;
     vkDescriptorSetLayout(const vkDescriptorSetLayout &) = delete;
 
@@ -30,8 +26,6 @@ public:
     vkDescriptorSetLayout& operator=(const vkDescriptorSetLayout &) = delete;
 
 private:
-    vkDevice const &_device;
-
     using LayoutBindings = std::vector<vk::DescriptorSetLayoutBinding>;
     LayoutBindings _bindings;
     vk::DescriptorSetLayout _handle;

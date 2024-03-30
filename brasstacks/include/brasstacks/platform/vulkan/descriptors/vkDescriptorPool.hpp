@@ -5,13 +5,10 @@
 
 namespace btx {
 
-class vkDevice;
-
 class vkDescriptorPool final {
 public:
     using PoolSizes = std::set<vk::DescriptorPoolSize>;
-    vkDescriptorPool(vkDevice const &device,
-                     vk::DescriptorPoolCreateFlags const flags,
+    vkDescriptorPool(vk::DescriptorPoolCreateFlags const flags,
                      uint32_t const max_sets, PoolSizes const &sizes);
     ~vkDescriptorPool();
 
@@ -26,7 +23,6 @@ public:
     vkDescriptorPool& operator=(const vkDescriptorPool &) = delete;
 
 private:
-    vkDevice const &_device;
     vk::DescriptorPool _handle;
 };
 

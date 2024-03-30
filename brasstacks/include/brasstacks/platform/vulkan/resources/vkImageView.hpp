@@ -10,7 +10,6 @@
 
 namespace btx {
 
-class vkDevice;
 class vkImage;
 
 /**
@@ -21,12 +20,11 @@ public:
 
     /**
      * @brief Construct the vkImageView object.
-     * @param device An established Vulkan logical device
      * @param image The image for which this view is being created
      * @param type The image type, eg 2D, 3D, Cube
      * @param aspect_flags Image flags, eg color, depth, stencil
      */
-    vkImageView(vkDevice const &device, vkImage const &image,
+    vkImageView(vkImage const &image,
                 vk::ImageViewType const type,
                 vk::ImageAspectFlags const aspect_flags);
 
@@ -47,11 +45,6 @@ public:
     vkImageView & operator=(const vkImageView &) = delete;
 
 private:
-    /**
-     * @brief The logical device that created this image view
-     */
-    vkDevice const &_device;
-
     /**
      * @brief The native Vulkan handle
      */

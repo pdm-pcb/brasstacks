@@ -8,14 +8,12 @@
 
 namespace btx {
 
-class Renderer;
-
 class MeshLibrary final {
 public:
     using MeshList = std::list<Mesh *>;
     using MeshIter = MeshList::iterator;
 
-    explicit MeshLibrary(Renderer const &renderer);
+    MeshLibrary();
     ~MeshLibrary();
 
     MeshIter const
@@ -28,8 +26,6 @@ public:
 
     void unload_mesh(MeshIter const iter);
 
-    MeshLibrary() = delete;
-
     MeshLibrary(MeshLibrary &&) = delete;
     MeshLibrary(MeshLibrary const &) = delete;
 
@@ -37,7 +33,6 @@ public:
     MeshLibrary & operator=(MeshLibrary const &) = delete;
 
 private:
-    Renderer const &_renderer;
     MeshList _loaded_meshes;
 };
 

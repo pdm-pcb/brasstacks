@@ -4,10 +4,9 @@
 
 namespace btx {
 
-CubeMesh::CubeMesh(vkDevice const &device,
-                   std::span<Color const, 8> const corner_colors,
+CubeMesh::CubeMesh(std::span<Color const, 8> const corner_colors,
                    float const scale) :
-    Mesh(device)
+    Mesh { }
 {
     Mesh::_set_vertices(
         std::span<Vertex const, 8> {{

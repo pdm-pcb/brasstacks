@@ -11,10 +11,8 @@
 namespace btx {
 
 // =============================================================================
-vkDescriptorSet::vkDescriptorSet(vkDevice const &device,
-                                 vkDescriptorPool const &pool,
+vkDescriptorSet::vkDescriptorSet(vkDescriptorPool const &pool,
                                  vkDescriptorSetLayout const &layout) :
-    _device { device },
     _pool   { pool },
     _layout { layout }
 {
@@ -24,7 +22,8 @@ vkDescriptorSet::vkDescriptorSet(vkDevice const &device,
         .pSetLayouts        = &_layout.native()
     };
 
-    auto const result = _device.native().allocateDescriptorSets(alloc_info);
+    auto const result =
+        Renderer::device().native().allocateDescriptorSets(alloc_info);
     _handle = result.front();
     BTX_TRACE("Allocated descriptor set {}", _handle);
 }
@@ -96,7 +95,7 @@ void vkDescriptorSet::write_set() {
         return;
     }
 
-    _device.native().updateDescriptorSets(_set_writes, nullptr);
+    Renderer::device().native().updateDescriptorSets(_set_writes, nullptr);
 
     _buffer_info.clear();
     _image_info.clear();

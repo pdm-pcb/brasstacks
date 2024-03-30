@@ -9,11 +9,9 @@
 namespace btx {
 
 // =============================================================================
-vkFramebuffer::vkFramebuffer(vkDevice const &device,
-                             vkRenderPassBase const &render_pass,
+vkFramebuffer::vkFramebuffer(vkRenderPassBase const &render_pass,
                              RenderConfig::Size const &size,
-                             std::vector<vk::ImageView> const &attachments) :
-    _device { device }
+                             std::vector<vk::ImageView> const &attachments)
 {
     vk::FramebufferCreateInfo const create_info {
         .pNext           = nullptr,
@@ -26,7 +24,7 @@ vkFramebuffer::vkFramebuffer(vkDevice const &device,
         .layers          = 1u,
     };
 
-    _handle = _device.native().createFramebuffer(create_info);
+    _handle = Renderer::device().native().createFramebuffer(create_info);
     BTX_TRACE("Created framebuffer {} for render pass {} with extent {}x{}",
               _handle, render_pass.native(), size.width, size.height);
 }
@@ -35,7 +33,7 @@ vkFramebuffer::vkFramebuffer(vkDevice const &device,
 vkFramebuffer::~vkFramebuffer() {
     BTX_TRACE("Destroying framebuffer {}", _handle);
 
-    _device.native().destroyFramebuffer(_handle);
+    Renderer::device().native().destroyFramebuffer(_handle);
 }
 
 } // namespace btx

@@ -2,6 +2,7 @@
 #define BRASSTACKS_CORE_STATE_STATEBASE_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/events/state_events.hpp"
 
 namespace btx {
 

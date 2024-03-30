@@ -6,8 +6,8 @@
 namespace btx {
 
 // =============================================================================
-MeshLibrary::MeshLibrary(Renderer const &renderer) :
-    _renderer { renderer }
+MeshLibrary::MeshLibrary() :
+    _loaded_meshes { }
 { }
 
 // =============================================================================
@@ -23,12 +23,7 @@ MeshLibrary::MeshIter const
 MeshLibrary::new_plane_mesh(std::span<Color const, 4> const corner_colors,
                             float const scale)
 {
-    _loaded_meshes.emplace_back(new PlaneMesh(
-        _renderer.device(),
-        corner_colors,
-        scale
-    ));
-
+    _loaded_meshes.emplace_back(new PlaneMesh(corner_colors, scale));
     return --_loaded_meshes.end();
 }
 
@@ -37,12 +32,7 @@ MeshLibrary::MeshIter const
 MeshLibrary::new_cube_mesh(std::span<Color const, 8> const corner_colors,
                            float const scale)
 {
-    _loaded_meshes.emplace_back(new CubeMesh(
-        _renderer.device(),
-        corner_colors,
-        scale
-    ));
-
+    _loaded_meshes.emplace_back(new CubeMesh(corner_colors, scale));
     return --_loaded_meshes.end();
 }
 

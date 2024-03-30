@@ -6,7 +6,6 @@
 
 namespace btx {
 
-class vkDevice;
 class vkShader;
 class vkRenderPassBase;
 class vkCmdBuffer;
@@ -15,7 +14,7 @@ class vkDescriptorSetLayout;
 
 class vkPipeline final {
 public:
-    explicit vkPipeline(vkDevice const &device);
+    vkPipeline();
     ~vkPipeline();
 
     static vk::SampleCountFlagBits samples_to_flag(uint32_t const samples);
@@ -83,8 +82,6 @@ public:
     inline auto const & scissor()  const { return _scissor; }
     inline auto const & layout()   const { return _layout; }
 
-    vkPipeline() = delete;
-
     vkPipeline(vkPipeline &&) = delete;
     vkPipeline(const vkPipeline &) = delete;
 
@@ -92,8 +89,6 @@ public:
     vkPipeline& operator=(const vkPipeline &) = delete;
 
 private:
-    vkDevice const &_device;
-
     vk::Pipeline _handle;
 
     std::vector<vkShader *>                        _shaders;

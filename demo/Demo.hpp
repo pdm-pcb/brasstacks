@@ -27,7 +27,7 @@ public:
     Demo();
     ~Demo() override = default;
 
-    void init(btx::Renderer const &renderer) override;
+    void init() override;
     void shutdown() override;
 
     void update() override;
@@ -41,8 +41,6 @@ public:
     void update_camera() override;
 
 private:
-    btx::Renderer const *_renderer;
-
     btx::ColorDepthPass *_color_depth_pass;
 
     btx::MeshLibrary::MeshIter _plane_mesh;

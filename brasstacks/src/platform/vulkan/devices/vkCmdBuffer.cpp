@@ -9,8 +9,7 @@
 namespace btx {
 
 // =============================================================================
-vkCmdBuffer::vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool) :
-    _device { device },
+vkCmdBuffer::vkCmdBuffer(vkCmdPool const &pool) :
     _pool   { pool },
     _handle { nullptr }
 {
@@ -21,7 +20,7 @@ vkCmdBuffer::vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool) :
         .commandBufferCount = 1u,
     };
 
-    auto const result = _device.native().allocateCommandBuffers(
+    auto const result = Renderer::device().native().allocateCommandBuffers(
         &buffer_info,
         &_handle
     );
@@ -41,7 +40,10 @@ vkCmdBuffer::~vkCmdBuffer() {
     if(_handle) {
         BTX_TRACE("Freeing command buffer {}", _handle);
 
-        _device.native().freeCommandBuffers(_pool.native(), { _handle });
+        Renderer::device().native().freeCommandBuffers(
+            _pool.native(),
+            { _handle }
+        );
         _handle = nullptr;
     }
 }
@@ -83,8 +85,8 @@ void vkCmdBuffer::submit_and_wait_on_device() const {
         .pSignalSemaphores    = nullptr,
     };
 
-    _device.graphics_queue().native().submit(submit_info);
-    _device.native().waitIdle();
+    Renderer::device().graphics_queue().native().submit(submit_info);
+    Renderer::device().native().waitIdle();
 }
 
 } // namespace btx

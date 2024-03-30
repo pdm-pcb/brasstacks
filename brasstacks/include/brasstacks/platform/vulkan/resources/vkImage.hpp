@@ -5,7 +5,6 @@
 
 namespace btx {
 
-class vkDevice;
 class vkPhysicalDevice;
 class vkCmdBuffer;
 class vkImageView;
@@ -14,8 +13,7 @@ class vkSampler;
 class vkImage final {
 public:
     // For referencing a prexisting image, such as a swapchain image
-    vkImage(vkDevice const &device, vk::Image const &handle,
-            vk::Format const format);
+    vkImage(vk::Image const &handle, vk::Format const format);
 
     struct ImageInfo final {
         vk::ImageType type = { };
@@ -25,12 +23,12 @@ public:
     };
 
     // For reading texture data from a file
-    vkImage(vkDevice const &device, std::string_view const filename,
-            ImageInfo const &image_info, uint32_t const array_layers = 1u);
+    vkImage(std::string_view const filename, ImageInfo const &image_info,
+            uint32_t const array_layers = 1u);
 
     // For render targets, eg color buffer
-    vkImage(vkDevice const &device, vk::Extent2D const &extent,
-            vk::Format const format, ImageInfo const &image_info);
+    vkImage(vk::Extent2D const &extent, vk::Format const format,
+            ImageInfo const &image_info);
 
     ~vkImage();
 
@@ -47,8 +45,6 @@ public:
     vkImage & operator=(const vkImage &) = delete;
 
 private:
-    vkDevice const &_device;
-
     vk::Image        _handle;
     vk::DeviceMemory _memory;
     vk::Format       _format;

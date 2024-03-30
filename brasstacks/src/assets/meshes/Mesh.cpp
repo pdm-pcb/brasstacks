@@ -5,10 +5,6 @@
 
 namespace btx {
 
-Mesh::Mesh(vkDevice const &device) :
-    _device { device }
-{ }
-
 Mesh::~Mesh() {
     delete _vertex_buffer;
     delete _index_buffer;
@@ -18,7 +14,7 @@ void Mesh::_set_vertices(std::span<Vertex const> const vertices) {
     _vertex_data = { vertices.begin(), vertices.end() };
 
     _vertex_buffer = new vkBuffer(
-        _device, sizeof(Vertex) * _vertex_data.size(),
+        sizeof(Vertex) * _vertex_data.size(),
         (vk::BufferUsageFlagBits::eVertexBuffer |
          vk::BufferUsageFlagBits::eTransferDst),
         vk::MemoryPropertyFlagBits::eDeviceLocal
@@ -33,7 +29,7 @@ void Mesh::_set_indices(std::span<Index const> const indices) {
     _index_data = { indices.begin(), indices.end() };
 
     _index_buffer = new vkBuffer(
-        _device, sizeof(Index) * _index_data.size(),
+        sizeof(Index) * _index_data.size(),
         (vk::BufferUsageFlagBits::eIndexBuffer |
          vk::BufferUsageFlagBits::eTransferDst),
         vk::MemoryPropertyFlagBits::eDeviceLocal

@@ -6,14 +6,12 @@
 
 namespace btx {
 
-class Renderer;
-
 class vkImage;
 class vkImageView;
 
 class vkColorDepthPass final : public vkRenderPassBase {
 public:
-    vkColorDepthPass(Renderer const &renderer);
+    vkColorDepthPass();
     ~vkColorDepthPass() override = default;
 
     void destroy_swapchain_resources();
@@ -23,8 +21,6 @@ public:
     auto const & depth_view() const { return *_depth_view; }
     auto msaa_samples() const { return _msaa_samples; }
     auto depth_format() const { return _depth_format; }
-
-    vkColorDepthPass() = delete;
 
     vkColorDepthPass(vkColorDepthPass &&) = delete;
     vkColorDepthPass(vkColorDepthPass const &) = delete;

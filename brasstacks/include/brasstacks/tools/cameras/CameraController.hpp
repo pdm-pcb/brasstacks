@@ -8,7 +8,6 @@
 
 namespace btx {
 
-class Renderer;
 class PerspectiveCamera;
 
 class vkBuffer;
@@ -18,10 +17,8 @@ class vkDescriptorSet;
 
 class CameraController {
 public:
-    explicit CameraController(Renderer const &renderer);
+    CameraController();
     ~CameraController();
-
-    CameraController() = delete;
 
     CameraController(CameraController &&) = delete;
     CameraController(CameraController const &) = delete;
@@ -30,8 +27,6 @@ public:
     CameraController & operator=(CameraController const &) = delete;
 
 private:
-    Renderer const &_renderer;
-
     PerspectiveCamera *_perspective_camera;
 
     std::vector<vkBuffer *>        _camera_ubos;

@@ -14,7 +14,7 @@ AppStateMenu::AppStateMenu(Application &application) :
 // =============================================================================
 void AppStateMenu::execute() {
     _application.simulation().run();
-    _application.renderer().run();
+    Renderer::run();
 }
 
 // =============================================================================

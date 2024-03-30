@@ -12,10 +12,9 @@
 namespace btx {
 
 // =============================================================================
-ColorDepthPass::ColorDepthPass(Renderer const &renderer) :
-    _renderer     { renderer },
-    _render_pass  { new vkColorDepthPass(_renderer)},
-    _pipeline     { new vkPipeline(_renderer.device()) },
+ColorDepthPass::ColorDepthPass() :
+    _render_pass  { new vkColorDepthPass },
+    _pipeline     { new vkPipeline },
     _framebuffers { },
     _cmd_buffer   { nullptr }
 { }
@@ -37,10 +36,10 @@ void ColorDepthPass::create_pipeline() {
         .create(
             *_render_pass,
             {
-                .color_formats     = { _renderer.swapchain().image_format() },
+                .color_formats     = { Renderer::swapchain().image_format() },
                 .depth_format      = _render_pass->depth_format(),
-                .viewport_extent   = _renderer.swapchain().size(),
-                .viewport_offset   = _renderer.swapchain().offset(),
+                .viewport_extent   = Renderer::swapchain().size(),
+                .viewport_offset   = Renderer::swapchain().offset(),
                 .sample_flags      = _render_pass->msaa_samples(),
                 .enable_depth_test = VK_TRUE,
             }
@@ -60,8 +59,8 @@ void ColorDepthPass::create_swapchain_resources() {
 
     // This is redundant when the render pass has just been created, but
     // necessary when the swapchain has changed size
-    _pipeline->update_dimensions(_renderer.swapchain().size(),
-                                 _renderer.swapchain().offset());
+    _pipeline->update_dimensions(Renderer::swapchain().size(),
+                                 Renderer::swapchain().offset());
 
     _create_framebuffers();
 }
@@ -73,9 +72,9 @@ void ColorDepthPass::begin() {
         return;
     }
 
-    _cmd_buffer = &_renderer.cmd_buffer();
+    _cmd_buffer = &Renderer::cmd_buffer();
 
-    auto const &framebuffer = *_framebuffers[_renderer.image_index()];
+    auto const &framebuffer = *_framebuffers[Renderer::image_index()];
 
     static std::array<vk::ClearValue, 2> const clear_values = {{
         { .color { std::array<float, 4> {{ 0.08f, 0.08f, 0.16f, 1.0f }} }},
@@ -85,8 +84,8 @@ void ColorDepthPass::begin() {
     vk::Rect2D const render_area = {
         .offset { .x = 0u, .y = 0u },
         .extent {
-            .width  = _renderer.swapchain().size().width,
-            .height = _renderer.swapchain().size().height,
+            .width  = Renderer::swapchain().size().width,
+            .height = Renderer::swapchain().size().height,
         },
     };
 
@@ -139,16 +138,15 @@ void ColorDepthPass::send_push_constants(PushConstants const push_constants) {
 
 // =============================================================================
 void ColorDepthPass::_create_framebuffers() {
-    auto const image_count = _renderer.swapchain().image_views().size();
+    auto const image_count = Renderer::swapchain().image_views().size();
     for(size_t i = 0; i < image_count; ++i) {
         _framebuffers.emplace_back(new vkFramebuffer(
-            _renderer.device(),
             *_render_pass,
-            _renderer.swapchain().size(),
+            Renderer::swapchain().size(),
             {{
                 _render_pass->color_views()[i]->native(),
                 _render_pass->depth_view().native(),
-                _renderer.swapchain().image_views()[i]->native()
+                Renderer::swapchain().image_views()[i]->native()
             }}
         ));
     }

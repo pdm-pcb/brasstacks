@@ -24,14 +24,12 @@ public:
     Mesh& operator=(Mesh const &) = delete;
 
 protected:
-    explicit Mesh(vkDevice const &device);
+    Mesh() = default;
 
     void _set_vertices(std::span<Vertex const> const vertices);
     void _set_indices(std::span<Index const> const indices);
 
 private:
-    vkDevice const &_device;
-
     vkBuffer *_vertex_buffer;
     std::vector<Vertex> _vertex_data;
     std::vector<vk::DeviceSize> _vertex_offsets;

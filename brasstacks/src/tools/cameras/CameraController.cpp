@@ -10,9 +10,7 @@
 namespace btx {
 
 // =============================================================================
-CameraController::CameraController(Renderer const &renderer) :
-    _renderer { renderer}
-{
+CameraController::CameraController() {
     _perspective_camera = new PerspectiveCamera(
        PerspectiveCamera::Orientation {
             .position = { 0.0f, 0.0f, 4.0f },
@@ -24,16 +22,15 @@ CameraController::CameraController(Renderer const &renderer) :
         },
         PerspectiveCamera::PerspectiveParams {
             .vfov_degrees = 45.0f,
-            .aspect_ratio = _renderer.render_surface_aspect_ratio(),
+            .aspect_ratio = Renderer::render_surface_aspect_ratio(),
             .near_plane = 0.1f,
             .far_plane = 1000.0f,
         }
     );
 
-    auto const image_count = renderer.swapchain().images().size();
+    auto const image_count = Renderer::swapchain().images().size();
     for(uint32_t i = 0; i < image_count; ++i) {
         _camera_ubos.push_back(new vkBuffer(
-             renderer.device(),
             2 * sizeof(math::Mat4),
             vk::BufferUsageFlagBits::eUniformBuffer,
             (vk::MemoryPropertyFlagBits::eHostVisible |
@@ -41,7 +38,7 @@ CameraController::CameraController(Renderer const &renderer) :
         ));
     }
 
-    _camera_ubo_layout = new vkDescriptorSetLayout(renderer.device());
+    _camera_ubo_layout = new vkDescriptorSetLayout;
 
     (*_camera_ubo_layout)
         .add_binding(vk::DescriptorType::eUniformBuffer,
@@ -51,8 +48,7 @@ CameraController::CameraController(Renderer const &renderer) :
     _camera_ubo_sets.resize(image_count);
 
     for(uint32_t i = 0; i < image_count; ++i) {
-        _camera_ubo_sets[i] =  new vkDescriptorSet(renderer.device(),
-                                                   *_descriptor_pool,
+        _camera_ubo_sets[i] =  new vkDescriptorSet(*_descriptor_pool,
                                                    *_camera_ubo_layout);
 
         (*_camera_ubo_sets[i])

@@ -13,9 +13,7 @@
 namespace btx {
 
 // =============================================================================
-vkImage::vkImage(vkDevice  const &device, vk::Image const &handle,
-                 vk::Format const format) :
-    _device       { device },
+vkImage::vkImage(vk::Image const &handle, vk::Format const format) :
     _handle       { handle },
     _memory       { nullptr },
     _format       { format },
@@ -29,9 +27,8 @@ vkImage::vkImage(vkDevice  const &device, vk::Image const &handle,
 { }
 
 // =============================================================================
-vkImage::vkImage(vkDevice const &device, std::string_view const filename,
-                 ImageInfo const &image_info, uint32_t const array_layers):
-    _device       { device },
+vkImage::vkImage(std::string_view const filename, ImageInfo const &image_info,
+                 uint32_t const array_layers) :
     _memory       { nullptr },
     _format       { vk::Format::eUndefined },
     _layout       { vk::ImageLayout::eUndefined },
@@ -73,7 +70,7 @@ vkImage::vkImage(vkDevice const &device, std::string_view const filename,
         .initialLayout = vk::ImageLayout::eUndefined,
     };
 
-    _handle = _device.native().createImage(create_info);
+    _handle = Renderer::device().native().createImage(create_info);
     BTX_TRACE("Created image {}", _handle);
 
     _allocate(image_info.memory_flags);
@@ -81,9 +78,8 @@ vkImage::vkImage(vkDevice const &device, std::string_view const filename,
 }
 
 // =============================================================================
-vkImage::vkImage(vkDevice const &device, vk::Extent2D const &extent,
-                 vk::Format const format, ImageInfo const &image_info) :
-    _device       { device },
+vkImage::vkImage(vk::Extent2D const &extent, vk::Format const format,
+                 ImageInfo const &image_info) :
     _handle       { },
     _memory       { },
     _format       { format },
@@ -116,7 +112,7 @@ vkImage::vkImage(vkDevice const &device, vk::Extent2D const &extent,
         .initialLayout = vk::ImageLayout::eUndefined,
     };
 
-    _handle = _device.native().createImage(create_info);
+    _handle = Renderer::device().native().createImage(create_info);
     BTX_TRACE("Created image {} with extent {}x{}, samples {}", _handle,
               extent.width, extent.height, vk::to_string(image_info.samples));
 
@@ -126,11 +122,11 @@ vkImage::vkImage(vkDevice const &device, vk::Extent2D const &extent,
 // =============================================================================
 vkImage::~vkImage() {
     if(!_is_swapchain && _handle) {
-        _device.native().destroyImage(_handle);
+        Renderer::device().native().destroyImage(_handle);
     }
 
     if(_memory) {
-        _device.native().freeMemory(_memory);
+        Renderer::device().native().freeMemory(_memory);
     }
 
     if(_raw_data != nullptr) {
@@ -188,7 +184,7 @@ void vkImage::_calc_mip_levels() {
 void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
     vk::MemoryRequirements mem_reqs { };
 
-    _device.native().getImageMemoryRequirements(_handle, &mem_reqs);
+    Renderer::device().native().getImageMemoryRequirements(_handle, &mem_reqs);
 
     auto type_index = _memory_type_index(memory_flags, mem_reqs);
 
@@ -197,11 +193,11 @@ void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
         .memoryTypeIndex = type_index,
     };
 
-    _memory = _device.native().allocateMemory(alloc_info);
+    _memory = Renderer::device().native().allocateMemory(alloc_info);
     BTX_TRACE("Allocated {} bytes {} for image {}",
               mem_reqs.size, _memory, _handle);
 
-    _device.native().bindImageMemory(_handle, _memory, 0u);
+    Renderer::device().native().bindImageMemory(_handle, _memory, 0u);
 }
 
 // =============================================================================
@@ -239,7 +235,7 @@ uint32_t vkImage::_memory_type_index(vk::MemoryPropertyFlags const flags,
 // =============================================================================
 void vkImage::_send_to_device() {
     vkBuffer const staging_buffer(
-        _device, _size_bytes,
+        _size_bytes,
         vk::BufferUsageFlagBits::eTransferSrc,
         (vk::MemoryPropertyFlagBits::eHostVisible |
          vk::MemoryPropertyFlagBits::eHostCoherent)
@@ -265,7 +261,7 @@ void vkImage::_send_to_device() {
         .imageExtent = _extent
     };
 
-    vkCmdBuffer const cmd_buffer(_device, _device.transient_pool());
+    vkCmdBuffer const cmd_buffer(Renderer::device().transient_pool());
     cmd_buffer.begin_one_time_submit();
 
         _transition_layout(cmd_buffer,

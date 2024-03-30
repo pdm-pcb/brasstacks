@@ -6,14 +6,9 @@
 namespace btx {
 
 // =============================================================================
-vkDescriptorSetLayout::vkDescriptorSetLayout(vkDevice const &device) :
-    _device { device }
-{ }
-
-// =============================================================================
 vkDescriptorSetLayout::~vkDescriptorSetLayout() {
     BTX_TRACE("Destroying descriptor set layout {}", _handle);
-    _device.native().destroyDescriptorSetLayout(_handle);
+    Renderer::device().native().destroyDescriptorSetLayout(_handle);
 }
 
 // =============================================================================
@@ -42,7 +37,7 @@ void vkDescriptorSetLayout::create() {
         .pBindings    = _bindings.data(),
     };
 
-    auto const result = _device.native().createDescriptorSetLayout(
+    auto const result = Renderer::device().native().createDescriptorSetLayout(
         &descriptor_info,
         nullptr,
         &_handle

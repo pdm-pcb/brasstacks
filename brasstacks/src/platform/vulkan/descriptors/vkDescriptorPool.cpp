@@ -6,11 +6,9 @@
 namespace btx {
 
 // =============================================================================
-vkDescriptorPool::vkDescriptorPool(vkDevice const &device,
-                                   vk::DescriptorPoolCreateFlags const flags,
+vkDescriptorPool::vkDescriptorPool(vk::DescriptorPoolCreateFlags const flags,
                                    uint32_t const max_sets,
-                                   PoolSizes const &sizes) :
-    _device { device }
+                                   PoolSizes const &sizes)
 {
     std::vector<vk::DescriptorPoolSize> const pool_sizes {
         sizes.begin(),
@@ -25,14 +23,14 @@ vkDescriptorPool::vkDescriptorPool(vkDevice const &device,
         .pPoolSizes    = pool_sizes.data(),
     };
 
-    _handle = _device.native().createDescriptorPool(create_info);
+    _handle = Renderer::device().native().createDescriptorPool(create_info);
     BTX_TRACE("Created descriptor pool {}", _handle);
 }
 
 // =============================================================================
 vkDescriptorPool::~vkDescriptorPool() {
     BTX_TRACE("Destroying descriptor pool {}", _handle);
-    _device.native().destroyDescriptorPool(_handle);
+    Renderer::device().native().destroyDescriptorPool(_handle);
 }
 
 } // namespace btx

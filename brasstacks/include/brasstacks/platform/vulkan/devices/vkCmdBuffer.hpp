@@ -11,7 +11,7 @@ class vkCmdPool;
 class vkCmdBuffer final {
 public:
 
-    vkCmdBuffer(vkDevice const &device, vkCmdPool const &pool);
+    vkCmdBuffer(vkCmdPool const &pool);
     ~vkCmdBuffer();
 
     void begin_one_time_submit() const;
@@ -33,7 +33,6 @@ public:
     vkCmdBuffer & operator=(const vkCmdBuffer &) = delete;
 
 private:
-    vkDevice  const &_device;
     vkCmdPool const &_pool;
 
     vk::CommandBuffer _handle;

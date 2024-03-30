@@ -12,22 +12,32 @@
 
 namespace btx {
 
+Application *Renderer::_application { nullptr };
+vkSurface *Renderer::_surface       { nullptr };
+vkDevice *Renderer::_device         { nullptr };
+vkSwapchain *Renderer::_swapchain   { nullptr };
+std::vector<vkFrameSync *> Renderer::_frame_sync;
+uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
+
 // =============================================================================
-Renderer::Renderer(Application &application) :
-    _application     { application },
-    _surface         { nullptr },
-    _device          { nullptr },
-    _swapchain       { nullptr },
-    _frame_sync      { },
-    _image_index     { std::numeric_limits<uint32_t>::max() }
-{
+void Renderer::init(Application *application) {
     vkInstance::create();
 
+    _application = application;
     _create_surface();
     _select_physical_device();
     _create_device();
     _create_swapchain();
     _create_frame_sync();
+}
+
+// =============================================================================
+void Renderer::shutdown() {
+    _destroy_frame_sync();
+    _destroy_swapchain();
+
+    delete _device;
+    delete _surface;
 }
 
 // =============================================================================
@@ -41,7 +51,7 @@ void Renderer::run() {
 
     _begin_recording();
 
-    _application.record_commands();
+    _application->record_commands();
 
     _end_recording();
     _submit_commands();
@@ -56,23 +66,14 @@ void Renderer::run() {
 void Renderer::recreate_swapchain() {
     wait_device_idle();
 
-    _application.destroy_swapchain_resources();
+    _application->destroy_swapchain_resources();
 
     _destroy_frame_sync();
     _destroy_swapchain();
     _create_swapchain();
     _create_frame_sync();
 
-    _application.create_swapchain_resources();
-}
-
-// =============================================================================
-void Renderer::shutdown() {
-    _destroy_frame_sync();
-    _destroy_swapchain();
-
-    delete _device;
-    delete _surface;
+    _application->create_swapchain_resources();
 }
 
 // =============================================================================
@@ -146,8 +147,8 @@ void Renderer::_create_surface() {
     vk::XlibSurfaceCreateInfoKHR const create_info {
         .pNext = nullptr,
         .flags = { },
-        .dpy = _application.target_window().display(),
-        .window = _application.target_window().native()
+        .dpy = _application->target_window().display(),
+        .window = _application->target_window().native()
     };
 
 #elif BTX_WINDOWS
@@ -156,7 +157,7 @@ void Renderer::_create_surface() {
         .pNext = nullptr,
         .flags = { },
         .hinstance = nullptr,
-        .hwnd = _application.target_window().native()
+        .hwnd = _application->target_window().native()
     };
 
 #endif // BTX platform

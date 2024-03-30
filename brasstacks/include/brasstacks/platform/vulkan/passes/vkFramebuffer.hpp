@@ -11,7 +11,6 @@
 
 namespace btx {
 
-class vkDevice;
 class vkRenderPassBase;
 
 /**
@@ -19,7 +18,7 @@ class vkRenderPassBase;
  */
 class vkFramebuffer final {
 public:
-    vkFramebuffer(vkDevice const &device, vkRenderPassBase const &render_pass,
+    vkFramebuffer(vkRenderPassBase const &render_pass,
                   RenderConfig::Size const &size,
                   std::vector<vk::ImageView> const &attachments);
 
@@ -40,11 +39,6 @@ public:
     vkFramebuffer & operator=(const vkFramebuffer &) = delete;
 
 private:
-    /**
-     * @brief The Vulkan logical device used to create this framebuffer
-     */
-    vkDevice const &_device;
-
     /**
      * @brief Native Vulkan handle
      */

@@ -12,8 +12,7 @@
 namespace btx {
 
 // =============================================================================
-vkPipeline::vkPipeline(vkDevice const &device) :
-    _device               { device },
+vkPipeline::vkPipeline() :
     _handle               { nullptr },
     _shaders              { },
     _shader_stages        { },
@@ -38,8 +37,8 @@ vkPipeline::vkPipeline(vkDevice const &device) :
 vkPipeline::~vkPipeline() {
     BTX_TRACE("Destroying pipeline {}, layout {}", _handle, _layout);
 
-    _device.native().destroy(_layout);
-    _device.native().destroy(_handle);
+    Renderer::device().native().destroy(_layout);
+    Renderer::device().native().destroy(_handle);
 }
 
 // =============================================================================
@@ -114,7 +113,7 @@ vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
                      "been created.");
     }
 
-    _shaders.emplace_back(new vkShader(_device, filepath));
+    _shaders.emplace_back(new vkShader(filepath));
 
     _shader_stages.emplace_back(
         vk::PipelineShaderStageCreateInfo {
@@ -215,7 +214,7 @@ void vkPipeline::create(vkRenderPassBase const &render_pass, Config const &confi
     };
 
     auto const pipeline_result =
-        _device.native().createGraphicsPipeline({ }, pipeline_info);
+        Renderer::device().native().createGraphicsPipeline({ }, pipeline_info);
 
     if(pipeline_result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Unable to create Vulkan pipeline: '{}'",
@@ -420,7 +419,7 @@ void vkPipeline::_init_layout() {
         .pPushConstantRanges    = _push_constants.data()
     };
 
-    _layout = _device.native().createPipelineLayout(layout_info);
+    _layout = Renderer::device().native().createPipelineLayout(layout_info);
     BTX_TRACE("Created pipeline layout {}", _layout);
 }
 

@@ -27,7 +27,7 @@ void AppStatePlay::exit() {
 void AppStatePlay::execute() {
     _application.update_camera();
     _application.simulation().run();
-    _application.renderer().run();
+    Renderer::run();
 }
 
 // =============================================================================

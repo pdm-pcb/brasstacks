@@ -19,7 +19,7 @@ class ColorDepthPass final {
     using PushConstants = std::span<vkPipeline::PushConstant const>;
 
 public:
-    explicit ColorDepthPass(Renderer const &renderer);
+    ColorDepthPass();
     ~ColorDepthPass();
 
     void create_pipeline();
@@ -35,8 +35,6 @@ public:
 
     auto & pipeline() { return *_pipeline; }
 
-    ColorDepthPass() = delete;
-
     ColorDepthPass(ColorDepthPass &&) = delete;
     ColorDepthPass(ColorDepthPass const &) = delete;
 
@@ -44,8 +42,6 @@ public:
     ColorDepthPass & operator=(ColorDepthPass const &) = delete;
 
 private:
-    Renderer const &_renderer;
-
     vkColorDepthPass            *_render_pass;
     vkPipeline                  *_pipeline;
     std::vector<vkFramebuffer *> _framebuffers;

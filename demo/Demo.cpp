@@ -20,7 +20,6 @@
 // =============================================================================
 Demo::Demo() :
     Application("Demo"),
-    _renderer           { nullptr },
     _color_depth_pass   { nullptr },
     _plane_mesh         { },
     _plane_mat          { },
@@ -39,11 +38,10 @@ Demo::Demo() :
 { }
 
 // =============================================================================
-void Demo::init(btx::Renderer const &renderer) {
-    _renderer = &renderer;
-
+void Demo::init() {
     _descriptor_pool = new btx::vkDescriptorPool(
-        _renderer->device(), { }, 1000u,
+        vk::DescriptorPoolCreateFlags { },
+        1000u,
         {
             { vk::DescriptorType::eUniformBuffer,        1000u, },
             { vk::DescriptorType::eCombinedImageSampler, 1000u, },
@@ -76,7 +74,7 @@ void Demo::init(btx::Renderer const &renderer) {
 
     _create_camera();
 
-    _color_depth_pass = new btx::ColorDepthPass(*_renderer);
+    _color_depth_pass = new btx::ColorDepthPass();
 
     _color_depth_pass->pipeline()
         .module_from_spirv("shaders/demo.vert",
@@ -134,7 +132,7 @@ void Demo::record_commands() const {
         }
     };
 
-    auto const image_index = _renderer->image_index();
+    auto const image_index = btx::Renderer::image_index();
 
     std::array<btx::math::Mat4, 2> const vp {{ _camera->view_matrix(),
                                                _camera->proj_matrix() }};
@@ -146,10 +144,10 @@ void Demo::record_commands() const {
         _color_depth_pass->bind_descriptor_set(*_camera_ubo_sets[image_index]);
 
         _color_depth_pass->send_push_constants(plane_pcs);
-        (*_plane_mesh)->draw_indexed(_renderer->cmd_buffer());
+        (*_plane_mesh)->draw_indexed(btx::Renderer::cmd_buffer());
 
         _color_depth_pass->send_push_constants(cube_pcs);
-        (*_cube_mesh)->draw_indexed(_renderer->cmd_buffer());
+        (*_cube_mesh)->draw_indexed(btx::Renderer::cmd_buffer());
 
     _color_depth_pass->end();
 }
@@ -165,7 +163,7 @@ void Demo::create_swapchain_resources() {
 
     _camera->set_perspective_proj({
         .vfov_degrees = 45.0f,
-        .aspect_ratio = _renderer->swapchain().aspect_ratio(),
+        .aspect_ratio = btx::Renderer::swapchain().aspect_ratio(),
         .near_plane = 0.1f,
         .far_plane = 1000.0f,
     });
@@ -188,16 +186,15 @@ void Demo::_create_camera() {
         },
         {
             .vfov_degrees = 45.0f,
-            .aspect_ratio = _renderer->swapchain().aspect_ratio(),
+            .aspect_ratio = btx::Renderer::swapchain().aspect_ratio(),
             .near_plane = 0.1f,
             .far_plane = 1000.0f,
         }
     );
 
-    auto const image_count = _renderer->swapchain().images().size();
+    auto const image_count = btx::Renderer::swapchain().images().size();
     for(uint32_t i = 0; i < image_count; ++i) {
         _camera_ubos.push_back(new btx::vkBuffer(
-            _renderer->device(),
             2 * sizeof(btx::math::Mat4),
             vk::BufferUsageFlagBits::eUniformBuffer,
             (vk::MemoryPropertyFlagBits::eHostVisible |
@@ -205,7 +202,7 @@ void Demo::_create_camera() {
         ));
     }
 
-    _camera_ubo_layout = new btx::vkDescriptorSetLayout(_renderer->device());
+    _camera_ubo_layout = new btx::vkDescriptorSetLayout;
 
     (*_camera_ubo_layout)
         .add_binding(vk::DescriptorType::eUniformBuffer,
@@ -215,8 +212,7 @@ void Demo::_create_camera() {
     _camera_ubo_sets.resize(image_count);
 
     for(uint32_t i = 0; i < image_count; ++i) {
-        _camera_ubo_sets[i] =  new btx::vkDescriptorSet(_renderer->device(),
-                                                        *_descriptor_pool,
+        _camera_ubo_sets[i] =  new btx::vkDescriptorSet(*_descriptor_pool,
                                                         *_camera_ubo_layout);
 
         (*_camera_ubo_sets[i])
