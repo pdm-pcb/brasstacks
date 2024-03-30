@@ -103,6 +103,7 @@ void vkInstance::destroy() {
     vkDebugger::destroy();
 #endif // BTX_DEBUG
 
+    BTX_TRACE("Destroying Vulkan instance {}", _handle);
     _handle.destroy();
     _handle = nullptr;
 }
