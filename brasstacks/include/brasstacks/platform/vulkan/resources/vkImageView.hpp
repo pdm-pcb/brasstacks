@@ -1,8 +1,3 @@
-/**
- * @file vkImageView.hpp
- * @brief A wrapper class for Vulkan image views
- */
-
 #ifndef BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGEVIEW_HPP
 #define BRASSTACKS_PLATFORM_VULKAN_RESOURCES_VKIMAGEVIEW_HPP
 
@@ -12,31 +7,18 @@ namespace btx {
 
 class vkImage;
 
-/**
- * @brief A wrapper class for Vulkan image views
- */
 class vkImageView final {
 public:
+    vkImageView();
+    ~vkImageView() = default;
 
-    /**
-     * @brief Construct the vkImageView object.
-     * @param image The image for which this view is being created
-     * @param type The image type, eg 2D, 3D, Cube
-     * @param aspect_flags Image flags, eg color, depth, stencil
-     */
-    vkImageView(vkImage const &image,
+    void create(vkImage const &image,
                 vk::ImageViewType const type,
                 vk::ImageAspectFlags const aspect_flags);
 
-    ~vkImageView();
+    void destroy();
 
-    /**
-     * @brief Return the native Vulkan handle
-     * @return vk::ImageView const&
-     */
     auto const & native() const { return _handle; }
-
-    vkImageView() = delete;
 
     vkImageView(vkImageView &&) = delete;
     vkImageView(const vkImageView &) = delete;
@@ -45,9 +27,6 @@ public:
     vkImageView & operator=(const vkImageView &) = delete;
 
 private:
-    /**
-     * @brief The native Vulkan handle
-     */
     vk::ImageView _handle;
 };
 

@@ -1,5 +1,4 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -7,24 +6,31 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 
 namespace btx {
 
 // =============================================================================
-vkSwapchain::vkSwapchain(vkDevice const &device, vkSurface const &surface) :
-    _device          { device },
-    _image_format    { },
-    _present_mode    { },
-    _handle          { nullptr },
-    _images          { },
-    _image_views     { },
-    _size            { 0u, 0u },
-    _offset          { 0, 0 },
-    _aspect_ratio    { 0.0f }
-{
+vkSwapchain::vkSwapchain() :
+    _handle       { nullptr },
+    _image_format { vk::Format::eUndefined },
+    _present_mode { vk::PresentModeKHR::eImmediate },
+    _images       { },
+    _image_views  { },
+    _size         { 0u, 0u },
+    _offset       { 0, 0 },
+    _aspect_ratio { 0.0f }
+{ }
+
+// =============================================================================
+vkSwapchain::~vkSwapchain() {
+    if(_handle != nullptr) {
+        destroy();
+    }
+}
+
+// =============================================================================
+void vkSwapchain::create(vkSurface const &surface) {
     // Grab the supported image counts, resolutions, etc from the surface
     _query_surface_capabilities(surface.native());
 
@@ -40,7 +46,7 @@ vkSwapchain::vkSwapchain(vkDevice const &device, vkSurface const &surface) :
     auto const create_info = _populate_create_info(surface.native());
 
     // Finally, create the swapchain
-    _handle = _device.native().createSwapchainKHR(create_info);
+    _handle = Renderer::device().native().createSwapchainKHR(create_info);
     BTX_TRACE("Created swapchain {}", _handle);
 
     // Now that we've got the swapchain itself, we'll need its images
@@ -48,18 +54,18 @@ vkSwapchain::vkSwapchain(vkDevice const &device, vkSurface const &surface) :
 }
 
 // =============================================================================
-vkSwapchain::~vkSwapchain() {
-    for(auto *image : _images) {
-        delete image;
+void vkSwapchain::destroy() {
+    for(auto &image : _images) {
+        image->destroy();
     }
 
-    for(auto *view : _image_views) {
-        delete view;
+    for(auto &view : _image_views) {
+        view->destroy();
     }
 
     BTX_TRACE("Destroying swapchain {}", _handle);
-
-    _device.native().destroy(_handle);
+    Renderer::device().native().destroy(_handle);
+    _handle = nullptr;
 }
 
 // =============================================================================
@@ -73,7 +79,7 @@ uint32_t vkSwapchain::get_next_image_index(vk::Semaphore const &semaphore) {
 
     // Request the next image index and signal the provided semaphore when the
     // acquisition is complete
-    auto const result = _device.native().acquireNextImageKHR(
+    auto const result = Renderer::device().native().acquireNextImageKHR(
         _handle,          // The swapchain we're trying to get an image from
         wait_period,      // How long to wait for a new image
         semaphore,        // A semaphore to signal when an image is released
@@ -112,7 +118,8 @@ bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
     static vk::Result result = vk::Result::eSuccess;
 
     try {
-        result = _device.graphics_queue().native().presentKHR(present_info);
+        auto const queue = Renderer::device().graphics_queue().native();
+        result = queue.presentKHR(present_info);
     } catch([[maybe_unused]] vk::OutOfDateKHRError const &exception) {
         return false;
     }
@@ -195,8 +202,32 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
                     static_cast<float>(_size.height);
 
     // TODO: this +1 merits some actual rationale
-    _images.resize(caps.minImageCount + 1);
-    _image_views.resize(caps.minImageCount + 1);
+    auto const image_count = caps.minImageCount + 1;
+    if(_images.size() != image_count && _image_views.size() != image_count) {
+        _images.clear();
+        _image_views.clear();
+
+        _images.reserve(image_count);
+        _image_views.reserve(image_count);
+
+        // Fill in the still undefined images with in-place construction
+        std::generate_n(
+            std::back_inserter(_images),
+            _images.capacity(),
+            []() {
+                return std::make_unique<vkImage>();
+            }
+        );
+
+        // And likewise the views
+        std::generate_n(
+            std::back_inserter(_image_views),
+            _image_views.capacity(),
+            []() {
+                return std::make_unique<vkImageView>();
+            }
+        );
+    }
 }
 
 // =============================================================================
@@ -360,7 +391,7 @@ vkSwapchain::_populate_create_info(vk::SurfaceKHR const &surface)
 // =============================================================================
 void vkSwapchain::_get_swapchain_images() {
     auto const swapchain_images =
-        _device.native().getSwapchainImagesKHR(_handle);
+        Renderer::device().native().getSwapchainImagesKHR(_handle);
 
     if(swapchain_images.size() != _images.size()) {
         BTX_CRITICAL("Swapchain provided {} images, expected {}",
@@ -371,16 +402,20 @@ void vkSwapchain::_get_swapchain_images() {
     BTX_TRACE("Acquired {} swapchain images", swapchain_images.size());
 
     for(uint32_t i = 0u; i < _images.size(); ++i) {
-        if(_images[i] != nullptr) {
-            delete _images[i];
+        if(_images[i]->native() != nullptr) {
+            _images[i]->destroy();
         }
 
-        _images[i] = new vkImage(
+        _images[i]->create(
             swapchain_images[i],
             _image_format.format
         );
 
-        _image_views[i] = new vkImageView(
+        if(_image_views[i]->native() != nullptr) {
+            _image_views[i]->destroy();
+        }
+
+        _image_views[i]->create(
             *_images[i],
             vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor

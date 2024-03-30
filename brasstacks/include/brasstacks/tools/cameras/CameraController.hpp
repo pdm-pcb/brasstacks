@@ -50,9 +50,9 @@ public:
 private:
     static PerspectiveCamera *_perspective_camera;
 
-    static std::vector<vkBuffer *>        _camera_ubos;
-    static vkDescriptorSetLayout         *_camera_ubo_layout;
-    static std::vector<vkDescriptorSet *> _camera_ubo_sets;
+    static std::vector<std::unique_ptr<vkBuffer>>        _camera_ubos;
+    static std::unique_ptr<vkDescriptorSetLayout>        _camera_ubo_layout;
+    static std::vector<std::unique_ptr<vkDescriptorSet>> _camera_ubo_sets;
 };
 
 } // namespace btx

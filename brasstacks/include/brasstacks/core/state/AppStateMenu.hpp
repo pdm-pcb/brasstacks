@@ -11,8 +11,8 @@ public:
     AppStateMenu() : AppStateBase(AppState::MENU_STATE) { }
     ~AppStateMenu() override = default;
 
-    void enter()   override { }
-    void exit()    override { }
+    void enter()   override;
+    void exit()    override;
     void execute() override;
 
     void keyboard_event(KeyboardEvent const &event) override;

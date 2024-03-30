@@ -1,17 +1,23 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
-
-#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 namespace btx {
 
 // =============================================================================
-vkQueue::vkQueue(vkDevice const &device, uint32_t const queue_family_index) :
-    _family_index { queue_family_index },
-    _device { device }
-{
-    _handle = _device.native().getQueue(queue_family_index, 0u);
+vkQueue::vkQueue() :
+    _handle       { nullptr },
+    _family_index { std::numeric_limits<uint32_t>::max() }
+{ }
+
+// =============================================================================
+void vkQueue::set_family_index(uint32_t const index) {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Device queue {} already retrieved", _handle);
+        return;
+    }
+
+    _family_index = index;
+    _handle = Renderer::device().native().getQueue(_family_index, 0u);
 
     if(!_handle) {
         BTX_CRITICAL("Failed to retrieve device queue.");

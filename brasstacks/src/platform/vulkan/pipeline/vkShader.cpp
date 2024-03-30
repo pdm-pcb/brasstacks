@@ -6,21 +6,41 @@
 namespace btx {
 
 // =============================================================================
-vkShader::vkShader(std::string_view const filepath) {
+vkShader::vkShader() :
+    _handle { nullptr },
+    _device { nullptr }
+{ }
+
+// =============================================================================
+vkShader::~vkShader() {
+    if(_handle != nullptr) {
+        destroy();
+    }
+}
+
+// =============================================================================
+void vkShader::create(std::string_view const filepath) {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Shader {} already exists", _handle);
+        return;
+    }
+
+    _device = Renderer::device().native();
+
     auto const shader_binary = _spirv_to_binary(filepath);
     const vk::ShaderModuleCreateInfo module_info {
         .codeSize = shader_binary.size() * sizeof(uint32_t),
         .pCode = shader_binary.data(),
     };
 
-    _handle = Renderer::device().native().createShaderModule(module_info);
+    _handle = _device.createShaderModule(module_info);
     BTX_TRACE("Created vkShader module {} from '{}'", _handle, filepath);
 }
 
 // =============================================================================
-vkShader::~vkShader() {
+void vkShader::destroy() {
     BTX_TRACE("Destroying shader module {}", _handle);
-    Renderer::device().native().destroyShaderModule(_handle);
+    _device.destroyShaderModule(_handle);
 }
 
 // =============================================================================

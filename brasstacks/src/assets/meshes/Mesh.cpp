@@ -1,43 +1,48 @@
+#include "brasstacks/brasstacks.hpp"
 #include "brasstacks/assets/meshes/Mesh.hpp"
 
-#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 namespace btx {
 
-Mesh::~Mesh() {
-    delete _vertex_buffer;
-    delete _index_buffer;
-}
+// =============================================================================
+Mesh::Mesh() :
+    _vertex_buffer  { std::make_unique<vkBuffer>() },
+    _vertex_data    { },
+    _vertex_offsets { },
+    _index_buffer   { std::make_unique<vkBuffer>() },
+    _index_data     { }
+{ }
 
+// =============================================================================
 void Mesh::_set_vertices(std::span<Vertex const> const vertices) {
     _vertex_data = { vertices.begin(), vertices.end() };
 
-    _vertex_buffer = new vkBuffer(
-        sizeof(Vertex) * _vertex_data.size(),
-        (vk::BufferUsageFlagBits::eVertexBuffer |
-         vk::BufferUsageFlagBits::eTransferDst),
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
+    _vertex_buffer->create(sizeof(Vertex) * _vertex_data.size(),
+                           (vk::BufferUsageFlagBits::eVertexBuffer |
+                            vk::BufferUsageFlagBits::eTransferDst));
+
+    _vertex_buffer->allocate(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     _vertex_buffer->send_to_device(_vertex_data.data());
 
     _vertex_offsets.emplace_back(0u);
 }
 
+// =============================================================================
 void Mesh::_set_indices(std::span<Index const> const indices) {
     _index_data = { indices.begin(), indices.end() };
 
-    _index_buffer = new vkBuffer(
-        sizeof(Index) * _index_data.size(),
-        (vk::BufferUsageFlagBits::eIndexBuffer |
-         vk::BufferUsageFlagBits::eTransferDst),
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
+    _index_buffer->create(sizeof(Index) * _index_data.size(),
+                          (vk::BufferUsageFlagBits::eIndexBuffer |
+                           vk::BufferUsageFlagBits::eTransferDst));
+
+    _index_buffer->allocate(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     _index_buffer->send_to_device(_index_data.data());
 };
 
+// =============================================================================
 void Mesh::draw_indexed(vkCmdBuffer const &cmd_buffer) const {
     cmd_buffer.native().bindVertexBuffers(
         0u,                        // First binding

@@ -12,31 +12,29 @@ Application::Application(std::string_view const app_name) :
     _menu_state          { },
     _play_state          { },
     _pause_state         { },
-    _state_to_resume     { AppState::MENU_STATE },
+    _state_to_resume     { AppState::INVALID_STATE },
     _running             { true },
     _state_events        { *this, &Application::_state_transition },
     _window_events       { *this, &Application::_window_event },
     _keyboard_events     { *this, &Application::_keyboard_event },
     _mouse_button_events { *this, &Application::_mouse_button_event }
 {
+    _state_transition(AppStateTransition(AppState::MENU_STATE));
+
     _state_events.subscribe();
     _window_events.subscribe();
     _keyboard_events.subscribe();
     _mouse_button_events.subscribe();
 
-    EventBus::publish(AppStateTransition(AppState::MENU_STATE));
-
     TargetWindow::init(app_name);
     Simulation::init(this);
     Renderer::init(this);
-    CameraController::init();
     MeshLibrary::init();
 }
 
 // =============================================================================
 Application::~Application() {
     MeshLibrary::shutdown();
-    CameraController::shutdown();
     Renderer::shutdown();
     Simulation::shutdown();
     TargetWindow::shutdown();
@@ -82,10 +80,14 @@ void Application::_state_transition(AppStateTransition const &event) {
         case AppState::MENU_STATE:  _current_state = &_menu_state;  break;
         case AppState::PLAY_STATE:  _current_state = &_play_state;  break;
         case AppState::PAUSE_STATE: _current_state = &_pause_state; break;
+        case AppState::INVALID_STATE:
+            BTX_CRITICAL("Application received invalid state transition.");
+            return;
     }
 
     if(_current_state == nullptr) {
         BTX_CRITICAL("Application transitioned to state that doesn't exist.");
+        return;
     }
 
     _current_state->enter();
@@ -94,6 +96,7 @@ void Application::_state_transition(AppStateTransition const &event) {
 // =============================================================================
 void Application::_window_event(WindowEvent const &event) {
     if(event.event_type == WindowEventType::WINDOW_CLOSE) {
+        BTX_TRACE("Application received window close.");
         _running = false;
     }
     else if(event.event_type == WindowEventType::WINDOW_MINIMIZE) {

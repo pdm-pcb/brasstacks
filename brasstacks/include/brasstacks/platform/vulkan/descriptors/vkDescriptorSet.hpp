@@ -9,18 +9,19 @@
 
 namespace btx {
 
-class vkDescriptorPool;
-class vkDescriptorSetLayout;
-
 class vkImageView;
 class vkSampler;
 
 class vkDescriptorSet final {
 public:
-    vkDescriptorSet(vkDescriptorPool const &pool,
-                    vkDescriptorSetLayout const &layout);
+    vkDescriptorSet();
 
+    // Descriptor sets don't get freed because the pools we're using haven't
+    // been created with VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT.
     ~vkDescriptorSet() = default;
+
+    void allocate(vkDescriptorPool const &pool,
+                vkDescriptorSetLayout const &layout);
 
     vkDescriptorSet & add_buffer(vkBuffer const &buffer,
                                  vk::DescriptorType const type);
@@ -34,8 +35,6 @@ public:
     inline auto const & native() const { return _handle; }
     inline auto const & layout() const { return _layout; }
 
-    vkDescriptorSet() = delete;
-
     vkDescriptorSet(vkDescriptorSet &&) = delete;
     vkDescriptorSet(const vkDescriptorSet &) = delete;
 
@@ -43,8 +42,11 @@ public:
     vkDescriptorSet& operator=(const vkDescriptorSet &) = delete;
 
 private:
-    vkDescriptorPool const &_pool;
-    vkDescriptorSetLayout const &_layout;
+    vk::DescriptorSet _handle;
+
+    vk::Device _device;
+    vk::DescriptorPool _pool;
+    vk::DescriptorSetLayout _layout;
 
     std::vector<vkBuffer> _buffers;
     std::vector<vkImage>  _images;
@@ -52,8 +54,6 @@ private:
     std::list<vk::DescriptorBufferInfo> _buffer_info;
     std::list<vk::DescriptorImageInfo>  _image_info;
     std::vector<vk::WriteDescriptorSet> _set_writes;
-
-    vk::DescriptorSet _handle;
 };
 
 } // namespace btx

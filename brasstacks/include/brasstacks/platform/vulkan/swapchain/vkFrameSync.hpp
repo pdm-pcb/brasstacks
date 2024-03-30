@@ -1,69 +1,32 @@
-/**
- * @file swapchain/vkFrameSync.hpp
- * @brief A container for various frame-related data
- */
-
 #ifndef BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMESYNC_HPP
 #define BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKFRAMESYNC_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBufferPool.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 namespace btx {
 
-class vkDevice;
-class vkCmdPool;
-class vkCmdBuffer;
-
-/**
- * @brief A container for various frame-related data
- *
- * This class is used to help synchronize the device queue swapchain images
- * that are flying around at any given moment. To that end, it has a dedicated
- * command pool and corresponding buffer set up for one-time submissions.
- */
 class vkFrameSync final {
  public:
+    vkFrameSync();
+    ~vkFrameSync() = default;
 
-    /**
-     * @brief Construct the vkFrameSync object.
-     * @param device An established Vulkan logical device
-     */
-    vkFrameSync(vkDevice const &device);
+    void create_sync_primitives();
+    void create_cmd_structures();
 
-    ~vkFrameSync();
+    void destroy_sync_primitives();
+    void destroy_cmd_structures();
 
-    /**
-     * @brief Wait on and then reset this frame's device queue fence
-     */
     void wait_and_reset() const;
 
-    /**
-     * @brief Return this frame's device queue fence
-     * @return vk::Fence const&
-     */
     inline auto const & queue_fence() const { return _queue_fence; }
-
-    /**
-     * @brief Return the last semaphore used to acquire a swapchain image
-     * @return vk::Semaphore&
-     */
     inline auto & present_semaphore() { return _present_sem; }
-
-    /**
-     * @brief Return this frame's command batch complete semaphore
-     * @return vk::Semaphore const&
-     */
     inline auto const & queue_semaphore() const {
         return _queue_sem;
     }
-
-    /**
-     * @brief Return this frame's command buffer
-     * @return vkCmdBuffer const&
-     */
     inline auto const & cmd_buffer()  const { return *_cmd_buffer; }
-
-    vkFrameSync() = delete;
 
     vkFrameSync(vkFrameSync &&) = delete;
     vkFrameSync(const vkFrameSync &) = delete;
@@ -72,55 +35,12 @@ class vkFrameSync final {
     vkFrameSync & operator=(const vkFrameSync &) = delete;
 
 private:
-    /**
-     * @brief The Vulkan logical device tying all of the member variables
-     * together
-     */
-    vkDevice const &_device;
-
-    /**
-     * @brief A fence that's signaled when this frame's command buffer has
-     * completed its work
-     */
-    vk::Fence _queue_fence;
-
-    /**
-     * @brief A semaphore that's signaled when the swapchain fulfills an image
-     * acquisition request.
-     *
-     * This semaphore will be one of a pool of semaphores managed by the
-     * Renderer backend. They'll be recycled between all vkFrameSyncs that request
-     * images from the swapchain.
-     */
+    vk::Fence     _queue_fence;
     vk::Semaphore _present_sem;
-
-    /**
-     * @brief A semaphore that's signaled when this frame's command buffer has
-     * completed its work
-     */
     vk::Semaphore _queue_sem;
 
-    /**
-     * @brief This frame's command pool, created with the transient bit
-     */
-    vkCmdPool *_cmd_pool;
-
-    /**
-     * @brief This frame's command buffer, used exclusively for one-time
-     * submissions
-     */
-    vkCmdBuffer *_cmd_buffer;
-
-    /**
-     * @brief Creates the fence and semaphores used by this frame
-     */
-    void _create_sync_primitives();
-
-    /**
-     * @brief Creates the command pool and allocates the command buffer used by
-     * this frame
-     */
-    void _create_cmd_structures();
+    std::unique_ptr<vkCmdBufferPool> _cmd_buffer_pool;
+    std::unique_ptr<vkCmdBuffer>     _cmd_buffer;
 };
 
 } // namespace btx

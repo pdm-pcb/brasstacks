@@ -7,11 +7,10 @@
 #define BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKDEVICE_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBufferPool.hpp"
 
 namespace btx {
-
-class vkQueue;
-class vkCmdPool;
 
 /**
  * @brief A class wrapping the Vulkan concept of a logical device
@@ -22,16 +21,17 @@ class vkCmdPool;
  */
 class vkDevice final {
 public:
-    using Layers = std::vector<char const *>;
+    vkDevice();
+    ~vkDevice();
 
+    using Layers = std::vector<char const *>;
     /**
-     * @brief Construct the vkDevice object.
+     * @brief Create the vkDevice object.
      * @param layers A list of string literals corresponding to logical device
      * layers to enable
      */
-    explicit vkDevice(Layers const &layers);
-
-    ~vkDevice();
+    void create(Layers const &layers);
+    void destroy();
 
     /**
      * @brief Convenience wrapper for waiting on device idle
@@ -52,8 +52,6 @@ public:
 
     inline auto const & transient_pool() const { return *_transient_pool; }
 
-    vkDevice() = delete;
-
     vkDevice(vkDevice &&) = delete;
     vkDevice(const vkDevice &) = delete;
 
@@ -67,11 +65,11 @@ private:
     vk::Device _handle;
 
     /**
-     * @brief The device's command queue
+     * @brief The device's graphics command queue
      */
-    vkQueue *_graphics_queue;
+    std::unique_ptr<vkQueue>   _graphics_queue;
 
-    vkCmdPool *_transient_pool;
+    std::unique_ptr<vkCmdBufferPool> _transient_pool;
 };
 
 } // namespace btx

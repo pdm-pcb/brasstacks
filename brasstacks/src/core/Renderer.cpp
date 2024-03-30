@@ -3,9 +3,7 @@
 
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
-#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/events/EventBus.hpp"
@@ -15,14 +13,15 @@
 namespace btx {
 
 Application *Renderer::_application { nullptr };
-vkSurface   *Renderer::_surface     { nullptr };
-vkDevice    *Renderer::_device      { nullptr };
 
-vkSwapchain *Renderer::_swapchain   { nullptr };
-std::vector<vkFrameSync *> Renderer::_frame_sync;
+auto Renderer::_surface   { std::make_unique<vkSurface>() };
+auto Renderer::_device    { std::make_unique<vkDevice>() };
+auto Renderer::_swapchain { std::make_unique<vkSwapchain>() };
+
+std::vector<std::unique_ptr<vkFrameSync>> Renderer::_frame_sync;
 uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
 
-vkDescriptorPool *Renderer::_descriptor_pool { nullptr };
+auto Renderer::_descriptor_pool { std::make_unique<vkDescriptorPool>() };
 
 // =============================================================================
 void Renderer::init(Application *application) {
@@ -35,7 +34,7 @@ void Renderer::init(Application *application) {
     _create_swapchain();
     _create_frame_sync();
 
-    _descriptor_pool = new vkDescriptorPool(
+    _descriptor_pool->create(
         vk::DescriptorPoolCreateFlags { },
         1000u,
         {
@@ -43,28 +42,36 @@ void Renderer::init(Application *application) {
             { vk::DescriptorType::eCombinedImageSampler, 1000u, },
         }
     );
+
+    CameraController::init();
 }
 
 // =============================================================================
 void Renderer::shutdown() {
-    delete _descriptor_pool;
+    CameraController::shutdown();
+    _descriptor_pool->destroy();
 
     _destroy_frame_sync();
     _destroy_swapchain();
 
-    delete _device;
-    delete _surface;
+    _device->destroy();
+    _surface->destroy();
 
     vkInstance::destroy();
 }
 
 // =============================================================================
 void Renderer::run() {
-    _acquire_next_image();
-    if(_image_index == std::numeric_limits<uint32_t>::max()) {
+    auto const swapchain_index = _acquire_next_image();
+    if(swapchain_index == std::numeric_limits<uint32_t>::max()) {
         BTX_WARN("Swapchain provided invalid index.");
         recreate_swapchain();
         return;
+    }
+
+    if(swapchain_index != _image_index) {
+        BTX_ERROR("Swapchain reported {} and we're on {}",
+                  swapchain_index, _image_index);
     }
 
     _begin_recording();
@@ -98,15 +105,12 @@ void Renderer::recreate_swapchain() {
 }
 
 // =============================================================================
-void Renderer::_acquire_next_image() {
+uint32_t Renderer::_acquire_next_image() {
     _image_index = (_image_index + 1u) % _swapchain->images().size();
     auto &frame = *_frame_sync[_image_index];
     frame.wait_and_reset();
 
-    auto const swapchain_says =
-        _swapchain->get_next_image_index(frame.present_semaphore());
-
-    assert(_image_index == swapchain_says);
+    return _swapchain->get_next_image_index(frame.present_semaphore());
 }
 
 // =============================================================================
@@ -158,8 +162,8 @@ bool Renderer::_present_image() {
 
 // =============================================================================
 void Renderer::_create_surface() {
-    if(_surface != nullptr) {
-        BTX_ERROR("Surface already created");
+    if(_surface->native() != nullptr) {
+        BTX_CRITICAL("Surface already created");
         return;
     }
 
@@ -183,12 +187,12 @@ void Renderer::_create_surface() {
 
 #endif // BTX platform
 
-    _surface = new vkSurface(create_info);
+    _surface->create(create_info);
 }
 
 // =============================================================================
 void Renderer::_select_physical_device() {
-    if(_surface == nullptr) {
+    if(_surface->native() == nullptr) {
         BTX_CRITICAL("Cannot select physical device without surface.");
         return;
     }
@@ -207,12 +211,12 @@ void Renderer::_select_physical_device() {
 
 // =============================================================================
 void Renderer::_create_device() {
-    if(_device != nullptr) {
+    if(_device->native() != nullptr) {
         BTX_ERROR("Logical device already created.");
         return;
     }
 
-    _device = new vkDevice(vkDevice::Layers {
+    _device->create({
 #ifdef BTX_DEBUG
         "VK_LAYER_KHRONOS_validation",
 #endif // BTX_DEBUG
@@ -221,34 +225,49 @@ void Renderer::_create_device() {
 
 // =============================================================================
 void Renderer::_create_swapchain() {
-    if(_swapchain != nullptr) {
-        BTX_ERROR("Swapchain already created.");
+    if(_swapchain->native() != nullptr) {
+        BTX_CRITICAL("Swapchain already created.");
         return;
     }
 
-    _swapchain = new vkSwapchain(*_device, *_surface);
+    _swapchain->create(*_surface);
+    _image_index = std::numeric_limits<uint32_t>::max();
 }
 
 // =============================================================================
 void Renderer::_create_frame_sync() {
     auto const image_count = _swapchain->images().size();
-    for(uint32_t i = 0; i < image_count; ++i) {
-        _frame_sync.push_back(new vkFrameSync(*_device));
+    if(_frame_sync.size() != image_count) {
+        _frame_sync.clear();
+        _frame_sync.reserve(image_count);
+
+        // Fill in the frame sync structs with default in-place construction
+        std::generate_n(
+            std::back_inserter(_frame_sync),
+            _frame_sync.capacity(),
+            []() {
+                return std::make_unique<vkFrameSync>();
+            }
+        );
+    }
+
+    for(auto &sync_struct : _frame_sync) {
+        sync_struct->create_sync_primitives();
+        sync_struct->create_cmd_structures();
     }
 }
 
 // =============================================================================
 void Renderer::_destroy_swapchain() {
-    delete _swapchain;
-    _swapchain = nullptr;
+    _swapchain->destroy();
 }
 
 // =============================================================================
 void Renderer::_destroy_frame_sync() {
-    for(auto *frame : _frame_sync) {
-        delete frame;
+    for(auto &sync_struct : _frame_sync) {
+        sync_struct->destroy_sync_primitives();
+        sync_struct->destroy_cmd_structures();
     }
-    _frame_sync.clear();
 }
 
 } // namespace btx

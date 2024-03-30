@@ -10,8 +10,6 @@
 
 namespace btx {
 
-class vkDevice;
-
 /**
  * @brief A wrapper for the Vulkan logical device queue
  *
@@ -20,6 +18,10 @@ class vkDevice;
  */
 class vkQueue final {
 public:
+    vkQueue();
+    ~vkQueue() = default;
+
+    void set_family_index(uint32_t const index);
 
     /**
      * @brief Return the queue family index
@@ -33,17 +35,6 @@ public:
      */
     inline auto const& native() const { return _handle;}
 
-    /**
-     * @brief Construct the vk Queue object.
-     * @param device An established Vulkan logical device
-     * @param queue_family_index A queue family index from a vkPhysicalDevice
-     */
-    vkQueue(vkDevice const &device, uint32_t const queue_family_index);
-
-    ~vkQueue() = default;
-
-    vkQueue() = delete;
-
     vkQueue(vkQueue &&) = delete;
     vkQueue(const vkQueue &) = delete;
 
@@ -52,19 +43,14 @@ public:
 
 private:
     /**
-     * @brief This queue's family index
-     */
-    uint32_t const _family_index;
-
-    /**
      * @brief The native Vulkan handle
      */
     vk::Queue _handle;
 
     /**
-     * @brief The vkDevice from which this queue was grabbed
+     * @brief This queue's family index
      */
-    vkDevice const &_device;
+    uint32_t _family_index;
 
 };
 

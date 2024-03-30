@@ -9,17 +9,20 @@ class vkDevice;
 
 class vkBuffer final {
 public:
-    vkBuffer(vk::DeviceSize size_bytes,
-             vk::BufferUsageFlags const usage_flags,
-             vk::MemoryPropertyFlags const memory_flags);
+    vkBuffer();
     ~vkBuffer();
+
+    void create(vk::DeviceSize size_bytes,
+                vk::BufferUsageFlags const usage_flags);
+    void destroy();
+
+    void allocate(vk::MemoryPropertyFlags const flags);
+    void free();
 
     void fill_buffer(void const *data) const;
     void send_to_device(void const *data) const;
 
     inline auto const & native() const { return _handle; }
-
-    vkBuffer() = delete;
 
     vkBuffer(vkBuffer &&) = delete;
     vkBuffer(vkBuffer const &) = delete;
@@ -29,10 +32,9 @@ public:
 
 private:
     vk::Buffer       _handle;
+    vk::Device       _device;
     vk::DeviceSize   _size_bytes;
-    vk::DeviceMemory _memory;
-
-    void _allocate(vk::MemoryPropertyFlags const flags);
+    vk::DeviceMemory _memory_handle;
 
     static uint32_t _get_memory_type_index(vk::MemoryPropertyFlags const flags,
                                            vk::MemoryRequirements const &reqs);

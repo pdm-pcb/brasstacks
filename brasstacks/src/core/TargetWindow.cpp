@@ -33,7 +33,7 @@ void TargetWindow::init(std::string_view const app_name) {
 
     ::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     ::glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    ::glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    // ::glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
     _window = ::glfwCreateWindow(
         static_cast<int>(_window_size.width),
@@ -86,6 +86,7 @@ void TargetWindow::poll_events() {
     ::glfwPollEvents();
 
     if(::glfwWindowShouldClose(_window)) {
+        BTX_TRACE("TargetWindow publishing window close event");
         EventBus::publish(WindowEvent(WindowEventType::WINDOW_CLOSE));
     }
 }
@@ -177,9 +178,11 @@ void TargetWindow::_window_iconify_callback([[maybe_unused]] GLFWwindow* window,
                                             [[maybe_unused]] int iconified)
 {
     if(iconified == GLFW_TRUE) {
+        BTX_TRACE("TargetWindow publishing window minimize event");
         EventBus::publish(WindowEvent(WindowEventType::WINDOW_MINIMIZE));
     }
     else {
+        BTX_TRACE("TargetWindow publishing window restore event");
         EventBus::publish(WindowEvent(WindowEventType::WINDOW_RESTORE));
     }
 }

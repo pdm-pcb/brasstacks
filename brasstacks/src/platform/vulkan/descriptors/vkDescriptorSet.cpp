@@ -11,19 +11,38 @@
 namespace btx {
 
 // =============================================================================
-vkDescriptorSet::vkDescriptorSet(vkDescriptorPool const &pool,
-                                 vkDescriptorSetLayout const &layout) :
-    _pool   { pool },
-    _layout { layout }
+vkDescriptorSet::vkDescriptorSet() :
+    _handle      { nullptr },
+    _device      { nullptr },
+    _pool        { nullptr },
+    _layout      { nullptr },
+    _buffers     { },
+    _images      { },
+    _buffer_info { },
+    _image_info  { },
+    _set_writes  { }
+{ }
+
+// =============================================================================
+void vkDescriptorSet::allocate(vkDescriptorPool const &pool,
+                               vkDescriptorSetLayout const &layout)
 {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Descriptor set {} already exists", _handle);
+        return;
+    }
+
+    _device = Renderer::device().native();
+    _pool = pool.native();
+    _layout = layout.native();
+
     const vk::DescriptorSetAllocateInfo alloc_info {
-        .descriptorPool     = _pool.native(),
+        .descriptorPool     = _pool,
         .descriptorSetCount = 1u,
-        .pSetLayouts        = &_layout.native()
+        .pSetLayouts        = &_layout
     };
 
-    auto const result =
-        Renderer::device().native().allocateDescriptorSets(alloc_info);
+    auto const result = _device.allocateDescriptorSets(alloc_info);
     _handle = result.front();
     BTX_TRACE("Allocated descriptor set {}", _handle);
 }
@@ -95,7 +114,7 @@ void vkDescriptorSet::write_set() {
         return;
     }
 
-    Renderer::device().native().updateDescriptorSets(_set_writes, nullptr);
+    _device.updateDescriptorSets(_set_writes, nullptr);
 
     _buffer_info.clear();
     _image_info.clear();

@@ -3,16 +3,18 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
-
-class vkImage;
-class vkImageView;
 
 class vkColorDepthPass final : public vkRenderPassBase {
 public:
     vkColorDepthPass();
     ~vkColorDepthPass() override = default;
+
+    void create();
+    void destroy();
 
     void destroy_swapchain_resources();
     void create_swapchain_resources();
@@ -33,11 +35,11 @@ private:
 
     vk::SampleCountFlagBits _msaa_samples;
 
-    std::vector<vkImage *>     _color_buffers;
-    std::vector<vkImageView *> _color_views;
+    std::vector<std::unique_ptr<vkImage>>    _color_buffers;
+    std::vector<std::unique_ptr<vkImageView>> _color_views;
 
-    vkImage     *_depth_buffer;
-    vkImageView *_depth_view;
+    std::unique_ptr<vkImage>    _depth_buffer;
+    std::unique_ptr<vkImageView> _depth_view;
 
     std::vector<vk::AttachmentDescription> _attachment_descriptions;
     std::vector<vk::AttachmentReference>   _color_attachments;

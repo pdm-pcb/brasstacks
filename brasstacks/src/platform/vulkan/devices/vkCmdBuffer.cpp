@@ -1,21 +1,37 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
+#include "brasstacks/platform/vulkan/devices/vkCmdBufferPool.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
-#include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
 namespace btx {
 
 // =============================================================================
-vkCmdBuffer::vkCmdBuffer(vkCmdPool const &pool) :
-    _pool   { pool },
-    _handle { nullptr }
-{
+vkCmdBuffer::vkCmdBuffer() :
+    _handle { nullptr },
+    _pool   { nullptr }
+{ }
+
+// =============================================================================
+vkCmdBuffer::~vkCmdBuffer() {
+    if(_handle != nullptr) {
+        free();
+    }
+}
+
+// =============================================================================
+void vkCmdBuffer::allocate(vkCmdBufferPool const &pool) {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("vkCmdBuffer already {} exists", _handle);
+        return;
+    }
+
+    _pool = pool.native();
+
     vk::CommandBufferAllocateInfo const buffer_info {
         .pNext = nullptr,
-        .commandPool = _pool.native(),
+        .commandPool = _pool,
         .level = vk::CommandBufferLevel::ePrimary,
         .commandBufferCount = 1u,
     };
@@ -36,16 +52,10 @@ vkCmdBuffer::vkCmdBuffer(vkCmdPool const &pool) :
 }
 
 // =============================================================================
-vkCmdBuffer::~vkCmdBuffer() {
-    if(_handle) {
-        BTX_TRACE("Freeing command buffer {}", _handle);
-
-        Renderer::device().native().freeCommandBuffers(
-            _pool.native(),
-            { _handle }
-        );
-        _handle = nullptr;
-    }
+void vkCmdBuffer::free() {
+    BTX_TRACE("Freeing command buffer {}", _handle);
+    Renderer::device().native().freeCommandBuffers(_pool, { _handle });
+    _handle = nullptr;
 }
 
 // =============================================================================

@@ -9,11 +9,35 @@
 namespace btx {
 
 // =============================================================================
-vkBuffer::vkBuffer(vk::DeviceSize size_bytes,
-                   vk::BufferUsageFlags const usage_flags,
-                   vk::MemoryPropertyFlags const memory_flags) :
-    _size_bytes  { size_bytes }
+vkBuffer::vkBuffer() :
+    _handle        { nullptr },
+    _device        { nullptr },
+    _size_bytes    { 0u },
+    _memory_handle { nullptr }
+{ }
+
+// =============================================================================
+vkBuffer::~vkBuffer() {
+    if(_handle != nullptr) {
+        destroy();
+    }
+
+    if(_memory_handle != nullptr) {
+        free();
+    }
+}
+
+// =============================================================================
+void vkBuffer::create(vk::DeviceSize size_bytes,
+                      vk::BufferUsageFlags const usage_flags)
 {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Buffer {} already exists", _handle);
+    }
+
+    _device = Renderer::device().native();
+    _size_bytes = size_bytes;
+
     vk::BufferCreateInfo const create_info {
         .size        = _size_bytes,
         .usage       = usage_flags,
@@ -27,71 +51,24 @@ vkBuffer::vkBuffer(vk::DeviceSize size_bytes,
         .pQueueFamilyIndices   = nullptr,
     };
 
-    _handle = Renderer::device().native().createBuffer(create_info);
+    _handle = _device.createBuffer(create_info);
     BTX_TRACE("Created buffer {}", _handle);
-
-    _allocate(memory_flags);
 }
 
 // =============================================================================
-vkBuffer::~vkBuffer() {
-    BTX_TRACE("Freeing memory {} and destroying buffer {}", _memory, _handle);
-
-    Renderer::device().native().destroyBuffer(_handle);
-    Renderer::device().native().freeMemory(_memory);
+void vkBuffer::destroy() {
+    BTX_TRACE("Destroying buffer {}", _handle);
+    _device.destroyBuffer(_handle);
+    _handle = nullptr;
 }
 
 // =============================================================================
-void vkBuffer::fill_buffer(void const *data) const {
-    void *mapped_memory;
-
-    auto const &device = Renderer::device().native();
-    auto const result = device.mapMemory(_memory,
-                                         0,
-                                         VK_WHOLE_SIZE,
-                                         { },
-                                         &mapped_memory);
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to map buffer {} memory {}", _handle, _memory);
+void vkBuffer::allocate(vk::MemoryPropertyFlags const flags) {
+    if(_memory_handle != nullptr) {
+        BTX_CRITICAL("Device memory {} already allocated", _memory_handle);
+        return;
     }
 
-    ::memcpy(mapped_memory, data, _size_bytes);
-
-    Renderer::device().native().unmapMemory(_memory);
-}
-
-// =============================================================================
-void vkBuffer::send_to_device(void const *data) const {
-    vkBuffer const staging_buffer(
-        _size_bytes,
-        vk::BufferUsageFlagBits::eTransferSrc,
-        (vk::MemoryPropertyFlagBits::eHostVisible |
-         vk::MemoryPropertyFlagBits::eHostCoherent)
-    );
-
-    staging_buffer.fill_buffer(data);
-
-    vk::BufferCopy const copy_region {
-        .srcOffset = 0u,
-        .dstOffset = 0u,
-        .size = _size_bytes
-    };
-
-    vkCmdBuffer const cmd_buffer(Renderer::device().transient_pool());
-    cmd_buffer.begin_one_time_submit();
-
-        cmd_buffer.native().copyBuffer(
-            staging_buffer.native(),
-            _handle,
-            copy_region
-        );
-
-    cmd_buffer.end_recording();
-    cmd_buffer.submit_and_wait_on_device();
-}
-
-// =============================================================================
-void vkBuffer::_allocate(vk::MemoryPropertyFlags const flags) {
     // The first order of business is to query the logical device about what
     // available memory matches properties we've specified thus far. A zero-
     // initialized vk::MemoryRequirements structure indicates that the
@@ -112,12 +89,71 @@ void vkBuffer::_allocate(vk::MemoryPropertyFlags const flags) {
         .memoryTypeIndex = type_index,
     };
 
-    _memory = Renderer::device().native().allocateMemory(alloc_info);
+    _memory_handle = Renderer::device().native().allocateMemory(alloc_info);
     BTX_TRACE("\n\tAllocated {} bytes: Device memory {}"
               "\n\tFor buffer {}",
-              _size_bytes, _memory, _handle);
+              _size_bytes, _memory_handle, _handle);
 
-    Renderer::device().native().bindBufferMemory(_handle, _memory, 0u);
+    _device.bindBufferMemory(_handle, _memory_handle, 0u);
+}
+
+// =============================================================================
+void vkBuffer::free() {
+    BTX_TRACE("Freeing device memory {}", _memory_handle);
+    _device.freeMemory(_memory_handle);
+    _memory_handle = nullptr;
+}
+
+// =============================================================================
+void vkBuffer::fill_buffer(void const *data) const {
+    void *mapped_memory_handle;
+
+    auto const &device = Renderer::device().native();
+    auto const result = device.mapMemory(_memory_handle,
+                                         0,
+                                         VK_WHOLE_SIZE,
+                                         { },
+                                         &mapped_memory_handle);
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to map buffer {} memory {}", _handle, _memory_handle);
+    }
+
+    ::memcpy(mapped_memory_handle, data, _size_bytes);
+
+    Renderer::device().native().unmapMemory(_memory_handle);
+}
+
+// =============================================================================
+void vkBuffer::send_to_device(void const *data) const {
+    vkBuffer staging_buffer;
+    staging_buffer.create(_size_bytes, vk::BufferUsageFlagBits::eTransferSrc);
+    staging_buffer.allocate((vk::MemoryPropertyFlagBits::eHostVisible |
+                             vk::MemoryPropertyFlagBits::eHostCoherent));
+
+    staging_buffer.fill_buffer(data);
+
+    vk::BufferCopy const copy_region {
+        .srcOffset = 0u,
+        .dstOffset = 0u,
+        .size = _size_bytes
+    };
+
+    vkCmdBuffer cmd_buffer;
+    cmd_buffer.allocate(Renderer::device().transient_pool());
+    cmd_buffer.begin_one_time_submit();
+
+        cmd_buffer.native().copyBuffer(
+            staging_buffer.native(),
+            _handle,
+            copy_region
+        );
+
+    cmd_buffer.end_recording();
+    cmd_buffer.submit_and_wait_on_device();
+    cmd_buffer.free();
+
+    staging_buffer.destroy();
+    staging_buffer.free();
 }
 
 // =============================================================================

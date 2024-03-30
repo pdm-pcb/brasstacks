@@ -3,16 +3,15 @@
 
 namespace btx {
 
-class vkDevice;
-
 class vkShader final {
 public:
-    inline auto const & native() const { return _handle; }
-
-    explicit vkShader(std::string_view const filepath);
+    vkShader();
     ~vkShader();
 
-    vkShader() = delete;
+    void create(std::string_view const filepath);
+    void destroy();
+
+    inline auto const & native() const { return _handle; }
 
     vkShader(vkShader &&) = delete;
     vkShader(const vkShader &) = delete;
@@ -22,6 +21,7 @@ public:
 
 private:
     vk::ShaderModule _handle;
+    vk::Device _device;
 
     using BinaryData = std::vector<uint32_t>;
     using StringData = std::vector<char>;

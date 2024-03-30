@@ -12,8 +12,12 @@ class vkSampler;
 
 class vkImage final {
 public:
+    vkImage();
+    ~vkImage();
+
     // For referencing a prexisting image, such as a swapchain image
-    vkImage(vk::Image const &handle, vk::Format const format);
+    void create(vk::Image const &handle, vk::Format const format);
+    void destroy();
 
     struct ImageInfo final {
         vk::ImageType type = { };
@@ -23,20 +27,16 @@ public:
     };
 
     // For reading texture data from a file
-    vkImage(std::string_view const filename, ImageInfo const &image_info,
+    void create(std::string_view const filename, ImageInfo const &image_info,
             uint32_t const array_layers = 1u);
 
     // For render targets, eg color buffer
-    vkImage(vk::Extent2D const &extent, vk::Format const format,
-            ImageInfo const &image_info);
+    void create(vk::Extent2D const &extent, vk::Format const format,
+                ImageInfo const &image_info);
 
-    ~vkImage();
-
-    inline auto const & native()  const { return _handle;   }
-    inline auto format()          const { return _format;   }
-    inline auto layout()          const { return _layout;   }
-
-    vkImage() = delete;
+    inline auto const & native() const { return _handle; }
+    inline auto format()         const { return _format; }
+    inline auto layout()         const { return _layout; }
 
     vkImage(vkImage &&) = delete;
     vkImage(const vkImage &) = delete;
@@ -46,6 +46,7 @@ public:
 
 private:
     vk::Image        _handle;
+
     vk::DeviceMemory _memory;
     vk::Format       _format;
     vk::ImageLayout  _layout;
@@ -56,7 +57,7 @@ private:
 
     void *_raw_data;
 
-    bool const _is_swapchain;
+    bool _is_swapchain;
 
     void * _load_from_file(std::string_view const filename);
 

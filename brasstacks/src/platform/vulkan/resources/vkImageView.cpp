@@ -8,11 +8,16 @@
 namespace btx {
 
 // =============================================================================
-vkImageView::vkImageView(vkImage const &image,
+vkImageView::vkImageView() :
+    _handle { nullptr }
+{ }
+
+// =============================================================================
+void vkImageView::create(vkImage const &image,
                          vk::ImageViewType const type,
                          vk::ImageAspectFlags const aspect_flags)
 {
-    vk::ImageViewCreateInfo const view_info {
+    vk::ImageViewCreateInfo const view_create_info {
         .image    = image.native(),
         .viewType = type,
         .format   = image.format(),
@@ -34,15 +39,15 @@ vkImageView::vkImageView(vkImage const &image,
         }
     };
 
-    _handle = Renderer::device().native().createImageView(view_info);
+    _handle = Renderer::device().native().createImageView(view_create_info);
     BTX_TRACE("Created view {} for image {}", _handle, image.native());
 }
 
 // =============================================================================
-vkImageView::~vkImageView() {
+void vkImageView::destroy() {
     BTX_TRACE("Destroying image view {}", _handle);
-
     Renderer::device().native().destroyImageView(_handle);
+    _handle = nullptr;
 }
 
 } // namespace btx

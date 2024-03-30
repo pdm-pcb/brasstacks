@@ -14,6 +14,8 @@ namespace btx {
 // =============================================================================
 vkPipeline::vkPipeline() :
     _handle               { nullptr },
+    _layout               { nullptr },
+    _device               { nullptr },
     _shaders              { },
     _shader_stages        { },
     _viewport             { 0, 0 },
@@ -29,16 +31,14 @@ vkPipeline::vkPipeline() :
     _dynamic_state_info   { },
     _push_constants       { },
     _push_constant_offset { 0 },
-    _layout               { },
     _cmd_buffer           { nullptr }
 { }
 
 // =============================================================================
 vkPipeline::~vkPipeline() {
-    BTX_TRACE("Destroying pipeline {}, layout {}", _handle, _layout);
-
-    Renderer::device().native().destroy(_layout);
-    Renderer::device().native().destroy(_handle);
+    if(_handle != nullptr || _layout != nullptr) {
+        destroy();
+    }
 }
 
 // =============================================================================
@@ -57,53 +57,6 @@ vk::SampleCountFlagBits vkPipeline::samples_to_flag(uint32_t const samples) {
 }
 
 // =============================================================================
-void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) {
-    if(_cmd_buffer != nullptr) {
-        BTX_ERROR("Trying to bind already bound pipeline");
-        return;
-    }
-
-    _cmd_buffer = &cmd_buffer;
-
-    _cmd_buffer->native().bindPipeline(
-        vk::PipelineBindPoint::eGraphics,
-        _handle
-    );
-    _cmd_buffer->native().setViewport(0u, _viewport);
-    _cmd_buffer->native().setScissor(0u, _scissor);
-}
-
-// =============================================================================
-void vkPipeline::bind_descriptor_set(vkDescriptorSet const &set) const {
-    if(_cmd_buffer == nullptr) {
-        BTX_ERROR("Trying to bind descriptor set to unbound pipeline");
-        return;
-    }
-
-    auto const set_layout_key = reinterpret_cast<uint64_t>(
-        VkDescriptorSetLayout(set.layout().native())
-    );
-
-    _cmd_buffer->native().bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics,
-        _layout,
-        _set_bind_points.at(set_layout_key),
-        1u, &(set.native()),
-        0u, nullptr
-    );
-}
-
-// =============================================================================
-void vkPipeline::unbind() {
-    if(_cmd_buffer == nullptr) {
-        BTX_ERROR("Cannot unbind pipeline twice");
-        return;
-    }
-
-    _cmd_buffer = nullptr;
-}
-
-// =============================================================================
 vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
                                            vk::ShaderStageFlagBits const stage,
                                            std::string_view entry_point)
@@ -113,7 +66,8 @@ vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
                      "been created.");
     }
 
-    _shaders.emplace_back(new vkShader(filepath));
+    _shaders.emplace_back(std::make_unique<vkShader>());
+    _shaders.back()->create(filepath);
 
     _shader_stages.emplace_back(
         vk::PipelineShaderStageCreateInfo {
@@ -170,7 +124,16 @@ vkPipeline & vkPipeline::add_push_constant(PushConstant const &push_constant) {
 }
 
 // =============================================================================
-void vkPipeline::create(vkRenderPassBase const &render_pass, Config const &config) {
+void vkPipeline::create(vkRenderPassBase const &render_pass,
+                        Config const &config)
+{
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Pipeline {} already exists", _handle);
+        return;
+    }
+
+    _device = Renderer::device().native();
+
     _init_assembly();
     _init_viewport(config);
     _init_raster(config);
@@ -213,22 +176,77 @@ void vkPipeline::create(vkRenderPassBase const &render_pass, Config const &confi
         .basePipelineIndex   = 0,
     };
 
-    auto const pipeline_result =
-        Renderer::device().native().createGraphicsPipeline({ }, pipeline_info);
+    auto const result = _device.createGraphicsPipeline({ }, pipeline_info);
 
-    if(pipeline_result.result != vk::Result::eSuccess) {
+    if(result.result != vk::Result::eSuccess) {
         BTX_CRITICAL("Unable to create Vulkan pipeline: '{}'",
-                     vk::to_string(pipeline_result.result));
+                     vk::to_string(result.result));
         return;
     }
 
-    _handle = pipeline_result.value;
+    _handle = result.value;
     BTX_TRACE("Created Vulkan pipeline {}", _handle);
 
     // Destroy the shader modules now that the pipeline is baked
-    for(auto *shader : _shaders) {
-        delete shader;
+    _shaders.clear();
+}
+
+// =============================================================================
+void vkPipeline::destroy() {
+    BTX_TRACE("Destroying pipeline {}, layout {}", _handle, _layout);
+
+    _device.destroy(_handle);
+    _device.destroy(_layout);
+
+    _handle = nullptr;
+    _layout = nullptr;
+}
+
+// =============================================================================
+void vkPipeline::bind(vkCmdBuffer const &cmd_buffer) {
+    if(_cmd_buffer != nullptr) {
+        BTX_ERROR("Trying to bind already bound pipeline");
+        return;
     }
+
+    _cmd_buffer = &cmd_buffer;
+
+    _cmd_buffer->native().bindPipeline(
+        vk::PipelineBindPoint::eGraphics,
+        _handle
+    );
+    _cmd_buffer->native().setViewport(0u, _viewport);
+    _cmd_buffer->native().setScissor(0u, _scissor);
+}
+
+// =============================================================================
+void vkPipeline::bind_descriptor_set(vkDescriptorSet const &set) const {
+    if(_cmd_buffer == nullptr) {
+        BTX_ERROR("Trying to bind descriptor set to unbound pipeline");
+        return;
+    }
+
+    auto const set_layout_key = reinterpret_cast<uint64_t>(
+        VkDescriptorSetLayout(set.layout())
+    );
+
+    _cmd_buffer->native().bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        _layout,
+        _set_bind_points.at(set_layout_key),
+        1u, &(set.native()),
+        0u, nullptr
+    );
+}
+
+// =============================================================================
+void vkPipeline::unbind() {
+    if(_cmd_buffer == nullptr) {
+        BTX_ERROR("Cannot unbind pipeline twice");
+        return;
+    }
+
+    _cmd_buffer = nullptr;
 }
 
 // =============================================================================
@@ -419,7 +437,7 @@ void vkPipeline::_init_layout() {
         .pPushConstantRanges    = _push_constants.data()
     };
 
-    _layout = Renderer::device().native().createPipelineLayout(layout_info);
+    _layout = _device.createPipelineLayout(layout_info);
     BTX_TRACE("Created pipeline layout {}", _layout);
 }
 

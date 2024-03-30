@@ -1,44 +1,16 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
-
-#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
-#include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
-#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 namespace btx {
 
 // =============================================================================
-vkFrameSync::vkFrameSync(vkDevice const &device) :
-    _device      { device },
-    _queue_fence { nullptr },
-    _present_sem { nullptr },
-    _queue_sem   { nullptr },
-    _cmd_pool    { nullptr },
-    _cmd_buffer  { nullptr }
-{
-    _create_sync_primitives();
-    _create_cmd_structures();
-}
-
-// =============================================================================
-vkFrameSync::~vkFrameSync() {
-    delete _cmd_buffer;
-    delete _cmd_pool;
-
-    BTX_TRACE("\nDestroying frame sync primitives:"
-              "\n\tdevice queue fence         {}"
-              "\n\tpresent complete semaphore {}"
-              "\n\tqueue complete semaphore   {}",
-              _queue_fence,
-              _present_sem,
-              _queue_sem);
-
-    _device.native().destroyFence(_queue_fence);
-    _device.native().destroySemaphore(_present_sem);
-    _device.native().destroySemaphore(_queue_sem);
-}
+vkFrameSync::vkFrameSync() :
+    _queue_fence     { nullptr },
+    _present_sem     { nullptr },
+    _queue_sem       { nullptr },
+    _cmd_buffer_pool { std::make_unique<vkCmdBufferPool>() },
+    _cmd_buffer      { std::make_unique<vkCmdBuffer>() }
+{ }
 
 // =============================================================================
 void vkFrameSync::wait_and_reset() const {
@@ -47,7 +19,7 @@ void vkFrameSync::wait_and_reset() const {
     static auto const wait_period =
         std::chrono::duration_cast<std::chrono::nanoseconds>(1.0s).count();
 
-    auto const result = _device.native().waitForFences(
+    auto const result = Renderer::device().native().waitForFences(
         _queue_fence,   // The fence(s) to wait on
         VK_TRUE,        // Whether or not to wait on all provided fences
         wait_period     // How long to wait for these fences
@@ -59,28 +31,28 @@ void vkFrameSync::wait_and_reset() const {
         return;
     }
 
-    _device.native().resetFences(_queue_fence);
-    _device.native().resetCommandPool(_cmd_pool->native());
+    Renderer::device().native().resetFences(_queue_fence);
+    Renderer::device().native().resetCommandPool(_cmd_buffer_pool->native());
 }
 
 // =============================================================================
-void vkFrameSync::_create_cmd_structures() {
-    _cmd_pool = new vkCmdPool(_device, _device.graphics_queue().family_index(),
-                              vk::CommandPoolCreateFlagBits::eTransient);
+void vkFrameSync::create_cmd_structures() {
+    _cmd_buffer_pool->create(Renderer::device().graphics_queue().family_index(),
+                             vk::CommandPoolCreateFlagBits::eTransient);
 
-    _cmd_buffer = new vkCmdBuffer(*_cmd_pool);
+    _cmd_buffer->allocate(*_cmd_buffer_pool);
 }
 
 // =============================================================================
-void vkFrameSync::_create_sync_primitives() {
+void vkFrameSync::create_sync_primitives() {
     vk::FenceCreateInfo const fence_info {
         .pNext = nullptr,
         .flags = vk::FenceCreateFlagBits::eSignaled
     };
 
-    _queue_fence = _device.native().createFence(fence_info);
-    _present_sem = _device.native().createSemaphore({ });
-    _queue_sem   = _device.native().createSemaphore({ });
+    _queue_fence = Renderer::device().native().createFence(fence_info);
+    _present_sem = Renderer::device().native().createSemaphore({ });
+    _queue_sem   = Renderer::device().native().createSemaphore({ });
 
     BTX_TRACE("\nCreated frame sync primitives:"
               "\n\tdevice queue fence         {}"
@@ -89,6 +61,27 @@ void vkFrameSync::_create_sync_primitives() {
               _queue_fence,
               _present_sem,
               _queue_sem);
+}
+
+// =============================================================================
+void vkFrameSync::destroy_cmd_structures() {
+    _cmd_buffer->free();
+    _cmd_buffer_pool->destroy();
+}
+
+// =============================================================================
+void vkFrameSync::destroy_sync_primitives() {
+    BTX_TRACE("\nDestroying frame sync primitives:"
+              "\n\tdevice queue fence         {}"
+              "\n\tpresent complete semaphore {}"
+              "\n\tqueue complete semaphore   {}",
+              _queue_fence,
+              _present_sem,
+              _queue_sem);
+
+    Renderer::device().native().destroyFence(_queue_fence);
+    Renderer::device().native().destroySemaphore(_present_sem);
+    Renderer::device().native().destroySemaphore(_queue_sem);
 }
 
 } // namespace btx

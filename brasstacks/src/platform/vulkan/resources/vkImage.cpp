@@ -13,31 +13,40 @@
 namespace btx {
 
 // =============================================================================
-vkImage::vkImage(vk::Image const &handle, vk::Format const format) :
-    _handle       { handle },
+vkImage::vkImage() :
+    _handle       { nullptr },
     _memory       { nullptr },
-    _format       { format },
+    _format       { vk::Format::eUndefined },
     _layout       { vk::ImageLayout::eUndefined },
     _extent       { },
     _size_bytes   { 0 },
     _mip_levels   { 1u },
     _array_layers { 1u },
     _raw_data     { nullptr },
-    _is_swapchain { true }
+    _is_swapchain { false }
 { }
 
 // =============================================================================
-vkImage::vkImage(std::string_view const filename, ImageInfo const &image_info,
-                 uint32_t const array_layers) :
-    _memory       { nullptr },
-    _format       { vk::Format::eUndefined },
-    _layout       { vk::ImageLayout::eUndefined },
-    _extent       { },
-    _size_bytes   { 0u },
-    _mip_levels   { 1u },
-    _array_layers { array_layers },
-    _is_swapchain { false }
+vkImage::~vkImage() {
+    if(_raw_data != nullptr) {
+        ::stbi_image_free(_raw_data);
+    }
+}
+
+// =============================================================================
+void vkImage::create(vk::Image const &handle, vk::Format const format) {
+    _handle       = handle;
+    _format       = format;
+    _is_swapchain = true;
+}
+
+// =============================================================================
+void vkImage::create(std::string_view const filename,
+                     ImageInfo const &image_info,
+                     uint32_t const array_layers)
 {
+    _array_layers = array_layers;
+
     _raw_data = _load_from_file(filename);
     _calc_mip_levels();
 
@@ -78,23 +87,16 @@ vkImage::vkImage(std::string_view const filename, ImageInfo const &image_info,
 }
 
 // =============================================================================
-vkImage::vkImage(vk::Extent2D const &extent, vk::Format const format,
-                 ImageInfo const &image_info) :
-    _handle       { },
-    _memory       { },
-    _format       { format },
-    _layout       { },
-    _extent       {
+void vkImage::create(vk::Extent2D const &extent, vk::Format const format,
+                     ImageInfo const &image_info)
+{
+    _format = format;
+    _extent = {
         .width = extent.width,
         .height = extent.height,
         .depth = 1u
-    },
-    _size_bytes   { 0u },
-    _mip_levels   { 1u },
-    _array_layers { 1u },
-    _raw_data     { nullptr },
-    _is_swapchain { false }
-{
+    };
+
     vk::ImageCreateInfo const create_info {
         .pNext = nullptr,
         .flags = { },
@@ -120,17 +122,15 @@ vkImage::vkImage(vk::Extent2D const &extent, vk::Format const format,
 }
 
 // =============================================================================
-vkImage::~vkImage() {
+void vkImage::destroy() {
     if(!_is_swapchain && _handle) {
         Renderer::device().native().destroyImage(_handle);
+        _handle = nullptr;
     }
 
     if(_memory) {
         Renderer::device().native().freeMemory(_memory);
-    }
-
-    if(_raw_data != nullptr) {
-        ::stbi_image_free(_raw_data);
+        _memory = nullptr;
     }
 }
 
@@ -234,12 +234,11 @@ uint32_t vkImage::_memory_type_index(vk::MemoryPropertyFlags const flags,
 
 // =============================================================================
 void vkImage::_send_to_device() {
-    vkBuffer const staging_buffer(
-        _size_bytes,
-        vk::BufferUsageFlagBits::eTransferSrc,
-        (vk::MemoryPropertyFlagBits::eHostVisible |
-         vk::MemoryPropertyFlagBits::eHostCoherent)
-    );
+    vkBuffer staging_buffer;
+    staging_buffer.create(_size_bytes,
+                          vk::BufferUsageFlagBits::eTransferSrc);
+    staging_buffer.allocate((vk::MemoryPropertyFlagBits::eHostVisible |
+                             vk::MemoryPropertyFlagBits::eHostCoherent));
 
     staging_buffer.fill_buffer(_raw_data);
 
@@ -261,7 +260,8 @@ void vkImage::_send_to_device() {
         .imageExtent = _extent
     };
 
-    vkCmdBuffer const cmd_buffer(Renderer::device().transient_pool());
+    vkCmdBuffer cmd_buffer;
+    cmd_buffer.allocate(Renderer::device().transient_pool());
     cmd_buffer.begin_one_time_submit();
 
         _transition_layout(cmd_buffer,
@@ -281,6 +281,7 @@ void vkImage::_send_to_device() {
 
     cmd_buffer.end_recording();
     cmd_buffer.submit_and_wait_on_device();
+    cmd_buffer.free();
 
     ::stbi_image_free(_raw_data);
     _raw_data = nullptr;

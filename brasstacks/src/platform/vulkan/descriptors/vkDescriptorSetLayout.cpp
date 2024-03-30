@@ -6,9 +6,17 @@
 namespace btx {
 
 // =============================================================================
+vkDescriptorSetLayout::vkDescriptorSetLayout() :
+    _handle   { nullptr },
+    _bindings { },
+    _device   { nullptr }
+{ }
+
+// =============================================================================
 vkDescriptorSetLayout::~vkDescriptorSetLayout() {
-    BTX_TRACE("Destroying descriptor set layout {}", _handle);
-    Renderer::device().native().destroyDescriptorSetLayout(_handle);
+    if(_handle != nullptr) {
+        destroy();
+    }
 }
 
 // =============================================================================
@@ -17,6 +25,10 @@ vkDescriptorSetLayout::add_binding(vk::DescriptorType const type,
                                    vk::ShaderStageFlags const stages,
                                    uint32_t const descriptor_count)
 {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Descriptor set layout {} already exists", _handle);
+    }
+
     _bindings.emplace_back(vk::DescriptorSetLayoutBinding {
         .binding         = static_cast<uint32_t>(_bindings.size()),
         .descriptorType  = type,
@@ -32,12 +44,18 @@ vkDescriptorSetLayout::add_binding(vk::DescriptorType const type,
 
 // =============================================================================
 void vkDescriptorSetLayout::create() {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Descriptor set layout {} already exists", _handle);
+    }
+
+    _device = Renderer::device().native();
+
     const vk::DescriptorSetLayoutCreateInfo descriptor_info {
         .bindingCount = static_cast<uint32_t>(_bindings.size()),
         .pBindings    = _bindings.data(),
     };
 
-    auto const result = Renderer::device().native().createDescriptorSetLayout(
+    auto const result = _device.createDescriptorSetLayout(
         &descriptor_info,
         nullptr,
         &_handle
@@ -49,6 +67,13 @@ void vkDescriptorSetLayout::create() {
     }
 
     BTX_TRACE("Created descriptor set layout {}", _handle);
+}
+
+// =============================================================================
+void vkDescriptorSetLayout::destroy() {
+    BTX_TRACE("Destroying descriptor set layout {}", _handle);
+    _device.destroyDescriptorSetLayout(_handle);
+    _handle = nullptr;
 }
 
 } // namespace btx

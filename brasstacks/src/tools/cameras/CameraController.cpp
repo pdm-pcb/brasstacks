@@ -9,9 +9,14 @@
 namespace btx {
 PerspectiveCamera *CameraController::_perspective_camera { nullptr };
 
-std::vector<vkBuffer *>        CameraController::_camera_ubos       { };
-vkDescriptorSetLayout         *CameraController::_camera_ubo_layout { nullptr };
-std::vector<vkDescriptorSet *> CameraController::_camera_ubo_sets   { };
+std::vector<std::unique_ptr<vkBuffer>> CameraController::_camera_ubos { };
+
+auto CameraController::_camera_ubo_layout {
+    std::make_unique<vkDescriptorSetLayout>()
+};
+
+std::vector<std::unique_ptr<vkDescriptorSet>>
+    CameraController::_camera_ubo_sets { };
 
 // =============================================================================
 void CameraController::init() {
@@ -35,27 +40,48 @@ void CameraController::init() {
     _perspective_camera->update();
 
     auto const image_count = Renderer::swapchain().images().size();
-    for(uint32_t i = 0; i < image_count; ++i) {
-        _camera_ubos.push_back(new vkBuffer(
-            2 * sizeof(math::Mat4),
-            vk::BufferUsageFlagBits::eUniformBuffer,
-            (vk::MemoryPropertyFlagBits::eHostVisible |
-             vk::MemoryPropertyFlagBits::eHostCoherent)
-        ));
+
+    if(_camera_ubos.size() != image_count) {
+        _camera_ubos.reserve(image_count);
+
+        // Fill in the buffers with in-place default construction
+        std::generate_n(
+            std::back_inserter(_camera_ubos),
+            _camera_ubos.capacity(),
+            []() {
+                return std::make_unique<vkBuffer>();
+            }
+        );
     }
 
-    _camera_ubo_layout = new vkDescriptorSetLayout;
+    for(auto &buffer : _camera_ubos) {
+        buffer->create(2 * sizeof(math::Mat4),
+                       vk::BufferUsageFlagBits::eUniformBuffer);
+        buffer->allocate((vk::MemoryPropertyFlagBits::eHostVisible |
+                          vk::MemoryPropertyFlagBits::eHostCoherent));
+    }
 
     (*_camera_ubo_layout)
         .add_binding(vk::DescriptorType::eUniformBuffer,
                      vk::ShaderStageFlagBits::eAll)
         .create();
 
-    _camera_ubo_sets.resize(image_count);
+    if(_camera_ubo_sets.size() != image_count) {
+        _camera_ubo_sets.reserve(image_count);
+
+        // Fill in the buffers with in-place default construction
+        std::generate_n(
+            std::back_inserter(_camera_ubo_sets),
+            _camera_ubo_sets.capacity(),
+            []() {
+                return std::make_unique<vkDescriptorSet>();
+            }
+        );
+    }
 
     for(uint32_t i = 0; i < image_count; ++i) {
-        _camera_ubo_sets[i] =  new vkDescriptorSet(Renderer::descriptor_pool(),
-                                                   *_camera_ubo_layout);
+        _camera_ubo_sets[i]->allocate(Renderer::descriptor_pool(),
+                                      *_camera_ubo_layout);
 
         (*_camera_ubo_sets[i])
             .add_buffer(*_camera_ubos[i], vk::DescriptorType::eUniformBuffer)
@@ -65,18 +91,13 @@ void CameraController::init() {
 
 // =============================================================================
 void CameraController::shutdown() {
-    for(auto *set : _camera_ubo_sets) {
-        delete set;
-    }
     _camera_ubo_sets.clear();
+    _camera_ubo_layout->destroy();
 
-    delete _camera_ubo_layout;
-    _camera_ubo_layout = nullptr;
-
-    for(auto *buffer : _camera_ubos) {
-        delete buffer;
+    for(auto &buffer : _camera_ubos) {
+        buffer->destroy();
+        buffer->free();
     }
-    _camera_ubos.clear();
 
     delete _perspective_camera;
     _perspective_camera = nullptr;

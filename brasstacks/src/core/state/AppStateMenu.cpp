@@ -6,6 +6,16 @@
 namespace btx {
 
 // =============================================================================
+void AppStateMenu::enter() {
+    BTX_INFO("Entering AppStateMenu");
+}
+
+// =============================================================================
+void AppStateMenu::exit() {
+    BTX_INFO("Exiting AppStateMenu");
+}
+
+// =============================================================================
 void AppStateMenu::execute() {
     Simulation::run();
     Renderer::run();
@@ -16,6 +26,7 @@ void AppStateMenu::keyboard_event(KeyboardEvent const &event) {
     switch(event.event_code) {
         case BTX_KB_ESCAPE:
             if(event.event_type == KeyboardEventType::KEY_RELEASE) {
+                BTX_TRACE("AppStateMenu publishing window close event");
                 EventBus::publish(WindowEvent(WindowEventType::WINDOW_CLOSE));
             }
             break;

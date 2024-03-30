@@ -4,8 +4,6 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
 namespace btx {
@@ -18,15 +16,18 @@ vkColorDepthPass::vkColorDepthPass() :
     },
     _color_buffers           { },
     _color_views             { },
-    _depth_buffer            { nullptr },
-    _depth_view              { nullptr },
+    _depth_buffer            { std::make_unique<vkImage>() },
+    _depth_view              { std::make_unique<vkImageView>() },
     _attachment_descriptions { },
     _color_attachments       { },
     _depth_attachment        { },
     _resolve_attachments     { },
     _subpasses               { },
     _subpass_dependencies    { }
-{
+{ }
+
+// =============================================================================
+void vkColorDepthPass::create() {
     _find_depth_stencil_format();
     _init_attachment_details();
     _init_subpasses();
@@ -42,6 +43,11 @@ vkColorDepthPass::vkColorDepthPass() :
     };
 
     this->_create(create_info);
+}
+
+// =============================================================================
+void vkColorDepthPass::destroy() {
+    this->_destroy();
 }
 
 // =============================================================================
@@ -187,28 +193,52 @@ void vkColorDepthPass::_create_color_buffers() {
     };
 
     auto const image_count = Renderer::swapchain().images().size();
-    for(size_t i = 0; i < image_count; ++i) {
-        _color_buffers.emplace_back(
-            new vkImage(
-                vk::Extent2D {
-                    .width = Renderer::swapchain().size().width,
-                    .height = Renderer::swapchain().size().height
-                },
-                Renderer::swapchain().image_format(),
-                color_buffer_info
-            )
+    BTX_TRACE("Creating {} color buffers for color/depth pass", image_count);
+
+    if(_color_buffers.size() != image_count
+       && _color_views.size() != image_count)
+    {
+        _color_buffers.clear();
+        _color_views.clear();
+
+        _color_buffers.reserve(image_count);
+        _color_views.reserve(image_count);
+
+        // Fill in the to be defined images with in-place construction
+        std::generate_n(
+            std::back_inserter(_color_buffers),
+            _color_buffers.capacity(),
+            []() {
+                return std::make_unique<vkImage>();
+            }
         );
 
-        _color_views.emplace_back(
-            new vkImageView(
-                *_color_buffers.back(),
-                vk::ImageViewType::e2D,
-                vk::ImageAspectFlagBits::eColor
-            )
+        // And likewise the views
+        std::generate_n(
+            std::back_inserter(_color_views),
+            _color_views.capacity(),
+            []() {
+                return std::make_unique<vkImageView>();
+            }
         );
     }
 
-    BTX_TRACE("Created {} color buffers for color/depth pass", image_count);
+    for(size_t i = 0; i < image_count; ++i) {
+        _color_buffers[i]->create(
+            vk::Extent2D {
+                .width = Renderer::swapchain().size().width,
+                .height = Renderer::swapchain().size().height
+            },
+            Renderer::swapchain().image_format(),
+            color_buffer_info
+        );
+
+        _color_views[i]->create(
+            *_color_buffers[i],
+            vk::ImageViewType::e2D,
+            vk::ImageAspectFlagBits::eColor
+        );
+    }
 }
 
 // =============================================================================
@@ -220,7 +250,8 @@ void vkColorDepthPass::_create_depth_buffer() {
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
     };
 
-    _depth_buffer = new vkImage(
+    BTX_TRACE("Creating depth buffer for color/depth pass");
+    _depth_buffer->create(
         vk::Extent2D {
             .width = Renderer::swapchain().size().width,
             .height = Renderer::swapchain().size().height
@@ -229,34 +260,28 @@ void vkColorDepthPass::_create_depth_buffer() {
         depth_stencil_info
     );
 
-    _depth_view =  new vkImageView(
+    _depth_view->create(
         *_depth_buffer,
         vk::ImageViewType::e2D,
         vk::ImageAspectFlagBits::eDepth
     );
-
-    BTX_TRACE("Created depth buffer for color/depth pass");
 }
 
 // =============================================================================
 void vkColorDepthPass::_destroy_color_buffers() {
-    for(auto *view : _color_views) {
-        delete view;
+    for(auto &view : _color_views) {
+        view->destroy();
     }
 
-    _color_views.clear();
-
-    for(auto *buffer : _color_buffers) {
-        delete buffer;
+    for(auto &buffer : _color_buffers) {
+        buffer->destroy();
     }
-
-    _color_buffers.clear();
 }
 
 // =============================================================================
 void vkColorDepthPass::_destroy_depth_buffer() {
-    delete _depth_view;
-    delete _depth_buffer;
+    _depth_view->destroy();
+    _depth_buffer->destroy();
 }
 
 } // namespace btx

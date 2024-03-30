@@ -19,10 +19,6 @@ public:
 
     static vk::SampleCountFlagBits samples_to_flag(uint32_t const samples);
 
-    void bind(vkCmdBuffer const &cmd_buffer);
-    void bind_descriptor_set(vkDescriptorSet const &set) const;
-    void unbind();
-
     vkPipeline & module_from_spirv(std::string_view const filepath,
                                    vk::ShaderStageFlagBits const stage,
                                    std::string_view const entry_point = "main");
@@ -71,6 +67,11 @@ public:
     };
 
     void create(vkRenderPassBase const &render_pass, Config const &config);
+    void destroy();
+
+    void bind(vkCmdBuffer const &cmd_buffer);
+    void bind_descriptor_set(vkDescriptorSet const &set) const;
+    void unbind();
 
     void send_push_constants(std::span<PushConstant> const push_constants);
 
@@ -78,9 +79,9 @@ public:
                            RenderConfig::Offset const &offset);
 
     inline auto const & native()   const { return _handle; }
+    inline auto const & layout()   const { return _layout; }
     inline auto const & viewport() const { return _viewport; }
     inline auto const & scissor()  const { return _scissor; }
-    inline auto const & layout()   const { return _layout; }
 
     vkPipeline(vkPipeline &&) = delete;
     vkPipeline(const vkPipeline &) = delete;
@@ -89,9 +90,12 @@ public:
     vkPipeline& operator=(const vkPipeline &) = delete;
 
 private:
-    vk::Pipeline _handle;
+    vk::Pipeline       _handle;
+    vk::PipelineLayout _layout;
 
-    std::vector<vkShader *>                        _shaders;
+    vk::Device _device;
+
+    std::vector<std::unique_ptr<vkShader>>         _shaders;
     std::vector<vk::PipelineShaderStageCreateInfo> _shader_stages;
 
     vk::Viewport _viewport;
@@ -115,8 +119,6 @@ private:
 
     std::vector<vk::PushConstantRange> _push_constants;
     size_t _push_constant_offset;
-
-    vk::PipelineLayout _layout;
 
     vkCmdBuffer const *_cmd_buffer;
 

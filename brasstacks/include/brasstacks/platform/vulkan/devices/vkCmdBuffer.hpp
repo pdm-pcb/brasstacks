@@ -5,14 +5,15 @@
 
 namespace btx {
 
-class vkDevice;
-class vkCmdPool;
+class vkCmdBufferPool;
 
 class vkCmdBuffer final {
 public:
-
-    vkCmdBuffer(vkCmdPool const &pool);
+    vkCmdBuffer();
     ~vkCmdBuffer();
+
+    void allocate(vkCmdBufferPool const &pool);
+    void free();
 
     void begin_one_time_submit() const;
     void end_recording() const;
@@ -24,8 +25,6 @@ public:
 
     inline auto const& native() const { return _handle; }
 
-    vkCmdBuffer() = delete;
-
     vkCmdBuffer(vkCmdBuffer &&) = delete;
     vkCmdBuffer(const vkCmdBuffer &) = delete;
 
@@ -33,9 +32,8 @@ public:
     vkCmdBuffer & operator=(const vkCmdBuffer &) = delete;
 
 private:
-    vkCmdPool const &_pool;
-
     vk::CommandBuffer _handle;
+    vk::CommandPool   _pool;
 };
 
 } // namespace btx

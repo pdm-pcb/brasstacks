@@ -2,18 +2,12 @@
 #define BRASSTACKS_PASSES_COLORDEPTHPASS_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
+#include "brasstacks/platform/vulkan/passes/vkFramebuffer.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 
 namespace btx {
-
-class Renderer;
-
-class vkColorDepthPass;
-class vkFramebuffer;
-class vkCmdBuffer;
-
-class vkDescriptorSetLayout;
-class vkDescriptorSet;
 
 class ColorDepthPass final {
     using PushConstants = std::span<vkPipeline::PushConstant const>;
@@ -33,7 +27,7 @@ public:
 
     void send_push_constants(PushConstants const push_constants);
 
-    auto & pipeline() { return *_pipeline; }
+    auto & pipeline() { return _pipeline; }
 
     ColorDepthPass(ColorDepthPass &&) = delete;
     ColorDepthPass(ColorDepthPass const &) = delete;
@@ -42,9 +36,10 @@ public:
     ColorDepthPass & operator=(ColorDepthPass const &) = delete;
 
 private:
-    vkColorDepthPass            *_render_pass;
-    vkPipeline                  *_pipeline;
-    std::vector<vkFramebuffer *> _framebuffers;
+    vkColorDepthPass _render_pass;
+    vkPipeline       _pipeline;
+
+    std::vector<std::unique_ptr<vkFramebuffer>> _framebuffers;
 
     vkCmdBuffer const *_cmd_buffer;
 

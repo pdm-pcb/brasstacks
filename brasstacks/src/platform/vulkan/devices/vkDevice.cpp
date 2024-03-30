@@ -1,19 +1,26 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
-#include "brasstacks/platform/vulkan/devices/vkCmdPool.hpp"
 
 namespace btx {
 
 // =============================================================================
-vkDevice::vkDevice(Layers const &layers) :
+vkDevice::vkDevice() :
     _handle         { nullptr },
-    _graphics_queue { nullptr },
-    _transient_pool { nullptr }
-{
+    _graphics_queue { std::make_unique<vkQueue>() },
+    _transient_pool { std::make_unique<vkCmdBufferPool>() }
+{ }
+
+// =============================================================================
+vkDevice::~vkDevice() {
+    if(_handle != nullptr) {
+        destroy();
+    }
+}
+
+// =============================================================================
+void vkDevice::create(Layers const &layers) {
     // We only need one device queue, so only need to specify one priority
     float const queue_priorities[] = { 1.0f };
 
@@ -57,24 +64,19 @@ vkDevice::vkDevice(Layers const &layers) :
 
     BTX_TRACE("Created logical device {}", _handle);
 
-    // Retrieve the queue abstraction
-    _graphics_queue =
-        new vkQueue(*this, vkPhysicalDevice::graphics_queue_index());
+    // Set up the queue abstraction
+    _graphics_queue->set_family_index(vkPhysicalDevice::graphics_queue_index());
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-    _transient_pool = new vkCmdPool(
-        *this,
-        vkPhysicalDevice::graphics_queue_index(),
-        vk::CommandPoolCreateFlagBits::eTransient
-    );
+    _transient_pool->create(vkPhysicalDevice::graphics_queue_index(),
+                            vk::CommandPoolCreateFlagBits::eTransient);
 }
 
 // =============================================================================
-vkDevice::~vkDevice() {
-    delete _transient_pool;
-    delete _graphics_queue;
+void vkDevice::destroy() {
+    _transient_pool->destroy();
 
     BTX_TRACE("Destroying logical device {}", _handle);
     _handle.destroy();

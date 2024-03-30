@@ -3,35 +3,35 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
 
 class vkSurface;
-class vkDevice;
-class vkImage;
-class vkImageView;
 class vkFrameSync;
 
 class vkSwapchain final {
 public:
-    vkSwapchain(vkDevice const &device, vkSurface const &surface);
-
+    vkSwapchain();
     ~vkSwapchain();
+
+    void create(vkSurface const &surface);
+    void destroy();
 
     uint32_t get_next_image_index(vk::Semaphore const &semaphore);
 
     [[nodiscard]] bool present(vkFrameSync const &frame,
                                uint32_t const image_index);
 
-    inline auto const &size() const { return _size; }
-    inline auto const &offset() const { return _offset; }
-    inline auto aspect_ratio() const { return _aspect_ratio; }
-
-    inline auto image_format() const { return _image_format.format; }
-    inline auto const & images() const { return _images; }
+    inline auto const & native()      const { return _handle; }
+    inline auto const & size()        const { return _size; }
+    inline auto const & offset()      const { return _offset; }
+    inline auto const & images()      const { return _images; }
     inline auto const & image_views() const { return _image_views; }
 
-    vkSwapchain() = delete;
+    inline auto image_format() const { return _image_format.format; }
+    inline auto aspect_ratio() const { return _aspect_ratio; }
 
     vkSwapchain(vkSwapchain &&) = delete;
     vkSwapchain(vkSwapchain const &) = delete;
@@ -40,16 +40,17 @@ public:
     vkSwapchain & operator=(vkSwapchain const &) = delete;
 
 private:
-    vkDevice const &_device;
+    vk::SwapchainKHR _handle;
 
-    vk::SurfaceFormatKHR       _image_format;
-    vk::PresentModeKHR         _present_mode;
-    vk::SwapchainKHR           _handle;
-    std::vector<vkImage *>     _images;
-    std::vector<vkImageView *> _image_views;
+    vk::SurfaceFormatKHR _image_format;
+    vk::PresentModeKHR   _present_mode;
+
+    std::vector<std::unique_ptr<vkImage>>     _images;
+    std::vector<std::unique_ptr<vkImageView>> _image_views;
 
     RenderConfig::Size   _size;
     RenderConfig::Offset _offset;
+
     float _aspect_ratio;
 
     void _query_surface_capabilities(vk::SurfaceKHR const &surface);

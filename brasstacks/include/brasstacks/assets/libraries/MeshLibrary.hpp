@@ -10,7 +10,7 @@ namespace btx {
 
 class MeshLibrary final {
 public:
-    using MeshList = std::list<Mesh *>;
+    using MeshList = std::list<std::unique_ptr<Mesh>>;
     using MeshIter = MeshList::iterator;
 
     static void init() { }

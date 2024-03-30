@@ -9,9 +9,21 @@
 namespace btx {
 
 // =============================================================================
-vkFramebuffer::vkFramebuffer(vkRenderPassBase const &render_pass,
-                             RenderConfig::Size const &size,
-                             std::vector<vk::ImageView> const &attachments)
+vkFramebuffer::vkFramebuffer() :
+    _handle { nullptr }
+{ }
+
+// =============================================================================
+vkFramebuffer::~vkFramebuffer() {
+    if(_handle != nullptr) {
+        destroy();
+    }
+}
+
+// =============================================================================
+void vkFramebuffer::create(vkRenderPassBase const &render_pass,
+                           RenderConfig::Size const &size,
+                           std::vector<vk::ImageView> const &attachments)
 {
     vk::FramebufferCreateInfo const create_info {
         .pNext           = nullptr,
@@ -30,10 +42,10 @@ vkFramebuffer::vkFramebuffer(vkRenderPassBase const &render_pass,
 }
 
 // =============================================================================
-vkFramebuffer::~vkFramebuffer() {
+void vkFramebuffer::destroy() {
     BTX_TRACE("Destroying framebuffer {}", _handle);
-
     Renderer::device().native().destroyFramebuffer(_handle);
+    _handle = nullptr;
 }
 
 } // namespace btx

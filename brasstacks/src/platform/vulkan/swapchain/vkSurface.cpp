@@ -5,23 +5,33 @@
 
 namespace btx {
 
+// =============================================================================
+vkSurface::vkSurface() :
+    _handle { nullptr }
+{ }
+
+// =============================================================================
+vkSurface::~vkSurface() {
+    if(_handle != nullptr) {
+        destroy();
+    }
+}
+
+// =============================================================================
 #ifdef BTX_LINUX
-
-vkSurface::vkSurface(vk::XlibSurfaceCreateInfoKHR const &create_info) {
-    _handle = vkInstance::native().createXlibSurfaceKHR(create_info);
-    BTX_TRACE("Created Vulkan surface {}", _handle);
-}
-
+    void vkSurface::create(vk::XlibSurfaceCreateInfoKHR const &create_info) {
+        _handle = vkInstance::native().createXlibSurfaceKHR(create_info);
+        BTX_TRACE("Created Vulkan surface {}", _handle);
+    }
 #elif BTX_WINDOWS
-
-vkSurface::vkSurface(vk::Win32SurfaceCreateInfoKHR const &create_info) {
-    _handle = vkInstance::native().createWin32SurfaceKHR(create_info);
-    BTX_TRACE("Created Vulkan surface {}", _handle);
-}
-
+    void vkSurface::create(vk::Win32SurfaceCreateInfoKHR const &create_info) {
+        _handle = vkInstance::native().createWin32SurfaceKHR(create_info);
+        BTX_TRACE("Created Vulkan surface {}", _handle);
+    }
 #endif
 
-vkSurface::~vkSurface() {
+// =============================================================================
+void vkSurface::destroy() {
     BTX_TRACE("Destroying Vulkan surface {}", _handle);
     vkInstance::native().destroy(_handle);
     _handle = nullptr;

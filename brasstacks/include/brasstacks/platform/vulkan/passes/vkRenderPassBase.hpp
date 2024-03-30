@@ -10,7 +10,7 @@ class vkRenderPassBase {
 public:
     auto const & native() const { return _handle; }
 
-    virtual ~vkRenderPassBase();
+    virtual ~vkRenderPassBase() = default;
 
     vkRenderPassBase(vkRenderPassBase &&) = delete;
     vkRenderPassBase(vkRenderPassBase const &) = delete;
@@ -19,9 +19,10 @@ public:
     vkRenderPassBase & operator=(vkRenderPassBase const &) = delete;
 
 protected:
-    vkRenderPassBase() = default;
+    vkRenderPassBase();
 
     void _create(vk::RenderPassCreateInfo const &create_info);
+    void _destroy();
 
 private:
     vk::RenderPass _handle;
