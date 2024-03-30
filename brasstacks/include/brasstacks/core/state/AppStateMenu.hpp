@@ -6,11 +6,9 @@
 
 namespace btx {
 
-class Application;
-
 class AppStateMenu final : public AppStateBase {
 public:
-    explicit AppStateMenu(Application &application);
+    AppStateMenu() : AppStateBase(AppState::MENU_STATE) { }
     ~AppStateMenu() override = default;
 
     void enter()   override { }
@@ -25,9 +23,6 @@ public:
 
     AppStateMenu & operator=(AppStateMenu &&) = delete;
     AppStateMenu & operator=(AppStateMenu const &) = delete;
-
-private:
-    Application &_application;
 };
 
 } // namespace btx

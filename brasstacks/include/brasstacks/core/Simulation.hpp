@@ -10,12 +10,13 @@ class Application;
 
 class Simulation {
 public:
-    Simulation(Application &application);
-    ~Simulation() = default;
+    static void init(Application *application);
+    static void shutdown() { }
 
-    void run();
+    static void run();
 
     Simulation() = delete;
+    ~Simulation() = delete;
 
     Simulation(Simulation &&) = delete;
     Simulation(Simulation const &) = delete;
@@ -24,7 +25,7 @@ public:
     Simulation & operator=(Simulation const &) = delete;
 
 private:
-    Application &_application;
+    static Application *_application;
 };
 
 } // namespace btx

@@ -9,12 +9,11 @@ namespace btx {
 // =============================================================================
 Application::Application(std::string_view const app_name) :
     _current_state       { nullptr },
-    _menu_state          { *this },
+    _menu_state          { },
     _play_state          { *this },
     _pause_state         { },
     _state_to_resume     { AppState::MENU_STATE },
     _running             { true },
-    _simulation          { std::make_unique<Simulation>(*this) },
     _state_events        { *this, &Application::_state_transition },
     _window_events       { *this, &Application::_window_event },
     _keyboard_events     { *this, &Application::_keyboard_event },

@@ -3,14 +3,16 @@
 
 namespace btx {
 
+Application *Simulation::_application;
+
 // =============================================================================
-Simulation::Simulation(Application &application) :
-    _application    { application }
-{ }
+void Simulation::init(Application *application) {
+    _application = application;
+}
 
 // =============================================================================
 void Simulation::run() {
-    _application.update();
+    _application->update();
 }
 
 } // namespace btx

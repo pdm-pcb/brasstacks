@@ -6,14 +6,8 @@
 namespace btx {
 
 // =============================================================================
-AppStateMenu::AppStateMenu(Application &application) :
-    AppStateBase(AppState::MENU_STATE),
-    _application { application }
-{ }
-
-// =============================================================================
 void AppStateMenu::execute() {
-    _application.simulation().run();
+    Simulation::run();
     Renderer::run();
 }
 

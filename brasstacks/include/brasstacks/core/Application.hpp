@@ -13,8 +13,6 @@
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
 
-#include "brasstacks/core/Simulation.hpp"
-
 namespace btx {
 
 class Application {
@@ -37,8 +35,6 @@ public:
     virtual void deactivate_camera() = 0;
     virtual void update_camera() = 0;
 
-    inline auto & simulation() const { return *_simulation; }
-
     Application() = delete;
 
     Application(Application &&) = delete;
@@ -56,8 +52,6 @@ private:
     AppState _state_to_resume;
 
     bool _running;
-
-    std::unique_ptr<Simulation>   _simulation;
 
     EventQueue<AppStateTransition> _state_events;
     EventQueue<WindowEvent>        _window_events;
