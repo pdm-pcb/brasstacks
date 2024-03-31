@@ -1,5 +1,5 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/platform/vulkan/vkAllocator.hpp"
+#include "brasstacks/platform/vulkan/vmaAllocator.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -10,10 +10,10 @@
 
 namespace btx {
 
-::VmaAllocator vkAllocator::_handle { nullptr };
+::VmaAllocator vmaAllocator::_handle { nullptr };
 
 // =============================================================================
-void vkAllocator::create(uint32_t const api_version) {
+void vmaAllocator::create(uint32_t const api_version) {
     if(_handle != nullptr ) {
         BTX_CRITICAL("Allocator {:#x} already exists",
                      reinterpret_cast<uint64_t>(_handle));
@@ -50,7 +50,7 @@ void vkAllocator::create(uint32_t const api_version) {
 }
 
 // =============================================================================
-void vkAllocator::destroy() {
+void vmaAllocator::destroy() {
     BTX_TRACE("Destroying allocator {:#x}",
               reinterpret_cast<uint64_t>(_handle));
 

@@ -1,5 +1,4 @@
 #include "brasstacks/brasstacks.hpp"
-
 #include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -115,12 +114,13 @@ void vkBuffer::fill_buffer(void const *data) const {
                                          { },
                                          &mapped_memory_handle);
     if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to map buffer {} memory {}", _handle, _memory_handle);
+        BTX_CRITICAL("Failed to map buffer {} memory {}: '{}'",
+                     _handle, _memory_handle, vk::to_string(result));
     }
 
     ::memcpy(mapped_memory_handle, data, _size_bytes);
 
-    Renderer::device().native().unmapMemory(_memory_handle);
+    device.unmapMemory(_memory_handle);
 }
 
 // =============================================================================

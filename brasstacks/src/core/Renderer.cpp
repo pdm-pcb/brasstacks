@@ -3,7 +3,7 @@
 
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
-#include "brasstacks/platform/vulkan/vkAllocator.hpp"
+#include "brasstacks/platform/vulkan/vmaAllocator.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
@@ -55,7 +55,7 @@ void Renderer::shutdown() {
     _destroy_frame_sync();
     _destroy_swapchain();
     _device->destroy();
-    vkAllocator::destroy();
+    vmaAllocator::destroy();
     _surface->destroy();
     vkInstance::destroy();
 }
@@ -225,7 +225,7 @@ void Renderer::_create_device() {
 
 // =============================================================================
 void Renderer::_create_allocator(uint32_t const api_version) {
-    vkAllocator::create(api_version);
+    vmaAllocator::create(api_version);
 }
 
 // =============================================================================

@@ -5,21 +5,21 @@
 
 namespace btx {
 
-class vkAllocator {
+class vmaAllocator {
 public:
     static void create(uint32_t const api_version);
     static void destroy();
 
     static auto const & native() { return _handle; }
 
-    vkAllocator() = delete;
-    ~vkAllocator() = delete;
+    vmaAllocator() = delete;
+    ~vmaAllocator() = delete;
 
-    vkAllocator(vkAllocator &&) = delete;
-    vkAllocator(vkAllocator const &) = delete;
+    vmaAllocator(vmaAllocator &&) = delete;
+    vmaAllocator(vmaAllocator const &) = delete;
 
-    vkAllocator & operator=(vkAllocator &&) = delete;
-    vkAllocator & operator=(vkAllocator const &) = delete;
+    vmaAllocator & operator=(vmaAllocator &&) = delete;
+    vmaAllocator & operator=(vmaAllocator const &) = delete;
 
 private:
     static ::VmaAllocator _handle;
