@@ -21,7 +21,11 @@ target_include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/"
 )
 
-target_link_libraries(${target_name} PUBLIC Vulkan::Vulkan)
+target_link_libraries(
+    ${target_name} PUBLIC
+    Vulkan::Vulkan
+    glfw
+)
 
 add_debug_flags(${target_name})
 add_release_flags(${target_name})
