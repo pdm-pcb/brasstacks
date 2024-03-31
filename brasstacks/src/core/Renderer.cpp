@@ -9,6 +9,8 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/events/EventBus.hpp"
 
+#include "brasstacks/platform/ImGuiContext.hpp"
+
 namespace btx {
 
 Application *Renderer::_application { nullptr };
@@ -44,15 +46,22 @@ void Renderer::init(Application *application) {
     );
 
     CameraController::init();
+
+    ImGuiContext::create_descriptor_pool();
 }
 
 // =============================================================================
 void Renderer::shutdown() {
+    ImGuiContext::destroy_descriptor_pool();
+
     CameraController::shutdown();
     _descriptor_pool->destroy();
+
     _destroy_frame_sync();
     _destroy_swapchain();
+
     vmaAllocator::destroy();
+
     _device->destroy();
     _surface->destroy();
     vkInstance::destroy();

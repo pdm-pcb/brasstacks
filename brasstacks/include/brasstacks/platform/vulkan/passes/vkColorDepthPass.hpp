@@ -48,8 +48,6 @@ private:
     std::vector<vk::SubpassDescription>    _subpasses;
     std::vector<vk::SubpassDependency>     _subpass_dependencies;
 
-    std::unique_ptr<vkDescriptorPool> _imgui_descriptor_pool;
-
     void _find_depth_stencil_format();
     void _init_attachment_details();
     void _init_subpasses();

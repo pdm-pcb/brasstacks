@@ -7,6 +7,8 @@
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
 
+#include "brasstacks/platform/ImGuiContext.hpp"
+
 namespace btx {
 GLFWwindow *TargetWindow::_window { nullptr };
 
@@ -61,15 +63,12 @@ void TargetWindow::init(std::string_view const app_name) {
     ::glfwSetWindowIconifyCallback(_window,
                                    TargetWindow::_window_iconify_callback);
 
-	::ImGui::CreateContext();
-	::ImGui_ImplGlfw_InitForVulkan(_window, true);
-    ::ImGui::StyleColorsDark();
+   ImGuiContext::init_window(_window);
 }
 
 // =============================================================================
 void TargetWindow::shutdown() {
-    ::ImGui_ImplGlfw_Shutdown();
-    ::ImGui::DestroyContext();
+    ImGuiContext::shutdown_window();
 
     ::glfwDestroyWindow(_window);
     ::glfwTerminate();
