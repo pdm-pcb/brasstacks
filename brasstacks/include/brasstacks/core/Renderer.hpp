@@ -8,11 +8,11 @@
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
+
 namespace btx {
 
 class Application;
-class vkCmdBuffer;
-class vkDescriptorPool;
 
 class Renderer final {
 public:

@@ -35,10 +35,10 @@ private:
 
     vk::SampleCountFlagBits _msaa_samples;
 
-    std::vector<std::unique_ptr<vkImage>>    _color_buffers;
+    std::vector<std::unique_ptr<vkImage>>     _color_buffers;
     std::vector<std::unique_ptr<vkImageView>> _color_views;
 
-    std::unique_ptr<vkImage>    _depth_buffer;
+    std::unique_ptr<vkImage>     _depth_buffer;
     std::unique_ptr<vkImageView> _depth_view;
 
     std::vector<vk::AttachmentDescription> _attachment_descriptions;
@@ -47,6 +47,8 @@ private:
     std::vector<vk::AttachmentReference>   _resolve_attachments;
     std::vector<vk::SubpassDescription>    _subpasses;
     std::vector<vk::SubpassDependency>     _subpass_dependencies;
+
+    std::unique_ptr<vkDescriptorPool> _imgui_descriptor_pool;
 
     void _find_depth_stencil_format();
     void _init_attachment_details();

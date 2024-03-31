@@ -1,10 +1,12 @@
 #include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
 
+#include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 
 namespace btx {
 
@@ -12,7 +14,7 @@ vkColorDepthPass::vkColorDepthPass() :
     vkRenderPassBase { },
     _depth_format { vk::Format::eUndefined },
     _msaa_samples {
-        vkPipeline::samples_to_flag(btx::RenderConfig::msaa_samples)
+        vkPipeline::samples_to_flag(RenderConfig::msaa_samples)
     },
     _color_buffers           { },
     _color_views             { },
@@ -23,7 +25,8 @@ vkColorDepthPass::vkColorDepthPass() :
     _depth_attachment        { },
     _resolve_attachments     { },
     _subpasses               { },
-    _subpass_dependencies    { }
+    _subpass_dependencies    { },
+    _imgui_descriptor_pool   { std::make_unique<vkDescriptorPool>() }
 { }
 
 // =============================================================================
@@ -43,6 +46,15 @@ void vkColorDepthPass::create() {
     };
 
     this->_create(create_info);
+
+    _imgui_descriptor_pool->create(
+        vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+        1000u,
+        {
+            { vk::DescriptorType::eUniformBuffer,        1000u, },
+            { vk::DescriptorType::eCombinedImageSampler, 1000u, },
+        }
+    );
 }
 
 // =============================================================================
@@ -52,6 +64,8 @@ void vkColorDepthPass::destroy() {
 
 // =============================================================================
 void vkColorDepthPass::destroy_swapchain_resources() {
+    ::ImGui_ImplVulkan_Shutdown();
+
     _destroy_depth_buffer();
     _destroy_color_buffers();
 }
@@ -60,6 +74,25 @@ void vkColorDepthPass::destroy_swapchain_resources() {
 void vkColorDepthPass::create_swapchain_resources() {
     _create_color_buffers();
     _create_depth_buffer();
+
+    auto const image_count =
+        static_cast<uint32_t>(Renderer::swapchain().images().size());
+
+    ::ImGui_ImplVulkan_InitInfo init_info = {
+        .Instance       = vkInstance::native(),
+        .PhysicalDevice = vkPhysicalDevice::native(),
+        .Device         = Renderer::device().native(),
+        .QueueFamily    = vkPhysicalDevice::graphics_queue_index(),
+        .Queue          = Renderer::device().graphics_queue().native(),
+        .PipelineCache  = nullptr,
+        .DescriptorPool = _imgui_descriptor_pool->native(),
+        .Subpass        = 0u,
+        .MinImageCount  = image_count,
+        .ImageCount     = image_count,
+        .MSAASamples    = VkSampleCountFlagBits(_msaa_samples),
+    };
+
+    ::ImGui_ImplVulkan_Init(&init_info, this->native());
 }
 
 // =============================================================================

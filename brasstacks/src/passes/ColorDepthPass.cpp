@@ -93,6 +93,12 @@ void ColorDepthPass::begin() {
     );
 
     _pipeline.bind(*_cmd_buffer);
+
+    ::ImGui_ImplVulkan_NewFrame();
+    ::ImGui_ImplGlfw_NewFrame();
+    ::ImGui::NewFrame();
+        ::ImGui::ShowDemoWindow();
+    ::ImGui::EndFrame();
 }
 
 // =============================================================================
@@ -101,6 +107,11 @@ void ColorDepthPass::end() {
         BTX_ERROR("Cannot end render pass that hasn't started");
         return;
     }
+
+    ::ImGui::Render();
+    ::ImGui_ImplVulkan_RenderDrawData(::ImGui::GetDrawData(),
+                                      _cmd_buffer->native());
+
     _cmd_buffer->end_render_pass();
     _cmd_buffer = nullptr;
 

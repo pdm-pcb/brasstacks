@@ -82,6 +82,9 @@ auto constexpr VK_TARGET_VERSION = VK_API_VERSION_1_2;
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
+
 #ifdef BTX_DEBUG
     static std::filesystem::path const BTX_ASSET_PATH("demo/assets");
     static std::string           const BTX_SHADER_EXT("-debug.spv");

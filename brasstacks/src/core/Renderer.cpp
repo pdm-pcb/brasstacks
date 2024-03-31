@@ -9,8 +9,6 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/events/EventBus.hpp"
 
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
-
 namespace btx {
 
 Application *Renderer::_application { nullptr };

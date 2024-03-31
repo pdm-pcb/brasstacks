@@ -60,10 +60,17 @@ void TargetWindow::init(std::string_view const app_name) {
     ::glfwSetCursorPosCallback(_window, _mouse_move_callback);
     ::glfwSetWindowIconifyCallback(_window,
                                    TargetWindow::_window_iconify_callback);
+
+	::ImGui::CreateContext();
+	::ImGui_ImplGlfw_InitForVulkan(_window, true);
+    ::ImGui::StyleColorsDark();
 }
 
 // =============================================================================
 void TargetWindow::shutdown() {
+    ::ImGui_ImplGlfw_Shutdown();
+    ::ImGui::DestroyContext();
+
     ::glfwDestroyWindow(_window);
     ::glfwTerminate();
 }

@@ -105,8 +105,6 @@ void vmaBuffer::send_to_device(void const *data) const {
          VMA_ALLOCATION_CREATE_MAPPED_BIT)
     );
 
-    BTX_INFO("STAGING BUFFER {}", staging_buffer.native());
-
     ::memcpy(staging_buffer.alloc_info().pMappedData, data, _size_bytes);
 
     vk::BufferCopy const copy_region {
