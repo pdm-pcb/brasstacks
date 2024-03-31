@@ -131,6 +131,10 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
                                  [[maybe_unused]] int action,
                                  [[maybe_unused]] int mods)
 {
+    if(::ImGui::GetIO().WantCaptureKeyboard) {
+        return;
+    }
+
     auto const code = GLFWToBTXKeys::translate(key);
     if(action == GLFW_PRESS) {
         EventBus::publish(KeyboardEvent(KeyboardEventType::KEY_PRESS, code));
@@ -166,6 +170,10 @@ void TargetWindow::_mouse_button_callback([[maybe_unused]] GLFWwindow* window,
                                           [[maybe_unused]] int action,
                                           [[maybe_unused]] int mods)
 {
+    if(::ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
+
     auto const code = GLFWToBTXKeys::translate(button);
 
     if(action == GLFW_PRESS) {
