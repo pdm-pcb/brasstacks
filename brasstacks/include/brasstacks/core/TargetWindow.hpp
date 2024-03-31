@@ -26,6 +26,8 @@ public:
     static inline auto * native() { return ::glfwGetWin32Window(_window); }
 #endif // BTX platform
 
+    static float scale_factor();
+
     TargetWindow() = delete;
     ~TargetWindow() = delete;
 

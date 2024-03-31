@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_PLATFORM_IMGUICONTEXT_HPP
-#define BRASSTACKS_PLATFORM_IMGUICONTEXT_HPP
+#ifndef BRASSTACKS_PLATFORM_IMGUI_IMGUICONTEXT_HPP
+#define BRASSTACKS_PLATFORM_IMGUI_IMGUICONTEXT_HPP
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
@@ -7,6 +7,7 @@
 namespace btx {
 
 class vkColorDepthPass;
+class vkCmdBuffer;
 
 class ImGuiContext {
 public:
@@ -16,6 +17,17 @@ public:
     static void destroy_swapchain_resources();
     static void destroy_descriptor_pool();
     static void shutdown_window();
+
+    static void record_commands();
+    static void render(vkCmdBuffer const &cmd_buffer);
+
+    static inline bool key_callback_handled() {
+        return _io->WantCaptureKeyboard;
+    }
+
+    static inline bool mouse_button_callback_handled() {
+        return _io->WantCaptureMouse;
+    }
 
     ImGuiContext() = delete;
     ~ImGuiContext() = delete;
@@ -29,8 +41,11 @@ public:
 private:
     static ::ImGuiIO *_io;
     static std::unique_ptr<vkDescriptorPool> _descriptor_pool;
+
+    static void _draw_menu_bar();
+    static void _draw_perf_window();
 };
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_IMGUICONTEXT_HPP
+#endif // BRASSTACKS_PLATFORM_IMGUI_IMGUICONTEXT_HPP

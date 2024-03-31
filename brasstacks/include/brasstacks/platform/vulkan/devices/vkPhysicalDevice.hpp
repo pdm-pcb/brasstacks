@@ -90,6 +90,8 @@ public:
      */
     static inline auto const & native() { return _chosen_device.handle; }
 
+    static inline std::string_view const name() { return _chosen_device.name; }
+
     vkPhysicalDevice() = delete;
     ~vkPhysicalDevice() = delete;
 

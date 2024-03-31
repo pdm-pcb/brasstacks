@@ -4,6 +4,8 @@
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
+#include "brasstacks/platform/imgui/ImGuiContext.hpp"
+
 namespace btx {
 
 // =============================================================================
@@ -94,11 +96,7 @@ void ColorDepthPass::begin() {
 
     _pipeline.bind(*_cmd_buffer);
 
-    ::ImGui_ImplVulkan_NewFrame();
-    ::ImGui_ImplGlfw_NewFrame();
-    ::ImGui::NewFrame();
-        ::ImGui::ShowDemoWindow();
-    ::ImGui::EndFrame();
+    ImGuiContext::record_commands();
 }
 
 // =============================================================================
@@ -108,9 +106,7 @@ void ColorDepthPass::end() {
         return;
     }
 
-    ::ImGui::Render();
-    ::ImGui_ImplVulkan_RenderDrawData(::ImGui::GetDrawData(),
-                                      _cmd_buffer->native());
+    ImGuiContext::render(*_cmd_buffer);
 
     _cmd_buffer->end_render_pass();
     _cmd_buffer = nullptr;

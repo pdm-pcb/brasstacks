@@ -8,7 +8,7 @@
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 
-#include "brasstacks/platform/ImGuiContext.hpp"
+#include "brasstacks/platform/imgui/ImGuiContext.hpp"
 
 namespace btx {
 

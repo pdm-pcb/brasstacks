@@ -9,7 +9,7 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/events/EventBus.hpp"
 
-#include "brasstacks/platform/ImGuiContext.hpp"
+#include "brasstacks/platform/imgui/ImGuiContext.hpp"
 
 namespace btx {
 

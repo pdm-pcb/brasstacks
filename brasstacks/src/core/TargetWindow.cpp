@@ -7,7 +7,7 @@
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
 
-#include "brasstacks/platform/ImGuiContext.hpp"
+#include "brasstacks/platform/imgui/ImGuiContext.hpp"
 
 namespace btx {
 GLFWwindow *TargetWindow::_window { nullptr };
@@ -35,7 +35,7 @@ void TargetWindow::init(std::string_view const app_name) {
 
     ::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     ::glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    // ::glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    ::glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
     _window = ::glfwCreateWindow(
         static_cast<int>(_window_size.width),
@@ -98,6 +98,21 @@ void TargetWindow::poll_events() {
 }
 
 // =============================================================================
+float TargetWindow::scale_factor() {
+    float x;
+    float y;
+
+    ::glfwGetWindowContentScale(_window, &x, &y);
+
+    if(std::abs(x - y) >= 0.000001f) {
+        BTX_WARN("GLFW reported scaling factor x: {:.06f}, y: {:.06f}; "
+                 "returning larger of the two.", x, y);
+    }
+
+    return std::max(x, y);
+}
+
+// =============================================================================
 void TargetWindow::_calc_window_dimensions() {
     auto const *video_mode = ::glfwGetVideoMode(::glfwGetPrimaryMonitor());
 
@@ -130,7 +145,7 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
                                  [[maybe_unused]] int action,
                                  [[maybe_unused]] int mods)
 {
-    if(::ImGui::GetIO().WantCaptureKeyboard) {
+    if(ImGuiContext::key_callback_handled()) {
         return;
     }
 
@@ -169,7 +184,7 @@ void TargetWindow::_mouse_button_callback([[maybe_unused]] GLFWwindow* window,
                                           [[maybe_unused]] int action,
                                           [[maybe_unused]] int mods)
 {
-    if(::ImGui::GetIO().WantCaptureMouse) {
+    if(ImGuiContext::mouse_button_callback_handled()) {
         return;
     }
 
