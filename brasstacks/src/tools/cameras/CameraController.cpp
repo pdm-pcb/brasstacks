@@ -7,7 +7,7 @@
 namespace btx {
 PerspectiveCamera *CameraController::_perspective_camera { nullptr };
 
-std::vector<std::unique_ptr<vkBuffer>> CameraController::_camera_ubos { };
+std::vector<std::unique_ptr<vmaBuffer>> CameraController::_camera_ubos { };
 
 auto CameraController::_camera_ubo_layout {
     std::make_unique<vkDescriptorSetLayout>()
@@ -50,16 +50,17 @@ void CameraController::init() {
             std::back_inserter(_camera_ubos),
             _camera_ubos.capacity(),
             []() {
-                return std::make_unique<vkBuffer>();
+                return std::make_unique<vmaBuffer>();
             }
         );
     }
 
     for(auto &buffer : _camera_ubos) {
         buffer->create(2 * sizeof(math::Mat4),
-                       vk::BufferUsageFlagBits::eUniformBuffer);
-        buffer->allocate((vk::MemoryPropertyFlagBits::eHostVisible |
-                          vk::MemoryPropertyFlagBits::eHostCoherent));
+                       vk::BufferUsageFlagBits::eUniformBuffer,
+                       VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+                       (vk::MemoryPropertyFlagBits::eHostVisible |
+                        vk::MemoryPropertyFlagBits::eHostCoherent));
     }
 
     (*_camera_ubo_layout)
@@ -97,7 +98,6 @@ void CameraController::shutdown() {
 
     for(auto &buffer : _camera_ubos) {
         buffer->destroy();
-        buffer->free();
     }
 
     delete _perspective_camera;

@@ -2,13 +2,12 @@
 #define BRASSTACKS_PLATFORM_VULKAN_DESCRIPTORS_VKDESCRIPTORSET_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
-#include "brasstacks/platform/vulkan/resources/vkSampler.hpp"
 
 namespace btx {
 
+class vkBuffer;
+class vmaBuffer;
+class vkImage;
 class vkImageView;
 class vkSampler;
 
@@ -24,6 +23,9 @@ public:
                 vkDescriptorSetLayout const &layout);
 
     vkDescriptorSet & add_buffer(vkBuffer const &buffer,
+                                 vk::DescriptorType const type);
+
+    vkDescriptorSet & add_buffer(vmaBuffer const &buffer,
                                  vk::DescriptorType const type);
 
     vkDescriptorSet & add_image(vkImage const &image, vkImageView const &view,
@@ -47,9 +49,6 @@ private:
     vk::Device _device;
     vk::DescriptorPool _pool;
     vk::DescriptorSetLayout _layout;
-
-    std::vector<vkBuffer> _buffers;
-    std::vector<vkImage>  _images;
 
     std::list<vk::DescriptorBufferInfo> _buffer_info;
     std::list<vk::DescriptorImageInfo>  _image_info;

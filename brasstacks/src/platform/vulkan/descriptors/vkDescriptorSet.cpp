@@ -4,6 +4,8 @@
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
+#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
+#include "brasstacks/platform/vulkan/resources/vmaBuffer.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/resources/vkSampler.hpp"
@@ -16,8 +18,6 @@ vkDescriptorSet::vkDescriptorSet() :
     _device      { nullptr },
     _pool        { nullptr },
     _layout      { nullptr },
-    _buffers     { },
-    _images      { },
     _buffer_info { },
     _image_info  { },
     _set_writes  { }
@@ -49,6 +49,35 @@ void vkDescriptorSet::allocate(vkDescriptorPool const &pool,
 
 // =============================================================================
 vkDescriptorSet & vkDescriptorSet::add_buffer(vkBuffer const &buffer,
+                                              vk::DescriptorType const type)
+{
+    if(!_handle) {
+        BTX_CRITICAL("Must allocate descriptor set before adding buffers.");
+    }
+
+    auto const *buffer_info = &_buffer_info.emplace_back(
+        vk::DescriptorBufferInfo {
+            .buffer = buffer.native(),
+            .offset = 0u,
+            .range  = VK_WHOLE_SIZE
+        });
+
+    _set_writes.emplace_back(vk::WriteDescriptorSet {
+        .dstSet           = _handle,
+        .dstBinding       = static_cast<uint32_t>(_set_writes.size()),
+        .dstArrayElement  = 0u,
+        .descriptorCount  = 1u,
+        .descriptorType   = type,
+        .pImageInfo       = nullptr,
+        .pBufferInfo      = buffer_info,
+        .pTexelBufferView = nullptr
+    });
+
+    return *this;
+}
+
+// =============================================================================
+vkDescriptorSet & vkDescriptorSet::add_buffer(vmaBuffer const &buffer,
                                               vk::DescriptorType const type)
 {
     if(!_handle) {

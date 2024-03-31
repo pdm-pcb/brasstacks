@@ -9,13 +9,9 @@
 namespace btx {
     class ColorDepthPass;
 
-    class PerspectiveCamera;
-
     class vkImage;
     class vkImageView;
     class vkSampler;
-
-    class vkBuffer;
 
     class vkDescriptorSetLayout;
     class vkDescriptorSet;

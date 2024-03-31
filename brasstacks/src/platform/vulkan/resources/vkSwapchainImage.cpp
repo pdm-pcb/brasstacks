@@ -1,11 +1,6 @@
 #include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/vulkan/resources/vkSwapchainImage.hpp"
 
-#include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
-#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
-
 namespace btx {
 
 // =============================================================================

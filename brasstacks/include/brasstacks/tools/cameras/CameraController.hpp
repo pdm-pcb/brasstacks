@@ -6,7 +6,7 @@
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/tools/cameras/PerspectiveCamera.hpp"
-#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
+#include "brasstacks/platform/vulkan/resources/vmaBuffer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 
@@ -49,7 +49,7 @@ public:
 private:
     static PerspectiveCamera *_perspective_camera;
 
-    static std::vector<std::unique_ptr<vkBuffer>>        _camera_ubos;
+    static std::vector<std::unique_ptr<vmaBuffer>>       _camera_ubos;
     static std::unique_ptr<vkDescriptorSetLayout>        _camera_ubo_layout;
     static std::vector<std::unique_ptr<vkDescriptorSet>> _camera_ubo_sets;
 };

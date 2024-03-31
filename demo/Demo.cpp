@@ -11,7 +11,6 @@
 #include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 #include "brasstacks/platform/vulkan/resources/vkSampler.hpp"
-#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
 
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
