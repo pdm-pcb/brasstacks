@@ -20,6 +20,8 @@ RenderConfig::Offset TargetWindow::_window_position { };
 double TargetWindow::_last_cursor_x { 0.0 };
 double TargetWindow::_last_cursor_y { 0.0 };
 
+bool TargetWindow::_mouse_captured { false };
+
 // =============================================================================
 void TargetWindow::init(std::string_view const app_name) {
     if(::glfwInit() == 0) {
@@ -63,7 +65,7 @@ void TargetWindow::init(std::string_view const app_name) {
     ::glfwSetWindowIconifyCallback(_window,
                                    TargetWindow::_window_iconify_callback);
 
-   ImGuiContext::init_window(_window);
+    ImGuiContext::init_window(_window);
 }
 
 // =============================================================================
@@ -79,12 +81,18 @@ void TargetWindow::capture_mouse() {
     ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     ::glfwGetCursorPos(_window, &_last_cursor_x, &_last_cursor_y);
+
+    _mouse_captured = true;
+    ImGuiContext::set_enabled(false);
 }
 
 // =============================================================================
 void TargetWindow::release_mouse() {
     ::glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+
+    _mouse_captured = false;
+    ImGuiContext::set_enabled(true);
 }
 
 // =============================================================================
@@ -145,7 +153,7 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
                                  [[maybe_unused]] int action,
                                  [[maybe_unused]] int mods)
 {
-    if(ImGuiContext::key_callback_handled()) {
+    if(!_mouse_captured && ImGuiContext::key_callback_handled()) {
         return;
     }
 
@@ -184,7 +192,7 @@ void TargetWindow::_mouse_button_callback([[maybe_unused]] GLFWwindow* window,
                                           [[maybe_unused]] int action,
                                           [[maybe_unused]] int mods)
 {
-    if(ImGuiContext::mouse_button_callback_handled()) {
+    if(!_mouse_captured && ImGuiContext::mouse_button_callback_handled()) {
         return;
     }
 

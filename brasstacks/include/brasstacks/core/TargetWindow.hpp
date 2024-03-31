@@ -49,6 +49,8 @@ private:
     static double _last_cursor_x;
     static double _last_cursor_y;
 
+    static bool _mouse_captured;
+
     static void _calc_window_dimensions();
 
     static void _error_callback(int code, char const *message);

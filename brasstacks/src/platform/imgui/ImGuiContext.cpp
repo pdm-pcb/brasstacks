@@ -15,6 +15,8 @@ std::unique_ptr<vkDescriptorPool> ImGuiContext::_descriptor_pool {
     std::make_unique<vkDescriptorPool>()
 };
 
+bool ImGuiContext::_enabled { true };
+
 // =============================================================================
 void ImGuiContext::init_window(::GLFWwindow *window) {
     ::ImGui::CreateContext();
@@ -88,10 +90,12 @@ void ImGuiContext::record_commands() {
     ::ImGui_ImplVulkan_NewFrame();
     ::ImGui_ImplGlfw_NewFrame();
     ::ImGui::NewFrame();
+    ::ImGui::BeginDisabled(!_enabled);
 
         _draw_menu_bar();
         _draw_perf_window();
 
+    ::ImGui::EndDisabled();
     ::ImGui::EndFrame();
 }
 

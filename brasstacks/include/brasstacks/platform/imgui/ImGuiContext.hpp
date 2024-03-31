@@ -21,6 +21,8 @@ public:
     static void record_commands();
     static void render(vkCmdBuffer const &cmd_buffer);
 
+    static void set_enabled(bool const enabled) { _enabled = enabled; }
+
     static inline bool key_callback_handled() {
         return _io->WantCaptureKeyboard;
     }
@@ -41,6 +43,8 @@ public:
 private:
     static ::ImGuiIO *_io;
     static std::unique_ptr<vkDescriptorPool> _descriptor_pool;
+
+    static bool _enabled;
 
     static void _draw_menu_bar();
     static void _draw_perf_window();
