@@ -3,8 +3,6 @@
 
 #include "brasstacks/core/Renderer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 
 namespace btx {
 PerspectiveCamera *CameraController::_perspective_camera { nullptr };

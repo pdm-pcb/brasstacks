@@ -4,12 +4,10 @@
 #include "brasstacks/pch.hpp"
 #include "brasstacks/assets/meshes/Vertex.hpp"
 #include "brasstacks/assets/meshes/Index.hpp"
-#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
+#include "brasstacks/platform/vulkan/resources/vmaBuffer.hpp"
 
 namespace btx {
 
-class vkDevice;
-class vkBuffer;
 class vkCmdBuffer;
 
 class Mesh {
@@ -31,12 +29,12 @@ protected:
     void _set_indices(std::span<Index const> const indices);
 
 private:
-    std::unique_ptr<vkBuffer>   _vertex_buffer;
+    std::unique_ptr<vmaBuffer>  _vertex_buffer;
     std::vector<Vertex>         _vertex_data;
     std::vector<vk::DeviceSize> _vertex_offsets;
 
-    std::unique_ptr<vkBuffer> _index_buffer;
-    std::vector<Index>        _index_data;
+    std::unique_ptr<vmaBuffer> _index_buffer;
+    std::vector<Index>         _index_data;
 };
 
 } // namespace btx

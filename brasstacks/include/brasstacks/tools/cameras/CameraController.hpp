@@ -6,12 +6,11 @@
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/tools/cameras/PerspectiveCamera.hpp"
+#include "brasstacks/platform/vulkan/resources/vkBuffer.hpp"
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 
 namespace btx {
-
-class vkBuffer;
-class vkDescriptorSetLayout;
-class vkDescriptorSet;
 
 class CameraController {
 public:

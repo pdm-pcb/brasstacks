@@ -54,8 +54,8 @@ void Renderer::shutdown() {
     _descriptor_pool->destroy();
     _destroy_frame_sync();
     _destroy_swapchain();
-    _device->destroy();
     vmaAllocator::destroy();
+    _device->destroy();
     _surface->destroy();
     vkInstance::destroy();
 }

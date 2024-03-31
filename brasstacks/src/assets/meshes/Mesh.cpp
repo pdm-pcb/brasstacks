@@ -7,10 +7,10 @@ namespace btx {
 
 // =============================================================================
 Mesh::Mesh() :
-    _vertex_buffer  { std::make_unique<vkBuffer>() },
+    _vertex_buffer  { std::make_unique<vmaBuffer>() },
     _vertex_data    { },
     _vertex_offsets { },
-    _index_buffer   { std::make_unique<vkBuffer>() },
+    _index_buffer   { std::make_unique<vmaBuffer>() },
     _index_data     { }
 { }
 
@@ -20,9 +20,9 @@ void Mesh::_set_vertices(std::span<Vertex const> const vertices) {
 
     _vertex_buffer->create(sizeof(Vertex) * _vertex_data.size(),
                            (vk::BufferUsageFlagBits::eVertexBuffer |
-                            vk::BufferUsageFlagBits::eTransferDst));
-
-    _vertex_buffer->allocate(vk::MemoryPropertyFlagBits::eDeviceLocal);
+                            vk::BufferUsageFlagBits::eTransferDst),
+                            { },
+                            vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     _vertex_buffer->send_to_device(_vertex_data.data());
 
@@ -35,9 +35,9 @@ void Mesh::_set_indices(std::span<Index const> const indices) {
 
     _index_buffer->create(sizeof(Index) * _index_data.size(),
                           (vk::BufferUsageFlagBits::eIndexBuffer |
-                           vk::BufferUsageFlagBits::eTransferDst));
-
-    _index_buffer->allocate(vk::MemoryPropertyFlagBits::eDeviceLocal);
+                           vk::BufferUsageFlagBits::eTransferDst),
+                          { },
+                          vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     _index_buffer->send_to_device(_index_data.data());
 };

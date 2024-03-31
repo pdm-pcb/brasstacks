@@ -74,7 +74,7 @@ void vkBuffer::allocate(vk::MemoryPropertyFlags const flags) {
     // allocation we're after is the whole size of the buffer we've already
     // described with no offset.
     vk::MemoryRequirements mem_reqs { };
-    Renderer::device().native().getBufferMemoryRequirements(_handle, &mem_reqs);
+    _device.getBufferMemoryRequirements(_handle, &mem_reqs);
 
     // This function call will check the joint requirements of ourselves and
     // the logical device against the types of memory offered by the physical
@@ -88,7 +88,7 @@ void vkBuffer::allocate(vk::MemoryPropertyFlags const flags) {
         .memoryTypeIndex = type_index,
     };
 
-    _memory_handle = Renderer::device().native().allocateMemory(alloc_info);
+    _memory_handle = _device.allocateMemory(alloc_info);
     BTX_TRACE("\n\tAllocated {} bytes: Device memory {}"
               "\n\tFor buffer {}",
               _size_bytes, _memory_handle, _handle);

@@ -33,10 +33,12 @@ void vmaBuffer::create(vk::DeviceSize size_bytes,
 
     _size_bytes = size_bytes;
 
-    vk::BufferCreateInfo const buffer_create_info {
+    ::VkBufferCreateInfo const buffer_create_info {
+        .sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext                 = nullptr,
         .size                  = _size_bytes,
-        .usage                 = usage_flags,
-        .sharingMode           = vk::SharingMode::eExclusive,
+        .usage                 = ::VkBufferUsageFlags(usage_flags),
+        .sharingMode           = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0u,
         .pQueueFamilyIndices   = nullptr,
     };
@@ -44,7 +46,7 @@ void vmaBuffer::create(vk::DeviceSize size_bytes,
     ::VmaAllocationCreateInfo const alloc_create_info {
         .flags = create_flags,
         .usage = VMA_MEMORY_USAGE_AUTO,
-        .requiredFlags = VkMemoryPropertyFlags(flags),
+        .requiredFlags = ::VkMemoryPropertyFlags(flags),
         .preferredFlags = { },
         .memoryTypeBits = { },
         .pool = { },
@@ -54,14 +56,14 @@ void vmaBuffer::create(vk::DeviceSize size_bytes,
 
     ::vmaCreateBuffer(
         vmaAllocator::native(),
-        &VkBufferCreateInfo(buffer_create_info),
+        &buffer_create_info,
         &alloc_create_info,
-        reinterpret_cast<VkBuffer *>(&_handle),
+        reinterpret_cast<::VkBuffer *>(&_handle),
         &_memory_handle,
         &_alloc_info
     );
 
-    BTX_TRACE("Created buffer {}, freeing device memory {:#x}",
+    BTX_TRACE("Created buffer {} and device memory {:#x}",
               _handle, reinterpret_cast<uint64_t>(_memory_handle));
 }
 
@@ -102,6 +104,8 @@ void vmaBuffer::send_to_device(void const *data) const {
         (VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
          VMA_ALLOCATION_CREATE_MAPPED_BIT)
     );
+
+    BTX_INFO("STAGING BUFFER {}", staging_buffer.native());
 
     ::memcpy(staging_buffer.alloc_info().pMappedData, data, _size_bytes);
 
