@@ -67,15 +67,24 @@ ImGuiContext::create_swapchain_resources(vkColorDepthPass const &render_pass) {
         .Device         = Renderer::device().native(),
         .QueueFamily    = vkPhysicalDevice::graphics_queue_index(),
         .Queue          = Renderer::device().graphics_queue().native(),
-        .PipelineCache  = nullptr,
         .DescriptorPool = _descriptor_pool->native(),
-        .Subpass        = 0u,
+        .RenderPass     = render_pass.native(),
         .MinImageCount  = image_count,
         .ImageCount     = image_count,
         .MSAASamples    = VkSampleCountFlagBits(render_pass.msaa_samples()),
+
+        .PipelineCache = nullptr,
+        .Subpass       = 0u,
+
+        .UseDynamicRendering         = false,
+        .PipelineRenderingCreateInfo = { },
+
+        .Allocator = nullptr,
+        .CheckVkResultFn = nullptr,
+        .MinAllocationSize  = 1024*1024,
     };
 
-    ::ImGui_ImplVulkan_Init(&init_info, render_pass.native());
+    ::ImGui_ImplVulkan_Init(&init_info);
 }
 
 // =============================================================================

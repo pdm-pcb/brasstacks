@@ -33,9 +33,6 @@ private:
     ::VmaAllocation     _memory_handle;
     vk::DeviceSize      _size_bytes;
     ::VmaAllocationInfo _alloc_info;
-
-    static uint32_t _get_memory_type_index(vk::MemoryPropertyFlags const flags,
-                                           vk::MemoryRequirements const &reqs);
 };
 
 } // namespace btx

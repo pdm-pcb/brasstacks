@@ -19,12 +19,14 @@ target_sources(
 target_include_directories(
     ${target_name} SYSTEM PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+    "${PROJECT_SOURCE_DIR}/brasstacks/include/"
 )
 
 target_link_libraries(
     ${target_name} PUBLIC
-    Vulkan::Vulkan
     glfw
+    Vulkan::Vulkan
+    GPUOpen::VulkanMemoryAllocator
 )
 
 add_debug_flags(${target_name})

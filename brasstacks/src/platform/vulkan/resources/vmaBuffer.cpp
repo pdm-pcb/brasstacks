@@ -54,14 +54,20 @@ void vmaBuffer::create(vk::DeviceSize size_bytes,
         .priority = 0.0f,
     };
 
-    ::vmaCreateBuffer(
+    auto const result = vk::Result(::vmaCreateBuffer(
         vmaAllocator::native(),
         &buffer_create_info,
         &alloc_create_info,
         reinterpret_cast<::VkBuffer *>(&_handle),
         &_memory_handle,
         &_alloc_info
-    );
+    ));
+
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to create buffer of size {}: '{}'",
+                     _size_bytes, vk::to_string(result));
+        return;
+    }
 
     BTX_TRACE("Created buffer {} and device memory {:#x}",
               _handle, reinterpret_cast<uint64_t>(_memory_handle));
@@ -128,38 +134,6 @@ void vmaBuffer::send_to_device(void const *data) const {
     cmd_buffer.free();
 
     staging_buffer.destroy();
-}
-
-// =============================================================================
-uint32_t vmaBuffer::_get_memory_type_index(vk::MemoryPropertyFlags const flags,
-                                          vk::MemoryRequirements const &reqs)
-{
-    auto const &memory_props = vkPhysicalDevice::memory_properties();
-    auto const type_count = memory_props.memoryTypeCount;
-
-    // This bit-rithmetic bears some explanation. We're checking two bit fields
-    // against our requirements for the memory itself.
-
-    for(uint32_t type_index = 0u; type_index < type_count; ++type_index) {
-        auto const type = memory_props.memoryTypes[type_index];
-
-        // Each type index is actually a field in memoryTypeBits. If the index
-        // we're currently on is enabled, that means we've found a matching
-        // memory type.
-
-        if((reqs.memoryTypeBits & (1u << type_index)) != 0u) {
-            // The second check is against the memory properties. This can be
-            // any combination of local to the CPU, local to the GPU, visible
-            // to the CPU or not, and more.
-
-            if(type.propertyFlags & flags) {
-                return type_index;
-            }
-        }
-    }
-
-    BTX_CRITICAL("Could not find memory to match buffer requirements.");
-    return std::numeric_limits<uint32_t>::max();
 }
 
 } // namespace btx
