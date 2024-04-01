@@ -128,6 +128,8 @@ void ImGuiContext::render(vkCmdBuffer const &cmd_buffer) {
 
 // =============================================================================
 void ImGuiContext::_draw_menu_bar() {
+    static std::string res_name;
+
     if(::ImGui::BeginMainMenuBar()) {
         if(::ImGui::BeginMenu("Application")) {
             if(::ImGui::MenuItem("Exit", "Esc")) {
@@ -139,7 +141,6 @@ void ImGuiContext::_draw_menu_bar() {
         if(::ImGui::BeginMenu("Settings")) {
             if(::ImGui::BeginMenu("Resolution")) {
                 for(auto &res : RenderConfig::resolutions) {
-                    static std::string res_name;
                     res_name = fmt::format("{}x{}", res.size.width,
                                                     res.size.height);
 
@@ -168,20 +169,21 @@ void ImGuiContext::_draw_menu_bar() {
 // =============================================================================
 void ImGuiContext::_draw_status_bar() {
     auto const *viewport = ::ImGui::GetMainViewport();
-    auto const y_offset = _style->FramePadding.y * 2.0f + ImGui::GetFontSize();
+    auto const y_offset = (_style->FramePadding.y * 2.0f)
+                          + ::ImGui::GetFontSize();
 
     ::ImVec2 const pos(viewport->Pos.x,
                        viewport->Pos.y + (viewport->Size.y - y_offset));
 
     ::ImVec2 const size(viewport->Size.x, 1.0f);
 
-    ::ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
-    ::ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+    ::ImGui::SetNextWindowPos(pos, ::ImGuiCond_Always);
+    ::ImGui::SetNextWindowSize(size, ::ImGuiCond_Always);
 
-    ::ImGui::Begin("StatusBar", nullptr, (ImGuiWindowFlags_NoDecoration
-                                          | ImGuiWindowFlags_NoMove
-                                          | ImGuiWindowFlags_NoNav
-                                          | ImGuiWindowFlags_MenuBar));
+    ::ImGui::Begin("StatusBar", nullptr, (::ImGuiWindowFlags_NoDecoration
+                                          | ::ImGuiWindowFlags_NoMove
+                                          | ::ImGuiWindowFlags_NoNav
+                                          | ::ImGuiWindowFlags_MenuBar));
     ::ImGui::BeginMenuBar();
     ::ImGui::BeginTable("StatusBarTable", 3);
         ::ImGui::TableNextRow();
