@@ -10,6 +10,7 @@
 namespace btx {
 
 ::ImGuiIO *ImGuiContext::_io { nullptr };
+::ImGuiStyle *ImGuiContext::_style { nullptr };
 
 std::unique_ptr<vkDescriptorPool> ImGuiContext::_descriptor_pool {
     std::make_unique<vkDescriptorPool>()
@@ -24,13 +25,16 @@ void ImGuiContext::init_window(::GLFWwindow *window) {
     ::ImGui::StyleColorsDark();
 
     _io = &::ImGui::GetIO();
+    _io->IniFilename = nullptr;
+    _io->LogFilename = nullptr;
 
-    auto const font_size = std::floorf(16.0f * TargetWindow::scale_factor());
+    _style = &::ImGui::GetStyle();
+    _style->ScaleAllSizes(TargetWindow::scale_factor());
 
     _io->Fonts->AddFontFromMemoryCompressedTTF(
         &FiraMono_compressed_data,
         FiraMono_compressed_size,
-        font_size
+        16.0f
     );
 }
 
@@ -93,6 +97,7 @@ void ImGuiContext::record_commands() {
     ::ImGui::BeginDisabled(!_enabled);
 
         _draw_menu_bar();
+        // ::ImGui::ShowDemoWindow();
         _draw_perf_window();
 
     ::ImGui::EndDisabled();
@@ -120,59 +125,49 @@ void ImGuiContext::_draw_menu_bar() {
 }
 
 // =============================================================================
-// struct TimeGraphState {
-//     std::array<float, 64> points { };
-//     const char* name = "Unassigned";
-// };
+struct TimeGraphState {
+    std::array<float, 64> points { };
+    const char* name = "Unassigned";
+};
 
-// static void plotTimeGraph(float _newPoint, TimeGraphState& _rGraphState) {
-//     std::rotate(_rGraphState.points.begin(),
-//                 _rGraphState.points.begin() + 1,
-//                 _rGraphState.points.end());
+static void plotTimeGraph(float _newPoint, TimeGraphState& _rGraphState) {
+    std::rotate(_rGraphState.points.begin(),
+                _rGraphState.points.begin() + 1,
+                _rGraphState.points.end());
 
-//     _rGraphState.points.back() = _newPoint;
+    _rGraphState.points.back() = _newPoint;
 
-//     static char title[64];
-//     sprintf(title, "%s Time: %.2f ms", _rGraphState.name, _newPoint);
+    static char title[64];
+    sprintf(title, "%s Time: %.2f ms", _rGraphState.name, _newPoint);
 
-//     float kMinPlotValue = 0.0f;
-//     float kMaxPlotValue = 20.0f;
-//     ImGui::PlotLines(
-//         "",
-//         &_rGraphState.points[0],
-//         static_cast<int>(_rGraphState.points.size()),
-//         0,
-//         title,
-//         kMinPlotValue,
-//         kMaxPlotValue,
-//         ImVec2(300.0f, 50.0f)
-//     );
-// }
+    float kMinPlotValue = 0.0f;
+    float kMaxPlotValue = 20.0f;
+    ImGui::PlotLines(
+        "",
+        &_rGraphState.points[0],
+        static_cast<int>(_rGraphState.points.size()),
+        0,
+        title,
+        kMinPlotValue,
+        kMaxPlotValue,
+        ImVec2(300.0f, 50.0f)
+    );
+}
 
 void ImGuiContext::_draw_perf_window() {
-    // static bool bWindowHovered = false;
+    ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
 
-    // ImGui::SetNextWindowPos(ImVec2(25, 30), ImGuiCond_FirstUseEver);
-    // ImGui::SetNextWindowBgAlpha(bWindowHovered ? 0.8f : 0.4f);
+    ImGui::Begin("Performance", nullptr, (ImGuiWindowFlags_AlwaysAutoResize
+                                          | ImGuiWindowFlags_NoCollapse
+                                          | ImGuiWindowFlags_NoMove));
 
-    // ImGui::Begin("Performance",
-    //              nullptr,
-    //              (ImGuiWindowFlags_AlwaysAutoResize
-    //               | ImGuiWindowFlags_NoCollapse));
+        ImGui::Text("Device: %s", vkPhysicalDevice::name().data());
+        ImGui::Separator();
 
-    // bWindowHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_None);
+        static TimeGraphState timeGraph { .name = "Frame Time" };
+        plotTimeGraph(1.e3f * TimeKeeper::delta_time(), timeGraph);
 
-    // ImGui::Text("Device: %s", vkPhysicalDevice::name().data());
-    // ImGui::Separator();
-
-    // {
-    //     static TimeGraphState timeGraph {
-    //         .name = "Frame Time"
-    //     };
-    //     plotTimeGraph(1.e3f * TimeKeeper::delta_time(), timeGraph);
-    // }
-
-    // ImGui::End();
+    ImGui::End();
 }
 
 } // namespace btx

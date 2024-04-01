@@ -42,6 +42,8 @@ public:
 
 private:
     static ::ImGuiIO *_io;
+    static ::ImGuiStyle *_style;
+
     static std::unique_ptr<vkDescriptorPool> _descriptor_pool;
 
     static bool _enabled;
