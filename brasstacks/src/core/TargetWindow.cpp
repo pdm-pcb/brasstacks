@@ -57,7 +57,9 @@ void TargetWindow::init(std::string_view const app_name) {
     }
 
     // Default to 75% of screen size
-    size_and_place(RenderConfig::resolutions[1]);
+    RenderConfig::resolutions[1].selected = true;
+    RenderConfig::current_resolution = &RenderConfig::resolutions[1];
+    size_and_place(RenderConfig::resolutions[1].size);
 
     ::glfwSetKeyCallback(_window, TargetWindow::_key_callback);
     ::glfwSetMouseButtonCallback(_window, TargetWindow::_mouse_button_callback);
@@ -114,9 +116,14 @@ void TargetWindow::size_and_place(RenderConfig::Size const &size) {
                             static_cast<int>(_window_size.height));
     }
 
+    auto const half_width  = static_cast<float>(_window_size.width)  * 0.5f;
+    auto const half_height = static_cast<float>(_window_size.height) * 0.5f;
+
     _window_position = {
-        .x = static_cast<int32_t>(_screen_center.x - (_window_size.width * 0.5f)),
-        .y = static_cast<int32_t>(_screen_center.y - (_window_size.height * 0.5f)),
+        .x = (static_cast<int32_t>(_screen_center.x)
+              - static_cast<int32_t>(half_width)),
+        .y = (static_cast<int32_t>(_screen_center.y)
+              - static_cast<int32_t>(half_height)),
     };
 
     ::glfwSetWindowPos(_window, _window_position.x, _window_position.y);
@@ -152,23 +159,35 @@ void TargetWindow::_get_resolutions() {
 
     // Windowed full screen
     RenderConfig::resolutions[0] = {
-        .width = static_cast<uint32_t>(width),
-        .height = static_cast<uint32_t>(height),
+        .size {
+            .width = static_cast<uint32_t>(width),
+            .height = static_cast<uint32_t>(height),
+        },
+        .selected = false,
     };
 
     RenderConfig::resolutions[1] = {
-        .width = static_cast<uint32_t>(width * 0.75f),
-        .height = static_cast<uint32_t>(height * 0.75f),
+        .size {
+            .width = static_cast<uint32_t>(width * 0.75f),
+            .height = static_cast<uint32_t>(height * 0.75f),
+        },
+        .selected = false,
     };
 
     RenderConfig::resolutions[2] = {
-        .width = static_cast<uint32_t>(width * 0.5f),
-        .height = static_cast<uint32_t>(height * 0.5f),
+        .size {
+            .width = static_cast<uint32_t>(width * 0.5f),
+            .height = static_cast<uint32_t>(height * 0.5f),
+        },
+        .selected = false,
     };
 
     RenderConfig::resolutions[3] = {
-        .width = static_cast<uint32_t>(width * 0.25f),
-        .height = static_cast<uint32_t>(height * 0.25f),
+        .size {
+            .width = static_cast<uint32_t>(width * 0.25f),
+            .height = static_cast<uint32_t>(height * 0.25f),
+        },
+        .selected = false
     };
 }
 

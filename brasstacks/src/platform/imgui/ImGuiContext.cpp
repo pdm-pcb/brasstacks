@@ -28,14 +28,17 @@ void ImGuiContext::init_window(::GLFWwindow *window) {
     _io->IniFilename = nullptr;
     _io->LogFilename = nullptr;
 
-    _style = &::ImGui::GetStyle();
-    _style->ScaleAllSizes(TargetWindow::scale_factor());
-
     _io->Fonts->AddFontFromMemoryCompressedTTF(
         &FiraMono_compressed_data,
         FiraMono_compressed_size,
         16.0f
     );
+
+    _style = &::ImGui::GetStyle();
+    _style->ScaleAllSizes(TargetWindow::scale_factor());
+
+    _style->Alpha = 0.75f;
+    _style->DisabledAlpha = 0.33f;
 }
 
 // =============================================================================
@@ -106,6 +109,7 @@ void ImGuiContext::record_commands() {
     ::ImGui::BeginDisabled(!_enabled);
 
         _draw_menu_bar();
+        _draw_status_bar();
         // ::ImGui::ShowDemoWindow();
         // _draw_perf_window();
 
@@ -124,7 +128,7 @@ void ImGuiContext::render(vkCmdBuffer const &cmd_buffer) {
 void ImGuiContext::_draw_menu_bar() {
     if(::ImGui::BeginMainMenuBar()) {
         if(::ImGui::BeginMenu("Application")) {
-            if(::ImGui::MenuItem("Exit")) {
+            if(::ImGui::MenuItem("Exit", "Esc")) {
                 EventBus::publish(WindowEvent(WindowEventType::WINDOW_CLOSE));
             }
 
@@ -132,14 +136,19 @@ void ImGuiContext::_draw_menu_bar() {
         }
         if(::ImGui::BeginMenu("Settings")) {
             if(::ImGui::BeginMenu("Resolution")) {
-                for(auto const &res : RenderConfig::resolutions) {
+                for(auto &res : RenderConfig::resolutions) {
                     static std::string res_name;
-                    res_name = fmt::format("{}x{}", res.width, res.height);
-                    if(::ImGui::MenuItem(res_name.c_str())) {
-                        TargetWindow::size_and_place({
-                            .width = res.width,
-                            .height = res.height
-                        });
+                    res_name = fmt::format("{}x{}", res.size.width,
+                                                    res.size.height);
+
+                    if(::ImGui::MenuItem(res_name.c_str(), "", &res.selected)) {
+                        TargetWindow::size_and_place(res.size);
+                        RenderConfig::current_resolution = &res;
+                        for(auto &other_res : RenderConfig::resolutions) {
+                            if(&res != &other_res) {
+                                other_res.selected = false;
+                            }
+                        }
                     }
                 }
 
@@ -153,49 +162,35 @@ void ImGuiContext::_draw_menu_bar() {
 }
 
 // =============================================================================
-struct TimeGraphState {
-    std::array<float, 64> points { };
-    const char* name = "Unassigned";
-};
+void ImGuiContext::_draw_status_bar() {
+    auto const *viewport = ::ImGui::GetMainViewport();
+    auto const y_offset = _style->FramePadding.y * 2.0f + ImGui::GetFontSize();
 
-static void plotTimeGraph(float _newPoint, TimeGraphState& _rGraphState) {
-    std::rotate(_rGraphState.points.begin(),
-                _rGraphState.points.begin() + 1,
-                _rGraphState.points.end());
+    ::ImVec2 const pos(viewport->Pos.x,
+                       viewport->Pos.y + (viewport->Size.y - y_offset));
 
-    _rGraphState.points.back() = _newPoint;
+    ::ImVec2 const size(viewport->Size.x, 1.0f);
 
-    static char title[64];
-    sprintf(title, "%s Time: %.2f ms", _rGraphState.name, _newPoint);
+    ::ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
+    ::ImGui::SetNextWindowSize(size, ImGuiCond_Always);
 
-    float kMinPlotValue = 0.0f;
-    float kMaxPlotValue = 20.0f;
-    ImGui::PlotLines(
-        "",
-        &_rGraphState.points[0],
-        static_cast<int>(_rGraphState.points.size()),
-        0,
-        title,
-        kMinPlotValue,
-        kMaxPlotValue,
-        ImVec2(300.0f, 50.0f)
-    );
-}
-
-void ImGuiContext::_draw_perf_window() {
-    ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
-
-    ImGui::Begin("Performance", nullptr, (ImGuiWindowFlags_AlwaysAutoResize
-                                          | ImGuiWindowFlags_NoCollapse
-                                          | ImGuiWindowFlags_NoMove));
-
-        ImGui::Text("Device: %s", vkPhysicalDevice::name().data());
-        ImGui::Separator();
-
-        static TimeGraphState timeGraph { .name = "Frame Time" };
-        plotTimeGraph(1.e3f * TimeKeeper::delta_time(), timeGraph);
-
-    ImGui::End();
+    ::ImGui::Begin("StatusBar", nullptr, (ImGuiWindowFlags_NoDecoration
+                                          | ImGuiWindowFlags_NoMove
+                                          | ImGuiWindowFlags_NoNav
+                                          | ImGuiWindowFlags_MenuBar));
+    ::ImGui::BeginMenuBar();
+    ::ImGui::BeginTable("StatusBarTable", 2);
+        ::ImGui::TableNextRow();
+        ::ImGui::TableSetColumnIndex(0);
+        ::ImGui::Text("CPU Time: %.06f",
+                      static_cast<double>(TimeKeeper::delta_time()));
+        ::ImGui::TableNextColumn();
+        ::ImGui::Text("Resolution: %ux%u",
+                      RenderConfig::current_resolution->size.width,
+                      RenderConfig::current_resolution->size.height);
+    ::ImGui::EndTable();
+    ::ImGui::EndMenuBar();
+    ::ImGui::End();
 }
 
 } // namespace btx

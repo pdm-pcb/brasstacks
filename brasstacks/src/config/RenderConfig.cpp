@@ -8,6 +8,8 @@ float RenderConfig::anisotropy { 1.0f };
 
 uint8_t RenderConfig::msaa_samples { 1u };
 
-std::array<RenderConfig::Size, 4> RenderConfig::resolutions { };
+RenderConfig::SelectedResolution *RenderConfig::current_resolution { nullptr };
+
+std::array<RenderConfig::SelectedResolution, 4> RenderConfig::resolutions { };
 
 } // namespace btx

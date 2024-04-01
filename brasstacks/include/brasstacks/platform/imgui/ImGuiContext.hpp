@@ -49,6 +49,7 @@ private:
     static bool _enabled;
 
     static void _draw_menu_bar();
+    static void _draw_status_bar();
     static void _draw_perf_window();
 };
 
