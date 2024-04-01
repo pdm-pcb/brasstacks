@@ -33,18 +33,17 @@ void TargetWindow::init(std::string_view const app_name) {
 
     ::glfwSetErrorCallback(TargetWindow::_error_callback);
 
-    _calc_window_dimensions();
+    _get_resolutions();
 
     ::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     ::glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     ::glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
     _window = ::glfwCreateWindow(
-        static_cast<int>(_window_size.width),
-        static_cast<int>(_window_size.height),
-        app_name.data(),
-        nullptr,
-        nullptr
+        320, 240,        // Default size that'll change immediately
+        app_name.data(), // Window title/class/etc
+        nullptr,         // Default monitor
+        nullptr          // No shared resources
     );
 
     if(_window == nullptr) {
@@ -57,7 +56,8 @@ void TargetWindow::init(std::string_view const app_name) {
         return;
     }
 
-    ::glfwSetWindowPos(_window, _window_position.x, _window_position.y);
+    // Default to 75% of screen size
+    size_and_place(RenderConfig::resolutions[1]);
 
     ::glfwSetKeyCallback(_window, TargetWindow::_key_callback);
     ::glfwSetMouseButtonCallback(_window, TargetWindow::_mouse_button_callback);
@@ -106,6 +106,23 @@ void TargetWindow::poll_events() {
 }
 
 // =============================================================================
+void TargetWindow::size_and_place(RenderConfig::Size const &size) {
+    if(size.width != 0u && size.height != 0u) {
+        _window_size = size;
+        ::glfwSetWindowSize(_window,
+                            static_cast<int>(_window_size.width),
+                            static_cast<int>(_window_size.height));
+    }
+
+    _window_position = {
+        .x = static_cast<int32_t>(_screen_center.x - (_window_size.width * 0.5f)),
+        .y = static_cast<int32_t>(_screen_center.y - (_window_size.height * 0.5f)),
+    };
+
+    ::glfwSetWindowPos(_window, _window_position.x, _window_position.y);
+}
+
+// =============================================================================
 float TargetWindow::scale_factor() {
     float x;
     float y;
@@ -121,23 +138,37 @@ float TargetWindow::scale_factor() {
 }
 
 // =============================================================================
-void TargetWindow::_calc_window_dimensions() {
+void TargetWindow::_get_resolutions() {
     auto const *video_mode = ::glfwGetVideoMode(::glfwGetPrimaryMonitor());
 
-    auto const width  = static_cast<float>(video_mode->width)  * 0.75f;
-    auto const height = static_cast<float>(video_mode->height) * 0.75f;
+    // NGrab some temporaries for populating fractional sizes
+    auto const width = static_cast<float>(video_mode->width);
+    auto const height = static_cast<float>(video_mode->height);
 
-    _window_size = {
-        .width  = static_cast<uint32_t>(width),
+    _screen_center = {
+        .x = static_cast<int32_t>(width * 0.5f),
+        .y = static_cast<int32_t>(height * 0.5f)
+    };
+
+    // Windowed full screen
+    RenderConfig::resolutions[0] = {
+        .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
     };
 
-    auto const center_x = static_cast<float>(video_mode->width) * 0.5f;
-    auto const center_y = static_cast<float>(video_mode->height) * 0.5f;
+    RenderConfig::resolutions[1] = {
+        .width = static_cast<uint32_t>(width * 0.75f),
+        .height = static_cast<uint32_t>(height * 0.75f),
+    };
 
-    _window_position = {
-        .x = static_cast<int32_t>(center_x - (width * 0.5f)),
-        .y = static_cast<int32_t>(center_y - (height * 0.5f)),
+    RenderConfig::resolutions[2] = {
+        .width = static_cast<uint32_t>(width * 0.5f),
+        .height = static_cast<uint32_t>(height * 0.5f),
+    };
+
+    RenderConfig::resolutions[3] = {
+        .width = static_cast<uint32_t>(width * 0.25f),
+        .height = static_cast<uint32_t>(height * 0.25f),
     };
 }
 

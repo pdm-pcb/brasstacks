@@ -16,7 +16,7 @@ struct RenderConfig final {
 
     static uint8_t msaa_samples;
 
-    static uint8_t display_bit_depth;
+    static std::array<Size, 4> resolutions;
 };
 
 } // namespace btx

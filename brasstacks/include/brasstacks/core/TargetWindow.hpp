@@ -19,6 +19,8 @@ public:
 
     static void poll_events();
 
+    static void size_and_place(RenderConfig::Size const &size = { });
+
 #ifdef BTX_LINUX
     static inline auto native() { return ::glfwGetX11Window(_window); }
     static inline auto * display() { return ::glfwGetX11Display(); }
@@ -51,7 +53,7 @@ private:
 
     static bool _mouse_captured;
 
-    static void _calc_window_dimensions();
+    static void _get_resolutions();
 
     static void _error_callback(int code, char const *message);
 

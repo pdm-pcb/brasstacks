@@ -107,7 +107,7 @@ void ImGuiContext::record_commands() {
 
         _draw_menu_bar();
         // ::ImGui::ShowDemoWindow();
-        _draw_perf_window();
+        // _draw_perf_window();
 
     ::ImGui::EndDisabled();
     ::ImGui::EndFrame();
@@ -127,6 +127,25 @@ void ImGuiContext::_draw_menu_bar() {
             if(::ImGui::MenuItem("Exit")) {
                 EventBus::publish(WindowEvent(WindowEventType::WINDOW_CLOSE));
             }
+
+            ::ImGui::EndMenu();
+        }
+        if(::ImGui::BeginMenu("Settings")) {
+            if(::ImGui::BeginMenu("Resolution")) {
+                for(auto const &res : RenderConfig::resolutions) {
+                    static std::string res_name;
+                    res_name = fmt::format("{}x{}", res.width, res.height);
+                    if(::ImGui::MenuItem(res_name.c_str())) {
+                        TargetWindow::size_and_place({
+                            .width = res.width,
+                            .height = res.height
+                        });
+                    }
+                }
+
+                ::ImGui::EndMenu();
+            }
+
             ::ImGui::EndMenu();
         }
         ::ImGui::EndMainMenuBar();
