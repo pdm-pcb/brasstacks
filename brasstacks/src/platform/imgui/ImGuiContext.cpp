@@ -7,6 +7,8 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
 
+#include "brasstacks/events/menu_events.hpp"
+
 namespace btx {
 
 ::ImGuiIO *ImGuiContext::_io { nullptr };
@@ -129,7 +131,7 @@ void ImGuiContext::_draw_menu_bar() {
     if(::ImGui::BeginMainMenuBar()) {
         if(::ImGui::BeginMenu("Application")) {
             if(::ImGui::MenuItem("Exit", "Esc")) {
-                EventBus::publish(WindowEvent(WindowEventType::WINDOW_CLOSE));
+                EventBus::publish(MenuEvent(MenuEventType::MENU_EXIT));
             }
 
             ::ImGui::EndMenu();
@@ -142,13 +144,15 @@ void ImGuiContext::_draw_menu_bar() {
                                                     res.size.height);
 
                     if(::ImGui::MenuItem(res_name.c_str(), "", &res.selected)) {
-                        TargetWindow::size_and_place(res.size);
                         RenderConfig::current_resolution = &res;
                         for(auto &other_res : RenderConfig::resolutions) {
                             if(&res != &other_res) {
                                 other_res.selected = false;
                             }
                         }
+                        EventBus::publish(
+                            MenuEvent(MenuEventType::MENU_CHANGE_WINDOW_SIZE)
+                        );
                     }
                 }
 
@@ -179,15 +183,17 @@ void ImGuiContext::_draw_status_bar() {
                                           | ImGuiWindowFlags_NoNav
                                           | ImGuiWindowFlags_MenuBar));
     ::ImGui::BeginMenuBar();
-    ::ImGui::BeginTable("StatusBarTable", 2);
+    ::ImGui::BeginTable("StatusBarTable", 3);
         ::ImGui::TableNextRow();
         ::ImGui::TableSetColumnIndex(0);
-        ::ImGui::Text("CPU Time: %.06f",
-                      static_cast<double>(TimeKeeper::delta_time()));
+        ::ImGui::Text("Device: %s", vkPhysicalDevice::name().data());
         ::ImGui::TableNextColumn();
         ::ImGui::Text("Resolution: %ux%u",
                       RenderConfig::current_resolution->size.width,
                       RenderConfig::current_resolution->size.height);
+        ::ImGui::TableNextColumn();
+        ::ImGui::Text("CPU Time: %.06f",
+                      static_cast<double>(TimeKeeper::delta_time()));
     ::ImGui::EndTable();
     ::ImGui::EndMenuBar();
     ::ImGui::End();

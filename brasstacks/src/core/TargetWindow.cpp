@@ -111,10 +111,13 @@ void TargetWindow::poll_events() {
 void TargetWindow::size_and_place(RenderConfig::Size const &size) {
     if(size.width != 0u && size.height != 0u) {
         _window_size = size;
-        ::glfwSetWindowSize(_window,
-                            static_cast<int>(_window_size.width),
-                            static_cast<int>(_window_size.height));
     }
+    else {
+        _window_size = RenderConfig::current_resolution->size;
+    }
+    ::glfwSetWindowSize(_window,
+                        static_cast<int>(_window_size.width),
+                        static_cast<int>(_window_size.height));
 
     auto const half_width  = static_cast<float>(_window_size.width)  * 0.5f;
     auto const half_height = static_cast<float>(_window_size.height) * 0.5f;

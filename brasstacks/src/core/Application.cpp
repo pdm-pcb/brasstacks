@@ -16,6 +16,7 @@ Application::Application(std::string_view const app_name) :
     _running             { true },
     _state_events        { *this, &Application::_state_transition },
     _window_events       { *this, &Application::_window_event },
+    _menu_events         { *this, &Application::_menu_event },
     _keyboard_events     { *this, &Application::_keyboard_event },
     _mouse_button_events { *this, &Application::_mouse_button_event }
 {
@@ -23,6 +24,7 @@ Application::Application(std::string_view const app_name) :
 
     _state_events.subscribe();
     _window_events.subscribe();
+    _menu_events.subscribe();
     _keyboard_events.subscribe();
     _mouse_button_events.subscribe();
 
@@ -66,6 +68,7 @@ void Application::run() {
 void Application::_process_events() {
     _state_events.process_queue();
     _window_events.process_queue();
+    _menu_events.process_queue();
     _keyboard_events.process_queue();
     _mouse_button_events.process_queue();
 }
@@ -109,6 +112,18 @@ void Application::_window_event(WindowEvent const &event) {
         BTX_TRACE("Application received window restore.");
         _state_events.clear();
         _state_transition(AppStateTransition(_state_to_resume));
+    }
+}
+
+// =============================================================================
+void Application::_menu_event(MenuEvent const &event) {
+    if(event.event_type == MenuEventType::MENU_EXIT) {
+        BTX_TRACE("Application received menu exit.");
+        _running = false;
+    }
+    else if(event.event_type == MenuEventType::MENU_CHANGE_WINDOW_SIZE) {
+        BTX_TRACE("Application received menu change window size.");
+        TargetWindow::size_and_place();
     }
 }
 
