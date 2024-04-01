@@ -31,7 +31,7 @@ void ImGuiContext::init_window(::GLFWwindow *window) {
     _io->Fonts->AddFontFromMemoryCompressedTTF(
         &FiraMono_compressed_data,
         FiraMono_compressed_size,
-        16.0f
+        20.0f
     );
 
     _style = &::ImGui::GetStyle();
