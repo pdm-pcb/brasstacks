@@ -15,9 +15,7 @@ namespace btx {
 vkColorDepthPass::vkColorDepthPass() :
     vkRenderPassBase { },
     _depth_format { vk::Format::eUndefined },
-    _msaa_samples {
-        vkPipeline::samples_to_flag(RenderConfig::current_msaa)
-    },
+    _msaa_samples { vkPipeline::samples_to_flag(RenderConfig::current_msaa) },
     _color_buffers           { },
     _color_views             { },
     _depth_buffer            { std::make_unique<vkImage>() },
