@@ -60,11 +60,11 @@ void vkSampler::create(vk::Filter const min_filter,
         "\n\tAddress V:  {}"
         "\n\tAnisotropy: {}",
         _handle,
-        to_string(create_info.magFilter),
-        to_string(create_info.minFilter),
-        to_string(create_info.mipmapMode),
-        to_string(create_info.addressModeU),
-        to_string(create_info.addressModeV),
+        vk::to_string(create_info.magFilter),
+        vk::to_string(create_info.minFilter),
+        vk::to_string(create_info.mipmapMode),
+        vk::to_string(create_info.addressModeU),
+        vk::to_string(create_info.addressModeV),
         create_info.maxAnisotropy
     );
 }

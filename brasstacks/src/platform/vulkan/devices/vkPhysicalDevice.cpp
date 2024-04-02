@@ -369,8 +369,9 @@ void vkPhysicalDevice::_get_msaa_levels() {
     if(_chosen_device.max_samples & vk::SampleCountFlagBits::e2) {
         RenderConfig::available_msaa.push_back(2u);
     }
-
-    RenderConfig::available_msaa.push_back(1u);
+    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e1) {
+        RenderConfig::available_msaa.push_back(1u);
+    }
 }
 
 // =============================================================================
@@ -385,4 +386,5 @@ void vkPhysicalDevice::_get_aniso_levels() {
     }
 
 }
+
 } // namespace btx
