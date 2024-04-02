@@ -249,7 +249,7 @@ void vkPipeline::unbind() {
 
 // =============================================================================
 void
-vkPipeline::send_push_constants(std::span<PushConstant> const push_constants) {
+vkPipeline::send_push_constants(std::span<PushConstant const> const push_constants) {
     size_t offset = 0u;
     for(auto const &push_constant : push_constants) {
         _cmd_buffer->native().pushConstants(

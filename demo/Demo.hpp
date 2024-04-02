@@ -3,10 +3,11 @@
 
 #include "brasstacks/core/Application.hpp"
 
-#include "brasstacks/math/Mat4.hpp"
+#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/assets/libraries/MeshLibrary.hpp"
 #include "brasstacks/assets/libraries/TextureLibrary.hpp"
-#include "brasstacks/passes/ColorDepthPass.hpp"
+
+#include "brasstacks/math/Mat4.hpp"
 
 class Demo final : public btx::Application {
 public:
@@ -23,7 +24,7 @@ public:
     void create_swapchain_resources() override;
 
 private:
-    std::unique_ptr<btx::ColorDepthPass> _color_depth_pass;
+    std::unique_ptr<btx::vkPipeline> _pipeline;
 
     btx::MeshLibrary::MeshIter _plane_mesh;
     btx::math::Mat4            _plane_mat;

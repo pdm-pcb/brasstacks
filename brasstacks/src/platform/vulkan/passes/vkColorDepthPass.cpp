@@ -14,6 +14,7 @@ namespace btx {
 
 vkColorDepthPass::vkColorDepthPass() :
     vkRenderPassBase { },
+    _color_format { vk::Format::eUndefined },
     _depth_format { vk::Format::eUndefined },
     _msaa_samples { vkPipeline::samples_to_flag(RenderConfig::current_msaa) },
     _color_buffers           { },
@@ -30,6 +31,8 @@ vkColorDepthPass::vkColorDepthPass() :
 
 // =============================================================================
 void vkColorDepthPass::create() {
+    _color_format = Renderer::swapchain().image_format();
+
     _find_depth_stencil_format();
     _init_attachment_details();
     _init_subpasses();
@@ -54,8 +57,6 @@ void vkColorDepthPass::destroy() {
 
 // =============================================================================
 void vkColorDepthPass::destroy_swapchain_resources() {
-    UIOverlay::destroy_swapchain_resources();
-
     _destroy_depth_buffer();
     _destroy_color_buffers();
 }
@@ -64,8 +65,38 @@ void vkColorDepthPass::destroy_swapchain_resources() {
 void vkColorDepthPass::create_swapchain_resources() {
     _create_color_buffers();
     _create_depth_buffer();
+}
 
-    UIOverlay::create_swapchain_resources(*this);
+// =============================================================================
+void vkColorDepthPass::begin(vkFramebuffer const &framebuffer) {
+    static std::array<vk::ClearValue, 2> const clear_values = {{
+        { .color { std::array<float, 4> {{ 0.08f, 0.08f, 0.16f, 1.0f }} }},
+        { .depthStencil { .depth = 1.0f, .stencil = 1u } }
+    }};
+
+    vk::Rect2D const render_area = {
+        .offset { .x = 0u, .y = 0u },
+        .extent {
+            .width  = Renderer::swapchain().size().width,
+            .height = Renderer::swapchain().size().height,
+        },
+    };
+
+    Renderer::cmd_buffer().begin_render_pass(
+        vk::RenderPassBeginInfo {
+            .pNext           = nullptr,
+            .renderPass      = this->native(),
+            .framebuffer     = framebuffer.native(),
+            .renderArea      = render_area,
+            .clearValueCount = static_cast<uint32_t>(clear_values.size()),
+            .pClearValues    = clear_values.data(),
+        }
+    );
+}
+
+// =============================================================================
+void vkColorDepthPass::end() {
+    Renderer::cmd_buffer().end_render_pass();
 }
 
 // =============================================================================
@@ -93,7 +124,7 @@ void vkColorDepthPass::_find_depth_stencil_format() {
 void vkColorDepthPass::_init_attachment_details() {
     _attachment_descriptions = {{
         // color buffer (msaa) attachment description
-        .format         = Renderer::swapchain().image_format(),
+        .format         = _color_format,
         .samples        = _msaa_samples,
         .loadOp         = vk::AttachmentLoadOp::eClear,
         .storeOp        = vk::AttachmentStoreOp::eDontCare,
@@ -113,7 +144,7 @@ void vkColorDepthPass::_init_attachment_details() {
         .finalLayout    = vk::ImageLayout::eDepthStencilAttachmentOptimal,
     },
     {   // final presentation/resolve attachment
-        .format         = Renderer::swapchain().image_format(),
+        .format         = _color_format,
         .samples        = vk::SampleCountFlagBits::e1,
         .loadOp         = vk::AttachmentLoadOp::eDontCare,
         .storeOp        = vk::AttachmentStoreOp::eStore,

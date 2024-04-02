@@ -7,6 +7,8 @@
 #include "brasstacks/platform/vulkan/vmaAllocator.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
+#include "brasstacks/platform/vulkan/passes/vkFramebuffer.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
 
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 
@@ -19,7 +21,10 @@ public:
     static void init(Application *application);
     static void shutdown();
     static void run();
+
     static void recreate_swapchain();
+    static void create_swapchain_resources();
+    static void destroy_swapchain_resources();
 
     static inline void wait_device_idle() { _device->wait_idle(); }
 
@@ -34,6 +39,8 @@ public:
     static inline auto const & cmd_buffer() {
         return _frame_sync[_image_index]->cmd_buffer();
     }
+
+    static inline auto const & render_pass() { return *_color_depth_pass; }
 
     static inline auto & descriptor_pool() { return *_descriptor_pool; }
 
@@ -54,8 +61,10 @@ private:
     static std::unique_ptr<vkSwapchain> _swapchain;
 
     static std::vector<std::unique_ptr<vkFrameSync>> _frame_sync;
-
     static uint32_t _image_index;
+
+    static std::vector<std::unique_ptr<vkFramebuffer>> _framebuffers;
+    static std::unique_ptr<vkColorDepthPass> _color_depth_pass;
 
     static std::unique_ptr<vkDescriptorPool> _descriptor_pool;
 
@@ -71,11 +80,18 @@ private:
     static void _select_physical_device();
     static void _create_device();
     static void _create_allocator(uint32_t const api_version);
-    static void _create_swapchain();
-    static void _create_frame_sync();
 
+    static void _create_swapchain();
     static void _destroy_swapchain();
+
+    static void _create_frame_sync();
     static void _destroy_frame_sync();
+
+    static void _create_render_pass();
+    static void _destroy_render_pass();
+
+    static void _create_framebuffers();
+    static void _destroy_framebuffers();
 };
 
 } // namespace btx

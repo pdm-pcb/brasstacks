@@ -73,7 +73,7 @@ public:
     void bind_descriptor_set(vkDescriptorSet const &set) const;
     void unbind();
 
-    void send_push_constants(std::span<PushConstant> const push_constants);
+    void send_push_constants(std::span<PushConstant const> const push_constants);
 
     void update_dimensions(RenderConfig::Size const &size,
                            RenderConfig::Offset const &offset);

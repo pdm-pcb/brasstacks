@@ -25,6 +25,9 @@ auto Renderer::_swapchain { std::make_unique<vkSwapchain>() };
 std::vector<std::unique_ptr<vkFrameSync>> Renderer::_frame_sync;
 uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
 
+std::vector<std::unique_ptr<vkFramebuffer>> Renderer::_framebuffers { };
+auto Renderer::_color_depth_pass { std::make_unique<vkColorDepthPass>() };
+
 auto Renderer::_descriptor_pool { std::make_unique<vkDescriptorPool>() };
 
 // =============================================================================
@@ -36,8 +39,6 @@ void Renderer::init(Application *application) {
     _select_physical_device();
     _create_device();
     _create_allocator(VK_TARGET_VERSION);
-    _create_swapchain();
-    _create_frame_sync();
 
     _descriptor_pool->create(
         vk::DescriptorPoolCreateFlags { },
@@ -48,25 +49,31 @@ void Renderer::init(Application *application) {
         }
     );
 
+    UIOverlay::create_descriptor_pool();
+
+    _create_swapchain();
+    _create_frame_sync();
+    _color_depth_pass->create();
+    _color_depth_pass->create_swapchain_resources();
+    UIOverlay::create_swapchain_resources(*_color_depth_pass);
+    _create_framebuffers();
+
     MeshLibrary::init();
     TextureLibrary::init();
     CameraController::init();
-
-    UIOverlay::create_descriptor_pool();
 }
 
 // =============================================================================
 void Renderer::shutdown() {
-    UIOverlay::destroy_descriptor_pool();
-
     CameraController::shutdown();
     MeshLibrary::shutdown();
     TextureLibrary::shutdown();
 
-    _descriptor_pool->destroy();
+    destroy_swapchain_resources();
+    _color_depth_pass->destroy();
 
-    _destroy_frame_sync();
-    _destroy_swapchain();
+    UIOverlay::destroy_descriptor_pool();
+    _descriptor_pool->destroy();
 
     vmaAllocator::destroy();
 
@@ -91,8 +98,17 @@ void Renderer::run() {
 
     _begin_recording();
 
-    CameraController::update_ubo();
-    _application->record_commands();
+        CameraController::update_ubo();
+
+        _color_depth_pass->begin(*_framebuffers[_image_index]);
+
+        UIOverlay::record_commands();
+
+        _application->record_commands();
+
+        UIOverlay::render();
+
+        _color_depth_pass->end();
 
     _end_recording();
     _submit_commands();
@@ -108,15 +124,29 @@ void Renderer::recreate_swapchain() {
     wait_device_idle();
 
     _application->destroy_swapchain_resources();
-
-    _destroy_frame_sync();
-    _destroy_swapchain();
-    _create_swapchain();
-    _create_frame_sync();
-
+    destroy_swapchain_resources();
+    create_swapchain_resources();
     _application->create_swapchain_resources();
 
     CameraController::update_perspective();
+}
+
+// =============================================================================
+void Renderer::create_swapchain_resources() {
+    _create_swapchain();
+    _create_frame_sync();
+    _color_depth_pass->create_swapchain_resources();
+    UIOverlay::create_swapchain_resources(*_color_depth_pass);
+    _create_framebuffers();
+}
+
+// =============================================================================
+void Renderer::destroy_swapchain_resources() {
+    _destroy_framebuffers();
+    UIOverlay::destroy_swapchain_resources();
+    _color_depth_pass->destroy_swapchain_resources();
+    _destroy_frame_sync();
+    _destroy_swapchain();
 }
 
 // =============================================================================
@@ -255,6 +285,11 @@ void Renderer::_create_swapchain() {
 }
 
 // =============================================================================
+void Renderer::_destroy_swapchain() {
+    _swapchain->destroy();
+}
+
+// =============================================================================
 void Renderer::_create_frame_sync() {
     auto const image_count = _swapchain->images().size();
     if(_frame_sync.size() != image_count) {
@@ -278,15 +313,59 @@ void Renderer::_create_frame_sync() {
 }
 
 // =============================================================================
-void Renderer::_destroy_swapchain() {
-    _swapchain->destroy();
-}
-
-// =============================================================================
 void Renderer::_destroy_frame_sync() {
     for(auto &sync_struct : _frame_sync) {
         sync_struct->destroy_sync_primitives();
         sync_struct->destroy_cmd_structures();
+    }
+}
+
+// =============================================================================
+void Renderer::_create_render_pass() {
+    _color_depth_pass->create();
+    _color_depth_pass->create_swapchain_resources();
+}
+
+// =============================================================================
+void Renderer::_destroy_render_pass() {
+    _color_depth_pass->destroy_swapchain_resources();
+    _color_depth_pass->destroy();
+}
+
+// =============================================================================
+void Renderer::_create_framebuffers() {
+    auto const image_count = Renderer::swapchain().image_views().size();
+    if(_framebuffers.size() != image_count) {
+        _framebuffers.clear();
+        _framebuffers.reserve(image_count);
+
+        // Fill in the still undefined images with in-place construction
+        std::generate_n(
+            std::back_inserter(_framebuffers),
+            _framebuffers.capacity(),
+            []() {
+                return std::make_unique<vkFramebuffer>();
+            }
+        );
+    }
+
+    for(size_t i = 0; i < image_count; ++i) {
+        _framebuffers[i]->create(
+            *_color_depth_pass,
+            Renderer::swapchain().size(),
+            {{
+                _color_depth_pass->color_views()[i]->native(),
+                _color_depth_pass->depth_view().native(),
+                Renderer::swapchain().image_views()[i]->native()
+            }}
+        );
+    }
+}
+
+// =============================================================================
+void Renderer::_destroy_framebuffers() {
+    for(auto &framebuffer : _framebuffers) {
+        framebuffer->destroy();
     }
 }
 

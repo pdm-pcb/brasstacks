@@ -7,7 +7,6 @@
 namespace btx {
 
 class vkColorDepthPass;
-class vkCmdBuffer;
 
 class UIOverlay {
 public:
@@ -20,7 +19,7 @@ public:
     static void shutdown_window();
 
     static void record_commands();
-    static void render(vkCmdBuffer const &cmd_buffer);
+    static void render();
 
     static void set_enabled(bool const enabled) { _enabled = enabled; }
 
@@ -53,7 +52,6 @@ private:
 
     static void _draw_menu_bar();
     static void _draw_status_bar();
-    static void _draw_perf_window();
 };
 
 } // namespace btx

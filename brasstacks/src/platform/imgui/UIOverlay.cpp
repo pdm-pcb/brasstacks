@@ -124,10 +124,10 @@ void UIOverlay::record_commands() {
 }
 
 // =============================================================================
-void UIOverlay::render(vkCmdBuffer const &cmd_buffer) {
+void UIOverlay::render() {
     ::ImGui::Render();
     ::ImGui_ImplVulkan_RenderDrawData(::ImGui::GetDrawData(),
-                                      cmd_buffer.native());
+                                      Renderer::cmd_buffer().native());
 }
 
 // =============================================================================

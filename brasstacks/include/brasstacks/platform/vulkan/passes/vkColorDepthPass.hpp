@@ -8,6 +8,8 @@
 
 namespace btx {
 
+class vkFramebuffer;
+
 class vkColorDepthPass final : public vkRenderPassBase {
 public:
     vkColorDepthPass();
@@ -19,9 +21,13 @@ public:
     void destroy_swapchain_resources();
     void create_swapchain_resources();
 
+    void begin(vkFramebuffer const &framebuffer);
+    void end();
+
     auto const & color_views() const { return _color_views; }
     auto const & depth_view() const { return *_depth_view; }
     auto msaa_samples() const { return _msaa_samples; }
+    auto color_format() const { return _color_format; }
     auto depth_format() const { return _depth_format; }
 
     vkColorDepthPass(vkColorDepthPass &&) = delete;
@@ -31,6 +37,7 @@ public:
     vkColorDepthPass & operator=(vkColorDepthPass const &) = delete;
 
 private:
+    vk::Format _color_format;
     vk::Format _depth_format;
 
     vk::SampleCountFlagBits _msaa_samples;
