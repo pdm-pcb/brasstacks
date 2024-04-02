@@ -165,7 +165,7 @@ void ImGuiContext::_draw_status_bar() {
                                           | ::ImGuiWindowFlags_NoNav
                                           | ::ImGuiWindowFlags_MenuBar));
     ::ImGui::BeginMenuBar();
-    ::ImGui::BeginTable("StatusBarTable", 5);
+    ::ImGui::BeginTable("StatusBarTable", 6);
         ::ImGui::TableNextRow();
 
         ::ImGui::TableSetColumnIndex(0);
@@ -206,6 +206,8 @@ void ImGuiContext::_draw_status_bar() {
                 label_text = std::format("x{}", msaa);
                 if(::ImGui::MenuItem(label_text.c_str())) {
                     RenderConfig::current_msaa = msaa;
+                    // An event to recreate the render pass, knowing whether
+                    // a resolve attachment is needed
                 }
             }
             ::ImGui::EndMenu();
@@ -219,9 +221,16 @@ void ImGuiContext::_draw_status_bar() {
                 label_text = std::format("{}x", aniso);
                 if(::ImGui::MenuItem(label_text.c_str())) {
                     RenderConfig::current_aniso = aniso;
+                    // An event to recreate image samplers
                 }
             }
             ::ImGui::EndMenu();
+        }
+
+        ::ImGui::TableNextColumn();
+        ::ImGui::Separator();
+        if(::ImGui::Checkbox("VSync", &RenderConfig::vsync_on)) {
+            // An event to recreate the swapchain
         }
 
         ::ImGui::TableNextColumn();
