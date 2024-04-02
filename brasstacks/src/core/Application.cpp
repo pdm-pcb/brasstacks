@@ -1,8 +1,11 @@
 #include "brasstacks/brasstacks.hpp"
 #include "brasstacks/core/Application.hpp"
 
+#include "brasstacks/core/TargetWindow.hpp"
+#include "brasstacks/core/Simulation.hpp"
 #include "brasstacks/core/Renderer.hpp"
-#include "brasstacks/assets/libraries/MeshLibrary.hpp"
+
+#include "brasstacks/assets/libraries/TextureLibrary.hpp"
 
 namespace btx {
 
@@ -31,12 +34,10 @@ Application::Application(std::string_view const app_name) :
     TargetWindow::init(app_name);
     Simulation::init(this);
     Renderer::init(this);
-    MeshLibrary::init();
 }
 
 // =============================================================================
 Application::~Application() {
-    MeshLibrary::shutdown();
     Renderer::shutdown();
     Simulation::shutdown();
     TargetWindow::shutdown();
@@ -127,6 +128,7 @@ void Application::_menu_event(UIEvent const &event) {
     }
     else if(event.type == UIEventType::UI_CHANGE_ANISO) {
         BTX_TRACE("Application received UI change aniso.");
+        TextureLibrary::update_samplers();
     }
     else if(event.type == UIEventType::UI_CHANGE_MSAA) {
         BTX_TRACE("Application received UI change MSAA.");

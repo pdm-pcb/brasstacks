@@ -11,8 +11,25 @@ void TextureLibrary::shutdown() {
 }
 
 // =============================================================================
+TextureLibrary::TextureIter const
+TextureLibrary::load_texture(std::string_view const filepath)
+{
+    _loaded_textures.emplace_back(std::make_unique<Texture>(filepath));
+    return --_loaded_textures.end();
+}
+
+// =============================================================================
 void TextureLibrary::unload_texture(TextureIter const iter) {
     _loaded_textures.erase(iter);
+}
+
+// =============================================================================
+void TextureLibrary::update_samplers() {
+    Renderer::wait_device_idle();
+    for(auto &texture : _loaded_textures) {
+        texture->update_sampler();
+        texture->update_descriptor_set();
+    }
 }
 
 } // namespace btx

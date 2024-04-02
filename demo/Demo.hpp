@@ -31,7 +31,7 @@ private:
     btx::MeshLibrary::MeshIter _cube_mesh;
     btx::math::Mat4            _cube_mat;
 
-    btx::Texture *_texture;
+    btx::TextureLibrary::TextureIter _texture;
 };
 
 #endif // DEMO_HPP

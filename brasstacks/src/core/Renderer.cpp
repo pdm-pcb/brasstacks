@@ -9,6 +9,9 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/events/EventBus.hpp"
 
+#include "brasstacks/assets/libraries/MeshLibrary.hpp"
+#include "brasstacks/assets/libraries/TextureLibrary.hpp"
+
 #include "brasstacks/platform/imgui/UIOverlay.hpp"
 
 namespace btx {
@@ -45,6 +48,8 @@ void Renderer::init(Application *application) {
         }
     );
 
+    MeshLibrary::init();
+    TextureLibrary::init();
     CameraController::init();
 
     UIOverlay::create_descriptor_pool();
@@ -55,6 +60,9 @@ void Renderer::shutdown() {
     UIOverlay::destroy_descriptor_pool();
 
     CameraController::shutdown();
+    MeshLibrary::shutdown();
+    TextureLibrary::shutdown();
+
     _descriptor_pool->destroy();
 
     _destroy_frame_sync();

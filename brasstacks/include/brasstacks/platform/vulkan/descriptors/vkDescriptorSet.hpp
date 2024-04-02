@@ -36,7 +36,7 @@ public:
                                 vkSampler const &sampler,
                                 vk::DescriptorType const type);
 
-    void write_set();
+    void update_set();
 
     inline auto const & native() const { return _handle; }
     inline auto const & layout() const { return _layout; }

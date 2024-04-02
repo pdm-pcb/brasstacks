@@ -15,7 +15,7 @@ Demo::Demo() :
     _plane_mat          { },
     _cube_mesh          { },
     _cube_mat           { },
-    _texture            { new btx::Texture }
+    _texture            { }
 { }
 
 // =============================================================================
@@ -23,7 +23,8 @@ void Demo::init() {
     _plane_mesh = btx::MeshLibrary::new_plane_mesh(0.75f);
     _cube_mesh = btx::MeshLibrary::new_cube_mesh(0.75f);
 
-    _texture->create("textures/woodfloor_051_d.jpg");
+    _texture =
+        btx::TextureLibrary::load_texture("textures/woodfloor_051_d.jpg");
 
     _color_depth_pass->pipeline()
         .module_from_spirv("shaders/demo.vert",
@@ -33,7 +34,7 @@ void Demo::init() {
         .describe_vertex_input(btx::Vertex::bindings,
                                btx::Vertex::attributes)
         .add_descriptor_set_layout(btx::CameraController::camera_ubo_layout())
-        .add_descriptor_set_layout(_texture->descriptor_set_layout())
+        .add_descriptor_set_layout((*_texture)->descriptor_set_layout())
         .add_push_constant({ .stage_flags = vk::ShaderStageFlagBits::eVertex,
                              .size_bytes = sizeof(btx::math::Mat4) });
 
@@ -43,7 +44,7 @@ void Demo::init() {
 
 // =============================================================================
 void Demo::shutdown() {
-    delete _texture;
+
 }
 
 // =============================================================================
@@ -82,7 +83,7 @@ void Demo::record_commands() const {
     _color_depth_pass->begin();
 
         _color_depth_pass->bind_descriptor_set(btx::CameraController::camera_ubo_set());
-        _color_depth_pass->bind_descriptor_set(_texture->descriptor_set());
+        _color_depth_pass->bind_descriptor_set((*_texture)->descriptor_set());
 
         _color_depth_pass->send_push_constants(plane_pcs);
         (*_plane_mesh)->draw_indexed(btx::Renderer::cmd_buffer());

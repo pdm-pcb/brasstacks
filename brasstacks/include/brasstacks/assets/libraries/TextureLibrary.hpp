@@ -14,7 +14,11 @@ public:
     static void init() { }
     static void shutdown();
 
+    static TextureIter const load_texture(std::string_view const filepath);
+
     static void unload_texture(TextureIter const iter);
+
+    static void update_samplers();
 
     TextureLibrary() = delete;
     ~TextureLibrary() = delete;

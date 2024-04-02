@@ -89,7 +89,7 @@ void CameraController::init() {
 
         (*_camera_ubo_sets[i])
             .add_buffer(*_camera_ubos[i], vk::DescriptorType::eUniformBuffer)
-            .write_set();
+            .update_set();
     }
 }
 

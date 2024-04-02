@@ -137,7 +137,7 @@ vkDescriptorSet & vkDescriptorSet::add_image(vkImage const &image,
 }
 
 // =============================================================================
-void vkDescriptorSet::write_set() {
+void vkDescriptorSet::update_set() {
     if(_set_writes.empty()) {
         BTX_ERROR("Trying to update descriptor set with no set writes.");
         return;
