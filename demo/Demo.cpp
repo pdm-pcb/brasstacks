@@ -4,17 +4,8 @@
 #include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/passes/ColorDepthPass.hpp"
 
-#include "brasstacks/tools/cameras/PerspectiveCamera.hpp"
-
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
-
-#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
-#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
-#include "brasstacks/platform/vulkan/resources/vkSampler.hpp"
-
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 
 // =============================================================================
 Demo::Demo() :
@@ -24,11 +15,7 @@ Demo::Demo() :
     _plane_mat          { },
     _cube_mesh          { },
     _cube_mat           { },
-    _texture            { new btx::vkImage },
-    _texture_view       { new btx::vkImageView },
-    _texture_sampler    { new btx::vkSampler },
-    _texture_set_layout { new btx::vkDescriptorSetLayout },
-    _texture_set        { new btx::vkDescriptorSet }
+    _texture            { new btx::Texture }
 { }
 
 // =============================================================================
@@ -36,41 +23,7 @@ void Demo::init() {
     _plane_mesh = btx::MeshLibrary::new_plane_mesh(0.75f);
     _cube_mesh = btx::MeshLibrary::new_cube_mesh(0.75f);
 
-    _texture->create(
-        "textures/woodfloor_051_d.jpg",
-        btx::vkImage::ImageInfo {
-            .type= vk::ImageType::e2D,
-            .samples = vk::SampleCountFlagBits::e1,
-            .usage_flags = (vk::ImageUsageFlagBits::eSampled |
-                            vk::ImageUsageFlagBits::eTransferDst |
-                            vk::ImageUsageFlagBits::eTransferSrc),
-            .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal
-        }
-    );
-
-    _texture_view->create(_texture->native(),
-                          _texture->format(),
-                          vk::ImageViewType::e2D,
-                          vk::ImageAspectFlagBits::eColor);
-
-    _texture_sampler->create(vk::Filter::eLinear,
-                             vk::Filter::eLinear,
-                             vk::SamplerMipmapMode::eLinear,
-                             vk::SamplerAddressMode::eRepeat,
-                             vk::SamplerAddressMode::eRepeat);
-
-    (*_texture_set_layout)
-        .add_binding(vk::DescriptorType::eCombinedImageSampler,
-                     vk::ShaderStageFlagBits::eFragment)
-        .create();
-
-    _texture_set->allocate(btx::Renderer::descriptor_pool(),
-                           *_texture_set_layout);
-
-    (*_texture_set)
-        .add_image(*_texture, *_texture_view, *_texture_sampler,
-                   vk::DescriptorType::eCombinedImageSampler)
-        .write_set();
+    _texture->create("textures/woodfloor_051_d.jpg");
 
     _color_depth_pass->pipeline()
         .module_from_spirv("shaders/demo.vert",
@@ -80,7 +33,7 @@ void Demo::init() {
         .describe_vertex_input(btx::Vertex::bindings,
                                btx::Vertex::attributes)
         .add_descriptor_set_layout(btx::CameraController::camera_ubo_layout())
-        .add_descriptor_set_layout(*_texture_set_layout)
+        .add_descriptor_set_layout(_texture->descriptor_set_layout())
         .add_push_constant({ .stage_flags = vk::ShaderStageFlagBits::eVertex,
                              .size_bytes = sizeof(btx::math::Mat4) });
 
@@ -90,11 +43,7 @@ void Demo::init() {
 
 // =============================================================================
 void Demo::shutdown() {
-    delete _texture_sampler;
-    delete _texture_view;
     delete _texture;
-    delete _texture_set_layout;
-    delete _texture_set;
 }
 
 // =============================================================================
@@ -133,7 +82,7 @@ void Demo::record_commands() const {
     _color_depth_pass->begin();
 
         _color_depth_pass->bind_descriptor_set(btx::CameraController::camera_ubo_set());
-        _color_depth_pass->bind_descriptor_set(*_texture_set);
+        _color_depth_pass->bind_descriptor_set(_texture->descriptor_set());
 
         _color_depth_pass->send_push_constants(plane_pcs);
         (*_plane_mesh)->draw_indexed(btx::Renderer::cmd_buffer());

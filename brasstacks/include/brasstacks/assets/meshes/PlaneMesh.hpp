@@ -13,7 +13,7 @@ public:
     explicit PlaneMesh(float const scale,
                        std::span<Color const, 4> const corner_colors);
 
-    ~PlaneMesh() override = default;
+    ~PlaneMesh() = default;
 
     PlaneMesh() = delete;
 

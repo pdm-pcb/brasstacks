@@ -12,7 +12,7 @@ class vkCmdBuffer;
 
 class Mesh {
 public:
-    virtual ~Mesh() = default;
+    ~Mesh() = default;
 
     void draw_indexed(vkCmdBuffer const &cmd_buffer) const;
 
@@ -31,7 +31,7 @@ protected:
 private:
     std::unique_ptr<vmaBuffer>  _vertex_buffer;
     std::vector<Vertex>         _vertex_data;
-    std::vector<vk::DeviceSize> _vertexs;
+    std::vector<vk::DeviceSize> _vertex_offsets;
 
     std::unique_ptr<vmaBuffer> _index_buffer;
     std::vector<Index>         _index_data;

@@ -13,7 +13,7 @@ public:
     explicit CubeMesh(float const scale,
                       std::span<Color const, 8> const corner_colors);
 
-    ~CubeMesh() override = default;
+    ~CubeMesh() = default;
 
     CubeMesh() = delete;
 

@@ -5,16 +5,8 @@
 
 #include "brasstacks/math/Mat4.hpp"
 #include "brasstacks/assets/libraries/MeshLibrary.hpp"
+#include "brasstacks/assets/libraries/TextureLibrary.hpp"
 #include "brasstacks/passes/ColorDepthPass.hpp"
-
-namespace btx {
-    class vkImage;
-    class vkImageView;
-    class vkSampler;
-
-    class vkDescriptorSetLayout;
-    class vkDescriptorSet;
-} // namespace btx
 
 class Demo final : public btx::Application {
 public:
@@ -39,12 +31,7 @@ private:
     btx::MeshLibrary::MeshIter _cube_mesh;
     btx::math::Mat4            _cube_mat;
 
-    btx::vkImage     *_texture;
-    btx::vkImageView *_texture_view;
-    btx::vkSampler   *_texture_sampler;
-
-    btx::vkDescriptorSetLayout *_texture_set_layout;
-    btx::vkDescriptorSet       *_texture_set;
+    btx::Texture *_texture;
 };
 
 #endif // DEMO_HPP

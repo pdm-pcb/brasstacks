@@ -1,8 +1,6 @@
 #include "brasstacks/brasstacks.hpp"
 #include "brasstacks/assets/libraries/MeshLibrary.hpp"
 
-#include "brasstacks/core/Renderer.hpp"
-
 namespace btx {
 
 MeshLibrary::MeshList MeshLibrary::_loaded_meshes { };
