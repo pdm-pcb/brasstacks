@@ -185,7 +185,7 @@ void ImGuiContext::_draw_status_bar() {
                                           | ::ImGuiWindowFlags_NoNav
                                           | ::ImGuiWindowFlags_MenuBar));
     ::ImGui::BeginMenuBar();
-    ::ImGui::BeginTable("StatusBarTable", 3);
+    ::ImGui::BeginTable("StatusBarTable", 5);
         ::ImGui::TableNextRow();
         ::ImGui::TableSetColumnIndex(0);
         ::ImGui::Text("Device: %s", vkPhysicalDevice::name().data());
@@ -193,6 +193,11 @@ void ImGuiContext::_draw_status_bar() {
         ::ImGui::Text("Resolution: %ux%u",
                       RenderConfig::current_resolution->size.width,
                       RenderConfig::current_resolution->size.height);
+        ::ImGui::TableNextColumn();
+        ::ImGui::Text("MSAA:x%u", RenderConfig::msaa_samples);
+        ::ImGui::TableNextColumn();
+        ::ImGui::Text("Anisotropy: %.01fx",
+                      static_cast<double>(RenderConfig::anisotropy));
         ::ImGui::TableNextColumn();
         ::ImGui::Text("CPU Time: %.06f",
                       static_cast<double>(TimeKeeper::delta_time()));
