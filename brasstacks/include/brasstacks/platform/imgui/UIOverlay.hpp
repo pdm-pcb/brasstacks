@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_PLATFORM_IMGUI_IMGUICONTEXT_HPP
-#define BRASSTACKS_PLATFORM_IMGUI_IMGUICONTEXT_HPP
+#ifndef BRASSTACKS_PLATFORM_IMGUI_UIOVERLAY_HPP
+#define BRASSTACKS_PLATFORM_IMGUI_UIOVERLAY_HPP
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
@@ -9,7 +9,7 @@ namespace btx {
 class vkColorDepthPass;
 class vkCmdBuffer;
 
-class ImGuiContext {
+class UIOverlay {
 public:
     static void init_window(::GLFWwindow *window,
                             std::string_view const window_title);
@@ -32,14 +32,14 @@ public:
         return _io->WantCaptureMouse;
     }
 
-    ImGuiContext() = delete;
-    ~ImGuiContext() = delete;
+    UIOverlay() = delete;
+    ~UIOverlay() = delete;
 
-    ImGuiContext(ImGuiContext &&) = delete;
-    ImGuiContext(ImGuiContext const &) = delete;
+    UIOverlay(UIOverlay &&) = delete;
+    UIOverlay(UIOverlay const &) = delete;
 
-    ImGuiContext & operator=(ImGuiContext &&) = delete;
-    ImGuiContext & operator=(ImGuiContext const &) = delete;
+    UIOverlay & operator=(UIOverlay &&) = delete;
+    UIOverlay & operator=(UIOverlay const &) = delete;
 
 private:
     static ::ImGuiIO *_io;
@@ -58,4 +58,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_IMGUI_IMGUICONTEXT_HPP
+#endif // BRASSTACKS_PLATFORM_IMGUI_UIOVERLAY_HPP

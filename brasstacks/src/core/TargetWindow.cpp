@@ -7,7 +7,7 @@
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
 
-#include "brasstacks/platform/imgui/ImGuiContext.hpp"
+#include "brasstacks/platform/imgui/UIOverlay.hpp"
 
 namespace btx {
 GLFWwindow *TargetWindow::_window { nullptr };
@@ -67,12 +67,12 @@ void TargetWindow::init(std::string_view const app_name) {
     ::glfwSetWindowIconifyCallback(_window,
                                    TargetWindow::_window_iconify_callback);
 
-    ImGuiContext::init_window(_window, app_name);
+    UIOverlay::init_window(_window, app_name);
 }
 
 // =============================================================================
 void TargetWindow::shutdown() {
-    ImGuiContext::shutdown_window();
+    UIOverlay::shutdown_window();
 
     ::glfwDestroyWindow(_window);
     ::glfwTerminate();
@@ -85,7 +85,7 @@ void TargetWindow::capture_mouse() {
     ::glfwGetCursorPos(_window, &_last_cursor_x, &_last_cursor_y);
 
     _mouse_captured = true;
-    ImGuiContext::set_enabled(false);
+    UIOverlay::set_enabled(false);
 }
 
 // =============================================================================
@@ -94,7 +94,7 @@ void TargetWindow::release_mouse() {
     ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 
     _mouse_captured = false;
-    ImGuiContext::set_enabled(true);
+    UIOverlay::set_enabled(true);
 }
 
 // =============================================================================
@@ -206,7 +206,7 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
                                  [[maybe_unused]] int action,
                                  [[maybe_unused]] int mods)
 {
-    if(!_mouse_captured && ImGuiContext::key_callback_handled()) {
+    if(!_mouse_captured && UIOverlay::key_callback_handled()) {
         return;
     }
 
@@ -245,7 +245,7 @@ void TargetWindow::_mouse_button_callback([[maybe_unused]] GLFWwindow* window,
                                           [[maybe_unused]] int action,
                                           [[maybe_unused]] int mods)
 {
-    if(!_mouse_captured && ImGuiContext::mouse_button_callback_handled()) {
+    if(!_mouse_captured && UIOverlay::mouse_button_callback_handled()) {
         return;
     }
 

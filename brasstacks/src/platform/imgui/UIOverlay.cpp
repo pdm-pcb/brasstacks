@@ -1,5 +1,5 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/platform/imgui/ImGuiContext.hpp"
+#include "brasstacks/platform/imgui/UIOverlay.hpp"
 
 #include "brasstacks/platform/imgui/FiraMono_data.hpp"
 
@@ -7,23 +7,23 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
 
-#include "brasstacks/events/menu_events.hpp"
+#include "brasstacks/events/ui_events.hpp"
 
 namespace btx {
 
-::ImGuiIO *ImGuiContext::_io { nullptr };
-::ImGuiStyle *ImGuiContext::_style { nullptr };
+::ImGuiIO *UIOverlay::_io { nullptr };
+::ImGuiStyle *UIOverlay::_style { nullptr };
 
-std::string ImGuiContext::_window_title { };
+std::string UIOverlay::_window_title { };
 
-std::unique_ptr<vkDescriptorPool> ImGuiContext::_descriptor_pool {
+std::unique_ptr<vkDescriptorPool> UIOverlay::_descriptor_pool {
     std::make_unique<vkDescriptorPool>()
 };
 
-bool ImGuiContext::_enabled { true };
+bool UIOverlay::_enabled { true };
 
 // =============================================================================
-void ImGuiContext::init_window(::GLFWwindow *window,
+void UIOverlay::init_window(::GLFWwindow *window,
                                std::string_view const window_title) {
     ::ImGui::CreateContext();
     ::ImGui_ImplGlfw_InitForVulkan(window, true);
@@ -49,25 +49,25 @@ void ImGuiContext::init_window(::GLFWwindow *window,
 }
 
 // =============================================================================
-void ImGuiContext::create_descriptor_pool() {
+void UIOverlay::create_descriptor_pool() {
     _descriptor_pool->create(
         vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-        10u,
+        100u,
         {
-            { vk::DescriptorType::eUniformBuffer,        10u, },
-            { vk::DescriptorType::eCombinedImageSampler, 10u, },
+            { vk::DescriptorType::eUniformBuffer,        100u, },
+            { vk::DescriptorType::eCombinedImageSampler, 100u, },
         }
     );
 }
 
 // =============================================================================
-void ImGuiContext::destroy_descriptor_pool() {
+void UIOverlay::destroy_descriptor_pool() {
     _descriptor_pool->destroy();
 }
 
 // =============================================================================
 void
-ImGuiContext::create_swapchain_resources(vkColorDepthPass const &render_pass) {
+UIOverlay::create_swapchain_resources(vkColorDepthPass const &render_pass) {
     auto const image_count =
         static_cast<uint32_t>(Renderer::swapchain().images().size());
 
@@ -98,18 +98,18 @@ ImGuiContext::create_swapchain_resources(vkColorDepthPass const &render_pass) {
 }
 
 // =============================================================================
-void ImGuiContext::destroy_swapchain_resources() {
+void UIOverlay::destroy_swapchain_resources() {
     ::ImGui_ImplVulkan_Shutdown();
 }
 
 // =============================================================================
-void ImGuiContext::shutdown_window() {
+void UIOverlay::shutdown_window() {
     ::ImGui_ImplGlfw_Shutdown();
     ::ImGui::DestroyContext();
 }
 
 // =============================================================================
-void ImGuiContext::record_commands() {
+void UIOverlay::record_commands() {
     ::ImGui_ImplVulkan_NewFrame();
     ::ImGui_ImplGlfw_NewFrame();
     ::ImGui::NewFrame();
@@ -124,18 +124,18 @@ void ImGuiContext::record_commands() {
 }
 
 // =============================================================================
-void ImGuiContext::render(vkCmdBuffer const &cmd_buffer) {
+void UIOverlay::render(vkCmdBuffer const &cmd_buffer) {
     ::ImGui::Render();
     ::ImGui_ImplVulkan_RenderDrawData(::ImGui::GetDrawData(),
                                       cmd_buffer.native());
 }
 
 // =============================================================================
-void ImGuiContext::_draw_menu_bar() {
+void UIOverlay::_draw_menu_bar() {
     if(::ImGui::BeginMainMenuBar()) {
         if(::ImGui::BeginMenu(_window_title.c_str())) {
             if(::ImGui::MenuItem("Exit", "Esc")) {
-                EventBus::publish(MenuEvent(MenuEventType::MENU_EXIT));
+                EventBus::publish(UIEvent(UIEventType::UI_EXIT));
             }
             ::ImGui::EndMenu();
         }
@@ -145,13 +145,13 @@ void ImGuiContext::_draw_menu_bar() {
 }
 
 // =============================================================================
-void ImGuiContext::_draw_status_bar() {
+void UIOverlay::_draw_status_bar() {
     auto const *viewport = ::ImGui::GetMainViewport();
-    auto const y_offset = (_style->FramePadding.y * 2.0f)
+    auto const y = (_style->FramePadding.y * 2.0f)
                           + ::ImGui::GetFontSize();
 
     ::ImVec2 const pos(viewport->Pos.x,
-                       viewport->Pos.y + (viewport->Size.y - y_offset));
+                       viewport->Pos.y + (viewport->Size.y - y));
 
     ::ImVec2 const size(viewport->Size.x, 1.0f);
 
@@ -189,9 +189,7 @@ void ImGuiContext::_draw_status_bar() {
                             other_res.selected = false;
                         }
                     }
-                    EventBus::publish(
-                        MenuEvent(MenuEventType::MENU_CHANGE_WINDOW_SIZE)
-                    );
+                    EventBus::publish(UIEvent(UIEventType::UI_WINDOW_RESIZE));
                 }
             }
             ::ImGui::EndMenu();
@@ -208,6 +206,7 @@ void ImGuiContext::_draw_status_bar() {
                     RenderConfig::current_msaa = msaa;
                     // An event to recreate the render pass, knowing whether
                     // a resolve attachment is needed
+                    EventBus::publish(UIEvent(UIEventType::UI_CHANGE_MSAA));
                 }
             }
             ::ImGui::EndMenu();
@@ -222,6 +221,7 @@ void ImGuiContext::_draw_status_bar() {
                 if(::ImGui::MenuItem(label_text.c_str())) {
                     RenderConfig::current_aniso = aniso;
                     // An event to recreate image samplers
+                    EventBus::publish(UIEvent(UIEventType::UI_CHANGE_ANISO));
                 }
             }
             ::ImGui::EndMenu();
@@ -231,6 +231,7 @@ void ImGuiContext::_draw_status_bar() {
         ::ImGui::Separator();
         if(::ImGui::Checkbox("VSync", &RenderConfig::vsync_on)) {
             // An event to recreate the swapchain
+            EventBus::publish(UIEvent(UIEventType::UI_TOGGLE_VSYNC));
         }
 
         ::ImGui::TableNextColumn();

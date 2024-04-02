@@ -657,24 +657,24 @@ void X11TargetWindow::_message_loop() {
 //     // Mouse movement
 //     if(raw.lLastX != 0 || raw.lLastY != 0) {
 //         EventBus::publish(MouseMoveEvent {
-//             .x_offset = raw.lLastX,
-//             .y_offset = raw.lLastY
+//             .x = raw.lLastX,
+//             .y = raw.lLastY
 //         });
 //     }
 
 //     // Vertical mouse scroll
 //     if((button_flags & RI_MOUSE_WHEEL) != 0u) {
 //         EventBus::publish(MouseScrollEvent {
-//             .vert_offset = static_cast<int32_t>(button_data),
-//             .horiz_offset = 0
+//             .vert = static_cast<int32_t>(button_data),
+//             .horiz = 0
 //         });
 //     }
 
 //     // Horizontal mouse scroll
 //     if((button_flags & RI_MOUSE_HWHEEL) != 0u) {
 //         EventBus::publish(MouseScrollEvent {
-//             .vert_offset = 0,
-//             .horiz_offset = static_cast<int32_t>(button_data)
+//             .vert = 0,
+//             .horiz = static_cast<int32_t>(button_data)
 //         });
 //     }
 // }

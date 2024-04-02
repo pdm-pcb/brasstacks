@@ -15,9 +15,9 @@ enum class AppState : uint8_t {
 };
 
 struct AppStateTransition final : public EventBase {
-    explicit AppStateTransition(AppState const next_state) :
+    explicit AppStateTransition(AppState const next_state_type) :
         EventBase(),
-        next_state_type { next_state }
+        next_state { next_state_type }
     {
 
     }
@@ -25,31 +25,29 @@ struct AppStateTransition final : public EventBase {
     ~AppStateTransition() = default;
 
     AppStateTransition(AppStateTransition const &rhs) :
-        next_state_type { rhs.next_state_type }
-    {
-
-    }
+        next_state { rhs.next_state }
+    { }
 
     AppStateTransition(AppStateTransition &&rhs) :
-        next_state_type { rhs.next_state_type }
+        next_state { rhs.next_state }
     {
-        rhs.next_state_type = AppState::INVALID_STATE;
+        rhs.next_state = AppState::INVALID_STATE;
     }
 
     AppStateTransition & operator=(AppStateTransition const &rhs) {
-        next_state_type = rhs.next_state_type;
+        next_state = rhs.next_state;
         return *this;
     }
 
     AppStateTransition & operator=(AppStateTransition &&rhs) {
-        next_state_type = rhs.next_state_type;
-        rhs.next_state_type = AppState::INVALID_STATE;
+        next_state = rhs.next_state;
+        rhs.next_state = AppState::INVALID_STATE;
         return *this;
     }
 
     AppStateTransition() = delete;
 
-    AppState next_state_type;
+    AppState next_state;
 };
 
 } //namespace btx

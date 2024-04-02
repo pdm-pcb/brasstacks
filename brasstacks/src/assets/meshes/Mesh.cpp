@@ -9,7 +9,7 @@ namespace btx {
 Mesh::Mesh() :
     _vertex_buffer  { std::make_unique<vmaBuffer>() },
     _vertex_data    { },
-    _vertex_offsets { },
+    _vertexs { },
     _index_buffer   { std::make_unique<vmaBuffer>() },
     _index_data     { }
 { }
@@ -26,7 +26,7 @@ void Mesh::_set_vertices(std::span<Vertex const> const vertices) {
 
     _vertex_buffer->send_to_device(_vertex_data.data());
 
-    _vertex_offsets.emplace_back(0u);
+    _vertexs.emplace_back(0u);
 }
 
 // =============================================================================
@@ -48,7 +48,7 @@ void Mesh::draw_indexed(vkCmdBuffer const &cmd_buffer) const {
         0u,                        // First binding
         1u,                        // Binding count
         &_vertex_buffer->native(), // Buffers
-        _vertex_offsets.data()     // Offsets
+        _vertexs.data()     // Offsets
     );
     cmd_buffer.native().bindIndexBuffer(
         _index_buffer->native(), // Buffer

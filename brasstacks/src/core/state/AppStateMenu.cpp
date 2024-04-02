@@ -23,9 +23,9 @@ void AppStateMenu::execute() {
 
 // =============================================================================
 void AppStateMenu::keyboard_event(KeyboardEvent const &event) {
-    switch(event.event_code) {
+    switch(event.code) {
         case BTX_KB_ESCAPE:
-            if(event.event_type == KeyboardEventType::KEY_RELEASE) {
+            if(event.type == KeyboardEventType::KEY_RELEASE) {
                 BTX_TRACE("AppStateMenu publishing window close event");
                 EventBus::publish(WindowEvent(WindowEventType::WINDOW_CLOSE));
             }
@@ -35,9 +35,9 @@ void AppStateMenu::keyboard_event(KeyboardEvent const &event) {
 
 // =============================================================================
 void AppStateMenu::mouse_button_event(MouseButtonEvent const &event) {
-    switch(event.event_code) {
+    switch(event.code) {
         case BTX_MB_LEFT:
-            if(event.event_type == MouseButtonEventType::BUTTON_RELEASE) {
+            if(event.type == MouseButtonEventType::BUTTON_RELEASE) {
                 EventBus::publish(AppStateTransition(AppState::PLAY_STATE));
             }
             break;

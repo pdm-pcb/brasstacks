@@ -4036,8 +4036,8 @@ float ImGui::GetColumnOffset(int column_index)
     IM_ASSERT(column_index < columns->Columns.Size);
 
     const float t = columns->Columns[column_index].OffsetNorm;
-    const float x_offset = ImLerp(columns->OffMinX, columns->OffMaxX, t);
-    return x_offset;
+    const float x = ImLerp(columns->OffMinX, columns->OffMaxX, t);
+    return x;
 }
 
 static float GetColumnWidthEx(ImGuiOldColumns* columns, int column_index, bool before_resize = false)

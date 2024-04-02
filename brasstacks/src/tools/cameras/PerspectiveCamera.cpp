@@ -90,9 +90,9 @@ void PerspectiveCamera::update() {
 // =============================================================================
 void PerspectiveCamera::keyboard_event(KeyboardEvent const &event) {
     auto const key_state =
-        (event.event_type == KeyboardEventType::KEY_PRESS) ? true : false;
+        (event.type == KeyboardEventType::KEY_PRESS) ? true : false;
 
-    switch(event.event_code) {
+    switch(event.code) {
         case BTX_KB_W          : _kb.w      = key_state; break;
         case BTX_KB_A          : _kb.a      = key_state; break;
         case BTX_KB_S          : _kb.s      = key_state; break;
@@ -106,8 +106,8 @@ void PerspectiveCamera::keyboard_event(KeyboardEvent const &event) {
 
 // =============================================================================
 void PerspectiveCamera::mouse_move_event(MouseMoveEvent const &event) {
-    _state.pitch += static_cast<float>(-event.y_offset) * _config.look_speed;
-    _state.yaw   += static_cast<float>(event.x_offset) * _config.look_speed;
+    _state.pitch += static_cast<float>(-event.y) * _config.look_speed;
+    _state.yaw   += static_cast<float>(event.x) * _config.look_speed;
 
     if(_state.pitch > 89.0f)       { _state.pitch = 89.0f;  }
     else if(_state.pitch < -89.0f) { _state.pitch = -89.0f; }

@@ -2075,7 +2075,7 @@ void ImDrawListSplitter::Merge(ImDrawList* draw_list)
     int new_cmd_buffer_count = 0;
     int new_idx_buffer_count = 0;
     ImDrawCmd* last_cmd = (_Count > 0 && draw_list->CmdBuffer.Size > 0) ? &draw_list->CmdBuffer.back() : NULL;
-    int idx_offset = last_cmd ? last_cmd->IdxOffset + last_cmd->ElemCount : 0;
+    int idx = last_cmd ? last_cmd->IdxOffset + last_cmd->ElemCount : 0;
     for (int i = 1; i < _Count; i++)
     {
         ImDrawChannel& ch = _Channels[i];
@@ -2091,7 +2091,7 @@ void ImDrawListSplitter::Merge(ImDrawList* draw_list)
             {
                 // Merge previous channel last draw command with current channel first draw command if matching.
                 last_cmd->ElemCount += next_cmd->ElemCount;
-                idx_offset += next_cmd->ElemCount;
+                idx += next_cmd->ElemCount;
                 ch._CmdBuffer.erase(ch._CmdBuffer.Data); // FIXME-OPT: Improve for multiple merges.
             }
         }
@@ -2101,8 +2101,8 @@ void ImDrawListSplitter::Merge(ImDrawList* draw_list)
         new_idx_buffer_count += ch._IdxBuffer.Size;
         for (int cmd_n = 0; cmd_n < ch._CmdBuffer.Size; cmd_n++)
         {
-            ch._CmdBuffer.Data[cmd_n].IdxOffset = idx_offset;
-            idx_offset += ch._CmdBuffer.Data[cmd_n].ElemCount;
+            ch._CmdBuffer.Data[cmd_n].IdxOffset = idx;
+            idx += ch._CmdBuffer.Data[cmd_n].ElemCount;
         }
     }
     draw_list->CmdBuffer.resize(draw_list->CmdBuffer.Size + new_cmd_buffer_count);

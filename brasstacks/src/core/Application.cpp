@@ -79,7 +79,7 @@ void Application::_state_transition(AppStateTransition const &event) {
         _current_state->exit();
     }
 
-    switch(event.next_state_type) {
+    switch(event.next_state) {
         case AppState::MENU_STATE:  _current_state = &_menu_state;  break;
         case AppState::PLAY_STATE:  _current_state = &_play_state;  break;
         case AppState::PAUSE_STATE: _current_state = &_pause_state; break;
@@ -98,17 +98,17 @@ void Application::_state_transition(AppStateTransition const &event) {
 
 // =============================================================================
 void Application::_window_event(WindowEvent const &event) {
-    if(event.event_type == WindowEventType::WINDOW_CLOSE) {
+    if(event.type == WindowEventType::WINDOW_CLOSE) {
         BTX_TRACE("Application received window close.");
         _running = false;
     }
-    else if(event.event_type == WindowEventType::WINDOW_MINIMIZE) {
+    else if(event.type == WindowEventType::WINDOW_MINIMIZE) {
         BTX_TRACE("Application received window minimize.");
         _state_to_resume = _current_state->type();
         _state_events.clear();
         _state_transition(AppStateTransition(AppState::PAUSE_STATE));
     }
-    else if(event.event_type == WindowEventType::WINDOW_RESTORE) {
+    else if(event.type == WindowEventType::WINDOW_RESTORE) {
         BTX_TRACE("Application received window restore.");
         _state_events.clear();
         _state_transition(AppStateTransition(_state_to_resume));
@@ -116,14 +116,23 @@ void Application::_window_event(WindowEvent const &event) {
 }
 
 // =============================================================================
-void Application::_menu_event(MenuEvent const &event) {
-    if(event.event_type == MenuEventType::MENU_EXIT) {
-        BTX_TRACE("Application received menu exit.");
+void Application::_menu_event(UIEvent const &event) {
+    if(event.type == UIEventType::UI_EXIT) {
+        BTX_TRACE("Application received UI exit.");
         _running = false;
     }
-    else if(event.event_type == MenuEventType::MENU_CHANGE_WINDOW_SIZE) {
-        BTX_TRACE("Application received menu change window size.");
+    else if(event.type == UIEventType::UI_WINDOW_RESIZE) {
+        BTX_TRACE("Application received UI window resize.");
         TargetWindow::size_and_place();
+    }
+    else if(event.type == UIEventType::UI_CHANGE_ANISO) {
+        BTX_TRACE("Application received UI change aniso.");
+    }
+    else if(event.type == UIEventType::UI_CHANGE_MSAA) {
+        BTX_TRACE("Application received UI change MSAA.");
+    }
+    else if(event.type == UIEventType::UI_TOGGLE_VSYNC) {
+        BTX_TRACE("Application received UI toggle VSync.");
     }
 }
 

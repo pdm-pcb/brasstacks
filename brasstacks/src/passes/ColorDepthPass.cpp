@@ -4,7 +4,7 @@
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
-#include "brasstacks/platform/imgui/ImGuiContext.hpp"
+#include "brasstacks/platform/imgui/UIOverlay.hpp"
 
 namespace btx {
 
@@ -96,7 +96,7 @@ void ColorDepthPass::begin() {
 
     _pipeline.bind(*_cmd_buffer);
 
-    ImGuiContext::record_commands();
+    UIOverlay::record_commands();
 }
 
 // =============================================================================
@@ -106,7 +106,7 @@ void ColorDepthPass::end() {
         return;
     }
 
-    ImGuiContext::render(*_cmd_buffer);
+    UIOverlay::render(*_cmd_buffer);
 
     _cmd_buffer->end_render_pass();
     _cmd_buffer = nullptr;

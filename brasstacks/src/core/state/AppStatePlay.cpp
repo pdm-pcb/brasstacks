@@ -26,9 +26,9 @@ void AppStatePlay::execute() {
 
 // =============================================================================
 void AppStatePlay::keyboard_event(KeyboardEvent const &event) {
-    switch(event.event_code) {
+    switch(event.code) {
         case BTX_KB_ESCAPE:
-            if(event.event_type == KeyboardEventType::KEY_RELEASE) {
+            if(event.type == KeyboardEventType::KEY_RELEASE) {
                 EventBus::publish(AppStateTransition(AppState::MENU_STATE));
             }
             break;

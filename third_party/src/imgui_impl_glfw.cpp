@@ -810,7 +810,7 @@ void ImGui_ImplGlfw_NewFrame()
 }
 
 #ifdef __EMSCRIPTEN__
-static EM_BOOL ImGui_ImplGlfw_OnCanvasSizeChange(int event_type, const EmscriptenUiEvent* event, void* user_data)
+static EM_BOOL ImGui_ImplGlfw_OnCanvasSizeChange(int type, const EmscriptenUiEvent* event, void* user_data)
 {
     ImGui_ImplGlfw_Data* bd = (ImGui_ImplGlfw_Data*)user_data;
     double canvas_width, canvas_height;
@@ -819,7 +819,7 @@ static EM_BOOL ImGui_ImplGlfw_OnCanvasSizeChange(int event_type, const Emscripte
     return true;
 }
 
-static EM_BOOL ImGui_ImplEmscripten_FullscreenChangeCallback(int event_type, const EmscriptenFullscreenChangeEvent* event, void* user_data)
+static EM_BOOL ImGui_ImplEmscripten_FullscreenChangeCallback(int type, const EmscriptenFullscreenChangeEvent* event, void* user_data)
 {
     ImGui_ImplGlfw_Data* bd = (ImGui_ImplGlfw_Data*)user_data;
     double canvas_width, canvas_height;

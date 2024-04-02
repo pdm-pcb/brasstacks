@@ -439,8 +439,8 @@ static void ImGui_ImplVulkan_SetupRenderState(ImDrawData* draw_data, VkPipeline 
     if (draw_data->TotalVtxCount > 0)
     {
         VkBuffer vertex_buffers[1] = { rb->VertexBuffer };
-        VkDeviceSize vertex_offset[1] = { 0 };
-        vkCmdBindVertexBuffers(command_buffer, 0, 1, vertex_buffers, vertex_offset);
+        VkDeviceSize vertex[1] = { 0 };
+        vkCmdBindVertexBuffers(command_buffer, 0, 1, vertex_buffers, vertex);
         vkCmdBindIndexBuffer(command_buffer, rb->IndexBuffer, 0, sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
     }
 
@@ -544,8 +544,8 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
 
     // Render command lists
     // (Because we merged all buffers into a single one, we maintain our own offset into them)
-    int global_vtx_offset = 0;
-    int global_idx_offset = 0;
+    int global_vtx = 0;
+    int global_idx = 0;
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
@@ -594,11 +594,11 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
                 vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->PipelineLayout, 0, 1, desc_set, 0, nullptr);
 
                 // Draw
-                vkCmdDrawIndexed(command_buffer, pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
+                vkCmdDrawIndexed(command_buffer, pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx, pcmd->VtxOffset + global_vtx, 0);
             }
         }
-        global_idx_offset += cmd_list->IdxBuffer.Size;
-        global_vtx_offset += cmd_list->VtxBuffer.Size;
+        global_idx += cmd_list->IdxBuffer.Size;
+        global_vtx += cmd_list->VtxBuffer.Size;
     }
 
     // Note: at this point both vkCmdSetViewport() and vkCmdSetScissor() have been called.

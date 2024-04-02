@@ -13,14 +13,14 @@ enum class WindowEventType : uint8_t {
 };
 
 struct WindowEvent final : public EventBase {
-    explicit WindowEvent(WindowEventType const type) :
+    explicit WindowEvent(WindowEventType const event_type) :
         EventBase(),
-        event_type { type }
+        type { event_type }
     { }
 
     WindowEvent() = delete;
 
-    WindowEventType const event_type;
+    WindowEventType const type;
 };
 
 } //namespace btx

@@ -10,7 +10,7 @@
 #include "brasstacks/events/EventQueue.hpp"
 #include "brasstacks/events/state_events.hpp"
 #include "brasstacks/events/window_events.hpp"
-#include "brasstacks/events/menu_events.hpp"
+#include "brasstacks/events/ui_events.hpp"
 #include "brasstacks/events/keyboard_events.hpp"
 #include "brasstacks/events/mouse_events.hpp"
 
@@ -52,14 +52,14 @@ private:
 
     EventQueue<AppStateTransition> _state_events;
     EventQueue<WindowEvent>        _window_events;
-    EventQueue<MenuEvent>          _menu_events;
+    EventQueue<UIEvent>          _menu_events;
     EventQueue<KeyboardEvent>      _keyboard_events;
     EventQueue<MouseButtonEvent>   _mouse_button_events;
 
     void _process_events();
     void _state_transition(AppStateTransition const &event);
     void _window_event(WindowEvent const &event);
-    void _menu_event(MenuEvent const &event);
+    void _menu_event(UIEvent const &event);
     void _keyboard_event(KeyboardEvent const &event);
     void _mouse_button_event(MouseButtonEvent const &event);
 };

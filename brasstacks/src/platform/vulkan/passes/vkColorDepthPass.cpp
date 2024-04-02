@@ -8,7 +8,7 @@
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 
-#include "brasstacks/platform/imgui/ImGuiContext.hpp"
+#include "brasstacks/platform/imgui/UIOverlay.hpp"
 
 namespace btx {
 
@@ -54,7 +54,7 @@ void vkColorDepthPass::destroy() {
 
 // =============================================================================
 void vkColorDepthPass::destroy_swapchain_resources() {
-    ImGuiContext::destroy_swapchain_resources();
+    UIOverlay::destroy_swapchain_resources();
 
     _destroy_depth_buffer();
     _destroy_color_buffers();
@@ -65,7 +65,7 @@ void vkColorDepthPass::create_swapchain_resources() {
     _create_color_buffers();
     _create_depth_buffer();
 
-    ImGuiContext::create_swapchain_resources(*this);
+    UIOverlay::create_swapchain_resources(*this);
 }
 
 // =============================================================================

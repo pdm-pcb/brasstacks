@@ -9,7 +9,7 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/events/EventBus.hpp"
 
-#include "brasstacks/platform/imgui/ImGuiContext.hpp"
+#include "brasstacks/platform/imgui/UIOverlay.hpp"
 
 namespace btx {
 
@@ -47,12 +47,12 @@ void Renderer::init(Application *application) {
 
     CameraController::init();
 
-    ImGuiContext::create_descriptor_pool();
+    UIOverlay::create_descriptor_pool();
 }
 
 // =============================================================================
 void Renderer::shutdown() {
-    ImGuiContext::destroy_descriptor_pool();
+    UIOverlay::destroy_descriptor_pool();
 
     CameraController::shutdown();
     _descriptor_pool->destroy();

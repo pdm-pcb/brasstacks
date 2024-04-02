@@ -13,16 +13,17 @@ enum class KeyboardEventType : uint8_t {
 };
 
 struct KeyboardEvent final : public EventBase {
-    KeyboardEvent(KeyboardEventType const type, Keycode const code) :
+    KeyboardEvent(KeyboardEventType const event_type,
+                  Keycode const event_code) :
         EventBase(),
-        event_type { type },
-        event_code { code }
+        type { event_type },
+        code { event_code }
     { }
 
     KeyboardEvent() = delete;
 
-    KeyboardEventType const event_type;
-    Keycode const event_code;
+    KeyboardEventType const type;
+    Keycode const code;
 };
 
 } //namespace btx

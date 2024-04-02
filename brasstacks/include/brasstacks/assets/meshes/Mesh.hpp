@@ -31,7 +31,7 @@ protected:
 private:
     std::unique_ptr<vmaBuffer>  _vertex_buffer;
     std::vector<Vertex>         _vertex_data;
-    std::vector<vk::DeviceSize> _vertex_offsets;
+    std::vector<vk::DeviceSize> _vertexs;
 
     std::unique_ptr<vmaBuffer> _index_buffer;
     std::vector<Index>         _index_data;
