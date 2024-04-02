@@ -135,33 +135,9 @@ void ImGuiContext::_draw_menu_bar() {
             if(::ImGui::MenuItem("Exit", "Esc")) {
                 EventBus::publish(MenuEvent(MenuEventType::MENU_EXIT));
             }
-
             ::ImGui::EndMenu();
         }
-        if(::ImGui::BeginMenu("Settings")) {
-            if(::ImGui::BeginMenu("Resolution")) {
-                for(auto &res : RenderConfig::resolutions) {
-                    res_name = fmt::format("{}x{}", res.size.width,
-                                                    res.size.height);
-
-                    if(::ImGui::MenuItem(res_name.c_str(), "", &res.selected)) {
-                        RenderConfig::current_resolution = &res;
-                        for(auto &other_res : RenderConfig::resolutions) {
-                            if(&res != &other_res) {
-                                other_res.selected = false;
-                            }
-                        }
-                        EventBus::publish(
-                            MenuEvent(MenuEventType::MENU_CHANGE_WINDOW_SIZE)
-                        );
-                    }
-                }
-
-                ::ImGui::EndMenu();
-            }
-
-            ::ImGui::EndMenu();
-        }
+        ::ImGui::Separator();
         ::ImGui::EndMainMenuBar();
     }
 }
@@ -177,6 +153,8 @@ void ImGuiContext::_draw_status_bar() {
 
     ::ImVec2 const size(viewport->Size.x, 1.0f);
 
+    static std::string label_text;
+
     ::ImGui::SetNextWindowPos(pos, ::ImGuiCond_Always);
     ::ImGui::SetNextWindowSize(size, ::ImGuiCond_Always);
 
@@ -187,20 +165,53 @@ void ImGuiContext::_draw_status_bar() {
     ::ImGui::BeginMenuBar();
     ::ImGui::BeginTable("StatusBarTable", 5);
         ::ImGui::TableNextRow();
+
         ::ImGui::TableSetColumnIndex(0);
-        ::ImGui::Text("Device: %s", vkPhysicalDevice::name().data());
+        label_text = fmt::format("{}", vkPhysicalDevice::name());
+        ::ImGui::Text("%s", label_text.c_str());
+
         ::ImGui::TableNextColumn();
-        ::ImGui::Text("Resolution: %ux%u",
-                      RenderConfig::current_resolution->size.width,
-                      RenderConfig::current_resolution->size.height);
+        ::ImGui::Separator();
+        auto &current_res = RenderConfig::current_resolution;
+        label_text = fmt::format("{}x{}", current_res->size.width,
+                                         current_res->size.height);
+        if(::ImGui::BeginMenu(label_text.c_str())) {
+            for(auto &res : RenderConfig::resolutions) {
+                label_text = fmt::format("{}x{}", res.size.width,
+                                                  res.size.height);
+
+                if(::ImGui::MenuItem(label_text.c_str(), "", &res.selected)) {
+                    current_res = &res;
+                    for(auto &other_res : RenderConfig::resolutions) {
+                        if(&res != &other_res) {
+                            other_res.selected = false;
+                        }
+                    }
+                    EventBus::publish(
+                        MenuEvent(MenuEventType::MENU_CHANGE_WINDOW_SIZE)
+                    );
+                }
+            }
+
+            ::ImGui::EndMenu();
+        }
+
+
         ::ImGui::TableNextColumn();
-        ::ImGui::Text("MSAA:x%u", RenderConfig::msaa_samples);
+        ::ImGui::Separator();
+        label_text = fmt::format("MSAA: x{}", RenderConfig::msaa_samples);
+        ::ImGui::Text("%s", label_text.c_str());
+
         ::ImGui::TableNextColumn();
-        ::ImGui::Text("Anisotropy: %.01fx",
-                      static_cast<double>(RenderConfig::anisotropy));
+        ::ImGui::Separator();
+        label_text = fmt::format("Aniso: {:.01f}x", RenderConfig::anisotropy);
+        ::ImGui::Text("%s", label_text.c_str());
+
         ::ImGui::TableNextColumn();
-        ::ImGui::Text("CPU Time: %.06f",
-                      static_cast<double>(TimeKeeper::delta_time()));
+        ::ImGui::Separator();
+        label_text = fmt::format("CPU Time: {:.04f}", TimeKeeper::delta_time());
+        ::ImGui::Text("%s", label_text.c_str());
+
     ::ImGui::EndTable();
     ::ImGui::EndMenuBar();
     ::ImGui::End();
