@@ -57,9 +57,9 @@ void TargetWindow::init(std::string_view const app_name) {
     }
 
     // Default to 75% of screen size
-    RenderConfig::resolutions[1].selected = true;
-    RenderConfig::current_resolution = &RenderConfig::resolutions[1];
-    size_and_place(RenderConfig::resolutions[1].size);
+    RenderConfig::available_resolutions[1].selected = true;
+    RenderConfig::current_resolution = &RenderConfig::available_resolutions[1];
+    size_and_place(RenderConfig::available_resolutions[1].size);
 
     ::glfwSetKeyCallback(_window, TargetWindow::_key_callback);
     ::glfwSetMouseButtonCallback(_window, TargetWindow::_mouse_button_callback);
@@ -161,7 +161,7 @@ void TargetWindow::_get_resolutions() {
     };
 
     // Windowed full screen
-    RenderConfig::resolutions[0] = {
+    RenderConfig::available_resolutions[0] = {
         .size {
             .width = static_cast<uint32_t>(width),
             .height = static_cast<uint32_t>(height),
@@ -169,7 +169,7 @@ void TargetWindow::_get_resolutions() {
         .selected = false,
     };
 
-    RenderConfig::resolutions[1] = {
+    RenderConfig::available_resolutions[1] = {
         .size {
             .width = static_cast<uint32_t>(width * 0.75f),
             .height = static_cast<uint32_t>(height * 0.75f),
@@ -177,7 +177,7 @@ void TargetWindow::_get_resolutions() {
         .selected = false,
     };
 
-    RenderConfig::resolutions[2] = {
+    RenderConfig::available_resolutions[2] = {
         .size {
             .width = static_cast<uint32_t>(width * 0.5f),
             .height = static_cast<uint32_t>(height * 0.5f),
@@ -185,7 +185,7 @@ void TargetWindow::_get_resolutions() {
         .selected = false,
     };
 
-    RenderConfig::resolutions[3] = {
+    RenderConfig::available_resolutions[3] = {
         .size {
             .width = static_cast<uint32_t>(width * 0.25f),
             .height = static_cast<uint32_t>(height * 0.25f),

@@ -60,26 +60,8 @@ void vkPhysicalDevice::select(vkSurface     const &surface,
 
     BTX_INFO("Selected {}", _chosen_device.name);
 
-    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e64) {
-        RenderConfig::msaa_samples = 64;
-    }
-    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e32) {
-        RenderConfig::msaa_samples = 32;
-    }
-    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e16) {
-        RenderConfig::msaa_samples = 16;
-    }
-    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e8) {
-        RenderConfig::msaa_samples = 8;
-    }
-    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e4) {
-        RenderConfig::msaa_samples = 4;
-    }
-    else if(_chosen_device.max_samples & vk::SampleCountFlagBits::e2) {
-        RenderConfig::msaa_samples = 2;
-    }
-
-    RenderConfig::anisotropy = _chosen_device.max_aniso;
+    _get_msaa_levels();
+    _get_aniso_levels();
 }
 
 // =============================================================================
@@ -367,4 +349,40 @@ void vkPhysicalDevice::_print_family_flags(uint32_t const family,
     BTX_TRACE("  {}", flags_str);
 }
 
+// =============================================================================
+void vkPhysicalDevice::_get_msaa_levels() {
+    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e64) {
+        RenderConfig::available_msaa.push_back(64u);
+    }
+    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e32) {
+        RenderConfig::available_msaa.push_back(32u);
+    }
+    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e16) {
+        RenderConfig::available_msaa.push_back(16u);
+    }
+    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e8) {
+        RenderConfig::available_msaa.push_back(8u);
+    }
+    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e4) {
+        RenderConfig::available_msaa.push_back(4u);
+    }
+    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e2) {
+        RenderConfig::available_msaa.push_back(2u);
+    }
+
+    RenderConfig::available_msaa.push_back(1u);
+}
+
+// =============================================================================
+void vkPhysicalDevice::_get_aniso_levels() {
+    auto aniso_level = static_cast<uint8_t>(_chosen_device.max_aniso);
+
+    while(aniso_level >= 1u) {
+        RenderConfig::available_aniso.push_back(aniso_level);
+        aniso_level = static_cast<uint8_t>(
+            static_cast<float>(aniso_level) * 0.5f
+        );
+    }
+
+}
 } // namespace btx

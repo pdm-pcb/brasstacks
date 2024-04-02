@@ -178,13 +178,13 @@ void ImGuiContext::_draw_status_bar() {
         label_text = std::format("{}x{}", current_res->size.width,
                                          current_res->size.height);
         if(::ImGui::BeginMenu(label_text.c_str())) {
-            for(auto &res : RenderConfig::resolutions) {
+            for(auto &res : RenderConfig::available_resolutions) {
                 label_text = std::format("{}x{}", res.size.width,
                                                   res.size.height);
 
                 if(::ImGui::MenuItem(label_text.c_str(), "", &res.selected)) {
                     current_res = &res;
-                    for(auto &other_res : RenderConfig::resolutions) {
+                    for(auto &other_res : RenderConfig::available_resolutions) {
                         if(&res != &other_res) {
                             other_res.selected = false;
                         }
@@ -194,20 +194,35 @@ void ImGuiContext::_draw_status_bar() {
                     );
                 }
             }
-
             ::ImGui::EndMenu();
         }
 
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = std::format("MSAA: x{}", RenderConfig::msaa_samples);
-        ::ImGui::Text("%s", label_text.c_str());
+        label_text = std::format("MSAA: x{}", RenderConfig::current_msaa);
+        if(::ImGui::BeginMenu(label_text.c_str())) {
+            for(auto const msaa : RenderConfig::available_msaa) {
+                label_text = std::format("x{}", msaa);
+                if(::ImGui::MenuItem(label_text.c_str())) {
+                    RenderConfig::current_msaa = msaa;
+                }
+            }
+            ::ImGui::EndMenu();
+        }
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = std::format("Aniso: {:.01f}x", RenderConfig::anisotropy);
-        ::ImGui::Text("%s", label_text.c_str());
+        label_text = std::format("AF: {}x", RenderConfig::current_aniso);
+        if(::ImGui::BeginMenu(label_text.c_str())) {
+            for(auto const aniso : RenderConfig::available_aniso) {
+                label_text = std::format("{}x", aniso);
+                if(::ImGui::MenuItem(label_text.c_str())) {
+                    RenderConfig::current_aniso = aniso;
+                }
+            }
+            ::ImGui::EndMenu();
+        }
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();

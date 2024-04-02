@@ -24,12 +24,14 @@ struct RenderConfig final {
 
     static bool vsync_on;
 
-    static float anisotropy;
+    static uint8_t current_aniso;
+    static std::vector<uint8_t> available_aniso;
 
-    static uint8_t msaa_samples;
+    static uint8_t current_msaa;
+    static std::vector<uint8_t> available_msaa;
 
     static struct SelectedResolution *current_resolution;
-    static std::array<SelectedResolution, 4> resolutions;
+    static std::array<SelectedResolution, 4> available_resolutions;
 };
 
 } // namespace btx
