@@ -135,6 +135,7 @@ void Application::_menu_event(UIEvent const &event) {
     }
     else if(event.type == UIEventType::UI_TOGGLE_VSYNC) {
         BTX_TRACE("Application received UI toggle VSync.");
+        Renderer::recreate_swapchain();
     }
 }
 

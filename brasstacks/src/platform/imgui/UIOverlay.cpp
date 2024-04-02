@@ -236,7 +236,8 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = std::format("CPU Time: {:.06f}", TimeKeeper::delta_time());
+        label_text = std::format("CPU Time: {:.06f}ms",
+                                 1e3f * TimeKeeper::delta_time());
         ::ImGui::Text("%s", label_text.c_str());
 
     ::ImGui::EndTable();
