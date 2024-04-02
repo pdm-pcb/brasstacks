@@ -36,12 +36,55 @@ vkImage::~vkImage() {
 }
 
 // =============================================================================
+void vkImage::create(vk::Extent2D const &extent, vk::Format const format,
+                     ImageInfo const &image_info)
+{
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Image {} already exists", _handle);
+        return;
+    }
+
+    _device = Renderer::device().native();
+
+    _format = format;
+    _extent = {
+        .width = extent.width,
+        .height = extent.height,
+        .depth = 1u
+    };
+
+    vk::ImageCreateInfo const create_info {
+        .pNext = nullptr,
+        .flags = { },
+        .imageType = image_info.type,
+        .format = _format,
+        .extent = _extent,
+        .mipLevels = _mip_levels,
+        .arrayLayers = _array_layers,
+        .samples = image_info.samples,
+        .tiling = vk::ImageTiling::eOptimal,
+        .usage = image_info.usage_flags,
+        .sharingMode = vk::SharingMode::eExclusive,
+        .queueFamilyIndexCount = 0u,
+        .pQueueFamilyIndices = nullptr,
+        .initialLayout = vk::ImageLayout::eUndefined,
+    };
+
+    _handle = _device.createImage(create_info);
+    BTX_TRACE("Created image {} with extent {}x{}, samples {}", _handle,
+              extent.width, extent.height, vk::to_string(image_info.samples));
+
+    _allocate(image_info.memory_flags);
+}
+
+// =============================================================================
 void vkImage::create(std::string_view const filename,
                      ImageInfo const &image_info,
                      uint32_t const array_layers)
 {
     if(_handle != nullptr) {
         BTX_CRITICAL("Image {} already exists", _handle);
+        return;
     }
 
     _device = Renderer::device().native();
@@ -85,47 +128,6 @@ void vkImage::create(std::string_view const filename,
 
     _allocate(image_info.memory_flags);
     _send_to_device();
-}
-
-// =============================================================================
-void vkImage::create(vk::Extent2D const &extent, vk::Format const format,
-                     ImageInfo const &image_info)
-{
-    if(_handle != nullptr) {
-        BTX_CRITICAL("Image {} already exists", _handle);
-    }
-
-    _device = Renderer::device().native();
-
-    _format = format;
-    _extent = {
-        .width = extent.width,
-        .height = extent.height,
-        .depth = 1u
-    };
-
-    vk::ImageCreateInfo const create_info {
-        .pNext = nullptr,
-        .flags = { },
-        .imageType = image_info.type,
-        .format = _format,
-        .extent = _extent,
-        .mipLevels = _mip_levels,
-        .arrayLayers = _array_layers,
-        .samples = image_info.samples,
-        .tiling = vk::ImageTiling::eOptimal,
-        .usage = image_info.usage_flags,
-        .sharingMode = vk::SharingMode::eExclusive,
-        .queueFamilyIndexCount = 0u,
-        .pQueueFamilyIndices = nullptr,
-        .initialLayout = vk::ImageLayout::eUndefined,
-    };
-
-    _handle = _device.createImage(create_info);
-    BTX_TRACE("Created image {} with extent {}x{}, samples {}", _handle,
-              extent.width, extent.height, vk::to_string(image_info.samples));
-
-    _allocate(image_info.memory_flags);
 }
 
 // =============================================================================

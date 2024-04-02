@@ -17,12 +17,26 @@ public:
     static void shutdown();
 
     static MeshIter const
-    new_plane_mesh(std::span<Color const, 4> const corner_colors,
-                   float const scale);
+    new_plane_mesh(float const scale,
+                   std::array<Color const, 4> const &corner_colors = {
+                       colors::white,
+                       colors::white,
+                       colors::white,
+                       colors::white,
+                   });
 
     static MeshIter const
-    new_cube_mesh(std::span<Color const, 8> const corner_colors,
-                  float const scale);
+    new_cube_mesh(float const scale,
+                  std::array<Color const, 8> const &corner_colors = {
+                       colors::white,
+                       colors::white,
+                       colors::white,
+                       colors::white,
+                       colors::white,
+                       colors::white,
+                       colors::white,
+                       colors::white,
+                  });
 
     static void unload_mesh(MeshIter const iter);
 

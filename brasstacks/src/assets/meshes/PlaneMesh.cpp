@@ -5,8 +5,8 @@
 
 namespace btx {
 
-PlaneMesh::PlaneMesh(std::span<Color const, 4> const corner_colors,
-                     float const scale) :
+PlaneMesh::PlaneMesh(float const scale,
+                     std::span<Color const, 4> const corner_colors) :
     Mesh { }
 {
     Mesh::_set_vertices(

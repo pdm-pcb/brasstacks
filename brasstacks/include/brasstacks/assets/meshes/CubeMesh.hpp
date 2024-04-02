@@ -10,8 +10,8 @@ class vkDevice;
 
 class CubeMesh final : public Mesh {
 public:
-    CubeMesh(std::span<Color const, 8> const corner_colors,
-             float const scale = 1.0f);
+    explicit CubeMesh(float const scale,
+                      std::span<Color const, 8> const corner_colors);
 
     ~CubeMesh() override = default;
 

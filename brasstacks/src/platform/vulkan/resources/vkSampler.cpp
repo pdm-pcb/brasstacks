@@ -26,6 +26,13 @@ void vkSampler::create(vk::Filter const min_filter,
                        vk::SamplerAddressMode const mode_u,
                        vk::SamplerAddressMode const mode_v)
 {
+    if(_handle != nullptr) {
+        BTX_CRITICAL("Sampler {} already exists", _handle);
+        return;
+    }
+
+    _device = Renderer::device().native();
+
     vk::SamplerCreateInfo const create_info {
         .magFilter        = mag_filter,
         .minFilter        = min_filter,

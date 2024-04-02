@@ -3,7 +3,6 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/assets/meshes/Mesh.hpp"
-#include "brasstacks/math/colors.hpp"
 
 namespace btx {
 
@@ -11,8 +10,8 @@ class vkDevice;
 
 class PlaneMesh final : public Mesh {
 public:
-    PlaneMesh(std::span<Color const, 4> const corner_colors,
-              float const scale = 1.0f);
+    explicit PlaneMesh(float const scale,
+                       std::span<Color const, 4> const corner_colors);
 
     ~PlaneMesh() override = default;
 

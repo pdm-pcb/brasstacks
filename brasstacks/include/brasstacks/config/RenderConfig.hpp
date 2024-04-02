@@ -7,10 +7,20 @@ namespace btx {
 
 struct RenderConfig final {
 
-    struct Size { uint32_t width = 0u; uint32_t height = 0u; };
-    struct Offset { int32_t x = 0u; int32_t y = 0u; };
+    struct Size {
+        uint32_t width = 0u;
+        uint32_t height = 0u;
+    };
 
-    struct SelectedResolution { Size size = { }; bool selected = false; };
+    struct Offset {
+        int32_t x = 0u;
+        int32_t y = 0u;
+    };
+
+    struct SelectedResolution {
+        Size size = { };
+        bool selected = false;
+    };
 
     static bool vsync_on;
 

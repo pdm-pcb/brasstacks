@@ -5,10 +5,9 @@
 
 #include "brasstacks/math/Mat4.hpp"
 #include "brasstacks/assets/libraries/MeshLibrary.hpp"
+#include "brasstacks/passes/ColorDepthPass.hpp"
 
 namespace btx {
-    class ColorDepthPass;
-
     class vkImage;
     class vkImageView;
     class vkSampler;
@@ -32,7 +31,7 @@ public:
     void create_swapchain_resources() override;
 
 private:
-    btx::ColorDepthPass *_color_depth_pass;
+    std::unique_ptr<btx::ColorDepthPass> _color_depth_pass;
 
     btx::MeshLibrary::MeshIter _plane_mesh;
     btx::math::Mat4            _plane_mat;

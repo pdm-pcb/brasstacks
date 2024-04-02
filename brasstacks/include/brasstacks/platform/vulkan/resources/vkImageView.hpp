@@ -8,7 +8,7 @@ namespace btx {
 class vkImageView final {
 public:
     vkImageView();
-    ~vkImageView() = default;
+    ~vkImageView();
 
     void create(vk::Image const &image,
                 vk::Format const format,
@@ -27,6 +27,7 @@ public:
 
 private:
     vk::ImageView _handle;
+    vk::Device _device;
 };
 
 } // namespace btx

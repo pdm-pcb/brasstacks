@@ -8,8 +8,16 @@ namespace btx {
 
 // =============================================================================
 vkImageView::vkImageView() :
-    _handle { nullptr }
+    _handle { nullptr },
+    _device { nullptr }
 { }
+
+// =============================================================================
+vkImageView::~vkImageView() {
+    if(_handle != nullptr) {
+        destroy();
+    }
+}
 
 // =============================================================================
 void vkImageView::create(vk::Image const &image,
@@ -21,6 +29,8 @@ void vkImageView::create(vk::Image const &image,
         BTX_CRITICAL("Image view {} already exists", _handle);
         return;
     }
+
+    _device = Renderer::device().native();
 
     vk::ImageViewCreateInfo const view_create_info {
         .image    = image,
@@ -44,14 +54,14 @@ void vkImageView::create(vk::Image const &image,
         }
     };
 
-    _handle = Renderer::device().native().createImageView(view_create_info);
+    _handle = _device.createImageView(view_create_info);
     BTX_TRACE("Created view {} for image {}", _handle, image);
 }
 
 // =============================================================================
 void vkImageView::destroy() {
     BTX_TRACE("Destroying image view {}", _handle);
-    Renderer::device().native().destroyImageView(_handle);
+    _device.destroyImageView(_handle);
     _handle = nullptr;
 }
 

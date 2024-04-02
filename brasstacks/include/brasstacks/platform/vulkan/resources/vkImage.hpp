@@ -19,13 +19,13 @@ public:
         vk::MemoryPropertyFlags memory_flags = { };
     };
 
-    // For reading texture data from a file
-    void create(std::string_view const filename, ImageInfo const &image_info,
-            uint32_t const array_layers = 1u);
-
     // For render targets, eg color buffer
     void create(vk::Extent2D const &extent, vk::Format const format,
                 ImageInfo const &image_info);
+
+    // For reading texture data from a file
+    void create(std::string_view const filename, ImageInfo const &image_info,
+                uint32_t const array_layers = 1u);
 
     void destroy();
 

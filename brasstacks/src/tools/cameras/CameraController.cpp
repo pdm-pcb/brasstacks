@@ -19,6 +19,7 @@ std::vector<std::unique_ptr<vkDescriptorSet>>
 // =============================================================================
 void CameraController::init() {
     _perspective_camera = new PerspectiveCamera;
+
     _perspective_camera->orient(
         PerspectiveCamera::Orientation {
             .position = { 0.0f, 0.0f, 4.0f },
@@ -29,6 +30,7 @@ void CameraController::init() {
             .yaw = -90.0f,
         }
     );
+
     _perspective_camera->set_perspective(
         PerspectiveCamera::PerspectiveParams {
             .vfov_degrees = 45.0f,
