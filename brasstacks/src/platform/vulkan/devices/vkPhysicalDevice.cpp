@@ -384,7 +384,6 @@ void vkPhysicalDevice::_get_aniso_levels() {
             static_cast<float>(aniso_level) * 0.5f
         );
     }
-
 }
 
 } // namespace btx
