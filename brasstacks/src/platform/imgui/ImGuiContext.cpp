@@ -14,6 +14,8 @@ namespace btx {
 ::ImGuiIO *ImGuiContext::_io { nullptr };
 ::ImGuiStyle *ImGuiContext::_style { nullptr };
 
+std::string ImGuiContext::_window_title { };
+
 std::unique_ptr<vkDescriptorPool> ImGuiContext::_descriptor_pool {
     std::make_unique<vkDescriptorPool>()
 };
@@ -21,7 +23,8 @@ std::unique_ptr<vkDescriptorPool> ImGuiContext::_descriptor_pool {
 bool ImGuiContext::_enabled { true };
 
 // =============================================================================
-void ImGuiContext::init_window(::GLFWwindow *window) {
+void ImGuiContext::init_window(::GLFWwindow *window,
+                               std::string_view const window_title) {
     ::ImGui::CreateContext();
     ::ImGui_ImplGlfw_InitForVulkan(window, true);
     ::ImGui::StyleColorsDark();
@@ -41,6 +44,8 @@ void ImGuiContext::init_window(::GLFWwindow *window) {
 
     _style->Alpha = 0.75f;
     _style->DisabledAlpha = 0.33f;
+
+    _window_title = window_title;
 }
 
 // =============================================================================
@@ -113,7 +118,6 @@ void ImGuiContext::record_commands() {
         _draw_menu_bar();
         _draw_status_bar();
         // ::ImGui::ShowDemoWindow();
-        // _draw_perf_window();
 
     ::ImGui::EndDisabled();
     ::ImGui::EndFrame();
@@ -128,10 +132,8 @@ void ImGuiContext::render(vkCmdBuffer const &cmd_buffer) {
 
 // =============================================================================
 void ImGuiContext::_draw_menu_bar() {
-    static std::string res_name;
-
     if(::ImGui::BeginMainMenuBar()) {
-        if(::ImGui::BeginMenu("Application")) {
+        if(::ImGui::BeginMenu(_window_title.c_str())) {
             if(::ImGui::MenuItem("Exit", "Esc")) {
                 EventBus::publish(MenuEvent(MenuEventType::MENU_EXIT));
             }
@@ -167,17 +169,17 @@ void ImGuiContext::_draw_status_bar() {
         ::ImGui::TableNextRow();
 
         ::ImGui::TableSetColumnIndex(0);
-        label_text = fmt::format("{}", vkPhysicalDevice::name());
+        label_text = std::format("{}", vkPhysicalDevice::name());
         ::ImGui::Text("%s", label_text.c_str());
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
         auto &current_res = RenderConfig::current_resolution;
-        label_text = fmt::format("{}x{}", current_res->size.width,
+        label_text = std::format("{}x{}", current_res->size.width,
                                          current_res->size.height);
         if(::ImGui::BeginMenu(label_text.c_str())) {
             for(auto &res : RenderConfig::resolutions) {
-                label_text = fmt::format("{}x{}", res.size.width,
+                label_text = std::format("{}x{}", res.size.width,
                                                   res.size.height);
 
                 if(::ImGui::MenuItem(label_text.c_str(), "", &res.selected)) {
@@ -199,17 +201,17 @@ void ImGuiContext::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = fmt::format("MSAA: x{}", RenderConfig::msaa_samples);
+        label_text = std::format("MSAA: x{}", RenderConfig::msaa_samples);
         ::ImGui::Text("%s", label_text.c_str());
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = fmt::format("Aniso: {:.01f}x", RenderConfig::anisotropy);
+        label_text = std::format("Aniso: {:.01f}x", RenderConfig::anisotropy);
         ::ImGui::Text("%s", label_text.c_str());
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = fmt::format("CPU Time: {:.04f}", TimeKeeper::delta_time());
+        label_text = std::format("CPU Time: {:.06f}", TimeKeeper::delta_time());
         ::ImGui::Text("%s", label_text.c_str());
 
     ::ImGui::EndTable();

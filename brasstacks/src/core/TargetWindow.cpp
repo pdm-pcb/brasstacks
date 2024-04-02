@@ -67,7 +67,7 @@ void TargetWindow::init(std::string_view const app_name) {
     ::glfwSetWindowIconifyCallback(_window,
                                    TargetWindow::_window_iconify_callback);
 
-    ImGuiContext::init_window(_window);
+    ImGuiContext::init_window(_window, app_name);
 }
 
 // =============================================================================

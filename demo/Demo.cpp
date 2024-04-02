@@ -18,7 +18,7 @@
 
 // =============================================================================
 Demo::Demo() :
-    Application("Demo"),
+    Application("Brasstacks"),
     _color_depth_pass   { std::make_unique<btx::ColorDepthPass>() },
     _plane_mesh         { },
     _plane_mat          { },

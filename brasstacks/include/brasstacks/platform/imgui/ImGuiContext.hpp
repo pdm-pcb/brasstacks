@@ -11,7 +11,8 @@ class vkCmdBuffer;
 
 class ImGuiContext {
 public:
-    static void init_window(::GLFWwindow *window);
+    static void init_window(::GLFWwindow *window,
+                            std::string_view const window_title);
     static void create_descriptor_pool();
     static void create_swapchain_resources(vkColorDepthPass const &render_pass);
     static void destroy_swapchain_resources();
@@ -43,6 +44,8 @@ public:
 private:
     static ::ImGuiIO *_io;
     static ::ImGuiStyle *_style;
+
+    static std::string _window_title;
 
     static std::unique_ptr<vkDescriptorPool> _descriptor_pool;
 
