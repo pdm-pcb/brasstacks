@@ -55,6 +55,7 @@ void vkPhysicalDevice::select(vkSurface     const &surface,
         return;
     }
 
+    RenderConfig::current_device->selected = true;
     BTX_INFO("Selected {}", RenderConfig::current_device->name);
 
     _get_msaa_levels();

@@ -34,6 +34,8 @@ struct RenderConfig final {
 
         vk::PhysicalDeviceFeatures enabled_features { };
         std::vector<char const *> enabled_extensions { };
+
+        bool selected = false;
     };
 
     struct SelectedResolution final {
