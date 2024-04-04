@@ -170,7 +170,15 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableSetColumnIndex(0);
         label_text = std::format("{}", vkPhysicalDevice::name());
-        ::ImGui::Text("%s", label_text.c_str());
+        if(::ImGui::BeginMenu(label_text.c_str())) {
+            for(auto const &device : vkPhysicalDevice::available_devices()) {
+                label_text = std::format("{}", device.name);
+                if(::ImGui::MenuItem(label_text.c_str())) {
+                    EventBus::publish(UIEvent(UIEventType::UI_CHANGE_DEVICE));
+                }
+            }
+            ::ImGui::EndMenu();
+        }
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();

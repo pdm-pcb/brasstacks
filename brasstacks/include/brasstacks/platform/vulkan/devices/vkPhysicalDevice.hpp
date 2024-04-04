@@ -92,6 +92,8 @@ public:
 
     static inline std::string_view const name() { return _chosen_device.name; }
 
+    static inline auto const & available_devices() { return _available_devices; }
+
     vkPhysicalDevice() = delete;
     ~vkPhysicalDevice() = delete;
 

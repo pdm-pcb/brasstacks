@@ -10,6 +10,7 @@ namespace btx {
 
 enum class UIEventType : uint8_t {
     UI_EXIT = 0u,
+    UI_CHANGE_DEVICE,
     UI_WINDOW_RESIZE,
     UI_CHANGE_ANISO,
     UI_CHANGE_MSAA,

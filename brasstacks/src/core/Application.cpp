@@ -19,7 +19,7 @@ Application::Application(std::string_view const app_name) :
     _running             { true },
     _state_events        { *this, &Application::_state_transition },
     _window_events       { *this, &Application::_window_event },
-    _menu_events         { *this, &Application::_menu_event },
+    _ui_events           { *this, &Application::_ui_event },
     _keyboard_events     { *this, &Application::_keyboard_event },
     _mouse_button_events { *this, &Application::_mouse_button_event }
 {
@@ -27,7 +27,7 @@ Application::Application(std::string_view const app_name) :
 
     _state_events.subscribe();
     _window_events.subscribe();
-    _menu_events.subscribe();
+    _ui_events.subscribe();
     _keyboard_events.subscribe();
     _mouse_button_events.subscribe();
 
@@ -69,7 +69,7 @@ void Application::run() {
 void Application::_process_events() {
     _state_events.process_queue();
     _window_events.process_queue();
-    _menu_events.process_queue();
+    _ui_events.process_queue();
     _keyboard_events.process_queue();
     _mouse_button_events.process_queue();
 }
@@ -117,10 +117,13 @@ void Application::_window_event(WindowEvent const &event) {
 }
 
 // =============================================================================
-void Application::_menu_event(UIEvent const &event) {
+void Application::_ui_event(UIEvent const &event) {
     if(event.type == UIEventType::UI_EXIT) {
         BTX_TRACE("Application received UI exit.");
         _running = false;
+    }
+    else if(event.type == UIEventType::UI_CHANGE_DEVICE) {
+        BTX_TRACE("Application received UI change device.");
     }
     else if(event.type == UIEventType::UI_WINDOW_RESIZE) {
         BTX_TRACE("Application received UI window resize.");
