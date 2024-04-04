@@ -43,17 +43,27 @@ struct RenderConfig final {
         bool selected = false;
     };
 
-    static DeviceProps *current_device;
+    struct SelectedMSAA final {
+        uint8_t msaa = 0u;
+        bool selected = false;
+    };
+
+    struct SelectedAniso final {
+        uint8_t aniso = 0u;
+        bool selected = false;
+    };
+
     static std::vector<DeviceProps> available_devices;
+    static DeviceProps *current_device;
 
-    static struct SelectedResolution *current_resolution;
     static std::array<SelectedResolution, 4> available_resolutions;
+    static struct SelectedResolution *current_resolution;
 
-    static uint8_t current_msaa;
-    static std::vector<uint8_t> available_msaa;
+    static std::vector<SelectedMSAA> available_msaa;
+    static struct SelectedMSAA *current_msaa;
 
-    static uint8_t current_aniso;
-    static std::vector<uint8_t> available_aniso;
+    static std::vector<SelectedAniso> available_aniso;
+    static struct SelectedAniso *current_aniso;
 
     static bool vsync_on;
 };

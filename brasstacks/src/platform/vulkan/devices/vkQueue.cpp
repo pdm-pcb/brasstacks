@@ -27,4 +27,11 @@ void vkQueue::set_family_index(uint32_t const index) {
     BTX_TRACE("Received queue {} from device.", _handle);
 }
 
+// =============================================================================
+void vkQueue::clear_family_index() {
+    BTX_TRACE("Clearing family index {} for queue {}.", _family_index, _handle);
+    _handle = nullptr;
+    _family_index = std::numeric_limits<uint32_t>::max();
+}
+
 } // namespace btx

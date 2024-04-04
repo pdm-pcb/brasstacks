@@ -79,13 +79,7 @@ void Demo::record_commands() const {
 }
 
 // =============================================================================
-void Demo::destroy_swapchain_resources() {
-}
-
-// =============================================================================
-void Demo::create_swapchain_resources() {
-    // This is redundant when the render pass has just been created, but
-    // necessary when the swapchain has changed size
+void Demo::swapchain_updated() {
     _pipeline->update_dimensions(btx::Renderer::swapchain().size(),
                                  btx::Renderer::swapchain().offset());
 }

@@ -57,6 +57,9 @@ public:
                        FeatureList   const &required_features,
                        ExtensionList const &required_extensions);
 
+    static void get_msaa_levels();
+    static void get_aniso_levels();
+
     vkPhysicalDevice() = delete;
     ~vkPhysicalDevice() = delete;
 
@@ -119,9 +122,6 @@ private:
      */
     static void _print_family_flags(uint32_t const family,
                                     vk::QueueFlags const flags);
-
-    static void _get_msaa_levels();
-    static void _get_aniso_levels();
 };
 
 } // namespace btx

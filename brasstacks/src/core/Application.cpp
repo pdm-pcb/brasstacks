@@ -124,6 +124,7 @@ void Application::_ui_event(UIEvent const &event) {
     }
     else if(event.type == UIEventType::UI_CHANGE_DEVICE) {
         BTX_TRACE("Application received UI change device.");
+        Renderer::change_device();
     }
     else if(event.type == UIEventType::UI_WINDOW_RESIZE) {
         BTX_TRACE("Application received UI window resize.");

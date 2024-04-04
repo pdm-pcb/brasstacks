@@ -22,6 +22,8 @@ public:
     static void shutdown();
     static void run();
 
+    static void change_device();
+
     static void recreate_swapchain();
     static void create_swapchain_resources();
     static void destroy_swapchain_resources();

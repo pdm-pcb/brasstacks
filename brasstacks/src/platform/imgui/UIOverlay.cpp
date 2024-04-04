@@ -171,9 +171,16 @@ void UIOverlay::_draw_status_bar() {
         ::ImGui::TableSetColumnIndex(0);
         label_text = std::format("{}", RenderConfig::current_device->name);
         if(::ImGui::BeginMenu(label_text.c_str())) {
-            for(auto const &device : RenderConfig::available_devices) {
+            for(auto &device : RenderConfig::available_devices) {
                 label_text = std::format("{}", device.name);
-                if(::ImGui::MenuItem(label_text.c_str())) {
+                if(::ImGui::MenuItem(label_text.c_str(), "", &device.selected))
+                {
+                    RenderConfig::current_device = &device;
+                    for(auto &other_device : RenderConfig::available_devices) {
+                        if(&device != &other_device) {
+                            other_device.selected = false;
+                        }
+                    }
                     EventBus::publish(UIEvent(UIEventType::UI_CHANGE_DEVICE));
                 }
             }
@@ -182,16 +189,16 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        auto &current_res = RenderConfig::current_resolution;
-        label_text = std::format("{}x{}", current_res->size.width,
-                                         current_res->size.height);
+        label_text = std::format("{}x{}",
+                                 RenderConfig::current_resolution->size.width,
+                                 RenderConfig::current_resolution->size.height);
         if(::ImGui::BeginMenu(label_text.c_str())) {
             for(auto &res : RenderConfig::available_resolutions) {
                 label_text = std::format("{}x{}", res.size.width,
                                                   res.size.height);
 
                 if(::ImGui::MenuItem(label_text.c_str(), "", &res.selected)) {
-                    current_res = &res;
+                    RenderConfig::current_resolution = &res;
                     for(auto &other_res : RenderConfig::available_resolutions) {
                         if(&res != &other_res) {
                             other_res.selected = false;
@@ -206,14 +213,17 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = std::format("MSAA: x{}", RenderConfig::current_msaa);
+        label_text = std::format("MSAA: x{}", RenderConfig::current_msaa->msaa);
         if(::ImGui::BeginMenu(label_text.c_str())) {
-            for(auto const msaa : RenderConfig::available_msaa) {
-                label_text = std::format("x{}", msaa);
-                if(::ImGui::MenuItem(label_text.c_str())) {
-                    RenderConfig::current_msaa = msaa;
-                    // An event to recreate the render pass, knowing whether
-                    // a resolve attachment is needed
+            for(auto &level : RenderConfig::available_msaa) {
+                label_text = std::format("x{}", level.msaa);
+                if(::ImGui::MenuItem(label_text.c_str(), "", &level.selected)) {
+                    RenderConfig::current_msaa = &level;
+                    for(auto &other_level : RenderConfig::available_msaa) {
+                        if(&level != &other_level) {
+                            other_level.selected = false;
+                        }
+                    }
                     EventBus::publish(UIEvent(UIEventType::UI_CHANGE_MSAA));
                 }
             }
@@ -222,13 +232,17 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = std::format("AF: {}x", RenderConfig::current_aniso);
+        label_text = std::format("AF: {}x", RenderConfig::current_aniso->aniso);
         if(::ImGui::BeginMenu(label_text.c_str())) {
-            for(auto const aniso : RenderConfig::available_aniso) {
-                label_text = std::format("{}x", aniso);
-                if(::ImGui::MenuItem(label_text.c_str())) {
-                    RenderConfig::current_aniso = aniso;
-                    // An event to recreate image samplers
+            for(auto &level : RenderConfig::available_aniso) {
+                label_text = std::format("{}x", level.aniso);
+                if(::ImGui::MenuItem(label_text.c_str(), "", &level.selected)) {
+                    RenderConfig::current_aniso = &level;
+                    for(auto &other_level : RenderConfig::available_aniso) {
+                        if(&level != &other_level) {
+                            other_level.selected = false;
+                        }
+                    }
                     EventBus::publish(UIEvent(UIEventType::UI_CHANGE_ANISO));
                 }
             }

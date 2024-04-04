@@ -2,19 +2,19 @@
 
 namespace btx {
 
-RenderConfig::DeviceProps *RenderConfig::current_device { nullptr };
 std::vector<RenderConfig::DeviceProps> RenderConfig::available_devices { };
+RenderConfig::DeviceProps *RenderConfig::current_device { nullptr };
 
 std::array<RenderConfig::SelectedResolution, 4>
     RenderConfig::available_resolutions { };
 
 RenderConfig::SelectedResolution *RenderConfig::current_resolution { nullptr };
 
-uint8_t RenderConfig::current_msaa { 2u };
-std::vector<uint8_t> RenderConfig::available_msaa { };
+std::vector<RenderConfig::SelectedMSAA> RenderConfig::available_msaa { };
+RenderConfig::SelectedMSAA *RenderConfig::current_msaa { nullptr };
 
-uint8_t RenderConfig::current_aniso { 1u };
-std::vector<uint8_t> RenderConfig::available_aniso { };
+std::vector<RenderConfig::SelectedAniso> RenderConfig::available_aniso { };
+RenderConfig::SelectedAniso *RenderConfig::current_aniso { nullptr };
 
 bool RenderConfig::vsync_on { true };
 

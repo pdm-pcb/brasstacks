@@ -29,8 +29,7 @@ public:
     virtual void update() = 0;
     virtual void record_commands() const = 0;
 
-    virtual void destroy_swapchain_resources() = 0;
-    virtual void create_swapchain_resources() = 0;
+    virtual void swapchain_updated() = 0;
 
     virtual void create_pipeline() = 0;
     virtual void destroy_pipeline() = 0;

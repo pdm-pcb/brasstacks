@@ -120,20 +120,69 @@ void Renderer::run() {
 }
 
 // =============================================================================
+void Renderer::change_device() {
+    wait_device_idle();
+
+    _application->destroy_pipeline();
+
+    CameraController::shutdown();
+    MeshLibrary::shutdown();
+    TextureLibrary::shutdown();
+
+    destroy_swapchain_resources();
+    _color_depth_pass->destroy();
+
+    UIOverlay::destroy_descriptor_pool();
+    _descriptor_pool->destroy();
+
+    vmaAllocator::destroy();
+
+    _device->destroy();
+
+    // Now that everything's thoroughly undone, start anew
+
+    _create_device();
+    _create_allocator(VK_TARGET_VERSION);
+
+    _descriptor_pool->create(
+        vk::DescriptorPoolCreateFlags { },
+        1000u,
+        {
+            { vk::DescriptorType::eUniformBuffer,        1000u, },
+            { vk::DescriptorType::eCombinedImageSampler, 1000u, },
+        }
+    );
+
+    UIOverlay::create_descriptor_pool();
+
+    _create_swapchain();
+    _create_frame_sync();
+    _color_depth_pass->create();
+    _color_depth_pass->create_swapchain_resources();
+    UIOverlay::create_swapchain_resources(*_color_depth_pass);
+    _create_framebuffers();
+
+    MeshLibrary::init();
+    TextureLibrary::init();
+    CameraController::init();
+
+    _application->init();
+}
+
+// =============================================================================
 void Renderer::recreate_swapchain() {
     wait_device_idle();
 
-    _application->destroy_swapchain_resources();
     destroy_swapchain_resources();
+    _create_swapchain();
     create_swapchain_resources();
-    _application->create_swapchain_resources();
+    _application->swapchain_updated();
 
     CameraController::update_perspective();
 }
 
 // =============================================================================
 void Renderer::create_swapchain_resources() {
-    _create_swapchain();
     _create_frame_sync();
     _color_depth_pass->create_swapchain_resources();
     UIOverlay::create_swapchain_resources(*_color_depth_pass);
@@ -154,14 +203,12 @@ void Renderer::recreate_render_pass() {
     wait_device_idle();
 
     _application->destroy_pipeline();
-    _application->destroy_swapchain_resources();
     destroy_swapchain_resources();
 
     _color_depth_pass->destroy();
     _color_depth_pass->create();
 
     create_swapchain_resources();
-    _application->create_swapchain_resources();
     _application->create_pipeline();
 }
 

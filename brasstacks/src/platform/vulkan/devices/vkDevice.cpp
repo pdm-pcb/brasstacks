@@ -77,6 +77,7 @@ void vkDevice::create(Layers const &layers) {
 // =============================================================================
 void vkDevice::destroy() {
     _transient_pool->destroy();
+    _graphics_queue->clear_family_index();
 
     BTX_TRACE("Destroying logical device {}", _handle);
     _handle.destroy();

@@ -44,22 +44,62 @@ void vkPhysicalDevice::select(vkSurface     const &surface,
         BTX_TRACE("Found {} required extension{}.",
                   required_extensions.size(),
                   (required_extensions.size() == 1 ? '\0' : 's'));
-
-        // If we've made it this far, this is our card!
-        RenderConfig::current_device = &device;
-        break;
     }
 
-    if(RenderConfig::current_device == nullptr) {
-        BTX_CRITICAL("Could not find suitable phsyical device.");
-        return;
-    }
-
+    RenderConfig::current_device = &RenderConfig::available_devices.front();
     RenderConfig::current_device->selected = true;
     BTX_INFO("Selected {}", RenderConfig::current_device->name);
 
-    _get_msaa_levels();
-    _get_aniso_levels();
+    get_msaa_levels();
+    get_aniso_levels();
+}
+
+// =============================================================================
+void vkPhysicalDevice::get_msaa_levels() {
+    RenderConfig::available_msaa.clear();
+
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e64) {
+        RenderConfig::available_msaa.push_back({ 64u, false });
+    }
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e32) {
+        RenderConfig::available_msaa.push_back({ 32u, false });
+    }
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e16) {
+        RenderConfig::available_msaa.push_back({ 16u, false });
+    }
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e8) {
+        RenderConfig::available_msaa.push_back({ 8u, false});
+    }
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e4) {
+        RenderConfig::available_msaa.push_back({ 4u, false });
+    }
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e2) {
+        RenderConfig::available_msaa.push_back({ 2u, false });
+    }
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e1) {
+        RenderConfig::available_msaa.push_back({ 1u, false });
+    }
+
+    RenderConfig::current_msaa = &RenderConfig::available_msaa.front();
+    RenderConfig::current_msaa->selected = true;
+}
+
+// =============================================================================
+void vkPhysicalDevice::get_aniso_levels() {
+    RenderConfig::available_aniso.clear();
+
+    auto aniso_level =
+        static_cast<uint8_t>(RenderConfig::current_device->max_aniso);
+
+    while(aniso_level >= 1u) {
+        RenderConfig::available_aniso.push_back({ aniso_level, false });
+        aniso_level = static_cast<uint8_t>(
+            static_cast<float>(aniso_level) * 0.5f
+        );
+    }
+
+    RenderConfig::current_aniso = &RenderConfig::available_aniso.front();
+    RenderConfig::current_aniso->selected = true;
 }
 
 // =============================================================================
@@ -348,44 +388,6 @@ void vkPhysicalDevice::_print_family_flags(uint32_t const family,
 #endif // VK_NV_optical_flow
 
     BTX_TRACE("  {}", flags_str);
-}
-
-// =============================================================================
-void vkPhysicalDevice::_get_msaa_levels() {
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e64) {
-        RenderConfig::available_msaa.push_back(64u);
-    }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e32) {
-        RenderConfig::available_msaa.push_back(32u);
-    }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e16) {
-        RenderConfig::available_msaa.push_back(16u);
-    }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e8) {
-        RenderConfig::available_msaa.push_back(8u);
-    }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e4) {
-        RenderConfig::available_msaa.push_back(4u);
-    }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e2) {
-        RenderConfig::available_msaa.push_back(2u);
-    }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e1) {
-        RenderConfig::available_msaa.push_back(1u);
-    }
-}
-
-// =============================================================================
-void vkPhysicalDevice::_get_aniso_levels() {
-    auto aniso_level =
-        static_cast<uint8_t>(RenderConfig::current_device->max_aniso);
-
-    while(aniso_level >= 1u) {
-        RenderConfig::available_aniso.push_back(aniso_level);
-        aniso_level = static_cast<uint8_t>(
-            static_cast<float>(aniso_level) * 0.5f
-        );
-    }
 }
 
 } // namespace btx

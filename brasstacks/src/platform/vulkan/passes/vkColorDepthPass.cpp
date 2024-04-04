@@ -32,7 +32,8 @@ vkColorDepthPass::vkColorDepthPass() :
 // =============================================================================
 void vkColorDepthPass::create() {
     _color_format = Renderer::swapchain().image_format();
-    _msaa_samples = vkPipeline::samples_to_flag(RenderConfig::current_msaa);
+    _msaa_samples =
+        vkPipeline::samples_to_flag(RenderConfig::current_msaa->msaa);
 
     _find_depth_stencil_format();
     _init_attachment_details();
