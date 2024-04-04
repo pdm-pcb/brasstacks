@@ -191,14 +191,6 @@ void vkPipeline::create(vkRenderPassBase const &render_pass,
 
 // =============================================================================
 void vkPipeline::destroy() {
-    BTX_TRACE("Destroying pipeline {}, layout {}", _handle, _layout);
-
-    _device.destroy(_handle);
-    _device.destroy(_layout);
-
-    _handle = nullptr;
-    _layout = nullptr;
-
     for(auto &shader : _shaders) {
         shader->destroy();
     }
@@ -212,6 +204,13 @@ void vkPipeline::destroy() {
     _push_constants.clear();
 
     _push_constant_offset = 0u;
+
+    BTX_TRACE("Destroying pipeline {}, layout {}", _handle, _layout);
+    _device.destroy(_handle);
+    _device.destroy(_layout);
+
+    _handle = nullptr;
+    _layout = nullptr;
 }
 
 // =============================================================================
