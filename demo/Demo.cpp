@@ -23,37 +23,12 @@ void Demo::init() {
     _texture =
         btx::TextureLibrary::load_texture("textures/woodfloor_051_d.jpg");
 
-    (*_pipeline)
-        .module_from_spirv("shaders/demo.vert",
-                           vk::ShaderStageFlagBits::eVertex)
-        .module_from_spirv("shaders/demo.frag",
-                           vk::ShaderStageFlagBits::eFragment)
-        .describe_vertex_input(btx::Vertex::bindings,
-                               btx::Vertex::attributes)
-        .add_descriptor_set_layout(btx::CameraController::camera_ubo_layout())
-        .add_descriptor_set_layout((*_texture)->descriptor_set_layout())
-        .add_push_constant({ .stage_flags = vk::ShaderStageFlagBits::eVertex,
-                             .size_bytes = sizeof(btx::math::Mat4) });
-
-    auto const &render_pass = btx::Renderer::render_pass();
-
-    (*_pipeline)
-        .create(
-            render_pass,
-            {
-                .color_formats     = { render_pass.color_format() },
-                .depth_format      = render_pass.depth_format(),
-                .viewport_extent   = btx::Renderer::swapchain().size(),
-                .viewport_offset   = btx::Renderer::swapchain().offset(),
-                .sample_flags      = render_pass.msaa_samples(),
-                .enable_depth_test = VK_TRUE,
-            }
-        );
+    create_pipeline();
 }
 
 // =============================================================================
 void Demo::shutdown() {
-
+    destroy_pipeline();
 }
 
 // =============================================================================
@@ -113,4 +88,37 @@ void Demo::create_swapchain_resources() {
     // necessary when the swapchain has changed size
     _pipeline->update_dimensions(btx::Renderer::swapchain().size(),
                                  btx::Renderer::swapchain().offset());
+}
+
+// =============================================================================
+void Demo::create_pipeline() {
+    auto const &render_pass = btx::Renderer::render_pass();
+
+    (*_pipeline)
+        .module_from_spirv("shaders/demo.vert",
+                           vk::ShaderStageFlagBits::eVertex)
+        .module_from_spirv("shaders/demo.frag",
+                           vk::ShaderStageFlagBits::eFragment)
+        .describe_vertex_input(btx::Vertex::bindings,
+                               btx::Vertex::attributes)
+        .add_descriptor_set_layout(btx::CameraController::camera_ubo_layout())
+        .add_descriptor_set_layout((*_texture)->descriptor_set_layout())
+        .add_push_constant({ .stage_flags = vk::ShaderStageFlagBits::eVertex,
+                             .size_bytes = sizeof(btx::math::Mat4) })
+        .create(
+            render_pass,
+            {
+                .color_formats     = { render_pass.color_format() },
+                .depth_format      = render_pass.depth_format(),
+                .viewport_extent   = btx::Renderer::swapchain().size(),
+                .viewport_offset   = btx::Renderer::swapchain().offset(),
+                .sample_flags      = render_pass.msaa_samples(),
+                .enable_depth_test = VK_TRUE,
+            }
+        );
+}
+
+// =============================================================================
+void Demo::destroy_pipeline() {
+    _pipeline->destroy();
 }

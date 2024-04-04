@@ -23,6 +23,9 @@ public:
     void destroy_swapchain_resources() override;
     void create_swapchain_resources() override;
 
+    void create_pipeline() override;
+    void destroy_pipeline() override;
+
 private:
     std::unique_ptr<btx::vkPipeline> _pipeline;
 

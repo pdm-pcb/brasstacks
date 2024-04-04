@@ -26,6 +26,8 @@ public:
     static void create_swapchain_resources();
     static void destroy_swapchain_resources();
 
+    static void recreate_render_pass();
+
     static inline void wait_device_idle() { _device->wait_idle(); }
 
     static inline auto const & device()    { return *_device; }

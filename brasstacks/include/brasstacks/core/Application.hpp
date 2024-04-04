@@ -32,6 +32,9 @@ public:
     virtual void destroy_swapchain_resources() = 0;
     virtual void create_swapchain_resources() = 0;
 
+    virtual void create_pipeline() = 0;
+    virtual void destroy_pipeline() = 0;
+
     Application() = delete;
 
     Application(Application &&) = delete;

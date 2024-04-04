@@ -13,10 +13,10 @@
 namespace btx {
 
 vkColorDepthPass::vkColorDepthPass() :
-    vkRenderPassBase { },
-    _color_format { vk::Format::eUndefined },
-    _depth_format { vk::Format::eUndefined },
-    _msaa_samples { vkPipeline::samples_to_flag(RenderConfig::current_msaa) },
+    vkRenderPassBase         { },
+    _color_format            { vk::Format::eUndefined },
+    _depth_format            { vk::Format::eUndefined },
+    _msaa_samples            { vk::SampleCountFlagBits::e1 },
     _color_buffers           { },
     _color_views             { },
     _depth_buffer            { std::make_unique<vkImage>() },
@@ -32,14 +32,15 @@ vkColorDepthPass::vkColorDepthPass() :
 // =============================================================================
 void vkColorDepthPass::create() {
     _color_format = Renderer::swapchain().image_format();
+    _msaa_samples = vkPipeline::samples_to_flag(RenderConfig::current_msaa);
 
     _find_depth_stencil_format();
     _init_attachment_details();
     _init_subpasses();
 
     vk::RenderPassCreateInfo const create_info {
-        .attachmentCount = static_cast<uint32_t>(
-                                _attachment_descriptions.size()),
+        .attachmentCount =
+            static_cast<uint32_t>(_attachment_descriptions.size()),
         .pAttachments    = _attachment_descriptions.data(),
         .subpassCount    = static_cast<uint32_t>(_subpasses.size()),
         .pSubpasses      = _subpasses.data(),

@@ -150,6 +150,22 @@ void Renderer::destroy_swapchain_resources() {
 }
 
 // =============================================================================
+void Renderer::recreate_render_pass() {
+    wait_device_idle();
+
+    _application->destroy_pipeline();
+    _application->destroy_swapchain_resources();
+    destroy_swapchain_resources();
+
+    _color_depth_pass->destroy();
+    _color_depth_pass->create();
+
+    create_swapchain_resources();
+    _application->create_swapchain_resources();
+    _application->create_pipeline();
+}
+
+// =============================================================================
 uint32_t Renderer::_acquire_next_image() {
     _image_index = (_image_index + 1u) % _swapchain->images().size();
     auto &frame = *_frame_sync[_image_index];
