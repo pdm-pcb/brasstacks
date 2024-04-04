@@ -1,5 +1,5 @@
 #include "brasstacks/brasstacks.hpp"
-#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
@@ -12,7 +12,7 @@
 
 namespace btx {
 
-vkColorDepthPass::vkColorDepthPass() :
+vkColorDepthResolvePass::vkColorDepthResolvePass() :
     vkRenderPassBase         { },
     _color_format            { vk::Format::eUndefined },
     _depth_format            { vk::Format::eUndefined },
@@ -30,7 +30,7 @@ vkColorDepthPass::vkColorDepthPass() :
 { }
 
 // =============================================================================
-void vkColorDepthPass::create() {
+void vkColorDepthResolvePass::create() {
     _color_format = Renderer::swapchain().image_format();
     _msaa_samples =
         vkPipeline::samples_to_flag(RenderConfig::current_msaa->msaa);
@@ -53,24 +53,24 @@ void vkColorDepthPass::create() {
 }
 
 // =============================================================================
-void vkColorDepthPass::destroy() {
+void vkColorDepthResolvePass::destroy() {
     this->_destroy();
 }
 
 // =============================================================================
-void vkColorDepthPass::destroy_swapchain_resources() {
+void vkColorDepthResolvePass::destroy_swapchain_resources() {
     _destroy_depth_buffer();
     _destroy_color_buffers();
 }
 
 // =============================================================================
-void vkColorDepthPass::create_swapchain_resources() {
+void vkColorDepthResolvePass::create_swapchain_resources() {
     _create_color_buffers();
     _create_depth_buffer();
 }
 
 // =============================================================================
-void vkColorDepthPass::begin(vkFramebuffer const &framebuffer) {
+void vkColorDepthResolvePass::begin(vkFramebuffer const &framebuffer) {
     static std::array<vk::ClearValue, 2> const clear_values = {{
         { .color { std::array<float, 4> {{ 0.08f, 0.08f, 0.16f, 1.0f }} }},
         { .depthStencil { .depth = 1.0f, .stencil = 1u } }
@@ -97,12 +97,12 @@ void vkColorDepthPass::begin(vkFramebuffer const &framebuffer) {
 }
 
 // =============================================================================
-void vkColorDepthPass::end() {
+void vkColorDepthResolvePass::end() {
     Renderer::cmd_buffer().end_render_pass();
 }
 
 // =============================================================================
-void vkColorDepthPass::_find_depth_stencil_format() {
+void vkColorDepthResolvePass::_find_depth_stencil_format() {
     static std::array<vk::Format, 2> const depth_formats {
         vk::Format::eD32SfloatS8Uint, // One of these two will always be
         vk::Format::eD24UnormS8Uint,  // supported, according to the Guide.
@@ -124,7 +124,7 @@ void vkColorDepthPass::_find_depth_stencil_format() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_init_attachment_details() {
+void vkColorDepthResolvePass::_init_attachment_details() {
     _attachment_descriptions = {{
         // color buffer (msaa) attachment description
         .format         = _color_format,
@@ -174,7 +174,7 @@ void vkColorDepthPass::_init_attachment_details() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_init_subpasses() {
+void vkColorDepthResolvePass::_init_subpasses() {
     _subpasses = {{
         // This subpass is a graphical one
         .pipelineBindPoint = vk::PipelineBindPoint::eGraphics,
@@ -223,7 +223,7 @@ void vkColorDepthPass::_init_subpasses() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_create_color_buffers() {
+void vkColorDepthResolvePass::_create_color_buffers() {
     vkImage::ImageInfo const color_buffer_info {
         .type         = vk::ImageType::e2D,
         .samples      = _msaa_samples,
@@ -283,7 +283,7 @@ void vkColorDepthPass::_create_color_buffers() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_create_depth_buffer() {
+void vkColorDepthResolvePass::_create_depth_buffer() {
     vkImage::ImageInfo const depth_stencil_info {
         .type         = vk::ImageType::e2D,
         .samples      = _msaa_samples,
@@ -310,7 +310,7 @@ void vkColorDepthPass::_create_depth_buffer() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_destroy_color_buffers() {
+void vkColorDepthResolvePass::_destroy_color_buffers() {
     for(auto &view : _color_views) {
         view->destroy();
     }
@@ -321,7 +321,7 @@ void vkColorDepthPass::_destroy_color_buffers() {
 }
 
 // =============================================================================
-void vkColorDepthPass::_destroy_depth_buffer() {
+void vkColorDepthResolvePass::_destroy_depth_buffer() {
     _depth_view->destroy();
     _depth_buffer->destroy();
 }

@@ -5,7 +5,7 @@
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
-#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
 
 #include "brasstacks/events/ui_events.hpp"
 
@@ -67,7 +67,7 @@ void UIOverlay::destroy_descriptor_pool() {
 
 // =============================================================================
 void
-UIOverlay::create_swapchain_resources(vkColorDepthPass const &render_pass) {
+UIOverlay::create_swapchain_resources(vkColorDepthResolvePass const &render_pass) {
     auto const image_count =
         static_cast<uint32_t>(Renderer::swapchain().images().size());
 

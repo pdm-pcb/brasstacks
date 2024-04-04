@@ -134,7 +134,12 @@ bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
         return false;
     }
 
-    return true;
+    if(result == vk::Result::eSuccess) {
+        return true;
+    }
+
+    BTX_CRITICAL("Swapchain presentation failed: {}", vk::to_string(result));
+    return false;
 }
 
 // =============================================================================

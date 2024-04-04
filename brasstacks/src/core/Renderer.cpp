@@ -26,7 +26,7 @@ std::vector<std::unique_ptr<vkFrameSync>> Renderer::_frame_sync;
 uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
 
 std::vector<std::unique_ptr<vkFramebuffer>> Renderer::_framebuffers { };
-auto Renderer::_color_depth_pass { std::make_unique<vkColorDepthPass>() };
+auto Renderer::_color_depth_pass { std::make_unique<vkColorDepthResolvePass>() };
 
 auto Renderer::_descriptor_pool { std::make_unique<vkDescriptorPool>() };
 

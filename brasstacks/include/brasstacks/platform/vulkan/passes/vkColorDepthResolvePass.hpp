@@ -1,5 +1,5 @@
-#ifndef BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORPASS_HPP
-#define BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORPASS_HPP
+#ifndef BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORDEPTHRESOLVEPASS_HPP
+#define BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORDEPTHRESOLVEPASS_HPP
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"
@@ -10,10 +10,10 @@ namespace btx {
 
 class vkFramebuffer;
 
-class vkColorDepthPass final : public vkRenderPassBase {
+class vkColorDepthResolvePass final : public vkRenderPassBase {
 public:
-    vkColorDepthPass();
-    ~vkColorDepthPass() override = default;
+    vkColorDepthResolvePass();
+    ~vkColorDepthResolvePass() override = default;
 
     void create();
     void destroy();
@@ -30,11 +30,11 @@ public:
     auto color_format() const { return _color_format; }
     auto depth_format() const { return _depth_format; }
 
-    vkColorDepthPass(vkColorDepthPass &&) = delete;
-    vkColorDepthPass(vkColorDepthPass const &) = delete;
+    vkColorDepthResolvePass(vkColorDepthResolvePass &&) = delete;
+    vkColorDepthResolvePass(vkColorDepthResolvePass const &) = delete;
 
-    vkColorDepthPass & operator=(vkColorDepthPass &&) = delete;
-    vkColorDepthPass & operator=(vkColorDepthPass const &) = delete;
+    vkColorDepthResolvePass & operator=(vkColorDepthResolvePass &&) = delete;
+    vkColorDepthResolvePass & operator=(vkColorDepthResolvePass const &) = delete;
 
 private:
     vk::Format _color_format;
@@ -67,4 +67,4 @@ private:
 
 } // namespace btx
 
-#endif // BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORPASS_HPP
+#endif // BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORDEPTHRESOLVEPASS_HPP

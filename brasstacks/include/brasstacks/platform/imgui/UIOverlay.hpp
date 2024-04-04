@@ -6,14 +6,14 @@
 
 namespace btx {
 
-class vkColorDepthPass;
+class vkColorDepthResolvePass;
 
 class UIOverlay {
 public:
     static void init_window(::GLFWwindow *window,
                             std::string_view const window_title);
     static void create_descriptor_pool();
-    static void create_swapchain_resources(vkColorDepthPass const &render_pass);
+    static void create_swapchain_resources(vkColorDepthResolvePass const &render_pass);
     static void destroy_swapchain_resources();
     static void destroy_descriptor_pool();
     static void shutdown_window();
