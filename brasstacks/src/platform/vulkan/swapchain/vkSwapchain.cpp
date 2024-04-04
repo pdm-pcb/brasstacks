@@ -140,7 +140,7 @@ bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
 // =============================================================================
 void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
     auto const caps =
-        vkPhysicalDevice::native().getSurfaceCapabilitiesKHR(surface);
+        RenderConfig::current_device->handle.getSurfaceCapabilitiesKHR(surface);
 
     BTX_TRACE(
         "\nSurface Capabilities:"
@@ -240,7 +240,7 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
 // =============================================================================
 void vkSwapchain::_query_surface_format(vk::SurfaceKHR const &surface) {
     auto const formats =
-        vkPhysicalDevice::native().getSurfaceFormatsKHR(surface);
+        RenderConfig::current_device->handle.getSurfaceFormatsKHR(surface);
 
     BTX_TRACE("Found {} surface formats.", formats.size());
 
@@ -285,7 +285,7 @@ void vkSwapchain::_query_surface_format(vk::SurfaceKHR const &surface) {
 // =============================================================================
 void vkSwapchain::_query_surface_present_modes(vk::SurfaceKHR const &surface) {
     auto const modes =
-        vkPhysicalDevice::native().getSurfacePresentModesKHR(surface);
+        RenderConfig::current_device->handle.getSurfacePresentModesKHR(surface);
 
     BTX_TRACE("Found {} present modes.", modes.size());
 

@@ -73,9 +73,9 @@ UIOverlay::create_swapchain_resources(vkColorDepthPass const &render_pass) {
 
     ::ImGui_ImplVulkan_InitInfo init_info = {
         .Instance       = vkInstance::native(),
-        .PhysicalDevice = vkPhysicalDevice::native(),
+        .PhysicalDevice = RenderConfig::current_device->handle,
         .Device         = Renderer::device().native(),
-        .QueueFamily    = vkPhysicalDevice::graphics_queue_index(),
+        .QueueFamily    = RenderConfig::current_device->graphics_queue_index,
         .Queue          = Renderer::device().graphics_queue().native(),
         .DescriptorPool = _descriptor_pool->native(),
         .RenderPass     = render_pass.native(),
@@ -169,9 +169,9 @@ void UIOverlay::_draw_status_bar() {
         ::ImGui::TableNextRow();
 
         ::ImGui::TableSetColumnIndex(0);
-        label_text = std::format("{}", vkPhysicalDevice::name());
+        label_text = std::format("{}", RenderConfig::current_device->name);
         if(::ImGui::BeginMenu(label_text.c_str())) {
-            for(auto const &device : vkPhysicalDevice::available_devices()) {
+            for(auto const &device : RenderConfig::available_devices) {
                 label_text = std::format("{}", device.name);
                 if(::ImGui::MenuItem(label_text.c_str())) {
                     EventBus::publish(UIEvent(UIEventType::UI_CHANGE_DEVICE));

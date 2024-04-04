@@ -28,14 +28,14 @@ void vkDevice::create(Layers const &layers) {
     vk::DeviceQueueCreateInfo const queue_info[] {{
         .pNext = nullptr,
         .flags = { },
-        .queueFamilyIndex = vkPhysicalDevice::graphics_queue_index(),
+        .queueFamilyIndex = RenderConfig::current_device->graphics_queue_index,
         .queueCount = static_cast<uint32_t>(std::size(queue_priorities)),
         .pQueuePriorities = queue_priorities,
     }};
 
     // The logical device wants to know what the physical device has enabled
-    auto const &extensions = vkPhysicalDevice::extensions();
-    auto const *features   = &(vkPhysicalDevice::features());
+    auto const &extensions = RenderConfig::current_device->enabled_extensions;
+    auto const *features = &(RenderConfig::current_device->enabled_features);
 
     // Now populate the device's create struct
     const vk::DeviceCreateInfo device_info {
@@ -49,7 +49,7 @@ void vkDevice::create(Layers const &layers) {
     };
 
     // And try to create it
-    auto const result = vkPhysicalDevice::native().createDevice(
+    auto const result = RenderConfig::current_device->handle.createDevice(
         &device_info,   // Create info
         nullptr,        // Allocator
         &_handle        // Destination handle
@@ -64,14 +64,14 @@ void vkDevice::create(Layers const &layers) {
 
     BTX_TRACE("Created logical device {}", _handle);
 
+    auto const index = RenderConfig::current_device->graphics_queue_index;
     // Set up the queue abstraction
-    _graphics_queue->set_family_index(vkPhysicalDevice::graphics_queue_index());
+    _graphics_queue->set_family_index(index);
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-    _transient_pool->create(vkPhysicalDevice::graphics_queue_index(),
-                            vk::CommandPoolCreateFlagBits::eTransient);
+    _transient_pool->create(index, vk::CommandPoolCreateFlagBits::eTransient);
 }
 
 // =============================================================================

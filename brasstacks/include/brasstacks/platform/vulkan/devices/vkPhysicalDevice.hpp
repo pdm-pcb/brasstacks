@@ -7,6 +7,7 @@
 #define BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKPHYSICALDEVICE_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -56,44 +57,6 @@ public:
                        FeatureList   const &required_features,
                        ExtensionList const &required_extensions);
 
-    /**
-     * @brief Return the device queue family index.
-     * @return uint32_t
-     */
-    static inline auto graphics_queue_index() {
-        return _chosen_device.graphics_queue_index;
-    }
-
-    /**
-     * @brief Return a list of enabled device features.
-     * @return struct vk::PhysicalDeviceFeatures const&
-     */
-    static inline auto const & features() {
-        return _chosen_device.enabled_features;
-    }
-
-    /**
-     * @brief Return a list of enabled device features.
-     * @return struct vk::PhysicalDeviceFeatures const&
-     */
-    static inline auto const & extensions() {
-        return _chosen_device.enabled_extensions;
-    }
-
-    static inline auto const & memory_properties() {
-        return _chosen_device.memory;
-    }
-
-    /**
-     * @brief Return the native Vulkan handle.
-     * @return vk::PhysicalDevice const&
-     */
-    static inline auto const & native() { return _chosen_device.handle; }
-
-    static inline std::string_view const name() { return _chosen_device.name; }
-
-    static inline auto const & available_devices() { return _available_devices; }
-
     vkPhysicalDevice() = delete;
     ~vkPhysicalDevice() = delete;
 
@@ -104,40 +67,6 @@ public:
     vkPhysicalDevice & operator=(const vkPhysicalDevice &) = delete;
 
 private:
-    /**
-     * @brief Details of a given device
-     */
-    struct DeviceProps {
-        vk::PhysicalDevice handle { nullptr };
-        vk::PhysicalDeviceMemoryProperties memory { };
-        vk::PhysicalDeviceType type = vk::PhysicalDeviceType::eOther;
-
-        vk::DeviceSize vram_bytes { 0u };
-
-        std::string name { };
-        std::string driver_version { };
-        std::string vkapi_version { };
-
-        vk::SampleCountFlags max_samples = vk::SampleCountFlagBits::e1;
-        float max_aniso { 0.0f };
-
-        uint32_t graphics_queue_index = std::numeric_limits<uint32_t>::max();
-
-        vk::PhysicalDeviceFeatures enabled_features { };
-        std::vector<char const *> enabled_extensions { };
-    };
-
-    using Devices = std::vector<DeviceProps>;
-    /**
-     * @brief A list of devices to choose from
-     */
-    static Devices _available_devices;
-
-    /**
-     * @brief The details of the device that supported provided requirements
-     */
-    static DeviceProps _chosen_device;
-
     /**
      * @brief Make a list of phsyical devices available via this instance
      * @param instance An established Vulkan instance
@@ -154,7 +83,7 @@ private:
      * @return false If the device does not support graphics and present
      * commands within a single queue family
      */
-    static bool _check_queue_families(DeviceProps &device,
+    static bool _check_queue_families(RenderConfig::DeviceProps &device,
                                       vkSurface const &surface);
 
     /**
@@ -164,7 +93,7 @@ private:
      * @return true If the device supports all of the features
      * @return false If the device does not support all of the features
      */
-    static bool _check_features(DeviceProps &device,
+    static bool _check_features(RenderConfig::DeviceProps &device,
                                 FeatureList const &required_features);
 
     /**
@@ -174,7 +103,7 @@ private:
      * @return true If the device supports all of the extensions
      * @return false If the device does not support all of the extensions
      */
-    static bool _check_extensions(DeviceProps &device,
+    static bool _check_extensions(RenderConfig::DeviceProps &device,
                                   ExtensionList const &required_extensions);
 
     /**

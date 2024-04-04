@@ -7,9 +7,6 @@
 
 namespace btx {
 
-vkPhysicalDevice::Devices vkPhysicalDevice::_available_devices = { };
-vkPhysicalDevice::DeviceProps vkPhysicalDevice::_chosen_device = { };
-
 // =============================================================================
 void vkPhysicalDevice::select(vkSurface     const &surface,
                               FeatureList   const &required_features,
@@ -19,7 +16,7 @@ void vkPhysicalDevice::select(vkSurface     const &surface,
     // Populate a list of devices we can choose from and sort by "performance"
     _enumerate_and_sort(vkInstance::native());
 
-    for(auto &device : _available_devices) {
+    for(auto &device : RenderConfig::available_devices) {
         // Check that the card supports receiving graphics and presentation
         // commands on the same queue family. Most consumer GPUs will support
         // this on index zero.
@@ -49,16 +46,16 @@ void vkPhysicalDevice::select(vkSurface     const &surface,
                   (required_extensions.size() == 1 ? '\0' : 's'));
 
         // If we've made it this far, this is our card!
-        _chosen_device = device;
+        RenderConfig::current_device = &device;
         break;
     }
 
-    if(!_chosen_device.handle) {
+    if(RenderConfig::current_device == nullptr) {
         BTX_CRITICAL("Could not find suitable phsyical device.");
         return;
     }
 
-    BTX_INFO("Selected {}", _chosen_device.name);
+    BTX_INFO("Selected {}", RenderConfig::current_device->name);
 
     _get_msaa_levels();
     _get_aniso_levels();
@@ -78,9 +75,10 @@ void vkPhysicalDevice::_enumerate_and_sort(vk::Instance const &instance) {
     }
 
     // Sort the available devices by VRAM, favoring discrete GPUs
-    std::sort(
-        _available_devices.begin(), _available_devices.end(),
-        [&](const DeviceProps &dev_a, const DeviceProps &dev_b)
+    std::sort(RenderConfig::available_devices.begin(),
+              RenderConfig::available_devices.end(),
+        [&](const RenderConfig::DeviceProps &dev_a,
+            const RenderConfig::DeviceProps &dev_b)
         {
             if(dev_a.type == vk::PhysicalDeviceType::eDiscreteGpu &&
                dev_b.type != vk::PhysicalDeviceType::eDiscreteGpu)
@@ -101,7 +99,7 @@ void vkPhysicalDevice::_enumerate_and_sort(vk::Instance const &instance) {
     );
 
     // Print the sorted list of cards
-    for(auto const &properties : _available_devices) {
+    for(auto const &properties : RenderConfig::available_devices) {
         BTX_TRACE(
             "\n"
             "\tDevice Name:    {}\n"
@@ -119,7 +117,7 @@ void vkPhysicalDevice::_enumerate_and_sort(vk::Instance const &instance) {
 }
 
 // =============================================================================
-bool vkPhysicalDevice::_check_queue_families(DeviceProps &device,
+bool vkPhysicalDevice::_check_queue_families(RenderConfig::DeviceProps &device,
                                              vkSurface const &surface)
 {
     bool found_unified_family = false;
@@ -151,7 +149,7 @@ bool vkPhysicalDevice::_check_queue_families(DeviceProps &device,
 }
 
 // =============================================================================
-bool vkPhysicalDevice::_check_features(DeviceProps &device,
+bool vkPhysicalDevice::_check_features(RenderConfig::DeviceProps &device,
                                        FeatureList const &required_features)
 {
     bool all_features_supported = true;
@@ -199,7 +197,7 @@ bool vkPhysicalDevice::_check_features(DeviceProps &device,
 
 // =============================================================================
 bool
-vkPhysicalDevice::_check_extensions(DeviceProps &device,
+vkPhysicalDevice::_check_extensions(RenderConfig::DeviceProps &device,
                                     ExtensionList const &required_extensions)
 {
     bool all_extensions_supported = true;
@@ -250,12 +248,14 @@ void vkPhysicalDevice::_store_device(vk::PhysicalDevice const &device) {
     device.getProperties2(&physical_props2);
 
     // Time to start filling things in
-    _available_devices.emplace_back(DeviceProps {
-        .handle = device,
-        .memory = memory_props,
-        .type = device_props.deviceType,
-    });
-    auto &store = _available_devices.back();
+    RenderConfig::available_devices.emplace_back(
+        RenderConfig::DeviceProps {
+            .handle = device,
+            .memory = memory_props,
+            .type = device_props.deviceType,
+        }
+    );
+    auto &store = RenderConfig::available_devices.back();
 
     vk::DeviceSize vram_bytes = 0;
     for(uint32_t index = 0u; index < memory_props.memoryHeapCount; ++index) {
@@ -351,32 +351,33 @@ void vkPhysicalDevice::_print_family_flags(uint32_t const family,
 
 // =============================================================================
 void vkPhysicalDevice::_get_msaa_levels() {
-    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e64) {
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e64) {
         RenderConfig::available_msaa.push_back(64u);
     }
-    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e32) {
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e32) {
         RenderConfig::available_msaa.push_back(32u);
     }
-    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e16) {
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e16) {
         RenderConfig::available_msaa.push_back(16u);
     }
-    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e8) {
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e8) {
         RenderConfig::available_msaa.push_back(8u);
     }
-    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e4) {
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e4) {
         RenderConfig::available_msaa.push_back(4u);
     }
-    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e2) {
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e2) {
         RenderConfig::available_msaa.push_back(2u);
     }
-    if(_chosen_device.max_samples & vk::SampleCountFlagBits::e1) {
+    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e1) {
         RenderConfig::available_msaa.push_back(1u);
     }
 }
 
 // =============================================================================
 void vkPhysicalDevice::_get_aniso_levels() {
-    auto aniso_level = static_cast<uint8_t>(_chosen_device.max_aniso);
+    auto aniso_level =
+        static_cast<uint8_t>(RenderConfig::current_device->max_aniso);
 
     while(aniso_level >= 1u) {
         RenderConfig::available_aniso.push_back(aniso_level);

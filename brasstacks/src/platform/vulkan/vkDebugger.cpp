@@ -22,10 +22,14 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
         BTX_INFO("{}", callback_data->pMessage);
     }
     if((severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) != 0) {
+#ifdef BTX_LINUX
         // Ignore this warning because it spams on Linux when using ImGui
-        if(callback_data->messageIdNumber != static_cast<int32_t>(0xfd5d8e3f)) {
-            BTX_WARN("{}", callback_data->pMessage);
+        if(callback_data->messageIdNumber == static_cast<int32_t>(0xfd5d8e3f)) {
+            return VK_FALSE;
         }
+#endif // BTX_LINUX
+
+        BTX_WARN("{}", callback_data->pMessage);
     }
     if((severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0) {
         BTX_ERROR("\n{}\n", callback_data->pMessage);

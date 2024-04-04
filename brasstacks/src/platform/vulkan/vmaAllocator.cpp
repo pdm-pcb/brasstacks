@@ -25,7 +25,7 @@ void vmaAllocator::create(uint32_t const api_version) {
 
     ::VmaAllocatorCreateInfo const create_info {
         .flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT,
-        .physicalDevice = vkPhysicalDevice::native(),
+        .physicalDevice = RenderConfig::current_device->handle,
         .device = Renderer::device().native(),
         .preferredLargeHeapBlockSize = 0u,
         .pAllocationCallbacks = nullptr,

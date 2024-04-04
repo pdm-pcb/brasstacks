@@ -107,8 +107,9 @@ void vkColorDepthPass::_find_depth_stencil_format() {
         vk::Format::eD24UnormS8Uint,  // supported, according to the Guide.
     };
 
+    auto const physical_device = RenderConfig::current_device->handle;
     for(auto const format : depth_formats) {
-        auto props = vkPhysicalDevice::native().getFormatProperties(format);
+        auto props = physical_device.getFormatProperties(format);
         if(props.optimalTilingFeatures &
            vk::FormatFeatureFlagBits::eDepthStencilAttachment)
         {
