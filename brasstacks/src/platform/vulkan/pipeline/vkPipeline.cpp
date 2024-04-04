@@ -198,6 +198,20 @@ void vkPipeline::destroy() {
 
     _handle = nullptr;
     _layout = nullptr;
+
+    for(auto &shader : _shaders) {
+        shader->destroy();
+    }
+
+    _shaders.clear();
+    _shader_stages.clear();
+    _blend_states.clear();
+    _dynamic_states.clear();
+    _set_layouts.clear();
+    _set_bind_points.clear();
+    _push_constants.clear();
+
+    _push_constant_offset = 0u;
 }
 
 // =============================================================================
