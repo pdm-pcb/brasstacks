@@ -91,9 +91,6 @@ private:
     static void _create_frame_sync();
     static void _destroy_frame_sync();
 
-    static void _create_render_pass();
-    static void _destroy_render_pass();
-
     static void _create_framebuffers();
     static void _destroy_framebuffers();
 };

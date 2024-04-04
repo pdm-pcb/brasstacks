@@ -28,8 +28,10 @@ public:
     }
 
     static void update_perspective();
-
     static void update_ubo();
+
+    static void create_device_resources();
+    static void destroy_device_resources();
 
     static inline auto & camera_ubo_layout() { return *_camera_ubo_layout; }
 

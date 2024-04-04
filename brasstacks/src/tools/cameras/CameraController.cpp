@@ -42,6 +42,41 @@ void CameraController::init() {
 
     _perspective_camera->update();
 
+    create_device_resources();
+}
+
+// =============================================================================
+void CameraController::shutdown() {
+    destroy_device_resources();
+
+    delete _perspective_camera;
+    _perspective_camera = nullptr;
+}
+
+// =============================================================================
+void CameraController::update_perspective() {
+    _perspective_camera->set_perspective({
+        .vfov_degrees = 45.0f,
+        .aspect_ratio = Renderer::swapchain().aspect_ratio(),
+        .near_plane = 0.1f,
+        .far_plane = 1000.0f,
+    });
+}
+
+// =============================================================================
+void CameraController::update_ubo() {
+    static std::array<btx::math::Mat4, 2> vp;
+
+    vp = {{
+        _perspective_camera->view_matrix(),
+        _perspective_camera->proj_matrix()
+    }};
+
+    _camera_ubos[Renderer::image_index()]->fill_buffer(vp.data());
+}
+
+// =============================================================================
+void CameraController::create_device_resources() {
     auto const image_count = Renderer::swapchain().images().size();
 
     if(_camera_ubos.size() != image_count) {
@@ -94,38 +129,13 @@ void CameraController::init() {
 }
 
 // =============================================================================
-void CameraController::shutdown() {
+void CameraController::destroy_device_resources() {
     _camera_ubo_sets.clear();
     _camera_ubo_layout->destroy();
 
     for(auto &buffer : _camera_ubos) {
         buffer->destroy();
     }
-
-    delete _perspective_camera;
-    _perspective_camera = nullptr;
-}
-
-// =============================================================================
-void CameraController::update_perspective() {
-    _perspective_camera->set_perspective({
-        .vfov_degrees = 45.0f,
-        .aspect_ratio = Renderer::swapchain().aspect_ratio(),
-        .near_plane = 0.1f,
-        .far_plane = 1000.0f,
-    });
-}
-
-// =============================================================================
-void CameraController::update_ubo() {
-    static std::array<btx::math::Mat4, 2> vp;
-
-    vp = {{
-        _perspective_camera->view_matrix(),
-        _perspective_camera->proj_matrix()
-    }};
-
-    _camera_ubos[Renderer::image_index()]->fill_buffer(vp.data());
 }
 
 } // namespace btx

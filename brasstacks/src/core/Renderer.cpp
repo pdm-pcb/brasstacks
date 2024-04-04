@@ -70,6 +70,7 @@ void Renderer::shutdown() {
     TextureLibrary::shutdown();
 
     destroy_swapchain_resources();
+    _destroy_swapchain();
     _color_depth_pass->destroy();
 
     UIOverlay::destroy_descriptor_pool();
@@ -97,19 +98,12 @@ void Renderer::run() {
     }
 
     _begin_recording();
-
         CameraController::update_ubo();
-
         _color_depth_pass->begin(*_framebuffers[_image_index]);
-
         UIOverlay::record_commands();
-
         _application->record_commands();
-
         UIOverlay::render();
-
         _color_depth_pass->end();
-
     _end_recording();
     _submit_commands();
 
@@ -125,11 +119,12 @@ void Renderer::change_device() {
 
     _application->destroy_pipeline();
 
-    CameraController::shutdown();
+    CameraController::destroy_device_resources();
     MeshLibrary::shutdown();
     TextureLibrary::shutdown();
 
     destroy_swapchain_resources();
+    _destroy_swapchain();
     _color_depth_pass->destroy();
 
     UIOverlay::destroy_descriptor_pool();
@@ -140,6 +135,9 @@ void Renderer::change_device() {
     _device->destroy();
 
     // Now that everything's thoroughly undone, start anew
+
+    vkPhysicalDevice::get_msaa_levels();
+    vkPhysicalDevice::get_aniso_levels();
 
     _create_device();
     _create_allocator(VK_TARGET_VERSION);
@@ -164,7 +162,7 @@ void Renderer::change_device() {
 
     MeshLibrary::init();
     TextureLibrary::init();
-    CameraController::init();
+    CameraController::create_device_resources();
 
     _application->init();
 }
@@ -174,6 +172,7 @@ void Renderer::recreate_swapchain() {
     wait_device_idle();
 
     destroy_swapchain_resources();
+    _destroy_swapchain();
     _create_swapchain();
     create_swapchain_resources();
     _application->swapchain_updated();
@@ -195,7 +194,6 @@ void Renderer::destroy_swapchain_resources() {
     UIOverlay::destroy_swapchain_resources();
     _color_depth_pass->destroy_swapchain_resources();
     _destroy_frame_sync();
-    _destroy_swapchain();
 }
 
 // =============================================================================
@@ -204,10 +202,12 @@ void Renderer::recreate_render_pass() {
 
     _application->destroy_pipeline();
     destroy_swapchain_resources();
+    _destroy_swapchain();
 
     _color_depth_pass->destroy();
     _color_depth_pass->create();
 
+    _create_swapchain();
     create_swapchain_resources();
     _application->create_pipeline();
 }
@@ -381,18 +381,6 @@ void Renderer::_destroy_frame_sync() {
         sync_struct->destroy_sync_primitives();
         sync_struct->destroy_cmd_structures();
     }
-}
-
-// =============================================================================
-void Renderer::_create_render_pass() {
-    _color_depth_pass->create();
-    _color_depth_pass->create_swapchain_resources();
-}
-
-// =============================================================================
-void Renderer::_destroy_render_pass() {
-    _color_depth_pass->destroy_swapchain_resources();
-    _color_depth_pass->destroy();
 }
 
 // =============================================================================
