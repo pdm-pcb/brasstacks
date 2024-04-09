@@ -3,6 +3,11 @@ set(target_name "brasstacks")
 add_library(${target_name} STATIC)
 add_library(brasstacks::brasstacks ALIAS brasstacks)
 
+set_target_properties(${target_name} PROPERTIES
+    SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
+    VERSION ${CMAKE_PROJECT_VERSION}
+)
+
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp.in"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/brasstacks/version.hpp"

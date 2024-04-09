@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25) # Required for FetchContent SYSTEM
 
 project(
     brasstacks
-    VERSION 0.0.1
+    VERSION 0.1.0
     DESCRIPTION "A Vulkan renderer."
     LANGUAGES CXX C
 )
@@ -53,4 +53,20 @@ add_subdirectory(third_party)
 if(PROJECT_IS_TOP_LEVEL)
     add_subdirectory(demo)
     add_subdirectory(unit_tests)
+
+    include(GNUInstallDirs)
+    install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            COMPONENT ${PROJECT_NAME}_runtime
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT ${PROJECT_NAME}_runtime
+            NAMELINK_COMPONENT ${PROJECT_NAME}_development
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT ${PROJECT_NAME}_development
+    )
+
+    include(InstallRequiredSystemLibraries)
+    set(CPACK_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
+    set(CPACK_SOURCE_GENERATOR "ZIP")
+    include(CPack)
 endif()
