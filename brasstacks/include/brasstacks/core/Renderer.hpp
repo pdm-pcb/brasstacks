@@ -8,6 +8,8 @@
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/passes/vkFramebuffer.hpp"
+
+#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
 #include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
 
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
@@ -44,7 +46,7 @@ public:
         return _frame_sync[_image_index]->cmd_buffer();
     }
 
-    static inline auto const & render_pass() { return *_color_depth_pass; }
+    static inline auto const & render_pass() { return *_render_pass; }
 
     static inline auto & descriptor_pool() { return *_descriptor_pool; }
 
@@ -68,7 +70,8 @@ private:
     static uint32_t _image_index;
 
     static std::vector<std::unique_ptr<vkFramebuffer>> _framebuffers;
-    static std::unique_ptr<vkColorDepthResolvePass> _color_depth_pass;
+
+    static vkRenderPassBase *_render_pass;
 
     static std::unique_ptr<vkDescriptorPool> _descriptor_pool;
 

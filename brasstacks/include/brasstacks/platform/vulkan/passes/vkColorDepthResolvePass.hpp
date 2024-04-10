@@ -8,21 +8,19 @@
 
 namespace btx {
 
-class vkFramebuffer;
-
 class vkColorDepthResolvePass final : public vkRenderPassBase {
 public:
     vkColorDepthResolvePass();
     ~vkColorDepthResolvePass() override = default;
 
-    void create();
-    void destroy();
+    void create() override;
+    void destroy() override;
 
-    void destroy_swapchain_resources();
-    void create_swapchain_resources();
+    void destroy_swapchain_resources() override;
+    void create_swapchain_resources() override;
 
-    void begin(vkFramebuffer const &framebuffer);
-    void end();
+    void begin(vkFramebuffer const &framebuffer) override;
+    void end() override;
 
     auto const & color_views() const { return _color_views; }
     auto const & depth_view() const { return *_depth_view; }

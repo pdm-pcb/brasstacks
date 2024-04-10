@@ -5,6 +5,7 @@
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
+#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
 
 #include "brasstacks/events/ui_events.hpp"
@@ -67,9 +68,12 @@ void UIOverlay::destroy_descriptor_pool() {
 
 // =============================================================================
 void
-UIOverlay::create_swapchain_resources(vkColorDepthResolvePass const &render_pass) {
+UIOverlay::create_swapchain_resources(vkRenderPassBase const &render_pass) {
     auto const image_count =
         static_cast<uint32_t>(Renderer::swapchain().images().size());
+
+    auto const sample_flags =
+        vkPipeline::samples_to_flag(RenderConfig::current_msaa->msaa);
 
     ::ImGui_ImplVulkan_InitInfo init_info = {
         .Instance       = vkInstance::native(),
@@ -81,7 +85,7 @@ UIOverlay::create_swapchain_resources(vkColorDepthResolvePass const &render_pass
         .RenderPass     = render_pass.native(),
         .MinImageCount  = image_count,
         .ImageCount     = image_count,
-        .MSAASamples    = VkSampleCountFlagBits(render_pass.msaa_samples()),
+        .MSAASamples    = VkSampleCountFlagBits(sample_flags),
 
         .PipelineCache = nullptr,
         .Subpass       = 0u,

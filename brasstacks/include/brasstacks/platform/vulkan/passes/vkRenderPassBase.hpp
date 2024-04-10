@@ -6,11 +6,22 @@
 
 namespace btx {
 
+class vkFramebuffer;
+
 class vkRenderPassBase {
 public:
-    auto const & native() const { return _handle; }
-
     virtual ~vkRenderPassBase() = default;
+
+    virtual void create() = 0;
+    virtual void destroy() = 0;
+
+    virtual void create_swapchain_resources() = 0;
+    virtual void destroy_swapchain_resources() = 0;
+
+    virtual void begin(vkFramebuffer const &framebuffer) = 0;
+    virtual void end() = 0;
+
+    auto const & native() const { return _handle; }
 
     vkRenderPassBase(vkRenderPassBase &&) = delete;
     vkRenderPassBase(vkRenderPassBase const &) = delete;

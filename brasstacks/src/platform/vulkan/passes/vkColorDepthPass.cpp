@@ -16,7 +16,6 @@ vkColorDepthPass::vkColorDepthPass() :
     vkRenderPassBase         { },
     _color_format            { vk::Format::eUndefined },
     _depth_format            { vk::Format::eUndefined },
-    _msaa_samples            { vk::SampleCountFlagBits::e1 },
     _color_buffers           { },
     _color_views             { },
     _depth_buffer            { std::make_unique<vkImage>() },
@@ -31,8 +30,6 @@ vkColorDepthPass::vkColorDepthPass() :
 // =============================================================================
 void vkColorDepthPass::create() {
     _color_format = Renderer::swapchain().image_format();
-    _msaa_samples =
-        vkPipeline::samples_to_flag(RenderConfig::current_msaa->msaa);
 
     _find_depth_stencil_format();
     _init_attachment_details();
@@ -70,7 +67,7 @@ void vkColorDepthPass::create_swapchain_resources() {
 
 // =============================================================================
 void vkColorDepthPass::begin(vkFramebuffer const &framebuffer) {
-    static std::array<vk::ClearValue, 2> const clear_values = {{
+    static std::array<vk::ClearValue const, 2> const clear_values = {{
         { .color { std::array<float, 4> {{ 0.08f, 0.08f, 0.16f, 1.0f }} }},
         { .depthStencil { .depth = 1.0f, .stencil = 1u } }
     }};
@@ -102,7 +99,7 @@ void vkColorDepthPass::end() {
 
 // =============================================================================
 void vkColorDepthPass::_find_depth_stencil_format() {
-    static std::array<vk::Format, 2> const depth_formats {
+    static std::array<vk::Format const, 2> const depth_formats {
         vk::Format::eD32SfloatS8Uint, // One of these two will always be
         vk::Format::eD24UnormS8Uint,  // supported, according to the Guide.
     };
@@ -127,33 +124,23 @@ void vkColorDepthPass::_init_attachment_details() {
     _attachment_descriptions = {{
         // color buffer (msaa) attachment description
         .format         = _color_format,
-        .samples        = _msaa_samples,
+        .samples        = vk::SampleCountFlagBits::e1,
         .loadOp         = vk::AttachmentLoadOp::eClear,
         .storeOp        = vk::AttachmentStoreOp::eDontCare,
         .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
         .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
         .initialLayout  = vk::ImageLayout::eUndefined,
-        .finalLayout    = vk::ImageLayout::eColorAttachmentOptimal,
+        .finalLayout    = vk::ImageLayout::ePresentSrcKHR,
     },
     {   // depth buffer attachment description
         .format         = _depth_format,
-        .samples        = _msaa_samples,
+        .samples        = vk::SampleCountFlagBits::e1,
         .loadOp         = vk::AttachmentLoadOp::eClear,
         .storeOp        = vk::AttachmentStoreOp::eDontCare,
         .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
         .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
         .initialLayout  = vk::ImageLayout::eUndefined,
         .finalLayout    = vk::ImageLayout::eDepthStencilAttachmentOptimal,
-    },
-    {   // final presentation/resolve attachment
-        .format         = _color_format,
-        .samples        = vk::SampleCountFlagBits::e1,
-        .loadOp         = vk::AttachmentLoadOp::eDontCare,
-        .storeOp        = vk::AttachmentStoreOp::eStore,
-        .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
-        .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-        .initialLayout  = vk::ImageLayout::eUndefined,
-        .finalLayout    = vk::ImageLayout::ePresentSrcKHR,
     }};
 
     _color_attachments = {{
@@ -220,7 +207,7 @@ void vkColorDepthPass::_init_subpasses() {
 void vkColorDepthPass::_create_color_buffers() {
     vkImage::ImageInfo const color_buffer_info {
         .type         = vk::ImageType::e2D,
-        .samples      = _msaa_samples,
+        .samples      = vk::SampleCountFlagBits::e1,
         .usage_flags  = (vk::ImageUsageFlagBits::eColorAttachment |
                          vk::ImageUsageFlagBits::eTransientAttachment),
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
@@ -280,7 +267,7 @@ void vkColorDepthPass::_create_color_buffers() {
 void vkColorDepthPass::_create_depth_buffer() {
     vkImage::ImageInfo const depth_stencil_info {
         .type         = vk::ImageType::e2D,
-        .samples      = _msaa_samples,
+        .samples      = vk::SampleCountFlagBits::e1,
         .usage_flags  = vk::ImageUsageFlagBits::eDepthStencilAttachment,
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
     };

@@ -26,7 +26,8 @@ std::vector<std::unique_ptr<vkFrameSync>> Renderer::_frame_sync;
 uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
 
 std::vector<std::unique_ptr<vkFramebuffer>> Renderer::_framebuffers { };
-auto Renderer::_color_depth_pass { std::make_unique<vkColorDepthResolvePass>() };
+
+vkRenderPassBase *Renderer::_render_pass { nullptr };
 
 auto Renderer::_descriptor_pool { std::make_unique<vkDescriptorPool>() };
 
@@ -53,9 +54,12 @@ void Renderer::init(Application *application) {
 
     _create_swapchain();
     _create_frame_sync();
-    _color_depth_pass->create();
-    _color_depth_pass->create_swapchain_resources();
-    UIOverlay::create_swapchain_resources(*_color_depth_pass);
+
+    _render_pass = new vkColorDepthResolvePass;
+    _render_pass->create();
+    _render_pass->create_swapchain_resources();
+
+    UIOverlay::create_swapchain_resources(*_render_pass);
     _create_framebuffers();
 
     MeshLibrary::init();
@@ -71,7 +75,9 @@ void Renderer::shutdown() {
 
     destroy_swapchain_resources();
     _destroy_swapchain();
-    _color_depth_pass->destroy();
+
+    _render_pass->destroy();
+    delete _render_pass;
 
     UIOverlay::destroy_descriptor_pool();
     _descriptor_pool->destroy();
@@ -99,11 +105,11 @@ void Renderer::run() {
 
     _begin_recording();
         CameraController::update_ubo();
-        _color_depth_pass->begin(*_framebuffers[_image_index]);
+        _render_pass->begin(*_framebuffers[_image_index]);
         UIOverlay::record_commands();
         _application->record_commands();
         UIOverlay::render();
-        _color_depth_pass->end();
+        _render_pass->end();
     _end_recording();
     _submit_commands();
 
@@ -125,7 +131,8 @@ void Renderer::change_device() {
 
     destroy_swapchain_resources();
     _destroy_swapchain();
-    _color_depth_pass->destroy();
+    _render_pass->destroy();
+    delete _render_pass;
 
     UIOverlay::destroy_descriptor_pool();
     _descriptor_pool->destroy();
@@ -155,9 +162,18 @@ void Renderer::change_device() {
 
     _create_swapchain();
     _create_frame_sync();
-    _color_depth_pass->create();
-    _color_depth_pass->create_swapchain_resources();
-    UIOverlay::create_swapchain_resources(*_color_depth_pass);
+
+    if(RenderConfig::current_msaa->msaa > 1u) {
+        _render_pass = new vkColorDepthResolvePass;
+    }
+    else {
+        _render_pass = new vkColorDepthPass;
+    }
+
+    _render_pass->create();
+    _render_pass->create_swapchain_resources();
+
+    UIOverlay::create_swapchain_resources(*_render_pass);
     _create_framebuffers();
 
     MeshLibrary::init();
@@ -183,8 +199,8 @@ void Renderer::recreate_swapchain() {
 // =============================================================================
 void Renderer::create_swapchain_resources() {
     _create_frame_sync();
-    _color_depth_pass->create_swapchain_resources();
-    UIOverlay::create_swapchain_resources(*_color_depth_pass);
+    _render_pass->create_swapchain_resources();
+    UIOverlay::create_swapchain_resources(*_render_pass);
     _create_framebuffers();
 }
 
@@ -192,7 +208,7 @@ void Renderer::create_swapchain_resources() {
 void Renderer::destroy_swapchain_resources() {
     _destroy_framebuffers();
     UIOverlay::destroy_swapchain_resources();
-    _color_depth_pass->destroy_swapchain_resources();
+    _render_pass->destroy_swapchain_resources();
     _destroy_frame_sync();
 }
 
@@ -204,8 +220,17 @@ void Renderer::recreate_render_pass() {
     destroy_swapchain_resources();
     _destroy_swapchain();
 
-    _color_depth_pass->destroy();
-    _color_depth_pass->create();
+    _render_pass->destroy();
+    delete _render_pass;
+
+    if(RenderConfig::current_msaa->msaa > 1u) {
+        _render_pass = new vkColorDepthResolvePass;
+    }
+    else {
+        _render_pass = new vkColorDepthPass;
+    }
+
+    _render_pass->create();
 
     _create_swapchain();
     create_swapchain_resources();
@@ -400,16 +425,36 @@ void Renderer::_create_framebuffers() {
         );
     }
 
-    for(size_t i = 0; i < image_count; ++i) {
-        _framebuffers[i]->create(
-            *_color_depth_pass,
-            Renderer::swapchain().size(),
-            {{
-                _color_depth_pass->color_views()[i]->native(),
-                _color_depth_pass->depth_view().native(),
-                Renderer::swapchain().image_views()[i]->native()
-            }}
-        );
+    if(RenderConfig::current_msaa->msaa > 1u) {
+        auto const *pass =
+            dynamic_cast<vkColorDepthResolvePass const *>(_render_pass);
+
+        for(size_t i = 0; i < image_count; ++i) {
+            _framebuffers[i]->create(
+                *_render_pass,
+                Renderer::swapchain().size(),
+                {{
+                    pass->color_views()[i]->native(),
+                    pass->depth_view().native(),
+                    Renderer::swapchain().image_views()[i]->native()
+                }}
+            );
+        }
+    }
+    else {
+        auto const *pass =
+            dynamic_cast<vkColorDepthPass const *>(_render_pass);
+
+        for(size_t i = 0; i < image_count; ++i) {
+            _framebuffers[i]->create(
+                *_render_pass,
+                Renderer::swapchain().size(),
+                {{
+                    Renderer::swapchain().image_views()[i]->native(),
+                    pass->depth_view().native(),
+                }}
+            );
+        }
     }
 }
 

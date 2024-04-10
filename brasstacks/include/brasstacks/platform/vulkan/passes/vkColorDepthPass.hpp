@@ -15,18 +15,17 @@ public:
     vkColorDepthPass();
     ~vkColorDepthPass() override = default;
 
-    void create();
-    void destroy();
+    void create() override;
+    void destroy() override;
 
-    void destroy_swapchain_resources();
-    void create_swapchain_resources();
+    void destroy_swapchain_resources() override;
+    void create_swapchain_resources() override;
 
-    void begin(vkFramebuffer const &framebuffer);
-    void end();
+    void begin(vkFramebuffer const &framebuffer) override;
+    void end() override;
 
     auto const & color_views() const { return _color_views; }
     auto const & depth_view() const { return *_depth_view; }
-    auto msaa_samples() const { return _msaa_samples; }
     auto color_format() const { return _color_format; }
     auto depth_format() const { return _depth_format; }
 
@@ -39,8 +38,6 @@ public:
 private:
     vk::Format _color_format;
     vk::Format _depth_format;
-
-    vk::SampleCountFlagBits _msaa_samples;
 
     std::vector<std::unique_ptr<vkImage>>     _color_buffers;
     std::vector<std::unique_ptr<vkImageView>> _color_views;
