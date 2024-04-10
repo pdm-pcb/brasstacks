@@ -25,14 +25,14 @@ vkSwapchain::vkSwapchain() :
 
 // =============================================================================
 vkSwapchain::~vkSwapchain() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }
 
 // =============================================================================
 void vkSwapchain::create(vkSurface const &surface) {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Swapchain {} already exists", _handle);
     }
 
@@ -419,7 +419,7 @@ void vkSwapchain::_get_swapchain_images() {
             _image_format.format
         );
 
-        if(_image_views[i]->native() != nullptr) {
+        if(_image_views[i]->native()) {
             _image_views[i]->destroy();
         }
 

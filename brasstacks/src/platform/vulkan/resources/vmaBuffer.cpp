@@ -16,7 +16,7 @@ vmaBuffer::vmaBuffer() :
 
 // =============================================================================
 vmaBuffer::~vmaBuffer() {
-    if(_handle != nullptr || _memory_handle != nullptr) {
+    if(_handle|| _memory_handle) {
         destroy();
     }
 }
@@ -27,7 +27,7 @@ void vmaBuffer::create(vk::DeviceSize size_bytes,
                        ::VmaAllocationCreateFlags const create_flags,
                        vk::MemoryPropertyFlags const flags)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Buffer {} already exists", _handle);
     }
 

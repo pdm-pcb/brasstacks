@@ -11,7 +11,7 @@ vkSwapchainImage::vkSwapchainImage() :
 
 // =============================================================================
 void vkSwapchainImage::create(vk::Image const &handle, vk::Format const format) {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Swapchain image {} already exists", _handle);
     }
 

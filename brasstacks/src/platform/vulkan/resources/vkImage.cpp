@@ -30,7 +30,7 @@ vkImage::~vkImage() {
         ::stbi_image_free(_raw_data);
     }
 
-    if(_handle != nullptr || _memory_handle != nullptr) {
+    if(_handle || _memory_handle) {
         destroy();
     }
 }
@@ -39,7 +39,7 @@ vkImage::~vkImage() {
 void vkImage::create(vk::Extent2D const &extent, vk::Format const format,
                      ImageInfo const &image_info)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Image {} already exists", _handle);
         return;
     }
@@ -82,7 +82,7 @@ void vkImage::create(std::string_view const filename,
                      ImageInfo const &image_info,
                      uint32_t const array_layers)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Image {} already exists", _handle);
         return;
     }

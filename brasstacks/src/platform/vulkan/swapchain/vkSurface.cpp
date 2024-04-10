@@ -12,7 +12,7 @@ vkSurface::vkSurface() :
 
 // =============================================================================
 vkSurface::~vkSurface() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }
@@ -20,7 +20,7 @@ vkSurface::~vkSurface() {
 // =============================================================================
 #ifdef BTX_LINUX
     void vkSurface::create(vk::XlibSurfaceCreateInfoKHR const &create_info) {
-        if(_handle != nullptr) {
+        if(_handle) {
             BTX_CRITICAL("Surface {} already exists", _handle);
             return;
         }
@@ -30,7 +30,7 @@ vkSurface::~vkSurface() {
     }
 #elif BTX_WINDOWS
     void vkSurface::create(vk::Win32SurfaceCreateInfoKHR const &create_info) {
-        if(_handle != nullptr) {
+        if(_handle) {
             BTX_CRITICAL("Surface {} already exists", _handle);
             return;
         }

@@ -24,7 +24,7 @@ vk::Instance vkInstance::_handle { nullptr };
 
 // =============================================================================
 void vkInstance::create(uint32_t const api_version) {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Vulkan instance {} already exists", _handle);
         return;
     }

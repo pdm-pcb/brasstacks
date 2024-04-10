@@ -13,7 +13,7 @@ vkDescriptorPool::vkDescriptorPool() :
 
 // =============================================================================
 vkDescriptorPool::~vkDescriptorPool() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }
@@ -23,7 +23,7 @@ void vkDescriptorPool::create(vk::DescriptorPoolCreateFlags const flags,
                               uint32_t const max_sets,
                               PoolSizes const &sizes)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Descriptor pool {} already exists", _handle);
         return;
     }

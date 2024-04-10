@@ -178,7 +178,7 @@ bool vkPhysicalDevice::_check_queue_families(RenderConfig::DeviceProps &device,
 
             // And the second is if this device can present on the surface
             // we've been given
-            if(present_support == vk::True) {
+            if(present_support == VK_TRUE) {
                 found_unified_family = true;
                 device.graphics_queue_index = i;
                 break;
@@ -311,7 +311,7 @@ void vkPhysicalDevice::_store_device(vk::PhysicalDevice const &device) {
 
     store.name = std::string(device_props.deviceName.data());
     store.driver_version = std::string(driver_props.driverInfo.data());
-    store.vkapi_version = std::format(
+    store.vkapi_version = fmt::format(
         "{}.{}.{}",
         VK_API_VERSION_MAJOR(device_props.apiVersion),
         VK_API_VERSION_MINOR(device_props.apiVersion),
@@ -348,7 +348,7 @@ void vkPhysicalDevice::_print_family_flags(uint32_t const family,
 {
     std::string flags_str;
     flags_str.reserve(128);
-    flags_str = std::format("{}: ", family);
+    flags_str = fmt::format("{}: ", family);
 
     if(flags & vk::QueueFlagBits::eGraphics) {
         flags_str += "Graphics        ";

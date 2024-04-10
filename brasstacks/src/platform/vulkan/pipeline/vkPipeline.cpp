@@ -34,7 +34,7 @@ vkPipeline::vkPipeline() :
 
 // =============================================================================
 vkPipeline::~vkPipeline() {
-    if(_handle != nullptr || _layout != nullptr) {
+    if(_handle || _layout) {
         destroy();
     }
 }
@@ -125,7 +125,7 @@ vkPipeline & vkPipeline::add_push_constant(PushConstant const &push_constant) {
 void vkPipeline::create(vkRenderPassBase const &render_pass,
                         Config const &config)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Pipeline {} already exists", _handle);
         return;
     }

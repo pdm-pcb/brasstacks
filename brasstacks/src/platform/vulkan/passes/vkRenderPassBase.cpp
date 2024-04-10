@@ -12,7 +12,7 @@ vkRenderPassBase::vkRenderPassBase() :
 
 // =============================================================================
 void vkRenderPassBase::_create(vk::RenderPassCreateInfo const &create_info) {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Render pass {} already exists", _handle);
     }
     _handle = Renderer::device().native().createRenderPass(create_info);

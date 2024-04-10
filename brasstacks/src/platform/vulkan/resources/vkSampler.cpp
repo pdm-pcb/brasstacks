@@ -14,7 +14,7 @@ vkSampler::vkSampler() :
 
 // =============================================================================
 vkSampler::~vkSampler() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }
@@ -26,7 +26,7 @@ void vkSampler::create(vk::Filter const min_filter,
                        vk::SamplerAddressMode const mode_u,
                        vk::SamplerAddressMode const mode_v)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Sampler {} already exists", _handle);
         return;
     }

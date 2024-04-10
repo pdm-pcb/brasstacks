@@ -13,7 +13,7 @@ vkCmdBufferPool::vkCmdBufferPool() :
 
 // =============================================================================
 vkCmdBufferPool::~vkCmdBufferPool() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }
@@ -21,7 +21,7 @@ vkCmdBufferPool::~vkCmdBufferPool() {
 // =============================================================================
 void vkCmdBufferPool::create(uint32_t const queue_index,
                              vk::CommandPoolCreateFlags const flags) {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("vkCmdBufferPool {} already exists", _handle);
         return;
     }

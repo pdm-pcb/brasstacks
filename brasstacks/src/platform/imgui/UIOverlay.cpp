@@ -173,10 +173,10 @@ void UIOverlay::_draw_status_bar() {
         ::ImGui::TableNextRow();
 
         ::ImGui::TableSetColumnIndex(0);
-        label_text = std::format("{}", RenderConfig::current_device->name);
+        label_text = fmt::format("{}", RenderConfig::current_device->name);
         if(::ImGui::BeginMenu(label_text.c_str())) {
             for(auto &device : RenderConfig::available_devices) {
-                label_text = std::format("{}", device.name);
+                label_text = fmt::format("{}", device.name);
                 if(::ImGui::MenuItem(label_text.c_str(), "", &device.selected))
                 {
                     RenderConfig::current_device = &device;
@@ -193,12 +193,12 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = std::format("{}x{}",
+        label_text = fmt::format("{}x{}",
                                  RenderConfig::current_resolution->size.width,
                                  RenderConfig::current_resolution->size.height);
         if(::ImGui::BeginMenu(label_text.c_str())) {
             for(auto &res : RenderConfig::available_resolutions) {
-                label_text = std::format("{}x{}", res.size.width,
+                label_text = fmt::format("{}x{}", res.size.width,
                                                   res.size.height);
 
                 if(::ImGui::MenuItem(label_text.c_str(), "", &res.selected)) {
@@ -217,10 +217,10 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = std::format("MSAA: x{}", RenderConfig::current_msaa->msaa);
+        label_text = fmt::format("MSAA: x{}", RenderConfig::current_msaa->msaa);
         if(::ImGui::BeginMenu(label_text.c_str())) {
             for(auto &level : RenderConfig::available_msaa) {
-                label_text = std::format("x{}", level.msaa);
+                label_text = fmt::format("x{}", level.msaa);
                 if(::ImGui::MenuItem(label_text.c_str(), "", &level.selected)) {
                     RenderConfig::current_msaa = &level;
                     for(auto &other_level : RenderConfig::available_msaa) {
@@ -236,10 +236,10 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = std::format("AF: {}x", RenderConfig::current_aniso->aniso);
+        label_text = fmt::format("AF: {}x", RenderConfig::current_aniso->aniso);
         if(::ImGui::BeginMenu(label_text.c_str())) {
             for(auto &level : RenderConfig::available_aniso) {
-                label_text = std::format("{}x", level.aniso);
+                label_text = fmt::format("{}x", level.aniso);
                 if(::ImGui::MenuItem(label_text.c_str(), "", &level.selected)) {
                     RenderConfig::current_aniso = &level;
                     for(auto &other_level : RenderConfig::available_aniso) {
@@ -262,7 +262,7 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = std::format("CPU Time: {:.06f}ms",
+        label_text = fmt::format("CPU Time: {:.06f}ms",
                                  1e3f * TimeKeeper::delta_time());
         ::ImGui::Text("%s", label_text.c_str());
 

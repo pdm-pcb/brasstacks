@@ -11,7 +11,7 @@ vkQueue::vkQueue() :
 
 // =============================================================================
 void vkQueue::set_family_index(uint32_t const index) {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Device queue {} already retrieved", _handle);
         return;
     }

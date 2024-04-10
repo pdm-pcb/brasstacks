@@ -14,7 +14,7 @@ vkDevice::vkDevice() :
 
 // =============================================================================
 vkDevice::~vkDevice() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }

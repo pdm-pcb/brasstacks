@@ -17,11 +17,11 @@ vkBuffer::vkBuffer() :
 
 // =============================================================================
 vkBuffer::~vkBuffer() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 
-    if(_memory_handle != nullptr) {
+    if(_memory_handle) {
         free();
     }
 }
@@ -30,7 +30,7 @@ vkBuffer::~vkBuffer() {
 void vkBuffer::create(vk::DeviceSize size_bytes,
                       vk::BufferUsageFlags const usage_flags)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Buffer {} already exists", _handle);
     }
 
@@ -63,7 +63,7 @@ void vkBuffer::destroy() {
 
 // =============================================================================
 void vkBuffer::allocate(vk::MemoryPropertyFlags const flags) {
-    if(_memory_handle != nullptr) {
+    if(_memory_handle) {
         BTX_CRITICAL("Device memory {} already allocated", _memory_handle);
         return;
     }

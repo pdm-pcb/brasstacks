@@ -14,7 +14,7 @@ vkDescriptorSetLayout::vkDescriptorSetLayout() :
 
 // =============================================================================
 vkDescriptorSetLayout::~vkDescriptorSetLayout() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }
@@ -25,7 +25,7 @@ vkDescriptorSetLayout::add_binding(vk::DescriptorType const type,
                                    vk::ShaderStageFlags const stages,
                                    uint32_t const descriptor_count)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Descriptor set layout {} already exists", _handle);
     }
 
@@ -44,7 +44,7 @@ vkDescriptorSetLayout::add_binding(vk::DescriptorType const type,
 
 // =============================================================================
 void vkDescriptorSetLayout::create() {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Descriptor set layout {} already exists", _handle);
     }
 

@@ -15,14 +15,14 @@ vkCmdBuffer::vkCmdBuffer() :
 
 // =============================================================================
 vkCmdBuffer::~vkCmdBuffer() {
-    if(_handle != nullptr) {
+    if(_handle) {
         free();
     }
 }
 
 // =============================================================================
 void vkCmdBuffer::allocate(vkCmdBufferPool const &pool) {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("vkCmdBuffer already {} exists", _handle);
         return;
     }

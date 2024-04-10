@@ -15,7 +15,7 @@ vkFramebuffer::vkFramebuffer() :
 
 // =============================================================================
 vkFramebuffer::~vkFramebuffer() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }

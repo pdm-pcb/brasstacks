@@ -14,7 +14,7 @@ vkImageView::vkImageView() :
 
 // =============================================================================
 vkImageView::~vkImageView() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }
@@ -25,7 +25,7 @@ void vkImageView::create(vk::Image const &image,
                          vk::ImageViewType const type,
                          vk::ImageAspectFlags const aspect_flags)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Image view {} already exists", _handle);
         return;
     }

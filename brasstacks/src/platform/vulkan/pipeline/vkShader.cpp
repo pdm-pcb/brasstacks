@@ -13,14 +13,14 @@ vkShader::vkShader() :
 
 // =============================================================================
 vkShader::~vkShader() {
-    if(_handle != nullptr) {
+    if(_handle) {
         destroy();
     }
 }
 
 // =============================================================================
 void vkShader::create(std::string_view const filepath) {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Shader {} already exists", _handle);
         return;
     }

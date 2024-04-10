@@ -41,7 +41,7 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
 
 // =============================================================================
 void vkDebugger::create() {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Debugger already initialized with {}", _handle);
         return;
     }

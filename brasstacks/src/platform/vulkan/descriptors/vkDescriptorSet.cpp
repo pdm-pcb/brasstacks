@@ -27,7 +27,7 @@ vkDescriptorSet::vkDescriptorSet() :
 void vkDescriptorSet::allocate(vkDescriptorPool const &pool,
                                vkDescriptorSetLayout const &layout)
 {
-    if(_handle != nullptr) {
+    if(_handle) {
         BTX_CRITICAL("Descriptor set {} already exists", _handle);
         return;
     }
