@@ -325,7 +325,7 @@ void Renderer::_create_surface() {
 
 // =============================================================================
 void Renderer::_select_physical_device() {
-    if(_surface->native()) {
+    if(!_surface->native()) {
         BTX_CRITICAL("Cannot select physical device without surface.");
         return;
     }
