@@ -1,9 +1,9 @@
 include(FetchContent)
 
-function(fetch_vma)
+function(fetch_VulkanMemoryAllocator)
     # set(FETCHCONTENT_QUIET OFF)
     FetchContent_Declare(
-        vma SYSTEM
+        VulkanMemoryAllocator SYSTEM
         GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
         GIT_TAG 19b940e864bd3a5afb3c79e3c6788869d01a19eb # 2024-02-27
         # GIT_PROGRESS TRUE
@@ -15,6 +15,6 @@ function(fetch_vma)
     set(VMA_STATIC_VULKAN_FUNCTIONS "OFF" CACHE BOOL "" FORCE)
     set(VMA_DYNAMIC_VULKAN_FUNCTIONS "ON" CACHE BOOL "" FORCE)
 
-    message(STATUS "${PROJECT_NAME}: Fetching vma...")
-    FetchContent_MakeAvailable(vma)
+    message(STATUS "${PROJECT_NAME}: Fetching VulkanMemoryAllocator...")
+    FetchContent_MakeAvailable(VulkanMemoryAllocator)
 endfunction()

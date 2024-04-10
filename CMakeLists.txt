@@ -34,17 +34,17 @@ include("compile_shaders")
 set_target_architecture()
 
 # Third party dependencies
-include("fetch_fmtlib")
+include("fetch_fmt")
 include("fetch_spdlog")
-include("fetch_glfw")
+include("fetch_glfw3")
 include("fetch_glm")
-include("fetch_vma")
+include("fetch_VulkanMemoryAllocator")
 
-fetch_fmtlib()
+fetch_fmt()
 fetch_spdlog()
-fetch_glfw()
+fetch_glfw3()
 # fetch_glm()
-fetch_vma()
+fetch_VulkanMemoryAllocator()
 
 add_subdirectory(brasstacks)
 add_subdirectory(third_party)

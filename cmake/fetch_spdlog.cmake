@@ -7,7 +7,7 @@ function(fetch_spdlog)
         GIT_REPOSITORY https://github.com/gabime/spdlog
         GIT_TAG 7c02e204c92545f869e2f04edaab1f19fe8b19fd # 2024-01-12
         # GIT_PROGRESS TRUE
-        FIND_PACKAGE_ARGS 1.13.0
+        FIND_PACKAGE_ARGS 1.11.0
     )
 
     # Sure hope this can work reliably some day
