@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include <span>
+#include <optional>
 #include <cmath>
 #include <numbers>
 #include <limits>

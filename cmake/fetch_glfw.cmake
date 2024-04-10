@@ -16,8 +16,6 @@ function(fetch_glfw)
     set(GLFW_BUILD_DOCS     "OFF" CACHE BOOL "" FORCE)
     set(GLFW_INSTALL        "OFF" CACHE BOOL "" FORCE)
     set(GLFW_VULKAN_STATIC  "ON"  CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_WAYLAND  "OFF" CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_X11      "ON"  CACHE BOOL "" FORCE)
 
     message(STATUS "${PROJECT_NAME}: Fetching glfw...")
     FetchContent_MakeAvailable(glfw)

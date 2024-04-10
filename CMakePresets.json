@@ -1,5 +1,5 @@
 {
-    "version": 3,
+    "version": 4,
     "configurePresets": [
         {
             "name": "debug-base",
@@ -148,5 +148,39 @@
             ],
             "displayName": "Windows Release LLVM"
         }
-    ]
+    ],
+  "buildPresets": [
+    {
+      "name": "linux-debug-gcc",
+      "configurePreset": "linux-debug-gcc"
+    },
+    {
+      "name": "linux-release-gcc",
+      "configurePreset": "linux-release-gcc"
+    },
+    {
+      "name": "linux-debug-llvm",
+      "configurePreset": "linux-debug-llvm"
+    },
+    {
+      "name": "linux-release-llvm",
+      "configurePreset": "linux-release-llvm"
+    },
+    {
+      "name": "windows-debug-msvc",
+      "configurePreset": "windows-debug-msvc"
+    },
+    {
+      "name": "windows-release-msvc",
+      "configurePreset": "windows-release-msvc"
+    },
+    {
+      "name": "windows-debug-llvm",
+      "configurePreset": "windows-debug-llvm"
+    },
+    {
+      "name": "windows-release-llvm",
+      "configurePreset": "windows-release-llvm"
+    }
+  ]
 }

@@ -295,7 +295,7 @@ bool Renderer::_present_image() {
 
 // =============================================================================
 void Renderer::_create_surface() {
-    if(_surface->native() != nullptr) {
+    if(_surface->native()) {
         BTX_CRITICAL("Surface already created");
         return;
     }
@@ -325,7 +325,7 @@ void Renderer::_create_surface() {
 
 // =============================================================================
 void Renderer::_select_physical_device() {
-    if(_surface->native() == nullptr) {
+    if(_surface->native()) {
         BTX_CRITICAL("Cannot select physical device without surface.");
         return;
     }
@@ -344,7 +344,7 @@ void Renderer::_select_physical_device() {
 
 // =============================================================================
 void Renderer::_create_device() {
-    if(_device->native() != nullptr) {
+    if(_device->native()) {
         BTX_ERROR("Logical device already created.");
         return;
     }
@@ -363,7 +363,7 @@ void Renderer::_create_allocator(uint32_t const api_version) {
 
 // =============================================================================
 void Renderer::_create_swapchain() {
-    if(_swapchain->native() != nullptr) {
+    if(_swapchain->native()) {
         BTX_CRITICAL("Swapchain already created.");
         return;
     }
