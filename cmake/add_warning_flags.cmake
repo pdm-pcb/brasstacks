@@ -1,15 +1,13 @@
-function(add_warning_flags target_name)
+function(add_warning_flags)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(
-            ${target_name} PUBLIC
+        add_compile_options(
             "-Wall"     # Enable most warnings
             "-Wextra"   # ...and a few more
             "-pedantic" # ...and language compliance checks
         )
 
         if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-            target_compile_options(
-                ${target_name} PUBLIC
+            add_compile_options(
                 "-Weverything"      # Clang supports a true "-Wall"
                 "-Wno-c++98-compat" # ...but we don't care about C++98
                 "-Wno-c++98-compat-pedantic"
@@ -21,9 +19,8 @@ function(add_warning_flags target_name)
             )
         endif()
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-        target_compile_options(
-            ${target_name} PUBLIC
-            "/W4" # All warnings not disabled by default
+        add_compile_options(
+            "/W4"     # All warnings not disabled by default
         )
     endif()
 endfunction()

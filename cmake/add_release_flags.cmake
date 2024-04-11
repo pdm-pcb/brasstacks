@@ -1,15 +1,13 @@
-function(add_release_flags target_name)
+function(add_release_flags)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         if(CMAKE_BUILD_TYPE MATCHES "Release")
-            target_compile_options(
-                ${target_name} PUBLIC
+            add_compile_options(
                 "-O3" # Optimize for speed, sacrifice size
             )
         endif()
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         if(CMAKE_BUILD_TYPE MATCHES "Release")
-            target_compile_options(
-                ${target_name} PUBLIC
+            add_compile_options(
                 "/O2" # Optimize for speed. Implies:
                       # - global optimization
                       # - intrinsics
@@ -20,8 +18,7 @@ function(add_release_flags target_name)
                       # - function-level linking
             )
 
-            target_link_options(
-                ${target_name} PUBLIC
+            add_link_options(
                 "/OPT:NOREF" # Remove unused functions
             )
         endif()

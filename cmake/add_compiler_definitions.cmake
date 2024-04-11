@@ -1,39 +1,26 @@
-function(add_compiler_definitions target_name)
-    target_compile_definitions(
-        ${target_name} PRIVATE
-        "VK_TARGET_VERSION=VK_API_VERSION_1_2"
-    )
-
+function(add_compiler_definitions)
     if(CMAKE_BUILD_TYPE MATCHES "Debug")
-        target_compile_definitions(
-            ${target_name} PRIVATE
-            BTX_DEBUG
-        )
+        add_compile_definitions(BTX_DEBUG)
     elseif(CMAKE_BUILD_TYPE MATCHES "Release")
-        target_compile_definitions(
-            ${target_name} PRIVATE
-            BTX_RELEASE
-        )
+        add_compile_definitions(BTX_RELEASE)
     endif()
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        target_compile_definitions(${target_name} PUBLIC BTX_GNU)
+        add_compile_definitions(BTX_GNU)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        target_compile_definitions(${target_name} PUBLIC BTX_CLANG)
+        add_compile_definitions(BTX_CLANG)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-        target_compile_definitions(${target_name} PUBLIC BTX_MSVC)
+        add_compile_definitions(BTX_MSVC)
     endif()
 
     if(LINUX)
-        target_compile_definitions(
-            ${target_name} PUBLIC
-            BTX_LINUX
-        )
+        add_compile_definitions(BTX_LINUX)
     elseif(WIN32)
-        target_compile_definitions(
-            ${target_name} PUBLIC
+        add_compile_definitions(
             BTX_WINDOWS
-            _CRT_SECURE_NO_WARNINGS # Do not warn about C string functions
+            # Since I disabled compiler extensions, a lot of Microsoft's stdlib
+            # gets upset
+            _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS
         )
     endif()
 endfunction()

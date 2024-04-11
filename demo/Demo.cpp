@@ -1,18 +1,14 @@
-#include "brasstacks/brasstacks.hpp"
 #include "Demo.hpp"
-
-#include "brasstacks/core/Renderer.hpp"
-#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
 // =============================================================================
 Demo::Demo() :
     Application("Brasstacks"),
-    _pipeline         { std::make_unique<btx::vkPipeline>() },
-    _plane_mesh       { },
-    _plane_mat        { },
-    _cube_mesh        { },
-    _cube_mat         { },
-    _texture          { }
+    _pipeline   { },
+    _plane_mesh { },
+    _plane_mat  { },
+    _cube_mesh  { },
+    _cube_mat   { },
+    _texture    { }
 { }
 
 // =============================================================================
@@ -47,7 +43,7 @@ void Demo::update() {
 }
 
 // =============================================================================
-void Demo::record_commands() const {
+void Demo::record_commands() {
     static std::array<btx::vkPipeline::PushConstant const, 1> const plane_pcs {
         btx::vkPipeline::PushConstant {
             .stage_flags = vk::ShaderStageFlagBits::eVertex,
@@ -64,23 +60,23 @@ void Demo::record_commands() const {
         }
     };
 
-    _pipeline->bind(btx::Renderer::cmd_buffer());
+    _pipeline.bind(btx::Renderer::cmd_buffer());
 
-        _pipeline->bind_descriptor_set(btx::CameraController::camera_ubo_set());
-        _pipeline->bind_descriptor_set((*_texture)->descriptor_set());
+        _pipeline.bind_descriptor_set(btx::CameraController::camera_ubo_set());
+        _pipeline.bind_descriptor_set((*_texture)->descriptor_set());
 
-        _pipeline->send_push_constants(plane_pcs);
+        _pipeline.send_push_constants(plane_pcs);
         (*_plane_mesh)->draw_indexed(btx::Renderer::cmd_buffer());
 
-        _pipeline->send_push_constants(cube_pcs);
+        _pipeline.send_push_constants(cube_pcs);
         (*_cube_mesh)->draw_indexed(btx::Renderer::cmd_buffer());
 
-    _pipeline->unbind();
+    _pipeline.unbind();
 }
 
 // =============================================================================
 void Demo::swapchain_updated() {
-    _pipeline->update_dimensions(btx::Renderer::swapchain().size(),
+    _pipeline.update_dimensions(btx::Renderer::swapchain().size(),
                                  btx::Renderer::swapchain().offset());
 }
 
@@ -92,7 +88,7 @@ void Demo::create_pipeline() {
                 btx::Renderer::render_pass()
             );
 
-    (*_pipeline)
+    _pipeline
         .module_from_spirv("shaders/demo.vert",
                            vk::ShaderStageFlagBits::eVertex)
         .module_from_spirv("shaders/demo.frag",
@@ -121,7 +117,7 @@ void Demo::create_pipeline() {
                 btx::Renderer::render_pass()
             );
 
-    (*_pipeline)
+    _pipeline
         .module_from_spirv("shaders/demo.vert",
                            vk::ShaderStageFlagBits::eVertex)
         .module_from_spirv("shaders/demo.frag",
@@ -148,5 +144,5 @@ void Demo::create_pipeline() {
 
 // =============================================================================
 void Demo::destroy_pipeline() {
-    _pipeline->destroy();
+    _pipeline.destroy();
 }

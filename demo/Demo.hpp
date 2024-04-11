@@ -1,13 +1,10 @@
 #ifndef DEMO_HPP
 #define DEMO_HPP
 
-#include "brasstacks/core/Application.hpp"
-
-#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
-#include "brasstacks/assets/libraries/MeshLibrary.hpp"
-#include "brasstacks/assets/libraries/TextureLibrary.hpp"
+#include "brasstacks/brasstacks.hpp"
 
 #include "brasstacks/math/Mat4.hpp"
+#include "brasstacks/tools/cameras/CameraController.hpp"
 
 class Demo final : public btx::Application {
 public:
@@ -18,7 +15,7 @@ public:
     void shutdown() override;
 
     void update() override;
-    void record_commands() const override;
+    void record_commands() override;
 
     void swapchain_updated() override;
 
@@ -26,7 +23,7 @@ public:
     void destroy_pipeline() override;
 
 private:
-    std::unique_ptr<btx::vkPipeline> _pipeline;
+    btx::vkPipeline _pipeline;
 
     btx::MeshLibrary::MeshIter _plane_mesh;
     btx::math::Mat4            _plane_mat;
