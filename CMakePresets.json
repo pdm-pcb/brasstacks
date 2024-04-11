@@ -29,7 +29,7 @@
             }
         },
         {
-            "name": "gcc-base",
+            "name": "gnu-base",
             "hidden": true,
             "cacheVariables": {
                 "CMAKE_CXX_COMPILER": "g++",
@@ -45,40 +45,40 @@
             }
         },
         {
-            "name": "linux-debug-gcc",
+            "name": "linux-gnu-debug",
             "inherits": [
                 "debug-base",
                 "linux-base",
-                "gcc-base"
+                "gnu-base"
             ],
-            "displayName": "Linux Debug GCC"
+            "displayName": "Linux GNU Debug"
         },
         {
-            "name": "linux-release-gcc",
+            "name": "linux-gnu-release",
             "inherits": [
                 "release-base",
                 "linux-base",
-                "gcc-base"
+                "gnu-base"
             ],
-            "displayName": "Linux Release GCC"
+            "displayName": "Linux GNU Release"
         },
         {
-            "name": "linux-debug-llvm",
+            "name": "linux-llvm-debug",
             "inherits": [
                 "debug-base",
                 "linux-base",
                 "llvm-base"
             ],
-            "displayName": "Linux Debug LLVM"
+            "displayName": "Linux LLVM Debug"
         },
         {
-            "name": "linux-release-llvm",
+            "name": "linux-llvm-release",
             "inherits": [
                 "release-base",
                 "linux-base",
                 "llvm-base"
             ],
-            "displayName": "Linux Release LLVM"
+            "displayName": "Linux LLVM Release"
         },
         {
             "name": "windows-base",
@@ -113,74 +113,74 @@
             }
         },
         {
-            "name": "windows-debug-msvc",
+            "name": "windows-msvc-debug",
             "inherits": [
                 "debug-base",
                 "windows-base",
                 "msvc-base"
             ],
-            "displayName": "Windows Debug MSVC"
+            "displayName": "Windows MSVC Debug"
         },
         {
-            "name": "windows-release-msvc",
+            "name": "windows-msvc-release",
             "inherits": [
                 "release-base",
                 "windows-base",
                 "msvc-base"
             ],
-            "displayName": "Windows Release MSVC"
+            "displayName": "Windows MSVC Release"
         },
         {
-            "name": "windows-debug-llvm",
+            "name": "windows-llvm-debug",
             "inherits": [
                 "debug-base",
                 "windows-base",
                 "llvm-base"
             ],
-            "displayName": "Windows Debug LLVM"
+            "displayName": "Windows LLVM Debug"
         },
         {
-            "name": "windows-release-llvm",
+            "name": "windows-llvm-release",
             "inherits": [
                 "release-base",
                 "windows-base",
                 "llvm-base"
             ],
-            "displayName": "Windows Release LLVM"
+            "displayName": "Windows LLVM Release"
         }
     ],
   "buildPresets": [
     {
-      "name": "linux-debug-gcc",
-      "configurePreset": "linux-debug-gcc"
+      "name": "linux-gnu-debug",
+      "configurePreset": "linux-gnu-debug"
     },
     {
-      "name": "linux-release-gcc",
-      "configurePreset": "linux-release-gcc"
+      "name": "linux-gnu-release",
+      "configurePreset": "linux-gnu-release"
     },
     {
-      "name": "linux-debug-llvm",
-      "configurePreset": "linux-debug-llvm"
+      "name": "linux-llvm-debug",
+      "configurePreset": "linux-llvm-debug"
     },
     {
-      "name": "linux-release-llvm",
-      "configurePreset": "linux-release-llvm"
+      "name": "linux-llvm-release",
+      "configurePreset": "linux-llvm-release"
     },
     {
-      "name": "windows-debug-msvc",
-      "configurePreset": "windows-debug-msvc"
+      "name": "windows-msvc-debug",
+      "configurePreset": "windows-msvc-debug"
     },
     {
-      "name": "windows-release-msvc",
-      "configurePreset": "windows-release-msvc"
+      "name": "windows-msvc-release",
+      "configurePreset": "windows-msvc-release"
     },
     {
-      "name": "windows-debug-llvm",
-      "configurePreset": "windows-debug-llvm"
+      "name": "windows-llvm-debug",
+      "configurePreset": "windows-llvm-debug"
     },
     {
-      "name": "windows-release-llvm",
-      "configurePreset": "windows-release-llvm"
+      "name": "windows-llvm-release",
+      "configurePreset": "windows-llvm-release"
     }
   ]
 }
