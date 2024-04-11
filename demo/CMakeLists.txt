@@ -11,11 +11,6 @@ target_sources(
 	${headers}
 )
 
-add_compiler_definitions(${target_name})
-add_warning_flags(${target_name})
-add_debug_flags(${target_name})
-add_release_flags(${target_name})
-
 target_link_libraries(
     ${target_name} PRIVATE
     brasstacks
@@ -28,3 +23,9 @@ file(
 )
 
 compile_shader(${target_name} "${shader_sources}")
+
+add_compiler_definitions(${target_name})
+add_compiler_options(${target_name})
+add_warning_flags(${target_name})
+add_debug_flags(${target_name})
+add_release_flags(${target_name})

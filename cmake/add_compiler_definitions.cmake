@@ -1,4 +1,9 @@
 function(add_compiler_definitions target_name)
+    target_compile_definitions(
+        ${target_name} PRIVATE
+        "VK_TARGET_VERSION=VK_API_VERSION_1_2"
+    )
+
     if(CMAKE_BUILD_TYPE MATCHES "Debug")
         target_compile_definitions(
             ${target_name} PRIVATE

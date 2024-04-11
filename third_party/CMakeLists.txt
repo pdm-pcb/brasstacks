@@ -29,12 +29,12 @@ target_link_libraries(
     GPUOpen::VulkanMemoryAllocator
 )
 
+add_compiler_options(${target_name})
 add_debug_flags(${target_name})
 add_release_flags(${target_name})
 
 # Disable warnings for third party code
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
-   CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(${target_name} PRIVATE "-w")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(${target_name} PRIVATE "/w")

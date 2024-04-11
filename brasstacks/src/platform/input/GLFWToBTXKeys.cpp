@@ -1,4 +1,5 @@
 #include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
+#include "brasstacks/core/TargetWindow.hpp"
 
 namespace btx {
 

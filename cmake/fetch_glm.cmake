@@ -12,6 +12,6 @@ function(fetch_glm)
 
     set(BUILD_STATIC_LIBS "ON" CACHE BOOL "" FORCE)
 
-    message(STATUS "${PROJECT_NAME}: Fetching glm...")
+    message(STATUS "${CMAKE_PROJECT_NAME}: Fetching glm...")
     FetchContent_MakeAvailable(glm)
 endfunction()

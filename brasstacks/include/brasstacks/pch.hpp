@@ -61,38 +61,11 @@
     #define VK_USE_PLATFORM_WIN32_KHR
     #include <vulkan/vulkan.hpp>
     #include <vulkan/vulkan_win32.h>
-
-    #include <dwmapi.h>
 #endif // BTX platform
-
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-
-auto constexpr VK_TARGET_VERSION = VK_API_VERSION_1_2;
 
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #define VMA_VULKLAN_VERSION VK_TARGET_VERSION
 #include <vk_mem_alloc.h>
-
-#ifdef BTX_LINUX
-    #define GLFW_EXPOSE_NATIVE_X11
-#elif BTX_WINDOWS
-    #define GLFW_EXPOSE_NATIVE_WIN32
-#endif // BTX platform
-
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
-
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_vulkan.h>
-
-#ifdef BTX_DEBUG
-    static std::filesystem::path const BTX_ASSET_PATH("demo/assets");
-    static std::string           const BTX_SHADER_EXT("-debug.spv");
-#else
-    static std::filesystem::path const BTX_ASSET_PATH("demo/assets");
-    static std::string           const BTX_SHADER_EXT("-release.spv");
-#endif // BTX build config
 
 #endif // BRASSTACKS_PCH_HPP

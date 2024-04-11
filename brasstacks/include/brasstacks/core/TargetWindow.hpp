@@ -4,6 +4,15 @@
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
 
+#ifdef BTX_LINUX
+    #define GLFW_EXPOSE_NATIVE_X11
+#elif BTX_WINDOWS
+    #define GLFW_EXPOSE_NATIVE_WIN32
+#endif // BTX platform
+
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+
 namespace btx {
 
 class TargetWindow final {

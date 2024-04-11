@@ -4,6 +4,9 @@
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
+
 namespace btx {
 
 class vkRenderPassBase;

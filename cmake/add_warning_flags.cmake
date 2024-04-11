@@ -1,6 +1,5 @@
 function(add_warning_flags target_name)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU"
-       OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(
             ${target_name} PUBLIC
             "-Wall"     # Enable most warnings

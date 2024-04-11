@@ -1,7 +1,7 @@
 # Thanks to diapir for this one. Slightly modified for my own uses:
 # https://stackoverflow.com/a/60472877/1464937
 
-find_package(Vulkan REQUIRED COMPONENTS glslc)
+find_package(Vulkan ${VK_TARGET_VERSION} REQUIRED COMPONENTS glslc)
 find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
 cmake_policy(SET CMP0116 NEW)
@@ -13,7 +13,7 @@ function(compile_shader target_name sources)
             set(shader_optimization "-O0")
             set(shader_debug "-g")
         elseif(CMAKE_BUILD_TYPE MATCHES "Release")
-            set(output_filename "${source}-release.spv")
+            set(output_filename "${source}.spv")
             set(shader_optimization "-O")
             set(shader_debug "")
         else()
@@ -25,7 +25,7 @@ function(compile_shader target_name sources)
             DEPFILE ${source}.d
             COMMAND
                 ${glslc_executable}
-                --target-env=vulkan${target_vulkan_version}
+                --target-env=vulkan1.2
                 -mfmt=bin
                 -MD
                 -MF ${source}.d

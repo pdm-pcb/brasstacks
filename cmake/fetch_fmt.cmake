@@ -10,6 +10,18 @@ function(fetch_fmt)
         FIND_PACKAGE_ARGS 9.1
     )
 
-    message(STATUS "${PROJECT_NAME}: Fetching fmt...")
+    # All options off
+    set(FMT_PEDANTIC       "OFF" CACHE BOOL "" FORCE)
+    set(FMT_WERROR         "OFF" CACHE BOOL "" FORCE)
+    set(FMT_DOC            "OFF" CACHE BOOL "" FORCE)
+    set(FMT_INSTALL        "OFF" CACHE BOOL "" FORCE)
+    set(FMT_TEST           "OFF" CACHE BOOL "" FORCE)
+    set(FMT_FUZZ           "OFF" CACHE BOOL "" FORCE)
+    set(FMT_CUDA_TEST      "OFF" CACHE BOOL "" FORCE)
+    set(FMT_OS             "OFF" CACHE BOOL "" FORCE)
+    set(FMT_MODULE         "OFF" CACHE BOOL "" FORCE)
+    set(FMT_SYSTEM_HEADERS "OFF" CACHE BOOL "" FORCE)
+
+    message(STATUS "${CMAKE_PROJECT_NAME}: Fetching fmt...")
     FetchContent_MakeAvailable(fmt)
 endfunction()

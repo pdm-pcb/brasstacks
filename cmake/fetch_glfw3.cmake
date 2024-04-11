@@ -10,15 +10,18 @@ function(fetch_glfw3)
         FIND_PACKAGE_ARGS 3.3.8
     )
 
-    # set(BUILD_SHARED_LIBS   "OFF" CACHE BOOL "" FORCE)
-    # set(GLFW_BUILD_EXAMPLES "OFF" CACHE BOOL "" FORCE)
-    # set(GLFW_BUILD_TESTS    "OFF" CACHE BOOL "" FORCE)
-    # set(GLFW_BUILD_DOCS     "OFF" CACHE BOOL "" FORCE)
-    # set(GLFW_INSTALL        "OFF" CACHE BOOL "" FORCE)
-    # set(GLFW_VULKAN_STATIC  "ON"  CACHE BOOL "" FORCE)
-    # set(GLFW_BUILD_X11      "ON"  CACHE BOOL "" FORCE)
-    # set(GLFW_BUILD_WAYLAND  "OFF" CACHE BOOL "" FORCE)
+    # brasstacks will link the Vulkan library statically, and if we're building
+    # for Linux, prefer the X11 backend
+    set(GLFW_VULKAN_STATIC  "ON"  CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_X11      "ON"  CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_WAYLAND  "OFF" CACHE BOOL "" FORCE)
 
-    message(STATUS "${PROJECT_NAME}: Fetching glfw3...")
+    # All other options off
+    set(GLFW_BUILD_EXAMPLES "OFF" CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS    "OFF" CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_DOCS     "OFF" CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL        "OFF" CACHE BOOL "" FORCE)
+
+    message(STATUS "${CMAKE_PROJECT_NAME}: Fetching glfw3...")
     FetchContent_MakeAvailable(glfw3)
 endfunction()

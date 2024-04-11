@@ -1,6 +1,5 @@
 function(add_release_flags target_name)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU"
-       OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         if(CMAKE_BUILD_TYPE MATCHES "Release")
             target_compile_options(
                 ${target_name} PUBLIC

@@ -8,7 +8,7 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/demo/",
             "environment": [
                 {
                     "name": "PATH",
@@ -26,7 +26,7 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/demo/",
             "environment": [
                 {
                     "name": "PATH",
@@ -44,7 +44,7 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/demo/",
             "environment": [
                 {
                     "name": "PATH",
