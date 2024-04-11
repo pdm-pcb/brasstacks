@@ -5,9 +5,9 @@ function(fetch_glfw3)
     FetchContent_Declare(
         glfw3 SYSTEM
         GIT_REPOSITORY https://github.com/glfw/glfw/
-        GIT_TAG 7b6aead9fb88b3623e3b3725ebb42670cbe4c579 # 2024-02-23 v3.4
+        GIT_TAG 7482de6071d21db77a7236155da44c172a7f6c9e
         # GIT_PROGRESS TRUE
-        FIND_PACKAGE_ARGS 3.3
+        FIND_PACKAGE_ARGS 3.3.8
     )
 
     # set(BUILD_SHARED_LIBS   "OFF" CACHE BOOL "" FORCE)

@@ -5,9 +5,9 @@ function(fetch_spdlog)
     FetchContent_Declare(
         spdlog SYSTEM
         GIT_REPOSITORY https://github.com/gabime/spdlog
-        GIT_TAG 7c02e204c92545f869e2f04edaab1f19fe8b19fd # 2024-01-12
+        GIT_TAG 76fb40d95455f249bd70824ecfcae7a8f0930fa3
         # GIT_PROGRESS TRUE
-        FIND_PACKAGE_ARGS 1.11.0
+        FIND_PACKAGE_ARGS 1.10
     )
 
     # Sure hope this can work reliably some day
