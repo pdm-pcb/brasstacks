@@ -42,7 +42,7 @@ void TargetWindow::init(std::string_view const app_name) {
     _window = ::glfwCreateWindow(
         320, 240,        // Default size that'll change immediately
         app_name.data(), // Window title/class/etc
-        nullptr,         // Default monitor
+        nullptr,         // Windowed mode
         nullptr          // No shared resources
     );
 
@@ -56,10 +56,10 @@ void TargetWindow::init(std::string_view const app_name) {
         return;
     }
 
-    // Default to 75% of screen size
-    RenderConfig::available_resolutions[1].selected = true;
+    // Default to one notch down from a full screen resolution
     RenderConfig::current_resolution = &RenderConfig::available_resolutions[1];
-    size_and_place(RenderConfig::available_resolutions[1].size);
+    RenderConfig::current_resolution->selected = true;
+    size_and_place();
 
     ::glfwSetKeyCallback(_window, TargetWindow::_key_callback);
     ::glfwSetMouseButtonCallback(_window, TargetWindow::_mouse_button_callback);
@@ -119,6 +119,15 @@ void TargetWindow::size_and_place(RenderConfig::Size const &size) {
                         static_cast<int>(_window_size.width),
                         static_cast<int>(_window_size.height));
 
+    // ::glfwSetWindowMonitor(
+    //     _window,
+    //     ::glfwGetPrimaryMonitor(),
+    //     0, 0,
+    //     static_cast<int>(_window_size.width),
+    //     static_cast<int>(_window_size.height),
+    //     static_cast<int>(RenderConfig::current_resolution->refresh_rate)
+    // );
+
     auto const half_width  = static_cast<float>(_window_size.width)  * 0.5f;
     auto const half_height = static_cast<float>(_window_size.height) * 0.5f;
 
@@ -149,48 +158,50 @@ float TargetWindow::scale_factor() {
 
 // =============================================================================
 void TargetWindow::_get_resolutions() {
-    auto const *video_mode = ::glfwGetVideoMode(::glfwGetPrimaryMonitor());
+    auto const *current_mode = ::glfwGetVideoMode(::glfwGetPrimaryMonitor());
 
-    // NGrab some temporaries for populating fractional sizes
-    auto const width = static_cast<float>(video_mode->width);
-    auto const height = static_cast<float>(video_mode->height);
+    size_t mode_count = 0;
+    auto const* available_modes = ::glfwGetVideoModes(
+        ::glfwGetPrimaryMonitor(),
+        reinterpret_cast<int *>(&mode_count)
+    );
+
+    RenderConfig::available_resolutions.reserve(mode_count);
+
+    BTX_INFO("Found {} display modes:", mode_count);
+
+    uint64_t prev_pixel_count = 0u;
+
+    for(size_t mode_index = mode_count - 1u; mode_index > 0u; --mode_index) {
+        auto const &mode = available_modes[mode_index];
+
+        if(mode.width * mode.height == prev_pixel_count) {
+            continue;
+        }
+
+        prev_pixel_count = mode.width * mode.height;
+
+        BTX_INFO("  {}x{}@{}", mode.width, mode.height, mode.refreshRate);
+
+        RenderConfig::available_resolutions.emplace_back(
+            RenderConfig::SelectedResolution {
+                .size = {
+                    .width = static_cast<uint32_t>(mode.width),
+                    .height = static_cast<uint32_t>(mode.height),
+                },
+                // Might come back to this later
+                // .refresh_rate = static_cast<uint32_t>(mode.refreshRate),
+                .selected = false,
+        });
+    }
+
+    // Grab some temporaries for populating fractional sizes
+    auto const width = static_cast<float>(current_mode->width);
+    auto const height = static_cast<float>(current_mode->height);
 
     _screen_center = {
         .x = static_cast<int32_t>(width * 0.5f),
         .y = static_cast<int32_t>(height * 0.5f)
-    };
-
-    // Windowed full screen
-    RenderConfig::available_resolutions[0] = {
-        .size {
-            .width = static_cast<uint32_t>(width),
-            .height = static_cast<uint32_t>(height),
-        },
-        .selected = false,
-    };
-
-    RenderConfig::available_resolutions[1] = {
-        .size {
-            .width = static_cast<uint32_t>(width * 0.75f),
-            .height = static_cast<uint32_t>(height * 0.75f),
-        },
-        .selected = false,
-    };
-
-    RenderConfig::available_resolutions[2] = {
-        .size {
-            .width = static_cast<uint32_t>(width * 0.5f),
-            .height = static_cast<uint32_t>(height * 0.5f),
-        },
-        .selected = false,
-    };
-
-    RenderConfig::available_resolutions[3] = {
-        .size {
-            .width = static_cast<uint32_t>(width * 0.25f),
-            .height = static_cast<uint32_t>(height * 0.25f),
-        },
-        .selected = false
     };
 }
 

@@ -40,6 +40,7 @@ struct RenderConfig final {
 
     struct SelectedResolution final {
         Size size = { };
+        // uint32_t refresh_rate = 0;
         bool selected = false;
     };
 
@@ -56,7 +57,7 @@ struct RenderConfig final {
     static std::vector<DeviceProps> available_devices;
     static DeviceProps *current_device;
 
-    static std::array<SelectedResolution, 4> available_resolutions;
+    static std::vector<SelectedResolution> available_resolutions;
     static struct SelectedResolution *current_resolution;
 
     static std::vector<SelectedMSAA> available_msaa;

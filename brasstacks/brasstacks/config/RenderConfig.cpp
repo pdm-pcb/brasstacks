@@ -5,7 +5,7 @@ namespace btx {
 std::vector<RenderConfig::DeviceProps> RenderConfig::available_devices { };
 RenderConfig::DeviceProps *RenderConfig::current_device { nullptr };
 
-std::array<RenderConfig::SelectedResolution, 4>
+std::vector<RenderConfig::SelectedResolution>
     RenderConfig::available_resolutions { };
 
 RenderConfig::SelectedResolution *RenderConfig::current_resolution { nullptr };

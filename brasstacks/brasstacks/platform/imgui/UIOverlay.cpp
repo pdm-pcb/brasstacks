@@ -191,9 +191,12 @@ void UIOverlay::_draw_status_bar() {
 
         ::ImGui::TableNextColumn();
         ::ImGui::Separator();
-        label_text = fmt::format("{}x{}",
-                                 RenderConfig::current_resolution->size.width,
-                                 RenderConfig::current_resolution->size.height);
+        label_text = fmt::format(
+            "{}x{}",
+            RenderConfig::current_resolution->size.width,
+            RenderConfig::current_resolution->size.height
+        );
+
         if(::ImGui::BeginMenu(label_text.c_str())) {
             for(auto &res : RenderConfig::available_resolutions) {
                 label_text = fmt::format("{}x{}", res.size.width,

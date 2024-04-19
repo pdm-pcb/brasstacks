@@ -16,11 +16,12 @@ function(add_warning_flags)
                 "-Wno-global-constructors"   # There are some statics I like
                 "-Wno-exit-time-destructors" # Same as above
                 "-Wno-padded" # Dont worry about padded structs etc
+                "-Wno-weak-vtables" # Not quite sure what to do about this one
             )
         endif()
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         add_compile_options(
-            "/W4"     # All warnings not disabled by default
+            "/W4" # All warnings not disabled by default
         )
     endif()
 endfunction()
