@@ -2,21 +2,18 @@
 #define BRASSTACKS_CORE_RENDERER_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/vmaAllocator.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
-#include "brasstacks/platform/vulkan/passes/vkFramebuffer.hpp"
-
-#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
-#include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
-
-#include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 
 namespace btx {
 
 class Application;
+class vkSurface;
+class vkFramebuffer;
+class vkRenderPassBase;
+class vkDescriptorPool;
 
 class Renderer final {
 public:
@@ -48,7 +45,7 @@ public:
 
     static inline auto const & render_pass() { return *_render_pass; }
 
-    static inline auto & descriptor_pool() { return _descriptor_pool; }
+    static inline auto & descriptor_pool() { return *_descriptor_pool; }
 
     Renderer() = delete;
     ~Renderer() = delete;
@@ -62,18 +59,18 @@ public:
 private:
     static Application *_application;
 
-    static vkSurface   _surface;
+    static vkSurface   *_surface;
     static vkDevice    _device;
     static vkSwapchain _swapchain;
 
     static std::vector<vkFrameSync> _frame_sync;
     static uint32_t _image_index;
 
-    static std::vector<vkFramebuffer> _framebuffers;
+    static std::vector<vkFramebuffer *> _framebuffers;
 
     static vkRenderPassBase *_render_pass;
 
-    static vkDescriptorPool _descriptor_pool;
+    static vkDescriptorPool *_descriptor_pool;
 
     [[nodiscard]] static uint32_t _acquire_next_image();
 

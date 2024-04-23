@@ -1,4 +1,6 @@
 #include "Demo.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
 
 // =============================================================================
 Demo::Demo() :

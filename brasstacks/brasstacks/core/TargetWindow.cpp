@@ -175,11 +175,14 @@ void TargetWindow::_get_resolutions() {
     for(size_t mode_index = mode_count - 1u; mode_index > 0u; --mode_index) {
         auto const &mode = available_modes[mode_index];
 
-        if(mode.width * mode.height == prev_pixel_count) {
+        auto const current_pixel_count =
+            static_cast<uint64_t>(mode.width * mode.height);
+
+        if(current_pixel_count == prev_pixel_count) {
             continue;
         }
 
-        prev_pixel_count = mode.width * mode.height;
+        prev_pixel_count = current_pixel_count;
 
         BTX_INFO("  {}x{}@{}", mode.width, mode.height, mode.refreshRate);
 

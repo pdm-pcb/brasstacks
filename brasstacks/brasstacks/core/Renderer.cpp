@@ -4,11 +4,16 @@
 #include "brasstacks/events/EventBus.hpp"
 
 #include "brasstacks/core/TargetWindow.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/vmaAllocator.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
+#include "brasstacks/platform/vulkan/passes/vkFramebuffer.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
+#include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
+#include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 
 #include "brasstacks/tools/cameras/CameraController.hpp"
 
@@ -21,18 +26,18 @@ namespace btx {
 
 Application *Renderer::_application { nullptr };
 
-vkSurface   Renderer::_surface   { };
-vkDevice    Renderer::_device    { };
-vkSwapchain Renderer::_swapchain { };
+vkSurface   *Renderer::_surface   { nullptr };
+vkDevice     Renderer::_device    { };
+vkSwapchain  Renderer::_swapchain { };
 
 std::vector<vkFrameSync> Renderer::_frame_sync;
 uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
 
-std::vector<vkFramebuffer> Renderer::_framebuffers { };
+std::vector<vkFramebuffer *> Renderer::_framebuffers { };
 
 vkRenderPassBase *Renderer::_render_pass { nullptr };
 
-vkDescriptorPool Renderer::_descriptor_pool { };
+vkDescriptorPool *Renderer::_descriptor_pool { nullptr };
 
 // =============================================================================
 void Renderer::init(Application *const application) {
@@ -44,7 +49,8 @@ void Renderer::init(Application *const application) {
     _create_device();
     _create_allocator(BTX_VK_TARGET_VERSION);
 
-    _descriptor_pool.create(
+    _descriptor_pool = new vkDescriptorPool;
+    _descriptor_pool->create(
         vk::DescriptorPoolCreateFlags { },
         1000u,
         {
@@ -79,16 +85,29 @@ void Renderer::shutdown() {
     destroy_swapchain_resources();
     _destroy_swapchain();
 
+    for(auto *framebuffer : _framebuffers) {
+        delete framebuffer;
+    }
+    _framebuffers.clear();
+
     _render_pass->destroy();
     delete _render_pass;
+    _render_pass = nullptr;
 
     UIOverlay::destroy_descriptor_pool();
-    _descriptor_pool.destroy();
+
+    _descriptor_pool->destroy();
+    delete _descriptor_pool;
+    _descriptor_pool = nullptr;
 
     vmaAllocator::destroy();
 
     _device.destroy();
-    _surface.destroy();
+
+    _surface->destroy();
+    delete _surface;
+    _surface = nullptr;
+
     vkInstance::destroy();
 }
 
@@ -108,7 +127,7 @@ void Renderer::run() {
 
     _begin_recording();
         CameraController::update_ubo();
-        _render_pass->begin(_framebuffers[_image_index]);
+        _render_pass->begin(*_framebuffers[_image_index]);
         UIOverlay::record_commands();
         _application->record_commands();
         UIOverlay::render();
@@ -138,7 +157,7 @@ void Renderer::change_device() {
     delete _render_pass;
 
     UIOverlay::destroy_descriptor_pool();
-    _descriptor_pool.destroy();
+    _descriptor_pool->destroy();
 
     vmaAllocator::destroy();
 
@@ -152,7 +171,7 @@ void Renderer::change_device() {
     _create_device();
     _create_allocator(BTX_VK_TARGET_VERSION);
 
-    _descriptor_pool.create(
+    _descriptor_pool->create(
         vk::DescriptorPoolCreateFlags { },
         1000u,
         {
@@ -298,7 +317,7 @@ bool Renderer::_present_image() {
 
 // =============================================================================
 void Renderer::_create_surface() {
-    if(_surface.native()) {
+    if(_surface != nullptr) {
         BTX_CRITICAL("Surface already created");
         return;
     }
@@ -323,18 +342,19 @@ void Renderer::_create_surface() {
 
 #endif // BTX platform
 
-    _surface.create(create_info);
+    _surface = new vkSurface;
+    _surface->create(create_info);
 }
 
 // =============================================================================
 void Renderer::_select_physical_device() {
-    if(!_surface.native()) {
+    if(!_surface->native()) {
         BTX_CRITICAL("Cannot select physical device without surface.");
         return;
     }
 
     vkPhysicalDevice::select(
-        _surface,
+        *_surface,
         {
             vkPhysicalDevice::Features::FILL_MODE_NONSOLID,
             vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
@@ -371,7 +391,7 @@ void Renderer::_create_swapchain() {
         return;
     }
 
-    _swapchain.create(_surface);
+    _swapchain.create(*_surface);
     _image_index = std::numeric_limits<uint32_t>::max();
 }
 
@@ -392,7 +412,7 @@ void Renderer::_create_frame_sync() {
             std::back_inserter(_frame_sync),
             _frame_sync.capacity(),
             []() {
-                return vkFrameSync();
+                return vkFrameSync { };
             }
         );
     }
@@ -423,7 +443,7 @@ void Renderer::_create_framebuffers() {
             std::back_inserter(_framebuffers),
             _framebuffers.capacity(),
             []() {
-                return vkFramebuffer { };
+                return new vkFramebuffer;
             }
         );
     }
@@ -433,7 +453,7 @@ void Renderer::_create_framebuffers() {
             dynamic_cast<vkColorDepthResolvePass const *>(_render_pass);
 
         for(size_t i = 0; i < image_count; ++i) {
-            _framebuffers[i].create(
+            _framebuffers[i]->create(
                 *_render_pass,
                 Renderer::swapchain().size(),
                 {{
@@ -449,7 +469,7 @@ void Renderer::_create_framebuffers() {
             dynamic_cast<vkColorDepthPass const *>(_render_pass);
 
         for(size_t i = 0; i < image_count; ++i) {
-            _framebuffers[i].create(
+            _framebuffers[i]->create(
                 *_render_pass,
                 Renderer::swapchain().size(),
                 {{
@@ -464,7 +484,7 @@ void Renderer::_create_framebuffers() {
 // =============================================================================
 void Renderer::_destroy_framebuffers() {
     for(auto &framebuffer : _framebuffers) {
-        framebuffer.destroy();
+        framebuffer->destroy();
     }
 }
 

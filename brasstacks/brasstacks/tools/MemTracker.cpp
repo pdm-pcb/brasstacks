@@ -2,7 +2,7 @@
 #include "brasstacks/tools/MemTracker.hpp"
 
 #ifdef BTX_DEBUG
-// #define MEMLOG
+#define MEMLOG
 
 #ifdef BTX_CLANG
     #pragma clang diagnostic push
