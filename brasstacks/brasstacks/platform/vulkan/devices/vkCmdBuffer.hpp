@@ -10,7 +10,7 @@ class vkCmdBufferPool;
 class vkCmdBuffer final {
 public:
     vkCmdBuffer();
-    ~vkCmdBuffer();
+    ~vkCmdBuffer() = default;
 
     void allocate(vkCmdBufferPool const &pool);
     void free();

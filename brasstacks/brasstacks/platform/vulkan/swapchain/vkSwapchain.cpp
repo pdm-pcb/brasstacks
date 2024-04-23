@@ -5,8 +5,9 @@
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
+#include "brasstacks/platform/vulkan/resources/vkSwapchainImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
 
@@ -28,6 +29,16 @@ vkSwapchain::~vkSwapchain() {
     if(_handle) {
         destroy();
     }
+
+    for(auto *image : _images) {
+        delete image;
+    }
+    _images.clear();
+
+    for(auto *view : _image_views) {
+        delete view;
+    }
+    _image_views.clear();
 }
 
 // =============================================================================
@@ -62,12 +73,13 @@ void vkSwapchain::create(vkSurface const &surface) {
 
 // =============================================================================
 void vkSwapchain::destroy() {
-    _images.clear();
-
-    for(auto &view : _image_views) {
-        view.destroy();
+    for(auto *image : _images) {
+        image->destroy();
     }
-    _image_views.clear();
+
+    for(auto *view : _image_views) {
+        view->destroy();
+    }
 
     BTX_TRACE("Destroying swapchain {}", _handle);
     _device.destroy(_handle);
@@ -216,7 +228,14 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
     // work on while the GPU does its thing
     auto const image_count = caps.minImageCount + 1;
     if(_images.size() != image_count && _image_views.size() != image_count) {
+        for(auto *image : _images) {
+            delete image;
+        }
         _images.clear();
+
+        for(auto *view : _image_views) {
+            delete view;
+        }
         _image_views.clear();
 
         _images.reserve(image_count);
@@ -227,7 +246,7 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
             std::back_inserter(_images),
             _images.capacity(),
             []() {
-                return vkSwapchainImage { };
+                return new vkSwapchainImage;
             }
         );
 
@@ -236,7 +255,7 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
             std::back_inserter(_image_views),
             _image_views.capacity(),
             []() {
-                return vkImageView { };
+                return new vkImageView;
             }
         );
     }
@@ -414,18 +433,22 @@ void vkSwapchain::_get_swapchain_images() {
     BTX_TRACE("Acquired {} swapchain images", swapchain_images.size());
 
     for(uint32_t i = 0u; i < _images.size(); ++i) {
-        _images[i].create(
+        if(_images[i]->native()) {
+            _images[i]->destroy();
+        }
+
+        _images[i]->create(
             swapchain_images[i],
             _image_format.format
         );
 
-        if(_image_views[i].native()) {
-            _image_views[i].destroy();
+        if(_image_views[i]->native()) {
+            _image_views[i]->destroy();
         }
 
-        _image_views[i].create(
-            _images[i].native(),
-            _images[i].format(),
+        _image_views[i]->create(
+            _images[i]->native(),
+            _images[i]->format(),
             vk::ImageViewType::e2D,
             vk::ImageAspectFlagBits::eColor
         );

@@ -11,6 +11,7 @@ public:
     ~vkSwapchainImage() = default;
 
     void create(vk::Image const &handle, vk::Format const format);
+    void destroy();
 
     inline auto const & native() const { return _handle; }
     inline auto format()         const { return _format; }

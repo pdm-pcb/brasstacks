@@ -1,6 +1,10 @@
 #include "brasstacks/brasstacks.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBufferPool.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
+
 namespace btx {
 
 // =============================================================================
@@ -8,21 +12,29 @@ vkFrameSync::vkFrameSync() :
     _queue_fence     { nullptr },
     _present_sem     { nullptr },
     _queue_sem       { nullptr },
-    _cmd_buffer_pool { },
-    _cmd_buffer      { }
+    _cmd_buffer_pool { new vkCmdBufferPool },
+    _cmd_buffer      { new vkCmdBuffer }
 { }
+
+// =============================================================================
+vkFrameSync::~vkFrameSync() {
+    delete _cmd_buffer_pool;
+    delete _cmd_buffer;
+}
 
 // =============================================================================
 vkFrameSync::vkFrameSync(vkFrameSync &&rhs) :
     _queue_fence     { rhs._queue_fence },
     _present_sem     { rhs._present_sem },
     _queue_sem       { rhs._queue_sem },
-    _cmd_buffer_pool { std::move(rhs._cmd_buffer_pool) },
-    _cmd_buffer      { std::move(rhs._cmd_buffer) }
+    _cmd_buffer_pool { rhs._cmd_buffer_pool },
+    _cmd_buffer      { rhs._cmd_buffer }
 {
-    rhs._queue_fence = nullptr;
-    rhs._present_sem = nullptr;
-    rhs._queue_sem = nullptr;
+    rhs._queue_fence     = nullptr;
+    rhs._present_sem     = nullptr;
+    rhs._queue_sem       = nullptr;
+    rhs._cmd_buffer_pool = nullptr;
+    rhs._cmd_buffer      = nullptr;
 }
 
 // =============================================================================
@@ -45,15 +57,15 @@ void vkFrameSync::wait_and_reset() const {
     }
 
     Renderer::device().native().resetFences(_queue_fence);
-    Renderer::device().native().resetCommandPool(_cmd_buffer_pool.native());
+    Renderer::device().native().resetCommandPool(_cmd_buffer_pool->native());
 }
 
 // =============================================================================
 void vkFrameSync::create_cmd_structures() {
-    _cmd_buffer_pool.create(Renderer::device().graphics_queue().family_index(),
-                            vk::CommandPoolCreateFlagBits::eTransient);
+    _cmd_buffer_pool->create(Renderer::device().graphics_queue().family_index(),
+                             vk::CommandPoolCreateFlagBits::eTransient);
 
-    _cmd_buffer.allocate(_cmd_buffer_pool);
+    _cmd_buffer->allocate(*_cmd_buffer_pool);
 }
 
 // =============================================================================
@@ -78,8 +90,8 @@ void vkFrameSync::create_sync_primitives() {
 
 // =============================================================================
 void vkFrameSync::destroy_cmd_structures() {
-    _cmd_buffer.free();
-    _cmd_buffer_pool.destroy();
+    _cmd_buffer->free();
+    _cmd_buffer_pool->destroy();
 }
 
 // =============================================================================

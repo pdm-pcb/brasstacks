@@ -14,13 +14,6 @@ vkCmdBuffer::vkCmdBuffer() :
 { }
 
 // =============================================================================
-vkCmdBuffer::~vkCmdBuffer() {
-    if(_handle) {
-        free();
-    }
-}
-
-// =============================================================================
 vkCmdBuffer::vkCmdBuffer(vkCmdBuffer &&rhs) :
     _handle { rhs._handle },
     _pool   { rhs._pool }

@@ -9,7 +9,7 @@ class vkCmdBufferPool final {
 public:
 
     vkCmdBufferPool();
-    ~vkCmdBufferPool();
+    ~vkCmdBufferPool() = default;
 
     void create(uint32_t const queue_index,
                 vk::CommandPoolCreateFlags const flags = { });

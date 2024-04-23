@@ -6,6 +6,8 @@
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
 
 #include "brasstacks/events/ui_events.hpp"

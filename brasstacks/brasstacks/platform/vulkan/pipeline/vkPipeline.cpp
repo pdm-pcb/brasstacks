@@ -2,6 +2,7 @@
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
 #include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
@@ -64,13 +65,13 @@ vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
                      "been created.");
     }
 
-    _shaders.emplace_back(vkShader { });
-    _shaders.back().create(filepath);
+    _shaders.emplace_back(new vkShader);
+    _shaders.back()->create(filepath);
 
     _shader_stages.emplace_back(
         vk::PipelineShaderStageCreateInfo {
             .stage  = stage,
-            .module = _shaders.back().native(),
+            .module = _shaders.back()->native(),
             .pName  = entry_point.data(),
         }
     );
@@ -186,16 +187,19 @@ void vkPipeline::create(vkRenderPassBase const &render_pass,
     BTX_TRACE("Created Vulkan pipeline {}", _handle);
 
     // Destroy the shader modules now that the pipeline is baked
+    for(auto *shader : _shaders) {
+        delete shader;
+    }
     _shaders.clear();
 }
 
 // =============================================================================
 void vkPipeline::destroy() {
-    for(auto &shader : _shaders) {
-        shader.destroy();
+    for(auto *shader : _shaders) {
+        shader->destroy();
     }
-
     _shaders.clear();
+
     _shader_stages.clear();
     _blend_states.clear();
     _dynamic_states.clear();

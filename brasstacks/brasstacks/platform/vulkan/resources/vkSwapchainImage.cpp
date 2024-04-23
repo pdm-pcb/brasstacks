@@ -19,13 +19,20 @@ vkSwapchainImage::vkSwapchainImage(vkSwapchainImage &&rhs) :
 }
 
 // =============================================================================
-void vkSwapchainImage::create(vk::Image const &handle, vk::Format const format) {
+void vkSwapchainImage::create(vk::Image const &handle, vk::Format const format)
+{
     if(_handle) {
         BTX_CRITICAL("Swapchain image {} already exists", _handle);
     }
 
     _handle = handle;
     _format = format;
+}
+
+// =============================================================================
+void vkSwapchainImage::destroy() {
+    _handle = nullptr;
+    _format = vk::Format::eUndefined;
 }
 
 } // namespace btx

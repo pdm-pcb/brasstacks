@@ -4,6 +4,7 @@
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 #include "brasstacks/platform/vulkan/passes/vkFramebuffer.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"

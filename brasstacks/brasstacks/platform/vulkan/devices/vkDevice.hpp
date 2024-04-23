@@ -7,10 +7,11 @@
 #define BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKDEVICE_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
-#include "brasstacks/platform/vulkan/devices/vkCmdBufferPool.hpp"
 
 namespace btx {
+
+class vkQueue;
+class vkCmdBufferPool;
 
 /**
  * @brief A class wrapping the Vulkan concept of a logical device
@@ -48,9 +49,9 @@ public:
      * @brief Return the device queue
      * @return vkQueue const&
      */
-    inline auto const & graphics_queue()  const { return _graphics_queue; }
+    inline auto const & graphics_queue()  const { return *_graphics_queue; }
 
-    inline auto const & transient_pool() const { return _transient_pool; }
+    inline auto const & transient_pool() const { return *_transient_pool; }
 
     vkDevice(vkDevice &&) = delete;
     vkDevice(const vkDevice &) = delete;
@@ -64,12 +65,8 @@ private:
      */
     vk::Device _handle;
 
-    /**
-     * @brief The device's graphics command queue
-     */
-    vkQueue _graphics_queue;
-
-    vkCmdBufferPool _transient_pool;
+    vkQueue *_graphics_queue;
+    vkCmdBufferPool *_transient_pool;
 };
 
 } // namespace btx

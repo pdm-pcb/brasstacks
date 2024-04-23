@@ -3,10 +3,10 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/config/RenderConfig.hpp"
-#include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
 
 namespace btx {
 
+class vkShader;
 class vkRenderPassBase;
 class vkCmdBuffer;
 class vkDescriptorSet;
@@ -95,7 +95,7 @@ private:
 
     vk::Device _device;
 
-    std::vector<vkShader> _shaders;
+    std::vector<vkShader *> _shaders;
     std::vector<vk::PipelineShaderStageCreateInfo> _shader_stages;
 
     vk::Viewport _viewport;

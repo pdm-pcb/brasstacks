@@ -2,14 +2,16 @@
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
+#include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
+#include "brasstacks/platform/vulkan/devices/vkCmdBufferPool.hpp"
 
 namespace btx {
 
 // =============================================================================
 vkDevice::vkDevice() :
     _handle         { nullptr },
-    _graphics_queue { },
-    _transient_pool { }
+    _graphics_queue { nullptr },
+    _transient_pool { nullptr }
 { }
 
 // =============================================================================
@@ -17,10 +19,28 @@ vkDevice::~vkDevice() {
     if(_handle) {
         destroy();
     }
+
+    delete _graphics_queue;
+    delete _transient_pool;
 }
 
 // =============================================================================
 void vkDevice::create(Layers const &layers) {
+    if(_handle) {
+        BTX_ERROR("vkDevice already created.");
+        return;
+    }
+
+    if(_graphics_queue != nullptr && _graphics_queue->native()) {
+        BTX_ERROR("Graphics command queue already created.");
+        return;
+    }
+
+    if(_transient_pool != nullptr && _transient_pool->native()) {
+        BTX_ERROR("Transient command buffer pool already created.");
+        return;
+    }
+
     // We only need one device queue, so only need to specify one priority
     float const queue_priorities[] = { 1.0f };
 
@@ -66,18 +86,24 @@ void vkDevice::create(Layers const &layers) {
 
     auto const index = RenderConfig::current_device->graphics_queue_index;
     // Set up the queue abstraction
-    _graphics_queue.set_family_index(index);
+    if(_graphics_queue == nullptr) {
+        _graphics_queue = new vkQueue;
+    }
+    _graphics_queue->set_family_index(index);
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-    _transient_pool.create(index, vk::CommandPoolCreateFlagBits::eTransient);
+    if(_transient_pool == nullptr) {
+        _transient_pool = new vkCmdBufferPool;
+    }
+    _transient_pool->create(index, vk::CommandPoolCreateFlagBits::eTransient);
 }
 
 // =============================================================================
 void vkDevice::destroy() {
-    _transient_pool.destroy();
-    _graphics_queue.clear_family_index();
+    _transient_pool->destroy();
+    _graphics_queue->clear_family_index();
 
     BTX_TRACE("Destroying logical device {}", _handle);
     _handle.destroy();

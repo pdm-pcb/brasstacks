@@ -404,6 +404,7 @@ void Renderer::_destroy_swapchain() {
 void Renderer::_create_frame_sync() {
     auto const image_count = _swapchain.images().size();
     if(_frame_sync.size() != image_count) {
+        _destroy_frame_sync();
         _frame_sync.clear();
         _frame_sync.reserve(image_count);
 
@@ -459,7 +460,7 @@ void Renderer::_create_framebuffers() {
                 {{
                     pass->color_views()[i].native(),
                     pass->depth_view().native(),
-                    Renderer::swapchain().image_views()[i].native()
+                    Renderer::swapchain().image_views()[i]->native()
                 }}
             );
         }
@@ -473,7 +474,7 @@ void Renderer::_create_framebuffers() {
                 *_render_pass,
                 Renderer::swapchain().size(),
                 {{
-                    Renderer::swapchain().image_views()[i].native(),
+                    Renderer::swapchain().image_views()[i]->native(),
                     pass->depth_view().native(),
                 }}
             );

@@ -12,13 +12,6 @@ vkCmdBufferPool::vkCmdBufferPool() :
 { }
 
 // =============================================================================
-vkCmdBufferPool::~vkCmdBufferPool() {
-    if(_handle) {
-        destroy();
-    }
-}
-
-// =============================================================================
 vkCmdBufferPool::vkCmdBufferPool(vkCmdBufferPool &&rhs) :
     _handle { rhs._handle },
     _device { rhs._device }
