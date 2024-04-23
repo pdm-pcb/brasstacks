@@ -25,13 +25,10 @@ public:
     vkDevice();
     ~vkDevice();
 
-    using Layers = std::vector<char const *>;
     /**
      * @brief Create the vkDevice object.
-     * @param layers A list of string literals corresponding to logical device
-     * layers to enable
      */
-    void create(Layers const &layers);
+    void create();
     void destroy();
 
     /**

@@ -10,8 +10,8 @@ namespace btx {
 // =============================================================================
 vkDevice::vkDevice() :
     _handle         { nullptr },
-    _graphics_queue { nullptr },
-    _transient_pool { nullptr }
+    _graphics_queue { new vkQueue },
+    _transient_pool { new vkCmdBufferPool }
 { }
 
 // =============================================================================
@@ -25,18 +25,18 @@ vkDevice::~vkDevice() {
 }
 
 // =============================================================================
-void vkDevice::create(Layers const &layers) {
+void vkDevice::create() {
     if(_handle) {
         BTX_ERROR("vkDevice already created.");
         return;
     }
 
-    if(_graphics_queue != nullptr && _graphics_queue->native()) {
+    if(_graphics_queue->native()) {
         BTX_ERROR("Graphics command queue already created.");
         return;
     }
 
-    if(_transient_pool != nullptr && _transient_pool->native()) {
+    if(_transient_pool->native()) {
         BTX_ERROR("Transient command buffer pool already created.");
         return;
     }
@@ -57,12 +57,17 @@ void vkDevice::create(Layers const &layers) {
     auto const &extensions = RenderConfig::current_device->enabled_extensions;
     auto const *features = &(RenderConfig::current_device->enabled_features);
 
+    // Enable dynamic rendering
+    vk::PhysicalDeviceDynamicRenderingFeaturesKHR const dr_feature {
+        .dynamicRendering = VK_TRUE,
+    };
+
     // Now populate the device's create struct
-    const vk::DeviceCreateInfo device_info {
+    vk::DeviceCreateInfo const device_create_info {
+        .pNext                   = &dr_feature,
+        .flags                   = { },
         .queueCreateInfoCount    = static_cast<uint32_t>(std::size(queue_info)),
         .pQueueCreateInfos       = queue_info,
-        .enabledLayerCount       = static_cast<uint32_t>(layers.size()),
-        .ppEnabledLayerNames     = layers.data(),
         .enabledExtensionCount   = static_cast<uint32_t>(extensions.size()),
         .ppEnabledExtensionNames = extensions.data(),
         .pEnabledFeatures        = features,
@@ -70,7 +75,7 @@ void vkDevice::create(Layers const &layers) {
 
     // And try to create it
     auto const result = RenderConfig::current_device->handle.createDevice(
-        &device_info,   // Create info
+        &device_create_info,   // Create info
         nullptr,        // Allocator
         &_handle        // Destination handle
     );
@@ -86,17 +91,11 @@ void vkDevice::create(Layers const &layers) {
 
     auto const index = RenderConfig::current_device->graphics_queue_index;
     // Set up the queue abstraction
-    if(_graphics_queue == nullptr) {
-        _graphics_queue = new vkQueue;
-    }
     _graphics_queue->set_family_index(index);
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-    if(_transient_pool == nullptr) {
-        _transient_pool = new vkCmdBufferPool;
-    }
     _transient_pool->create(index, vk::CommandPoolCreateFlagBits::eTransient);
 }
 

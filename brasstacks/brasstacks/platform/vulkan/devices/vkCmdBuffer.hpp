@@ -21,6 +21,9 @@ public:
     void begin_render_pass(vk::RenderPassBeginInfo const &info) const;
     void end_render_pass() const;
 
+    void begin_rendering(vk::RenderingInfoKHR const &info) const;
+    void end_rendering() const;
+
     void submit_and_wait_on_device() const;
 
     inline auto const& native() const { return _handle; }

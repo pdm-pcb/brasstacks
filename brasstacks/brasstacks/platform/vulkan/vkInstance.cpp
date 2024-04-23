@@ -178,6 +178,11 @@ void vkInstance::_init_extensions() {
     };
 #endif // BTX_DEBUG
 
+    // And for dynamic rendering:
+    _enabled_extensions.emplace_back(
+        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
+    );
+
     for(auto const& extension : _enabled_extensions) {
         BTX_TRACE("Requesting instance extension '{}'", extension);
     }

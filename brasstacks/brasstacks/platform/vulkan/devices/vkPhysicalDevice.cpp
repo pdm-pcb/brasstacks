@@ -41,7 +41,7 @@ void vkPhysicalDevice::select(vkSurface     const &surface,
             BTX_WARN("Skipping {}", device.name);
             continue;
         }
-        BTX_TRACE("Found {} required extension{}.",
+        BTX_TRACE("Found {} required physical device extension{}.",
                   required_extensions.size(),
                   (required_extensions.size() == 1 ? '\0' : 's'));
     }

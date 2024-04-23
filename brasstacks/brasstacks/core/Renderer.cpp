@@ -127,10 +127,14 @@ void Renderer::run() {
 
     _begin_recording();
         CameraController::update_ubo();
+
         _render_pass->begin(*_framebuffers[_image_index]);
+
         UIOverlay::record_commands();
+
         _application->record_commands();
         UIOverlay::render();
+
         _render_pass->end();
     _end_recording();
     _submit_commands();
@@ -361,6 +365,7 @@ void Renderer::_select_physical_device() {
         },
         {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
         }
     );
 }
@@ -372,11 +377,7 @@ void Renderer::_create_device() {
         return;
     }
 
-    _device.create({
-#ifdef BTX_DEBUG
-        "VK_LAYER_KHRONOS_validation",
-#endif // BTX_DEBUG
-    });
+    _device.create();
 }
 
 // =============================================================================

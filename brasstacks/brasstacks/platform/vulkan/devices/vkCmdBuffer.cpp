@@ -85,6 +85,16 @@ void vkCmdBuffer::end_render_pass() const {
 }
 
 // =============================================================================
+void vkCmdBuffer::begin_rendering(vk::RenderingInfoKHR const &info) const {
+    _handle.beginRenderingKHR(info);
+}
+
+// =============================================================================
+void vkCmdBuffer::end_rendering() const {
+    _handle.endRenderPass();
+}
+
+// =============================================================================
 void vkCmdBuffer::submit_and_wait_on_device() const {
     vk::SubmitInfo const submit_info {
         .pNext                = nullptr,
