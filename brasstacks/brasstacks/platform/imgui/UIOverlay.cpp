@@ -179,6 +179,12 @@ void UIOverlay::_draw_status_bar() {
                 label_text = fmt::format("{}", device.name);
                 if(::ImGui::MenuItem(label_text.c_str(), "", &device.selected))
                 {
+                    // The user has clicked the already-selected option
+                    if(device.selected == false) {
+                        device.selected = true;
+                        continue;
+                    }
+
                     RenderConfig::current_device = &device;
                     for(auto &other_device : RenderConfig::available_devices) {
                         if(&device != &other_device) {
@@ -205,6 +211,12 @@ void UIOverlay::_draw_status_bar() {
                                                   res.size.height);
 
                 if(::ImGui::MenuItem(label_text.c_str(), "", &res.selected)) {
+                    // The user has clicked the already-selected option
+                    if(res.selected == false) {
+                        res.selected = true;
+                        continue;
+                    }
+
                     RenderConfig::current_resolution = &res;
                     for(auto &other_res : RenderConfig::available_resolutions) {
                         if(&res != &other_res) {
@@ -225,6 +237,12 @@ void UIOverlay::_draw_status_bar() {
             for(auto &level : RenderConfig::available_msaa) {
                 label_text = fmt::format("x{}", level.msaa);
                 if(::ImGui::MenuItem(label_text.c_str(), "", &level.selected)) {
+                    // The user has clicked the already-selected option
+                    if(level.selected == false) {
+                        level.selected = true;
+                        continue;
+                    }
+
                     RenderConfig::current_msaa = &level;
                     for(auto &other_level : RenderConfig::available_msaa) {
                         if(&level != &other_level) {
@@ -244,6 +262,12 @@ void UIOverlay::_draw_status_bar() {
             for(auto &level : RenderConfig::available_aniso) {
                 label_text = fmt::format("{}x", level.aniso);
                 if(::ImGui::MenuItem(label_text.c_str(), "", &level.selected)) {
+                    // The user has clicked the already-selected option
+                    if(level.selected == false) {
+                        level.selected = true;
+                        continue;
+                    }
+
                     RenderConfig::current_aniso = &level;
                     for(auto &other_level : RenderConfig::available_aniso) {
                         if(&level != &other_level) {
