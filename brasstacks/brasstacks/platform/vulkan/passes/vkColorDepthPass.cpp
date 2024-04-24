@@ -213,6 +213,7 @@ void vkColorDepthPass::_create_color_buffers() {
         .usage_flags  = (vk::ImageUsageFlagBits::eColorAttachment |
                          vk::ImageUsageFlagBits::eTransientAttachment),
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
+        .aspect_flags = vk::ImageAspectFlagBits::eColor,
     };
 
     auto const image_count = Renderer::swapchain().images().size();
@@ -272,6 +273,7 @@ void vkColorDepthPass::_create_depth_buffer() {
         .samples      = vk::SampleCountFlagBits::e1,
         .usage_flags  = vk::ImageUsageFlagBits::eDepthStencilAttachment,
         .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
+        .aspect_flags = vk::ImageAspectFlagBits::eDepth,
     };
 
     BTX_TRACE("Creating depth buffer for color/depth pass");

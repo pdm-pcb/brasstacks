@@ -17,6 +17,7 @@ public:
         vk::SampleCountFlagBits samples = { };
         vk::ImageUsageFlags usage_flags = { };
         vk::MemoryPropertyFlags memory_flags = { };
+        vk::ImageAspectFlags aspect_flags = { };
     };
 
     // For render targets, eg color buffer
@@ -26,6 +27,10 @@ public:
     // For reading texture data from a file
     void create(std::string_view const filename, ImageInfo const &image_info,
                 uint32_t const array_layers = 1u);
+
+    void transition_layout(vkCmdBuffer const &cmd_buffer,
+                           vk::ImageLayout const old_layout,
+                           vk::ImageLayout const new_layout);
 
     void destroy();
 
@@ -45,8 +50,10 @@ private:
 
     vk::Device _device;
 
-    vk::Format      _format;
-    vk::ImageLayout _layout;
+    vk::Format           _format;
+    vk::ImageLayout      _layout;
+    vk::ImageAspectFlags _aspect_flags;
+
     vk::Extent3D    _extent;
     size_t          _size_bytes;
     uint32_t        _mip_levels;

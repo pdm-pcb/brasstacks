@@ -129,7 +129,7 @@ void ConsoleLog::btx_critical(fmt::format_string<T...> fstring, T&& ...args) {
     auto const errmsg = fmt::format(fstring, std::forward<T>(args)...);
 
     _logger->critical(errmsg);
-    throw std::runtime_error(errmsg);
+    assert(false);
 }
 
 } // namespace btx

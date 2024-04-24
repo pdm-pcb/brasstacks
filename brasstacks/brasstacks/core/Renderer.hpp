@@ -13,6 +13,7 @@ class Application;
 class vkSurface;
 class vkFramebuffer;
 class vkRenderPassBase;
+class vkColorDepth;
 class vkDescriptorPool;
 
 class Renderer final {
@@ -44,6 +45,7 @@ public:
     }
 
     static inline auto const & render_pass() { return *_render_pass; }
+    static inline auto const & color_depth() { return *_color_depth; }
 
     static inline auto & descriptor_pool() { return *_descriptor_pool; }
 
@@ -61,16 +63,17 @@ private:
 
     static vkSurface   *_surface;
     static vkDevice    _device;
-    static vkSwapchain _swapchain;
 
+    static vkDescriptorPool *_descriptor_pool;
+
+    static vkSwapchain _swapchain;
     static std::vector<vkFrameSync> _frame_sync;
     static uint32_t _image_index;
 
     static std::vector<vkFramebuffer *> _framebuffers;
-
     static vkRenderPassBase *_render_pass;
 
-    static vkDescriptorPool *_descriptor_pool;
+    static vkColorDepth *_color_depth;
 
     [[nodiscard]] static uint32_t _acquire_next_image();
 

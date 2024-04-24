@@ -84,12 +84,6 @@ void Demo::swapchain_updated() {
 
 // =============================================================================
 void Demo::create_pipeline() {
-    if(btx::RenderConfig::current_msaa->msaa > 1u) {
-        auto const &render_pass =
-            dynamic_cast<btx::vkColorDepthResolvePass const &>(
-                btx::Renderer::render_pass()
-            );
-
     _pipeline
         .module_from_spirv("shaders/demo.vert",
                            vk::ShaderStageFlagBits::eVertex)
@@ -101,47 +95,11 @@ void Demo::create_pipeline() {
         .add_descriptor_set_layout((*_texture)->descriptor_set_layout())
         .add_push_constant({ .stage_flags = vk::ShaderStageFlagBits::eVertex,
                              .size_bytes = sizeof(btx::math::Mat4) })
-        .create(
-            render_pass,
-            {
-                .color_formats     = { render_pass.color_format() },
-                .depth_format      = render_pass.depth_format(),
-                .viewport_extent   = btx::Renderer::swapchain().size(),
-                .viewport_offset   = btx::Renderer::swapchain().offset(),
-                .sample_flags      = render_pass.msaa_samples(),
-                .enable_depth_test = VK_TRUE,
-            }
-        );
-    }
-    else {
-        auto const &render_pass =
-            dynamic_cast<btx::vkColorDepthPass const &>(
-                btx::Renderer::render_pass()
-            );
-
-    _pipeline
-        .module_from_spirv("shaders/demo.vert",
-                           vk::ShaderStageFlagBits::eVertex)
-        .module_from_spirv("shaders/demo.frag",
-                           vk::ShaderStageFlagBits::eFragment)
-        .describe_vertex_input(btx::Vertex::bindings,
-                               btx::Vertex::attributes)
-        .add_descriptor_set_layout(btx::CameraController::camera_ubo_layout())
-        .add_descriptor_set_layout((*_texture)->descriptor_set_layout())
-        .add_push_constant({ .stage_flags = vk::ShaderStageFlagBits::eVertex,
-                             .size_bytes = sizeof(btx::math::Mat4) })
-        .create(
-            render_pass,
-            {
-                .color_formats     = { render_pass.color_format() },
-                .depth_format      = render_pass.depth_format(),
-                .viewport_extent   = btx::Renderer::swapchain().size(),
-                .viewport_offset   = btx::Renderer::swapchain().offset(),
-                .sample_flags      = vk::SampleCountFlagBits::e1,
-                .enable_depth_test = VK_TRUE,
-            }
-        );
-    }
+        .create({
+            .viewport_extent   = btx::Renderer::swapchain().size(),
+            .viewport_offset   = btx::Renderer::swapchain().offset(),
+            .enable_depth_test = VK_TRUE,
+        });
 }
 
 // =============================================================================

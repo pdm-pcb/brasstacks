@@ -19,7 +19,8 @@ Texture::Texture(std::string_view const filepath) :
             .usage_flags = (vk::ImageUsageFlagBits::eSampled |
                             vk::ImageUsageFlagBits::eTransferDst |
                             vk::ImageUsageFlagBits::eTransferSrc),
-            .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal
+            .memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal,
+            .aspect_flags = vk::ImageAspectFlagBits::eColor,
         }
     );
 

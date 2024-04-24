@@ -4,6 +4,7 @@
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
 #include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"
+#include "brasstacks/platform/vulkan/rendering/vkColorDepth.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSetLayout.hpp"
@@ -12,25 +13,27 @@ namespace btx {
 
 // =============================================================================
 vkPipeline::vkPipeline() :
-    _handle               { nullptr },
-    _layout               { nullptr },
-    _device               { nullptr },
-    _shaders              { },
-    _shader_stages        { },
-    _viewport             { 0, 0 },
-    _scissor              {{ 0, 0 }},
-    _vert_input_info      { },
-    _assembly_info        { },
-    _viewport_info        { },
-    _raster_info          { },
-    _multisample_info     { },
-    _depth_stencil_info   { },
-    _blend_info           { },
-    _dynamic_states       { },
-    _dynamic_state_info   { },
-    _push_constants       { },
-    _push_constant_offset { 0 },
-    _cmd_buffer           { nullptr }
+    _handle                   { nullptr },
+    _layout                   { nullptr },
+    _device                   { nullptr },
+    _shaders                  { },
+    _shader_stages            { },
+    _viewport                 { 0, 0 },
+    _scissor                  {{ 0, 0 }},
+    _vert_input_info          { },
+    _assembly_info            { },
+    _viewport_info            { },
+    _raster_info              { },
+    _multisample_info         { },
+    _depth_stencil_info       { },
+    _blend_info               { },
+    _dynamic_states           { },
+    _dynamic_state_info       { },
+    _color_attachment_formats { },
+    _rendering_info           { },
+    _push_constants           { },
+    _push_constant_offset     { 0 },
+    _cmd_buffer               { nullptr }
 { }
 
 // =============================================================================
@@ -166,6 +169,74 @@ void vkPipeline::create(vkRenderPassBase const &render_pass,
         .layout              = _layout,
 
         .renderPass          = render_pass.native(),
+        .subpass             = { },
+
+        // A new pipeline may be derrived from an existing one, only updating
+        // what needs to be updated. The .basePipeline* values designate an
+        // existing pipeline to pull from.
+        .basePipelineHandle  = nullptr,
+        .basePipelineIndex   = 0,
+    };
+
+    auto const result = _device.createGraphicsPipeline({ }, pipeline_info);
+
+    if(result.result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Unable to create Vulkan pipeline: '{}'",
+                     vk::to_string(result.result));
+        return;
+    }
+
+    _handle = result.value;
+    BTX_TRACE("Created Vulkan pipeline {}", _handle);
+
+    // Destroy the shader modules now that the pipeline is baked
+    for(auto *shader : _shaders) {
+        delete shader;
+    }
+    _shaders.clear();
+}
+
+// =============================================================================
+void vkPipeline::create(Config const &config) {
+    if(_handle) {
+        BTX_CRITICAL("Pipeline {} already exists", _handle);
+        return;
+    }
+
+    _device = Renderer::device().native();
+
+    _init_assembly();
+    _init_viewport(config);
+    _init_raster(config);
+    _init_multisample(config);
+    _init_depth_stencil(config);
+    _init_blend_states();
+    _init_dynamic_states();
+    _init_layout();
+    _init_rendering_info();
+
+    vk::GraphicsPipelineCreateInfo const pipeline_info {
+        .pNext = &_rendering_info, // For dynamic redendering
+
+        // If we're in a debug build, don't optimize the shaders
+        #ifdef BTX_DEBUG
+            .flags = vk::PipelineCreateFlagBits::eDisableOptimization,
+        #endif // BTX_DEBUG
+
+        .stageCount = static_cast<uint32_t>(_shader_stages.size()),
+        .pStages    = _shader_stages.data(),
+
+        .pVertexInputState   = &_vert_input_info,
+        .pInputAssemblyState = &_assembly_info,
+        .pTessellationState  = nullptr,
+        .pViewportState      = &_viewport_info,
+        .pRasterizationState = &_raster_info,
+        .pMultisampleState   = &_multisample_info,
+        .pDepthStencilState  = &_depth_stencil_info,
+        .pColorBlendState    = &_blend_info,
+        .pDynamicState       = &_dynamic_state_info,
+        .layout              = _layout,
+        .renderPass          = { },
         .subpass             = { },
 
         // A new pipeline may be derrived from an existing one, only updating
@@ -397,17 +468,20 @@ void vkPipeline::_init_depth_stencil(Config const &config) {
 
 // =============================================================================
 void vkPipeline::_init_blend_states() {
-    // Even though blending is disabled, the pipeline still runs a blend stage
-    _blend_states = {{
-        .blendEnable = VK_FALSE,
+    _blend_states.clear();
+    _blend_states.resize(Renderer::swapchain().images().size());
 
-        // ...and the blend stage needs to know the color channels to which
-        // it's allowed to write
-        .colorWriteMask = vk::ColorComponentFlagBits::eR |
-                          vk::ColorComponentFlagBits::eG |
-                          vk::ColorComponentFlagBits::eB |
-                          vk::ColorComponentFlagBits::eA
-    }};
+    for(auto &state : _blend_states) {
+    // Even though blending is disabled, the pipeline still runs a blend stage
+    state.blendEnable = VK_FALSE;
+
+    // ...and the blend stage needs to know the color channels to which
+    // it's allowed to write
+    state.colorWriteMask = vk::ColorComponentFlagBits::eR |
+                           vk::ColorComponentFlagBits::eG |
+                           vk::ColorComponentFlagBits::eB |
+                           vk::ColorComponentFlagBits::eA;
+    }
 
     _blend_info = {
         // The blend stage also needs to know what images it's blending. Since
@@ -456,5 +530,21 @@ void vkPipeline::_init_layout() {
     BTX_TRACE("Created pipeline layout {}", _layout);
 }
 
+// =============================================================================
+void vkPipeline::_init_rendering_info() {
+    _color_attachment_formats.resize(Renderer::swapchain().images().size());
+    for(auto &format : _color_attachment_formats) {
+        format = Renderer::swapchain().image_format();
+    }
+
+    _rendering_info.pNext                   = nullptr;
+    _rendering_info.viewMask                = 0u;
+    _rendering_info.colorAttachmentCount    =
+        static_cast<uint32_t>(Renderer::swapchain().images().size());
+    _rendering_info.pColorAttachmentFormats = _color_attachment_formats.data();
+    _rendering_info.depthAttachmentFormat   =
+        Renderer::color_depth().depth_format();
+    _rendering_info.stencilAttachmentFormat = vk::Format::eUndefined;
+}
 
 } // namespace btx

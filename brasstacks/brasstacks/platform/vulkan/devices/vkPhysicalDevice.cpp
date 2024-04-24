@@ -80,7 +80,7 @@ void vkPhysicalDevice::get_msaa_levels() {
         RenderConfig::available_msaa.push_back({ 1u, false });
     }
 
-    RenderConfig::current_msaa = &RenderConfig::available_msaa.front();
+    RenderConfig::current_msaa = &RenderConfig::available_msaa.back();
     RenderConfig::current_msaa->selected = true;
 }
 

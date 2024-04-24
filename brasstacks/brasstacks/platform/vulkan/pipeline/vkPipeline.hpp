@@ -39,10 +39,6 @@ public:
     vkPipeline & add_push_constant(PushConstant const &push_constant);
 
     struct Config {
-        // Attachment configuration
-        std::vector<vk::Format> color_formats;
-        vk::Format depth_format = vk::Format::eUndefined;
-
         // Viewport settings
         RenderConfig::Size   viewport_extent { 0u, 0u };
         RenderConfig::Offset viewport_offset { 0, 0 };
@@ -61,12 +57,10 @@ public:
         vk::Bool32    enable_depth_bias   = VK_FALSE;
         float         depth_bias_constant = 0.0f;
         float         depth_bias_slope    = 0.0f;
-
-        // Universal options
-        uint32_t subpass_index = 0u;
     };
 
     void create(vkRenderPassBase const &render_pass, Config const &config);
+    void create(Config const &config);
     void destroy();
 
     void bind(vkCmdBuffer const &cmd_buffer);
@@ -117,6 +111,9 @@ private:
     std::vector<vk::DescriptorSetLayout>   _set_layouts;
     std::unordered_map<uint64_t, uint32_t> _set_bind_points;
 
+    std::vector<vk::Format> _color_attachment_formats;
+    vk::PipelineRenderingCreateInfoKHR _rendering_info;
+
     std::vector<vk::PushConstantRange> _push_constants;
     size_t _push_constant_offset;
 
@@ -130,6 +127,7 @@ private:
     void _init_blend_states();
     void _init_dynamic_states();
     void _init_layout();
+    void _init_rendering_info();
 };
 
 } // namespace btx;

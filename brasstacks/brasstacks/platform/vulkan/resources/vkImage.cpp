@@ -17,6 +17,7 @@ vkImage::vkImage() :
     _device        { nullptr },
     _format        { vk::Format::eUndefined },
     _layout        { vk::ImageLayout::eUndefined },
+    _aspect_flags  { vk::ImageAspectFlagBits::eNone },
     _extent        { },
     _size_bytes    { 0 },
     _mip_levels    { 1u },
@@ -42,6 +43,7 @@ vkImage::vkImage(vkImage &&rhs) :
     _device        { rhs._device },
     _format        { rhs._format },
     _layout        { rhs._layout },
+    _aspect_flags  { rhs._aspect_flags },
     _extent        { rhs._extent },
     _size_bytes    { rhs._size_bytes },
     _mip_levels    { rhs._mip_levels },
@@ -53,6 +55,7 @@ vkImage::vkImage(vkImage &&rhs) :
     rhs._device        = nullptr;
     rhs._format        = vk::Format::eUndefined;
     rhs._layout        = vk::ImageLayout::eUndefined;
+    rhs._aspect_flags  = vk::ImageAspectFlagBits::eNone;
     rhs._extent        = { };
     rhs._size_bytes    = 0;
     rhs._mip_levels    = 1u;
@@ -72,6 +75,8 @@ void vkImage::create(vk::Extent2D const &extent, vk::Format const format,
     _device = Renderer::device().native();
 
     _format = format;
+    _aspect_flags = image_info.aspect_flags;
+
     _extent = {
         .width = extent.width,
         .height = extent.height,
@@ -114,6 +119,8 @@ void vkImage::create(std::string_view const filename,
 
     _device = Renderer::device().native();
 
+    _aspect_flags = image_info.aspect_flags;
+
     _array_layers = array_layers;
 
     _raw_data = _load_from_file(filename);
@@ -132,20 +139,20 @@ void vkImage::create(std::string_view const filename,
     );
 
     vk::ImageCreateInfo const create_info {
-        .pNext = nullptr,
-        .flags = { },
-        .imageType = image_info.type,
-        .format = _format,
-        .extent = _extent,
-        .mipLevels = _mip_levels,
-        .arrayLayers = _array_layers,
-        .samples = image_info.samples,
-        .tiling = vk::ImageTiling::eOptimal,
-        .usage = image_info.usage_flags,
-        .sharingMode = vk::SharingMode::eExclusive,
+        .pNext                 = nullptr,
+        .flags                 = { },
+        .imageType             = image_info.type,
+        .format                = _format,
+        .extent                = _extent,
+        .mipLevels             = _mip_levels,
+        .arrayLayers           = _array_layers,
+        .samples               = image_info.samples,
+        .tiling                = vk::ImageTiling::eOptimal,
+        .usage                 = image_info.usage_flags,
+        .sharingMode           = vk::SharingMode::eExclusive,
         .queueFamilyIndexCount = 0u,
-        .pQueueFamilyIndices = nullptr,
-        .initialLayout = vk::ImageLayout::eUndefined,
+        .pQueueFamilyIndices   = nullptr,
+        .initialLayout         = vk::ImageLayout::eUndefined,
     };
 
     _handle = _device.createImage(create_info);
@@ -164,6 +171,86 @@ void vkImage::destroy() {
     BTX_TRACE("Freeing image device memory {}", _memory_handle);
     _device.freeMemory(_memory_handle);
     _memory_handle = nullptr;
+}
+
+// =============================================================================
+void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
+                                vk::ImageLayout const old_layout,
+                                vk::ImageLayout const new_layout)
+{
+    BTX_TRACE("Render image {}: '{:s}'->'{:s}'",
+              _handle,
+              vk::to_string(old_layout),
+              vk::to_string(new_layout));
+
+    vk::ImageMemoryBarrier barrier {
+        .srcAccessMask = { },
+        .dstAccessMask = { },
+        .oldLayout = old_layout,
+        .newLayout = new_layout,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = _handle,
+        .subresourceRange {
+            .aspectMask     = _aspect_flags,
+            .baseMipLevel   = 0u,
+            .levelCount     = 1u,
+            .baseArrayLayer = 0u,
+            .layerCount     = 1u,
+        }
+    };
+
+    vk::PipelineStageFlags src_stage = vk::PipelineStageFlagBits::eNone;
+    vk::PipelineStageFlags dst_stage = vk::PipelineStageFlagBits::eNone;
+
+    if(old_layout == vk::ImageLayout::eUndefined) {
+        barrier.srcAccessMask = vk::AccessFlagBits::eNone;
+
+        if(new_layout == vk::ImageLayout::eColorAttachmentOptimal) {
+            barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead
+                                    | vk::AccessFlagBits::eColorAttachmentWrite;
+
+            src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
+            dst_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        }
+        else if(new_layout == vk::ImageLayout::eDepthAttachmentOptimal) {
+            barrier.dstAccessMask =
+                vk::AccessFlagBits::eDepthStencilAttachmentRead
+                | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+            src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
+            dst_stage = vk::PipelineStageFlagBits::eEarlyFragmentTests
+                        | vk::PipelineStageFlagBits::eLateFragmentTests;
+        }
+        else {
+            BTX_CRITICAL("Unsupported image layout transition");
+            return;
+        }
+    }
+    else if(old_layout == vk::ImageLayout::eColorAttachmentOptimal) {
+        barrier.dstAccessMask = vk::AccessFlagBits::eNone;
+
+        barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentRead
+                                | vk::AccessFlagBits::eColorAttachmentWrite;
+
+        src_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dst_stage = vk::PipelineStageFlagBits::eBottomOfPipe;
+    }
+    else {
+        BTX_CRITICAL("Unsupported image layout transition");
+        return;
+    }
+
+    cmd_buffer.native().pipelineBarrier(
+        src_stage,  // Source stage
+        dst_stage,  // Destination stage
+        { },        // Dependency flags
+        nullptr,    // Memory barriers
+        nullptr,    // Buffer memory barriers
+        { barrier } // Image memory barriers
+    );
+
+    _layout = barrier.newLayout;
 }
 
 // =============================================================================
@@ -279,7 +366,7 @@ void vkImage::_send_to_device() {
         .bufferRowLength   = 0u,
         .bufferImageHeight = 0u,
         .imageSubresource {
-            .aspectMask     = vk::ImageAspectFlagBits::eColor,
+            .aspectMask     = _aspect_flags,
             .mipLevel       = 0u,
             .baseArrayLayer = 0u,
             .layerCount     = _array_layers,
@@ -340,7 +427,7 @@ void vkImage::_generate_mipmaps(vkCmdBuffer const &cmd_buffer,
 
             vk::ImageBlit const blit {
                 .srcSubresource {
-                    .aspectMask     = vk::ImageAspectFlagBits::eColor,
+                    .aspectMask     = _aspect_flags,
                     .mipLevel       = mip - 1,
                     .baseArrayLayer = layer,
                     .layerCount     = 1u,
@@ -350,7 +437,7 @@ void vkImage::_generate_mipmaps(vkCmdBuffer const &cmd_buffer,
                     vk::Offset3D { mip_width, mip_height, 1 }
                 },
                 .dstSubresource {
-                    .aspectMask     = vk::ImageAspectFlagBits::eColor,
+                    .aspectMask     = _aspect_flags,
                     .mipLevel       = mip,
                     .baseArrayLayer = layer,
                     .layerCount     = 1u,
@@ -406,7 +493,7 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .image = _handle,
         .subresourceRange {
-            .aspectMask     = vk::ImageAspectFlagBits::eColor,
+            .aspectMask     = _aspect_flags,
             .baseMipLevel   = base_mip_level,
             .levelCount     = mip_level_count,
             .baseArrayLayer = base_array_layer,
