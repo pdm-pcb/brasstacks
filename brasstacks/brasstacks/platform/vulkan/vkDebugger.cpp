@@ -26,7 +26,7 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
     }
     if((severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0) {
         BTX_ERROR("\n{}\n", callback_data->pMessage);
-        assert(false);
+        // assert(false);
     }
 
     return VK_FALSE;

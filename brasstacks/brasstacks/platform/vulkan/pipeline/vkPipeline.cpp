@@ -469,7 +469,7 @@ void vkPipeline::_init_depth_stencil(Config const &config) {
 // =============================================================================
 void vkPipeline::_init_blend_states() {
     _blend_states.clear();
-    _blend_states.resize(Renderer::swapchain().images().size());
+    _blend_states.resize(1u);
 
     for(auto &state : _blend_states) {
     // Even though blending is disabled, the pipeline still runs a blend stage
@@ -532,15 +532,14 @@ void vkPipeline::_init_layout() {
 
 // =============================================================================
 void vkPipeline::_init_rendering_info() {
-    _color_attachment_formats.resize(Renderer::swapchain().images().size());
+    _color_attachment_formats.resize(1u);
     for(auto &format : _color_attachment_formats) {
         format = Renderer::swapchain().image_format();
     }
 
     _rendering_info.pNext                   = nullptr;
     _rendering_info.viewMask                = 0u;
-    _rendering_info.colorAttachmentCount    =
-        static_cast<uint32_t>(Renderer::swapchain().images().size());
+    _rendering_info.colorAttachmentCount    = 1u;
     _rendering_info.pColorAttachmentFormats = _color_attachment_formats.data();
     _rendering_info.depthAttachmentFormat   =
         Renderer::color_depth().depth_format();

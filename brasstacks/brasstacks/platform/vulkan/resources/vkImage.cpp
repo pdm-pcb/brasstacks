@@ -228,10 +228,10 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
         }
     }
     else if(old_layout == vk::ImageLayout::eColorAttachmentOptimal) {
-        barrier.dstAccessMask = vk::AccessFlagBits::eNone;
-
         barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentRead
                                 | vk::AccessFlagBits::eColorAttachmentWrite;
+
+        barrier.dstAccessMask = vk::AccessFlagBits::eNone;
 
         src_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
         dst_stage = vk::PipelineStageFlagBits::eBottomOfPipe;

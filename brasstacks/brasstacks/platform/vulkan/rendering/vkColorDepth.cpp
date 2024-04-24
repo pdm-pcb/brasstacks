@@ -64,10 +64,8 @@ void vkColorDepth::begin() {
             .renderArea           = render_area,
             .layerCount           = 1u,
             .viewMask             = 0u,
-            .colorAttachmentCount = static_cast<uint32_t>(
-                _color_attachments.size()
-            ),
-            .pColorAttachments    = _color_attachments.data(),
+            .colorAttachmentCount = 1u,
+            .pColorAttachments    = &_color_attachments[Renderer::image_index()],
             .pDepthAttachment     = &_depth_attachment,
             .pStencilAttachment   = nullptr,
         }
