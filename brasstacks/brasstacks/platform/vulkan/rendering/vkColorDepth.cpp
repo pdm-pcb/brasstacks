@@ -53,7 +53,7 @@ void vkColorDepth::begin() {
     };
 
     Renderer::cmd_buffer().begin_rendering(
-        vk::RenderingInfoKHR  {
+        vk::RenderingInfoKHR {
             .pNext                = nullptr,
             .flags                = { },
             .renderArea           = render_area,

@@ -81,7 +81,7 @@ void vkCmdBuffer::begin_rendering(vk::RenderingInfoKHR const &info) const {
 
 // =============================================================================
 void vkCmdBuffer::end_rendering() const {
-    _handle.endRendering();
+    _handle.endRenderingKHR();
 }
 
 // =============================================================================
