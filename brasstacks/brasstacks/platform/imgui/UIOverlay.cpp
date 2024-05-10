@@ -8,7 +8,6 @@
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
-#include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
 
 #include "brasstacks/events/ui_events.hpp"
 
@@ -25,7 +24,7 @@ bool UIOverlay::_enabled { true };
 
 // =============================================================================
 void UIOverlay::init_window(::GLFWwindow *window,
-                               std::string_view const window_title) {
+                            std::string_view const window_title) {
     ::ImGui::CreateContext();
     ::ImGui_ImplGlfw_InitForVulkan(window, true);
     ::ImGui::StyleColorsDark();
@@ -42,7 +41,6 @@ void UIOverlay::init_window(::GLFWwindow *window,
 
     _style = &::ImGui::GetStyle();
     _style->ScaleAllSizes(TargetWindow::scale_factor());
-
     _style->Alpha = 0.75f;
     _style->DisabledAlpha = 0.33f;
 
@@ -68,7 +66,7 @@ void UIOverlay::destroy_descriptor_pool() {
 
 // =============================================================================
 void
-UIOverlay::create_swapchain_resources(vkRenderPassBase const &render_pass) {
+UIOverlay::create_swapchain_resources(vkPipeline const &pipeline) {
     auto const image_count =
         static_cast<uint32_t>(Renderer::swapchain().images().size());
 
@@ -82,7 +80,7 @@ UIOverlay::create_swapchain_resources(vkRenderPassBase const &render_pass) {
         .QueueFamily    = RenderConfig::current_device->graphics_queue_index,
         .Queue          = Renderer::device().graphics_queue().native(),
         .DescriptorPool = _descriptor_pool.native(),
-        .RenderPass     = render_pass.native(),
+        .RenderPass     = { },
         .MinImageCount  = image_count,
         .ImageCount     = image_count,
         .MSAASamples    = VkSampleCountFlagBits(sample_flags),
@@ -90,8 +88,8 @@ UIOverlay::create_swapchain_resources(vkRenderPassBase const &render_pass) {
         .PipelineCache = nullptr,
         .Subpass       = 0u,
 
-        .UseDynamicRendering         = false,
-        .PipelineRenderingCreateInfo = { },
+        .UseDynamicRendering         = true,
+        .PipelineRenderingCreateInfo = pipeline.rendering_info(),
 
         .Allocator = nullptr,
         .CheckVkResultFn = nullptr,

@@ -55,15 +55,13 @@ void Renderer::init(Application *const application) {
         }
     );
 
-    // UIOverlay::create_descriptor_pool();
+    UIOverlay::create_descriptor_pool();
 
     _create_swapchain();
     _create_frame_sync();
 
     _color_depth = new vkColorDepth;
     _color_depth->create_swapchain_resources();
-
-    // UIOverlay::create_swapchain_resources(*_render_pass);
 
     MeshLibrary::init();
     TextureLibrary::init();
@@ -82,7 +80,7 @@ void Renderer::shutdown() {
     delete _color_depth;
     _color_depth = nullptr;
 
-    // UIOverlay::destroy_descriptor_pool();
+    UIOverlay::destroy_descriptor_pool();
 
     _descriptor_pool->destroy();
     delete _descriptor_pool;
@@ -116,9 +114,9 @@ void Renderer::run() {
     _begin_recording();
         CameraController::update_ubo();
         _color_depth->begin();
-        // UIOverlay::record_commands();
+        UIOverlay::record_commands();
         _application->record_commands();
-        // UIOverlay::render();
+        UIOverlay::render();
         _color_depth->end();
     _end_recording();
     _submit_commands();
@@ -142,7 +140,7 @@ void Renderer::change_device() {
     destroy_swapchain_resources();
     _destroy_swapchain();
 
-    // UIOverlay::destroy_descriptor_pool();
+    UIOverlay::destroy_descriptor_pool();
     _descriptor_pool->destroy();
 
     vmaAllocator::destroy();
@@ -166,7 +164,7 @@ void Renderer::change_device() {
         }
     );
 
-    // UIOverlay::create_descriptor_pool();
+    UIOverlay::create_descriptor_pool();
 
     _create_swapchain();
     _create_frame_sync();
@@ -180,7 +178,7 @@ void Renderer::change_device() {
 
     _color_depth->create_swapchain_resources();
 
-    // UIOverlay::create_swapchain_resources(*_render_pass);
+    UIOverlay::create_swapchain_resources(_application->pipeline());
 
     MeshLibrary::init();
     TextureLibrary::init();
@@ -206,12 +204,12 @@ void Renderer::recreate_swapchain() {
 void Renderer::create_swapchain_resources() {
     _create_frame_sync();
     _color_depth->create_swapchain_resources();
-    // UIOverlay::create_swapchain_resources(*_render_pass);
+    UIOverlay::create_swapchain_resources(_application->pipeline());
 }
 
 // =============================================================================
 void Renderer::destroy_swapchain_resources() {
-    // UIOverlay::destroy_swapchain_resources();
+    UIOverlay::destroy_swapchain_resources();
     _color_depth->destroy_swapchain_resources();
     _destroy_frame_sync();
 }

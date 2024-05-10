@@ -2,7 +2,6 @@
 #define BRASSTACKS_PLATFORM_VULKAN_PASSES_VKCOLORDEPTH_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"
 
 namespace btx {
 

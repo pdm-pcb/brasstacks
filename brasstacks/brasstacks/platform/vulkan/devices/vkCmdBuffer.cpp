@@ -75,16 +75,6 @@ void vkCmdBuffer::end_recording() const {
 }
 
 // =============================================================================
-void vkCmdBuffer::begin_render_pass(vk::RenderPassBeginInfo const &info) const {
-    _handle.beginRenderPass(info, vk::SubpassContents::eInline);
-}
-
-// =============================================================================
-void vkCmdBuffer::end_render_pass() const {
-    _handle.endRenderPass();
-}
-
-// =============================================================================
 void vkCmdBuffer::begin_rendering(vk::RenderingInfoKHR const &info) const {
     _handle.beginRenderingKHR(info);
 }

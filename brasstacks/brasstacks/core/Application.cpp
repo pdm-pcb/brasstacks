@@ -6,6 +6,7 @@
 #include "brasstacks/core/Renderer.hpp"
 
 #include "brasstacks/assets/libraries/TextureLibrary.hpp"
+#include "brasstacks/platform/imgui/UIOverlay.hpp"
 
 namespace btx {
 
@@ -46,6 +47,7 @@ Application::~Application() {
 // =============================================================================
 void Application::run() {
     this->init();
+    UIOverlay::create_swapchain_resources(this->pipeline());
 
     TargetWindow::show();
 

@@ -18,9 +18,6 @@ public:
     void begin_one_time_submit() const;
     void end_recording() const;
 
-    void begin_render_pass(vk::RenderPassBeginInfo const &info) const;
-    void end_render_pass() const;
-
     void begin_rendering(vk::RenderingInfoKHR const &info) const;
     void end_rendering() const;
 

@@ -7,7 +7,6 @@
 namespace btx {
 
 class vkShader;
-class vkRenderPassBase;
 class vkCmdBuffer;
 class vkDescriptorSet;
 class vkDescriptorSetLayout;
@@ -59,7 +58,6 @@ public:
         float         depth_bias_slope    = 0.0f;
     };
 
-    void create(vkRenderPassBase const &render_pass, Config const &config);
     void create(Config const &config);
     void destroy();
 
@@ -72,10 +70,11 @@ public:
     void update_dimensions(RenderConfig::Size const &size,
                            RenderConfig::Offset const &offset);
 
-    inline auto const & native()   const { return _handle; }
-    inline auto const & layout()   const { return _layout; }
-    inline auto const & viewport() const { return _viewport; }
-    inline auto const & scissor()  const { return _scissor; }
+    inline auto const & native()         const { return _handle; }
+    inline auto const & layout()         const { return _layout; }
+    inline auto const & viewport()       const { return _viewport; }
+    inline auto const & scissor()        const { return _scissor; }
+    inline auto const & rendering_info() const { return _rendering_info; }
 
     vkPipeline(vkPipeline &&) = delete;
     vkPipeline(const vkPipeline &) = delete;

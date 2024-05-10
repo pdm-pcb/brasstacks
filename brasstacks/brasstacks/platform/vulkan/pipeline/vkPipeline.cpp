@@ -3,7 +3,6 @@
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
 #include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
-#include "brasstacks/platform/vulkan/passes/vkRenderPassBase.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkColorDepth.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
@@ -123,77 +122,6 @@ vkPipeline & vkPipeline::add_push_constant(PushConstant const &push_constant) {
     _push_constant_offset += push_constant.size_bytes;
 
     return *this;
-}
-
-// =============================================================================
-void vkPipeline::create(vkRenderPassBase const &render_pass,
-                        Config const &config)
-{
-    if(_handle) {
-        BTX_CRITICAL("Pipeline {} already exists", _handle);
-        return;
-    }
-
-    _device = Renderer::device().native();
-
-    _init_assembly();
-    _init_viewport(config);
-    _init_raster(config);
-    _init_multisample(config);
-    _init_depth_stencil(config);
-    _init_blend_states();
-    _init_dynamic_states();
-    _init_layout();
-
-    vk::GraphicsPipelineCreateInfo const pipeline_info {
-        .pNext = nullptr,
-
-        // If we're in a debug build, don't optimize the shaders
-        #ifdef BTX_DEBUG
-            .flags = vk::PipelineCreateFlagBits::eDisableOptimization,
-        #endif // BTX_DEBUG
-
-        .stageCount = static_cast<uint32_t>(_shader_stages.size()),
-        .pStages    = _shader_stages.data(),
-
-        .pVertexInputState   = &_vert_input_info,
-        .pInputAssemblyState = &_assembly_info,
-        .pTessellationState  = nullptr,
-        .pViewportState      = &_viewport_info,
-        .pRasterizationState = &_raster_info,
-        .pMultisampleState   = &_multisample_info,
-        .pDepthStencilState  = &_depth_stencil_info,
-        .pColorBlendState    = &_blend_info,
-        .pDynamicState       = &_dynamic_state_info,
-
-        .layout              = _layout,
-
-        .renderPass          = render_pass.native(),
-        .subpass             = { },
-
-        // A new pipeline may be derrived from an existing one, only updating
-        // what needs to be updated. The .basePipeline* values designate an
-        // existing pipeline to pull from.
-        .basePipelineHandle  = nullptr,
-        .basePipelineIndex   = 0,
-    };
-
-    auto const result = _device.createGraphicsPipeline({ }, pipeline_info);
-
-    if(result.result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Unable to create Vulkan pipeline: '{}'",
-                     vk::to_string(result.result));
-        return;
-    }
-
-    _handle = result.value;
-    BTX_TRACE("Created Vulkan pipeline {}", _handle);
-
-    // Destroy the shader modules now that the pipeline is baked
-    for(auto *shader : _shaders) {
-        delete shader;
-    }
-    _shaders.clear();
 }
 
 // =============================================================================

@@ -22,6 +22,8 @@ public:
     void create_pipeline() override;
     void destroy_pipeline() override;
 
+    btx::vkPipeline const & pipeline() const override { return _pipeline; }
+
 private:
     btx::vkPipeline _pipeline;
 
