@@ -11,11 +11,6 @@
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
-
-#include "brasstacks/platform/vulkan/passes/vkColorDepthPass.hpp"
-#include "brasstacks/platform/vulkan/passes/vkColorDepthResolvePass.hpp"
-#include "brasstacks/platform/vulkan/passes/vkFramebuffer.hpp"
-
 #include "brasstacks/platform/vulkan/rendering/vkColorDepth.hpp"
 
 #include "brasstacks/tools/cameras/CameraController.hpp"
@@ -37,9 +32,6 @@ vkDescriptorPool *Renderer::_descriptor_pool { nullptr };
 vkSwapchain Renderer::_swapchain { };
 std::vector<vkFrameSync> Renderer::_frame_sync;
 uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
-
-std::vector<vkFramebuffer *> Renderer::_framebuffers { };
-vkRenderPassBase *Renderer::_render_pass { nullptr };
 
 vkColorDepth *Renderer::_color_depth { nullptr };
 
@@ -68,15 +60,10 @@ void Renderer::init(Application *const application) {
     _create_swapchain();
     _create_frame_sync();
 
-    // _render_pass = new vkColorDepthResolvePass;
-    // _render_pass->create();
-    // _render_pass->create_swapchain_resources();
-
-    // UIOverlay::create_swapchain_resources(*_render_pass);
-    // _create_framebuffers();
-
     _color_depth = new vkColorDepth;
     _color_depth->create_swapchain_resources();
+
+    // UIOverlay::create_swapchain_resources(*_render_pass);
 
     MeshLibrary::init();
     TextureLibrary::init();
@@ -91,15 +78,6 @@ void Renderer::shutdown() {
 
     destroy_swapchain_resources();
     _destroy_swapchain();
-
-    // for(auto *framebuffer : _framebuffers) {
-    //     delete framebuffer;
-    // }
-    // _framebuffers.clear();
-
-    // _render_pass->destroy();
-    // delete _render_pass;
-    // _render_pass = nullptr;
 
     delete _color_depth;
     _color_depth = nullptr;
@@ -163,8 +141,6 @@ void Renderer::change_device() {
 
     destroy_swapchain_resources();
     _destroy_swapchain();
-    // _render_pass->destroy();
-    // delete _render_pass;
 
     // UIOverlay::destroy_descriptor_pool();
     _descriptor_pool->destroy();
@@ -202,13 +178,9 @@ void Renderer::change_device() {
     //     _render_pass = new vkColorDepthPass;
     // }
 
-    // _render_pass->create();
-    // _render_pass->create_swapchain_resources();
-
     _color_depth->create_swapchain_resources();
 
     // UIOverlay::create_swapchain_resources(*_render_pass);
-    // _create_framebuffers();
 
     MeshLibrary::init();
     TextureLibrary::init();
@@ -233,45 +205,15 @@ void Renderer::recreate_swapchain() {
 // =============================================================================
 void Renderer::create_swapchain_resources() {
     _create_frame_sync();
-    // _render_pass->create_swapchain_resources();
     _color_depth->create_swapchain_resources();
     // UIOverlay::create_swapchain_resources(*_render_pass);
-    // _create_framebuffers();
 }
 
 // =============================================================================
 void Renderer::destroy_swapchain_resources() {
-    // _destroy_framebuffers();
     // UIOverlay::destroy_swapchain_resources();
-    // _render_pass->destroy_swapchain_resources();
     _color_depth->destroy_swapchain_resources();
     _destroy_frame_sync();
-}
-
-// =============================================================================
-void Renderer::recreate_render_pass() {
-    assert(false && "nop");
-    // wait_device_idle();
-
-    // _application->destroy_pipeline();
-    // destroy_swapchain_resources();
-    // _destroy_swapchain();
-
-    // _render_pass->destroy();
-    // delete _render_pass;
-
-    // if(RenderConfig::current_msaa->msaa > 1u) {
-    //     _render_pass = new vkColorDepthResolvePass;
-    // }
-    // else {
-    //     _render_pass = new vkColorDepthPass;
-    // }
-
-    // _render_pass->create();
-
-    // _create_swapchain();
-    // create_swapchain_resources();
-    // _application->create_pipeline();
 }
 
 // =============================================================================
@@ -442,63 +384,6 @@ void Renderer::_destroy_frame_sync() {
         sync_struct.destroy_sync_primitives();
         sync_struct.destroy_cmd_structures();
     }
-}
-
-// =============================================================================
-void Renderer::_create_framebuffers() {
-    // auto const image_count = Renderer::swapchain().image_views().size();
-    // if(_framebuffers.size() != image_count) {
-    //     _framebuffers.clear();
-    //     _framebuffers.reserve(image_count);
-
-    //     // Fill in the still undefined images with in-place construction
-    //     std::generate_n(
-    //         std::back_inserter(_framebuffers),
-    //         _framebuffers.capacity(),
-    //         []() {
-    //             return new vkFramebuffer;
-    //         }
-    //     );
-    // }
-
-    // if(RenderConfig::current_msaa->msaa > 1u) {
-    //     auto const *pass =
-    //         dynamic_cast<vkColorDepthResolvePass const *>(_render_pass);
-
-    //     for(size_t i = 0; i < image_count; ++i) {
-    //         _framebuffers[i]->create(
-    //             *_render_pass,
-    //             Renderer::swapchain().size(),
-    //             {{
-    //                 pass->color_views()[i].native(),
-    //                 pass->depth_view().native(),
-    //                 Renderer::swapchain().image_views()[i]->native()
-    //             }}
-    //         );
-    //     }
-    // }
-    // else {
-    //     auto const *pass =
-    //         dynamic_cast<vkColorDepthPass const *>(_render_pass);
-
-    //     for(size_t i = 0; i < image_count; ++i) {
-    //         _framebuffers[i]->create(
-    //             *_render_pass,
-    //             Renderer::swapchain().size(),
-    //             {{
-    //                 Renderer::swapchain().image_views()[i]->native(),
-    //                 pass->depth_view().native(),
-    //             }}
-    //         );
-    //     }
-    // }
-}
-
-// =============================================================================
-void Renderer::_destroy_framebuffers() {
-    // for(auto &framebuffer : _framebuffers) {
-    //     framebuffer->destroy();
-    // }
 }
 
 } // namespace btx

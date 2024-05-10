@@ -178,10 +178,10 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
                                 vk::ImageLayout const old_layout,
                                 vk::ImageLayout const new_layout)
 {
-    BTX_TRACE("Render image {}: '{:s}'->'{:s}'",
-              _handle,
-              vk::to_string(old_layout),
-              vk::to_string(new_layout));
+    // BTX_TRACE("Image {}: '{:s}'->'{:s}'",
+    //           _handle,
+    //           vk::to_string(old_layout),
+    //           vk::to_string(new_layout));
 
     vk::ImageMemoryBarrier barrier {
         .srcAccessMask = { },
@@ -501,14 +501,14 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
         }
     };
 
-    BTX_TRACE(
-        "Image {}, mip {} ({}), layer {} ({}): '{:s}' -> '{:s}'",
-        _handle,
-        base_mip_level, _mip_levels,
-        base_array_layer, _array_layers,
-        vk::to_string(barrier.oldLayout),
-        vk::to_string(barrier.newLayout)
-    );
+    // BTX_TRACE(
+    //     "Image {}, mip {}/{}, layer {}/{}: '{:s}' -> '{:s}'",
+    //     _handle,
+    //     base_mip_level, _mip_levels,
+    //     base_array_layer, _array_layers,
+    //     vk::to_string(barrier.oldLayout),
+    //     vk::to_string(barrier.newLayout)
+    // );
 
     vk::PipelineStageFlags src_stage = vk::PipelineStageFlagBits::eNone;
     vk::PipelineStageFlags dst_stage = vk::PipelineStageFlagBits::eNone;

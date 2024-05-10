@@ -136,7 +136,7 @@ void Application::_ui_event(UIEvent const &event) {
     }
     else if(event.type == UIEventType::UI_CHANGE_MSAA) {
         BTX_TRACE("Application received UI change MSAA.");
-        Renderer::recreate_render_pass();
+        // Renderer::recreate_render_pass();
     }
     else if(event.type == UIEventType::UI_TOGGLE_VSYNC) {
         BTX_TRACE("Application received UI toggle VSync.");

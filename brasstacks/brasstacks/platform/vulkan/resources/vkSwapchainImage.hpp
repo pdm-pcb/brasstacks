@@ -13,6 +13,10 @@ public:
     void create(vk::Image const &handle, vk::Format const format);
     void destroy();
 
+    void transition_layout(vkCmdBuffer const &cmd_buffer,
+                           vk::ImageLayout const old_layout,
+                           vk::ImageLayout const new_layout);
+
     inline auto const & native() const { return _handle; }
     inline auto format()         const { return _format; }
 
@@ -25,6 +29,8 @@ public:
 private:
     vk::Image  _handle;
     vk::Format _format;
+
+    vk::ImageLayout _layout;
 };
 
 } // namespace btx

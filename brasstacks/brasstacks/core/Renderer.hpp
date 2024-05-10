@@ -28,8 +28,6 @@ public:
     static void create_swapchain_resources();
     static void destroy_swapchain_resources();
 
-    static void recreate_render_pass();
-
     static inline void wait_device_idle() { _device.wait_idle(); }
 
     static inline auto const & device()    { return _device; }
@@ -44,7 +42,6 @@ public:
         return _frame_sync[_image_index].cmd_buffer();
     }
 
-    static inline auto const & render_pass() { return *_render_pass; }
     static inline auto const & color_depth() { return *_color_depth; }
 
     static inline auto & descriptor_pool() { return *_descriptor_pool; }
@@ -70,9 +67,6 @@ private:
     static std::vector<vkFrameSync> _frame_sync;
     static uint32_t _image_index;
 
-    static std::vector<vkFramebuffer *> _framebuffers;
-    static vkRenderPassBase *_render_pass;
-
     static vkColorDepth *_color_depth;
 
     [[nodiscard]] static uint32_t _acquire_next_image();
@@ -93,9 +87,6 @@ private:
 
     static void _create_frame_sync();
     static void _destroy_frame_sync();
-
-    static void _create_framebuffers();
-    static void _destroy_framebuffers();
 };
 
 } // namespace btx
