@@ -78,7 +78,7 @@ private:
     [[nodiscard]] static bool _present_image();
 
     static void _create_surface();
-    static void _select_physical_device();
+    static void _populate_physical_devices();
     static void _create_device();
     static void _create_allocator(uint32_t const api_version);
 

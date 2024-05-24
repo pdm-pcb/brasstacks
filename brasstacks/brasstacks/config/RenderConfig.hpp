@@ -5,6 +5,8 @@
 
 namespace btx {
 
+class vkPhysicalDevice;
+
 struct RenderConfig final {
     struct Size final {
         uint32_t width = 0u;
@@ -16,25 +18,8 @@ struct RenderConfig final {
         int32_t y = 0u;
     };
 
-    struct DeviceProps final {
-        vk::PhysicalDevice handle { nullptr };
-        vk::PhysicalDeviceMemoryProperties memory { };
-        vk::PhysicalDeviceType type = vk::PhysicalDeviceType::eOther;
-
-        vk::DeviceSize vram_bytes { 0u };
-
-        std::string name { };
-        std::string driver_version { };
-        std::string vkapi_version { };
-
-        vk::SampleCountFlags max_samples = vk::SampleCountFlagBits::e1;
-        float max_aniso { 0.0f };
-
-        uint32_t graphics_queue_index = std::numeric_limits<uint32_t>::max();
-
-        vk::PhysicalDeviceFeatures enabled_features { };
-        std::vector<char const *> enabled_extensions { };
-
+    struct SelectedDevice final {
+        vkPhysicalDevice *device;
         bool selected = false;
     };
 
@@ -54,8 +39,8 @@ struct RenderConfig final {
         bool selected = false;
     };
 
-    static std::vector<DeviceProps> available_devices;
-    static DeviceProps *current_device;
+    static std::vector<SelectedDevice> available_devices;
+    static SelectedDevice *current_device;
 
     static std::vector<SelectedResolution> available_resolutions;
     static struct SelectedResolution *current_resolution;

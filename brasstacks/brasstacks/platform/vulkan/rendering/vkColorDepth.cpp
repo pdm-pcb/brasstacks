@@ -84,7 +84,7 @@ void vkColorDepth::_find_depth_stencil_format() {
         vk::Format::eD16Unorm,
     };
 
-    auto const physical_device = RenderConfig::current_device->handle;
+    auto const physical_device = RenderConfig::current_device->device->native();
     for(auto const format : depth_formats) {
         auto props = physical_device.getFormatProperties(format);
         if(props.optimalTilingFeatures &

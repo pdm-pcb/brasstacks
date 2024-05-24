@@ -41,7 +41,7 @@ void Renderer::init(Application *const application) {
 
     _application = application;
     _create_surface();
-    _select_physical_device();
+    _populate_physical_devices();
     _create_device();
     _create_allocator(BTX_VK_TARGET_VERSION);
 
@@ -89,6 +89,8 @@ void Renderer::shutdown() {
     vmaAllocator::destroy();
 
     _device.destroy();
+
+    vkPhysicalDevice::clear_device_list();
 
     _surface->destroy();
     delete _surface;
@@ -149,8 +151,8 @@ void Renderer::change_device() {
 
     // Now that everything's thoroughly undone, start anew
 
-    vkPhysicalDevice::get_msaa_levels();
-    vkPhysicalDevice::get_aniso_levels();
+    vkPhysicalDevice::set_msaa_levels();
+    vkPhysicalDevice::set_aniso_levels();
 
     _create_device();
     _create_allocator(BTX_VK_TARGET_VERSION);
@@ -302,23 +304,23 @@ void Renderer::_create_surface() {
 }
 
 // =============================================================================
-void Renderer::_select_physical_device() {
+void Renderer::_populate_physical_devices() {
     if(!_surface->native()) {
         BTX_CRITICAL("Cannot select physical device without surface.");
         return;
     }
 
-    vkPhysicalDevice::select(
-        *_surface,
-        {
-            vkPhysicalDevice::Features::FILL_MODE_NONSOLID,
-            vkPhysicalDevice::Features::SAMPLER_ANISOTROPY,
-        },
-        {
+    auto features = vk::PhysicalDeviceFeatures { };
+    features.samplerAnisotropy = VK_TRUE;
+    features.fillModeNonSolid = VK_TRUE;
+
+    std::array<char const *, 3> const extensions {{
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
             VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
-        }
-    );
+    }};
+
+    vkPhysicalDevice::populate_device_list(*_surface, features, extensions);
 }
 
 // =============================================================================

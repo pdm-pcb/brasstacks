@@ -156,8 +156,8 @@ bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
 
 // =============================================================================
 void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
-    auto const caps =
-        RenderConfig::current_device->handle.getSurfaceCapabilitiesKHR(surface);
+    auto const &device = *(RenderConfig::current_device->device);
+    auto const caps = device.native().getSurfaceCapabilitiesKHR(surface);
 
     BTX_TRACE(
         "\nSurface Capabilities:"
@@ -263,8 +263,8 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
 
 // =============================================================================
 void vkSwapchain::_query_surface_format(vk::SurfaceKHR const &surface) {
-    auto const formats =
-        RenderConfig::current_device->handle.getSurfaceFormatsKHR(surface);
+    auto const &device = *(RenderConfig::current_device->device);
+    auto const formats = device.native().getSurfaceFormatsKHR(surface);
 
     BTX_TRACE("Found {} surface formats.", formats.size());
 
@@ -308,8 +308,8 @@ void vkSwapchain::_query_surface_format(vk::SurfaceKHR const &surface) {
 
 // =============================================================================
 void vkSwapchain::_query_surface_present_modes(vk::SurfaceKHR const &surface) {
-    auto const modes =
-        RenderConfig::current_device->handle.getSurfacePresentModesKHR(surface);
+    auto const &device = *(RenderConfig::current_device->device);
+    auto const modes = device.native().getSurfacePresentModesKHR(surface);
 
     BTX_TRACE("Found {} present modes.", modes.size());
 

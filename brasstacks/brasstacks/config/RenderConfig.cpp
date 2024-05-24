@@ -2,8 +2,8 @@
 
 namespace btx {
 
-std::vector<RenderConfig::DeviceProps> RenderConfig::available_devices { };
-RenderConfig::DeviceProps *RenderConfig::current_device { nullptr };
+std::vector<RenderConfig::SelectedDevice> RenderConfig::available_devices { };
+RenderConfig::SelectedDevice *RenderConfig::current_device { nullptr };
 
 std::vector<RenderConfig::SelectedResolution>
     RenderConfig::available_resolutions { };

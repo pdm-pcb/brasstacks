@@ -73,11 +73,13 @@ UIOverlay::create_swapchain_resources(vkPipeline const &pipeline) {
     auto const sample_flags =
         vkPipeline::samples_to_flag(RenderConfig::current_msaa->msaa);
 
+    auto const &device = *(RenderConfig::current_device->device);
+
     ::ImGui_ImplVulkan_InitInfo init_info = {
         .Instance       = vkInstance::native(),
-        .PhysicalDevice = RenderConfig::current_device->handle,
+        .PhysicalDevice = device.native(),
         .Device         = Renderer::device().native(),
-        .QueueFamily    = RenderConfig::current_device->graphics_queue_index,
+        .QueueFamily    = device.queue_family_index(),
         .Queue          = Renderer::device().graphics_queue().native(),
         .DescriptorPool = _descriptor_pool.native(),
         .RenderPass     = { },
@@ -171,21 +173,24 @@ void UIOverlay::_draw_status_bar() {
         ::ImGui::TableNextRow();
 
         ::ImGui::TableSetColumnIndex(0);
-        label_text = fmt::format("{}", RenderConfig::current_device->name);
+        auto const &current_device = *(RenderConfig::current_device->device);
+        label_text = fmt::format("{}", current_device.name());
         if(::ImGui::BeginMenu(label_text.c_str())) {
-            for(auto &device : RenderConfig::available_devices) {
-                label_text = fmt::format("{}", device.name);
-                if(::ImGui::MenuItem(label_text.c_str(), "", &device.selected))
+            for(auto &available_device : RenderConfig::available_devices) {
+                auto const &device = *available_device.device;
+                label_text = fmt::format("{}", device.name());
+                if(::ImGui::MenuItem(label_text.c_str(), "",
+                                     &available_device.selected))
                 {
                     // The user has clicked the already-selected option
-                    if(device.selected == false) {
-                        device.selected = true;
+                    if(available_device.selected == false) {
+                        available_device.selected = true;
                         continue;
                     }
 
-                    RenderConfig::current_device = &device;
+                    RenderConfig::current_device = &available_device;
                     for(auto &other_device : RenderConfig::available_devices) {
-                        if(&device != &other_device) {
+                        if(&available_device != &other_device) {
                             other_device.selected = false;
                         }
                     }

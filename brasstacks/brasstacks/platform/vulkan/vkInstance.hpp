@@ -24,6 +24,11 @@ public:
 
 private:
     /**
+     * @brief Native Vulkan instance handle.
+     */
+    static vk::Instance _handle;
+
+    /**
      * @brief Allows the application to call Vulkan functions without first
      * loading the function pointers manually.
      */
@@ -52,24 +57,16 @@ private:
      */
     static std::vector<char const *> _enabled_extensions;
 
-#ifdef BTX_DEBUG
-    using ValidationFeatures = std::vector<vk::ValidationFeatureEnableEXT>;
-    static ValidationFeatures _validation_features;
-    static vk::ValidationFeaturesEXT _validation_extensions;
-#endif // BTX_DEBUG
-
-    /**
-     * @brief Native Vulkan instance handle.
-     */
-    static vk::Instance _handle;
+    static std::vector<vk::ValidationFeatureEnableEXT> _vvl_enabled;
+    static vk::ValidationFeaturesEXT _vvl_features;
 
     static void _init_dynamic_loader();
     static void _init_app_info();
     static void _init_layers();
     static void _init_extensions();
 
-    using Extensions = std::vector<vk::ExtensionProperties>;
-    static bool _check_extensions(Extensions const &supported_extensions);
+    static bool _check_layers();
+    static bool _check_extensions();
 };
 
 } // namespace btx

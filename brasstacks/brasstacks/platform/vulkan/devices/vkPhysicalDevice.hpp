@@ -13,55 +13,38 @@ namespace btx {
 
 class vkSurface;
 
-/**
- * @brief A wrapper class for Vulkan's idea of a physical GPU.
- *
- * This class is a glorified collection of details. It enumerates the GPUs the
- * Vulkan instance can find, then sorts them with a preference for dGPUs and
- * VRAM. It then goes through the list of available devices and chooses the
- * first one it comes across that satisfy the following criteria:
- *
- *  - Support for graphics and present commands in the same queue family
- *  - Support for all required features
- *  - Support for all required extensions
- *
- * Once the selection process is complete, the properties of the chosen GPU are
- * saved for later systems to query.
- */
 class vkPhysicalDevice final {
 public:
-    /**
-     * @brief A means by which to request physical device features.
-     */
-    enum class Features {
-        FILL_MODE_NONSOLID,
-        SAMPLER_ANISOTROPY,
-    };
-    using FeatureList = std::vector<Features>;
+    static void populate_device_list(
+        vkSurface const &surface,
+        vk::PhysicalDeviceFeatures const &features,
+        std::span<char const * const> const extensions);
 
-    /**
-     * @brief A means by which to request physical device extensions.
-     */
-    using ExtensionList = std::vector<std::string_view>;
+    static void clear_device_list();
+    static void set_msaa_levels();
+    static void set_aniso_levels();
 
-    /**
-     * @brief Selects a physical device based on surface capabilities, required
-     * features, and required extensions
-     * @param surface An established Vulkan surface
-     * @param required_features A list of features the selected device must
-     * support
-     * @param required_extensions A list of extensions the selected device must
-     * support
-     */
-    static void select(vkSurface     const &surface,
-                       FeatureList   const &required_features,
-                       ExtensionList const &required_extensions);
-
-    static void get_msaa_levels();
-    static void get_aniso_levels();
+    explicit vkPhysicalDevice(vk::PhysicalDevice const &handle);
+    ~vkPhysicalDevice() = default;
 
     vkPhysicalDevice() = delete;
-    ~vkPhysicalDevice() = delete;
+
+    bool check_queue_families(vkSurface const &surface);
+    bool check_features(vk::PhysicalDeviceFeatures const &features);
+    bool check_extensions(std::span<char const * const> extensions);
+
+    auto native() const { return _handle; }
+    std::string_view const name() const { return _name; }
+    auto type() const { return _type; }
+    auto vram_bytes() const { return _vram_bytes; }
+    auto queue_family_index() const { return _queue_family_index; }
+    auto const & enabled_features() const { return _enabled_features; }
+    std::span<vk::ExtensionProperties const> const enabled_extensions() const {
+        return _enabled_extensions;
+    }
+
+    auto const & samples() const { return _samples; }
+    auto max_aniso() const { return _max_aniso; }
 
     vkPhysicalDevice(vkPhysicalDevice &&) = delete;
     vkPhysicalDevice(const vkPhysicalDevice &) = delete;
@@ -70,56 +53,24 @@ public:
     vkPhysicalDevice & operator=(const vkPhysicalDevice &) = delete;
 
 private:
-    /**
-     * @brief Make a list of phsyical devices available via this instance
-     * @param instance An established Vulkan instance
-     */
-    static void _enumerate_and_sort(vk::Instance const &instance);
+    vk::PhysicalDevice _handle;
+    vk::PhysicalDeviceType _type;
 
-    /**
-     * @brief Check if a device supports graphics and present commands within
-     * a single queue family
-     * @param device The device to check
-     * @param surface The surface is required to check for presentat support
-     * @return true If the device does support graphics and present commands
-     * within a single queue family
-     * @return false If the device does not support graphics and present
-     * commands within a single queue family
-     */
-    static bool _check_queue_families(RenderConfig::DeviceProps &device,
-                                      vkSurface const &surface);
+    std::string _name;
+    std::string _vkapi_version;
+    size_t      _vram_bytes;
+    std::string _driver_version;
 
-    /**
-     * @brief Check if a device supports a given list of features
-     * @param device The device to check
-     * @param required_features The features the device must support
-     * @return true If the device supports all of the features
-     * @return false If the device does not support all of the features
-     */
-    static bool _check_features(RenderConfig::DeviceProps &device,
-                                FeatureList const &required_features);
+    uint32_t    _queue_family_index;
 
-    /**
-     * @brief Check if a device supports a given list of extensions
-     * @param device The device to check
-     * @param required_extensions The extensions the device must support
-     * @return true If the device supports all of the extensions
-     * @return false If the device does not support all of the extensions
-     */
-    static bool _check_extensions(RenderConfig::DeviceProps &device,
-                                  ExtensionList const &required_extensions);
+    vk::PhysicalDeviceFeatures           _enabled_features;
+    std::vector<vk::ExtensionProperties> _enabled_extensions;
 
-    /**
-     * @brief Populate a DeviceProps struct and add it to _available_devices
-     * @param device The native Vulkan device handle
-     */
-    static void _store_device(vk::PhysicalDevice const &device);
+    vk::SampleCountFlags _samples;
+    float _max_aniso;
 
-    /**
-     * @brief Log queue family capabilities
-     * @param family Queue family index
-     * @param flags Flags indicating this queue family's abilites
-     */
+    static void _sort_device_list();
+
     static void _print_family_flags(uint32_t const family,
                                     vk::QueueFlags const flags);
 };

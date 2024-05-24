@@ -9,18 +9,16 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace btx {
 
+vk::Instance vkInstance::_handle { nullptr };
+
 vk::DynamicLoader         vkInstance::_loader { };
 uint32_t                  vkInstance::_target_api_version { };
 vk::ApplicationInfo       vkInstance::_app_info { };
 std::vector<char const *> vkInstance::_enabled_layers { };
 std::vector<char const *> vkInstance::_enabled_extensions { };
 
-#ifdef BTX_DEBUG
-    vkInstance::ValidationFeatures vkInstance::_validation_features { };
-    vk::ValidationFeaturesEXT      vkInstance::_validation_extensions { };
-#endif // BTX_DEBUG
-
-vk::Instance vkInstance::_handle { nullptr };
+std::vector<vk::ValidationFeatureEnableEXT> vkInstance::_vvl_enabled { };
+vk::ValidationFeaturesEXT vkInstance::_vvl_features { };
 
 // =============================================================================
 void vkInstance::create(uint32_t const api_version) {
@@ -36,12 +34,17 @@ void vkInstance::create(uint32_t const api_version) {
     _init_layers();         // Init the validation layer, if we're in debug
     _init_extensions();     // Extensions are often implementation defined
 
-    auto const extensions = vk::enumerateInstanceExtensionProperties();
-    BTX_TRACE("Found {} instance extensions.", extensions.size());
+    // Run through the extensions the driver offers and make sure we've got
+    // what we need
+    if(!_check_layers()) {
+        BTX_CRITICAL("Could not get support for all requested instance "
+                     "layers.");
+        return;
+    }
 
     // Run through the extensions the driver offers and make sure we've got
     // what we need
-    if(!_check_extensions(extensions)) {
+    if(!_check_extensions()) {
         BTX_CRITICAL("Could not get support for all requested instance "
                      "extensions.");
         return;
@@ -52,7 +55,7 @@ void vkInstance::create(uint32_t const api_version) {
     // structure assembled above.
     const vk::InstanceCreateInfo instance_info {
 #ifdef BTX_DEBUG
-        .pNext = reinterpret_cast<void *>(&_validation_extensions),
+        .pNext = reinterpret_cast<void *>(&_vvl_features),
 #else
         .pNext = nullptr,
 #endif // BTX_DEBUG
@@ -153,54 +156,79 @@ void vkInstance::_init_extensions() {
     _enabled_extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif // BTX platform
 
+    // And for dynamic rendering:
+    _enabled_extensions.emplace_back(
+        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
+    );
+
 #ifdef BTX_DEBUG
     // The first steps toward giving the driver a path to keep us abreast of
     // myriad details.
     _enabled_extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     _enabled_extensions.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
-    // As with the last line, these features support our debugging efforts
-    _validation_features = {
+    // As with the last lines, these features support our debugging efforts
+    _vvl_enabled = {
         vk::ValidationFeatureEnableEXT::eBestPractices,
         vk::ValidationFeatureEnableEXT::eSynchronizationValidation,
-
+        // vk::ValidationFeatureEnableEXT::eDebugPrintf,
         vk::ValidationFeatureEnableEXT::eGpuAssisted,
         vk::ValidationFeatureEnableEXT::eGpuAssistedReserveBindingSlot,
-        // vk::ValidationFeatureEnableEXT::eDebugPrintf,
     };
 
-    _validation_extensions = {
+    _vvl_features = {
         .enabledValidationFeatureCount =
-            static_cast<uint32_t>(_validation_features.size()),
-        .pEnabledValidationFeatures = _validation_features.data(),
+            static_cast<uint32_t>(_vvl_enabled.size()),
+        .pEnabledValidationFeatures = _vvl_enabled.data(),
         .disabledValidationFeatureCount = 0u,
         .pDisabledValidationFeatures = nullptr
     };
 #endif // BTX_DEBUG
-
-    // And for dynamic rendering:
-    _enabled_extensions.emplace_back(
-        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
-    );
-
-    for(auto const& extension : _enabled_extensions) {
-        BTX_TRACE("Requesting instance extension '{}'", extension);
-    }
 }
 
 // =============================================================================
-bool vkInstance::_check_extensions(Extensions const &supported_extensions) {
+bool vkInstance::_check_layers() {
+    auto const layers = vk::enumerateInstanceLayerProperties();
+    BTX_TRACE("Found {} instance layers.", layers.size());
+
+    bool all_layers_supported = true;
+    for(auto const * const layer_name : _enabled_layers) {
+        BTX_TRACE("Requesting instance layer '{}'", layer_name);
+
+        bool layer_found = false;
+        for(auto const &layer : layers) {
+            if(std::strcmp(layer_name, layer.layerName) == 0) {
+                layer_found = true;
+                break;
+            }
+        }
+
+        if(!layer_found) {
+            BTX_WARN("No support for instance extension '{}'", layer_name);
+            all_layers_supported = false;
+        }
+    }
+
+    return all_layers_supported;
+}
+
+// =============================================================================
+bool vkInstance::_check_extensions() {
+    auto const extensions = vk::enumerateInstanceExtensionProperties();
+    BTX_TRACE("Found {} instance extensions.", extensions.size());
+
     bool all_extensions_supported = true;
-
     for(auto const * const ext_name : _enabled_extensions) {
-        bool extension_found = false;
+        BTX_TRACE("Requesting instance extension '{}'", ext_name);
 
-        for(auto const &extension : supported_extensions) {
+        bool extension_found = false;
+        for(auto const &extension : extensions) {
             if(std::strcmp(ext_name, extension.extensionName) == 0) {
                 extension_found = true;
                 break;
             }
         }
+
         if(!extension_found) {
             BTX_WARN("No support for instance extension '{}'", ext_name);
             all_extensions_supported = false;

@@ -323,7 +323,8 @@ void vkImage::_allocate(vk::MemoryPropertyFlags const memory_flags) {
 uint32_t vkImage::_memory_type_index(vk::MemoryPropertyFlags const flags,
                                      vk::MemoryRequirements const reqs)
 {
-    auto const &memory_props = RenderConfig::current_device->memory;
+    auto const &device = *RenderConfig::current_device->device;
+    auto const &memory_props = device.native().getMemoryProperties();
     auto const type_count = memory_props.memoryTypeCount;
 
     // This bit-rithmetic bears some explanation. We're checking two bit fields

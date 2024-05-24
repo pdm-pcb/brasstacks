@@ -8,75 +8,260 @@
 namespace btx {
 
 // =============================================================================
-void vkPhysicalDevice::select(vkSurface     const &surface,
-                              FeatureList   const &required_features,
-                              ExtensionList const &required_extensions)
-
+void vkPhysicalDevice::populate_device_list(
+    vkSurface const &surface,
+    vk::PhysicalDeviceFeatures const &features,
+    std::span<char const * const> const extensions)
 {
-    // Populate a list of devices we can choose from and sort by "performance"
-    _enumerate_and_sort(vkInstance::native());
-
-    for(auto &device : RenderConfig::available_devices) {
-        // Check that the card supports receiving graphics and presentation
-        // commands on the same queue family. Most consumer GPUs will support
-        // this on index zero.
-        if(!_check_queue_families(device, surface)) {
-            BTX_WARN("Skipping {}", device.name);
-            continue;
-        }
-        BTX_TRACE("Queue index {} supports graphics and present commands.",
-                  device.graphics_queue_index);
-
-        // Check that the card supports all the features passed in
-        if(!_check_features(device, required_features)) {
-            BTX_WARN("Skipping {}", device.name);
-            continue;
-        }
-        BTX_TRACE("Found {} required feature{}.",
-                  required_features.size(),
-                  (required_features.size() == 1 ? '\0' : 's'));
-
-        // Check that the card supports all the extensions passed in
-        if(!_check_extensions(device, required_extensions)) {
-            BTX_WARN("Skipping {}", device.name);
-            continue;
-        }
-        BTX_TRACE("Found {} required physical device extension{}.",
-                  required_extensions.size(),
-                  (required_extensions.size() == 1 ? '\0' : 's'));
+    if(!RenderConfig::available_devices.empty()) {
+        BTX_CRITICAL("Already populated physical device list");
+        return;
     }
+
+    // Ask the instance for a list of devices
+    auto const devices = vkInstance::native().enumeratePhysicalDevices();
+
+    BTX_TRACE("Found {} {}", devices.size(),
+              (devices.size() == 1 ? "device" : "devices"));
+
+    for(auto const &device : devices) {
+        auto *device_candidate = new vkPhysicalDevice(device);
+
+        if(!device_candidate->check_queue_families(surface)) {
+            delete device_candidate;
+            continue;
+        }
+
+        if(!device_candidate->check_features(features)) {
+            delete device_candidate;
+            continue;
+        }
+
+        if(!device_candidate->check_extensions(extensions)) {
+            delete device_candidate;
+            continue;
+        }
+
+        RenderConfig::available_devices.emplace_back(
+            RenderConfig::SelectedDevice {
+            .device = device_candidate,
+            .selected = false
+        });
+    }
+
+    if(RenderConfig::available_devices.empty()) {
+        BTX_CRITICAL("Could not find suitable physical device.");
+        return;
+    }
+
+    // Sort remaining devices by "performance"
+    _sort_device_list();
 
     RenderConfig::current_device = &RenderConfig::available_devices.front();
     RenderConfig::current_device->selected = true;
-    BTX_INFO("Selected {}", RenderConfig::current_device->name);
+    BTX_INFO("Selected {}", RenderConfig::current_device->device->name());
 
-    get_msaa_levels();
-    get_aniso_levels();
+    set_msaa_levels();
+    set_aniso_levels();
 }
 
 // =============================================================================
-void vkPhysicalDevice::get_msaa_levels() {
+void vkPhysicalDevice::clear_device_list() {
+    for(auto &device : RenderConfig::available_devices) {
+        delete device.device;
+        device.device = nullptr;
+    }
+}
+
+// =============================================================================
+vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const &handle) :
+    _handle               { handle },
+    _enabled_features     { },
+    _enabled_extensions   { },
+    _samples   { vk::SampleCountFlagBits::e1 },
+    _max_aniso { 0.0f }
+{
+    // Retrieve the basic properties of the card
+    auto const &device_props = _handle.getProperties();
+    _type = device_props.deviceType;
+    _name = std::string(device_props.deviceName.data());
+    _vkapi_version = fmt::format(
+        "{}.{}.{}",
+        VK_API_VERSION_MAJOR(device_props.apiVersion),
+        VK_API_VERSION_MINOR(device_props.apiVersion),
+        VK_API_VERSION_PATCH(device_props.apiVersion)
+    );
+
+    _samples = device_props.limits.framebufferColorSampleCounts;
+    _max_aniso = device_props.limits.maxSamplerAnisotropy;
+
+    // Pulling the VRAM count from here
+    auto const &memory_props = _handle.getMemoryProperties();
+    size_t vram_bytes = 0u;
+    for(uint32_t index = 0u; index < memory_props.memoryHeapCount; ++index) {
+        auto const flags = memory_props.memoryHeaps[index].flags;
+
+        if((flags & vk::MemoryHeapFlagBits::eDeviceLocal) == flags) {
+            vram_bytes = memory_props.memoryHeaps[index].size;
+            break;
+        }
+    }
+    _vram_bytes = vram_bytes;
+
+    // And the driver version from here
+    vk::PhysicalDeviceDriverProperties driver_props { };
+    vk::PhysicalDeviceProperties2 physical_props2 {
+        .pNext = &driver_props
+    };
+    _handle.getProperties2(&physical_props2);
+
+    _driver_version = std::string(driver_props.driverInfo.data());
+
+    BTX_TRACE(
+        "\n"
+        "\tDevice Name:    {}\n"
+        "\tDevice Type:    {}\n"
+        "\tVRAM:           {} MB\n"
+        "\tDriver Version: {}\n"
+        "\tVulkan Version: {}\n",
+        _name,
+        vk::to_string(_type),
+        _vram_bytes / 1000 / 1000,
+        _driver_version,
+        _vkapi_version
+    );
+}
+
+// =============================================================================
+bool vkPhysicalDevice::check_queue_families(vkSurface const &surface) {
+    auto const &families = _handle.getQueueFamilyProperties();
+    BTX_TRACE("Found {} queue families for {}", families.size(), _name);
+
+    for(uint32_t i = 0u; i < families.size(); ++i) {
+        _print_family_flags(i, families[i].queueFlags);
+    }
+
+    bool found_unified_family = false;
+    for(uint32_t i = 0u; i < families.size(); ++i) {
+        // The first check is if this queue family supports graphics commands
+        if(families[i].queueFlags & vk::QueueFlagBits::eGraphics) {
+            auto const present_support =
+                _handle.getSurfaceSupportKHR(i, surface.native());
+
+            // And the second is if this device can present on the surface
+            // we've been given
+            if(present_support == VK_TRUE) {
+                found_unified_family = true;
+                _queue_family_index = i;
+
+                BTX_TRACE("{} queue family index {} supports graphics and "
+                          "present.",
+                          _name, _queue_family_index);
+
+                break;
+            }
+        }
+    }
+
+    if(!found_unified_family) {
+        BTX_WARN("{} doesn't support a unified graphics and present queue.",
+                 _name);
+    }
+
+    return found_unified_family;
+}
+
+// =============================================================================
+bool vkPhysicalDevice::check_features(
+    vk::PhysicalDeviceFeatures const &features)
+{
+    // Grab the supported features struct
+    auto const &supported_features = _handle.getFeatures();
+
+    bool all_features_supported = true;
+
+    // Check the features we care about
+    if(features.samplerAnisotropy && supported_features.samplerAnisotropy) {
+        BTX_TRACE("{} supports samplerAnisotropy.", _name);
+        _enabled_features.fillModeNonSolid = VK_TRUE;
+    }
+    else if(features.samplerAnisotropy) {
+        BTX_WARN("{} does not samplerAnisotropy.", _name);
+        all_features_supported = false;
+    }
+
+    if(features.fillModeNonSolid && supported_features.fillModeNonSolid) {
+        BTX_TRACE("{} supports fillModeNonSolid.", _name);
+        _enabled_features.samplerAnisotropy = VK_TRUE;
+    }
+    else if(features.fillModeNonSolid) {
+        BTX_WARN("{} does not support fillModeNonSolid.", _name);
+        all_features_supported = false;
+    }
+
+    return all_features_supported;
+}
+
+// =============================================================================
+bool
+vkPhysicalDevice::check_extensions(std::span<char const * const> extensions) {
+    // Get the list of supported extensions
+    auto const supported_extensions =
+        _handle.enumerateDeviceExtensionProperties();
+
+    BTX_TRACE("Found {} extensions for {}", supported_extensions.size(),
+                                            _name);
+
+    // Run through the required list and the supported list to make sure the
+    // latter contains all of the former
+    bool all_extensions_supported = true;
+    for(char const * const required : extensions) {
+        bool extension_found = false;
+
+        for(auto const &supported : supported_extensions) {
+            if(::strcmp(required, supported.extensionName) == 0) {
+                _enabled_extensions.push_back(supported);
+                extension_found = true;
+                BTX_TRACE("{} supports '{}'", _name, required);
+                break;
+            }
+        }
+
+        if(extension_found == false) {
+            BTX_WARN("{} does not support '{}'", _name, required);
+            all_extensions_supported = false;
+        }
+    }
+
+    return all_extensions_supported;
+}
+
+// =============================================================================
+void vkPhysicalDevice::set_msaa_levels() {
+    auto const &device = *RenderConfig::current_device->device;
+    auto const &samples = device.samples();
+
     RenderConfig::available_msaa.clear();
 
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e64) {
+    if(samples & vk::SampleCountFlagBits::e64) {
         RenderConfig::available_msaa.push_back({ 64u, false });
     }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e32) {
+    if(samples & vk::SampleCountFlagBits::e32) {
         RenderConfig::available_msaa.push_back({ 32u, false });
     }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e16) {
+    if(samples & vk::SampleCountFlagBits::e16) {
         RenderConfig::available_msaa.push_back({ 16u, false });
     }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e8) {
+    if(samples & vk::SampleCountFlagBits::e8) {
         RenderConfig::available_msaa.push_back({ 8u, false});
     }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e4) {
+    if(samples & vk::SampleCountFlagBits::e4) {
         RenderConfig::available_msaa.push_back({ 4u, false });
     }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e2) {
+    if(samples & vk::SampleCountFlagBits::e2) {
         RenderConfig::available_msaa.push_back({ 2u, false });
     }
-    if(RenderConfig::current_device->max_samples & vk::SampleCountFlagBits::e1) {
+    if(samples & vk::SampleCountFlagBits::e1) {
         RenderConfig::available_msaa.push_back({ 1u, false });
     }
 
@@ -85,11 +270,11 @@ void vkPhysicalDevice::get_msaa_levels() {
 }
 
 // =============================================================================
-void vkPhysicalDevice::get_aniso_levels() {
-    RenderConfig::available_aniso.clear();
+void vkPhysicalDevice::set_aniso_levels() {
+    auto const &device = *RenderConfig::current_device->device;
+    auto aniso_level = static_cast<uint8_t>(device.max_aniso());
 
-    auto aniso_level =
-        static_cast<uint8_t>(RenderConfig::current_device->max_aniso);
+    RenderConfig::available_aniso.clear();
 
     while(aniso_level >= 1u) {
         RenderConfig::available_aniso.push_back({ aniso_level, false });
@@ -103,243 +288,28 @@ void vkPhysicalDevice::get_aniso_levels() {
 }
 
 // =============================================================================
-void vkPhysicalDevice::_enumerate_and_sort(vk::Instance const &instance) {
-    // Populate the list of physical devices
-    auto const devices = instance.enumeratePhysicalDevices();
-
-    BTX_TRACE("Found {} {}", devices.size(),
-              (devices.size() == 1 ? "device" : "devices"));
-
-    for(auto const &device : devices) {
-        // Add the device and details to our list of cards to choose from
-        _store_device(device);
-    }
-
+void vkPhysicalDevice::_sort_device_list() {
     // Sort the available devices by VRAM, favoring discrete GPUs
     std::sort(RenderConfig::available_devices.begin(),
               RenderConfig::available_devices.end(),
-        [&](const RenderConfig::DeviceProps &dev_a,
-            const RenderConfig::DeviceProps &dev_b)
-        {
-            if(dev_a.type == vk::PhysicalDeviceType::eDiscreteGpu &&
-               dev_b.type != vk::PhysicalDeviceType::eDiscreteGpu)
+        [&](auto const &a, auto const &b) {
+            if(a.device->type() == vk::PhysicalDeviceType::eDiscreteGpu &&
+               b.device->type() != vk::PhysicalDeviceType::eDiscreteGpu)
             {
                 return true;
             }
 
-            if((dev_a.type == vk::PhysicalDeviceType::eDiscreteGpu &&
-                dev_b.type == vk::PhysicalDeviceType::eDiscreteGpu) ||
-            (dev_a.type == vk::PhysicalDeviceType::eIntegratedGpu &&
-                dev_b.type == vk::PhysicalDeviceType::eIntegratedGpu))
+            if((a.device->type() == vk::PhysicalDeviceType::eDiscreteGpu &&
+                b.device->type() == vk::PhysicalDeviceType::eDiscreteGpu) ||
+               (a.device->type() == vk::PhysicalDeviceType::eIntegratedGpu &&
+                b.device->type() == vk::PhysicalDeviceType::eIntegratedGpu))
             {
-                return dev_a.vram_bytes > dev_b.vram_bytes;
+                return a.device->vram_bytes() > b.device->vram_bytes();
             }
 
             return false;
         }
     );
-
-    // Print the sorted list of cards
-    for(auto const &properties : RenderConfig::available_devices) {
-        BTX_TRACE(
-            "\n"
-            "\tDevice Name:    {}\n"
-            "\tDevice Type:    {}\n"
-            "\tVRAM:           {} MB\n"
-            "\tDriver Version: {}\n"
-            "\tVulkan Version: {}\n",
-            properties.name,
-            vk::to_string(properties.type),
-            properties.vram_bytes / 1000 / 1000,
-            properties.driver_version,
-            properties.vkapi_version
-        );
-    }
-}
-
-// =============================================================================
-bool vkPhysicalDevice::_check_queue_families(RenderConfig::DeviceProps &device,
-                                             vkSurface const &surface)
-{
-    bool found_unified_family = false;
-
-    auto const &families = device.handle.getQueueFamilyProperties();
-    BTX_TRACE("Found {} queue families for {}", families.size(), device.name);
-
-    for(uint32_t i = 0u; i < families.size(); ++i) {
-        _print_family_flags(i, families[i].queueFlags);
-    }
-
-    for(uint32_t i = 0u; i < families.size(); ++i) {
-        // The first check is if this queue family supports graphics commands
-        if(families[i].queueFlags & vk::QueueFlagBits::eGraphics) {
-            auto const present_support =
-                device.handle.getSurfaceSupportKHR(i, surface.native());
-
-            // And the second is if this device can present on the surface
-            // we've been given
-            if(present_support == VK_TRUE) {
-                found_unified_family = true;
-                device.graphics_queue_index = i;
-                break;
-            }
-        }
-    }
-
-    return found_unified_family;
-}
-
-// =============================================================================
-bool vkPhysicalDevice::_check_features(RenderConfig::DeviceProps &device,
-                                       FeatureList const &required_features)
-{
-    bool all_features_supported = true;
-
-    // Grab the supported features struct
-    auto const &supported_features = device.handle.getFeatures();
-
-    // And run through our required features. The supported features struct is
-    // just a bunch of boolean values, so we have to add an explicit block to
-    // check each one we're interested in.
-    for(auto const &feature : required_features) {
-        if(feature == Features::FILL_MODE_NONSOLID) {
-            if(supported_features.fillModeNonSolid != VK_TRUE) {
-                BTX_WARN("{} does not support non-solid fill mode.",
-                         device.name);
-
-                all_features_supported = false;
-                break;
-            }
-
-            BTX_TRACE("{} supports non-solid fill mode.", device.name);
-            device.enabled_features.fillModeNonSolid = VK_TRUE;
-        }
-        else if(feature == Features::SAMPLER_ANISOTROPY) {
-            if(supported_features.samplerAnisotropy != VK_TRUE) {
-                BTX_WARN("{} does not support sampler anisotropy.",
-                         device.name);
-
-                all_features_supported = false;
-                break;
-            }
-
-            BTX_TRACE("{} supports sampler anisotropy", device.name);
-            device.enabled_features.samplerAnisotropy = VK_TRUE;
-        }
-        else {
-            BTX_CRITICAL("Unknown physical device feature requested.");
-            all_features_supported = false;
-            break;
-        }
-    }
-
-    return all_features_supported;
-}
-
-// =============================================================================
-bool
-vkPhysicalDevice::_check_extensions(RenderConfig::DeviceProps &device,
-                                    ExtensionList const &required_extensions)
-{
-    bool all_extensions_supported = true;
-
-    // Get the list of supported extensions
-    auto const supported_extensions =
-        device.handle.enumerateDeviceExtensionProperties();
-
-    BTX_TRACE("Found {} extensions for {}", supported_extensions.size(),
-                                            device.name);
-
-    // Run through the required list and the supported list to make sure the
-    // latter contains all of the former
-    for(auto const required : required_extensions) {
-        bool extension_found = false;
-
-        for(auto const &supported : supported_extensions) {
-            if(::strcmp(required.data(), supported.extensionName) == 0) {
-                device.enabled_extensions.push_back(required.data());
-                extension_found = true;
-                BTX_TRACE("{} supports '{}'", device.name, required);
-                break;
-            }
-        }
-
-        if(extension_found == false) {
-            BTX_WARN("{} does not support '{}'", device.name, required);
-            all_extensions_supported = false;
-        }
-    }
-
-    return all_extensions_supported;
-}
-
-// =============================================================================
-void vkPhysicalDevice::_store_device(vk::PhysicalDevice const &device) {
-    // Retrieve the basic properties of the card
-    auto const &device_props = device.getProperties();
-
-    // We'll pull the VRAM amount from here
-    auto const &memory_props = device.getMemoryProperties();
-
-    // And the driver version from here
-    vk::PhysicalDeviceDriverProperties driver_props { };
-    vk::PhysicalDeviceProperties2KHR physical_props2 {
-        .pNext = &driver_props
-    };
-    device.getProperties2(&physical_props2);
-
-    // Time to start filling things in
-    RenderConfig::available_devices.emplace_back(
-        RenderConfig::DeviceProps {
-            .handle = device,
-            .memory = memory_props,
-            .type = device_props.deviceType,
-        }
-    );
-    auto &store = RenderConfig::available_devices.back();
-
-    vk::DeviceSize vram_bytes = 0;
-    for(uint32_t index = 0u; index < memory_props.memoryHeapCount; ++index) {
-        auto const flags = memory_props.memoryHeaps[index].flags;
-
-        if((flags & vk::MemoryHeapFlagBits::eDeviceLocal) == flags) {
-            vram_bytes = memory_props.memoryHeaps[index].size;
-            break;
-        }
-    }
-    store.vram_bytes = vram_bytes;
-
-    store.name = std::string(device_props.deviceName.data());
-    store.driver_version = std::string(driver_props.driverInfo.data());
-    store.vkapi_version = fmt::format(
-        "{}.{}.{}",
-        VK_API_VERSION_MAJOR(device_props.apiVersion),
-        VK_API_VERSION_MINOR(device_props.apiVersion),
-        VK_API_VERSION_PATCH(device_props.apiVersion)
-    );
-
-    auto const sample_counts = device_props.limits.framebufferColorSampleCounts;
-    if(sample_counts & vk::SampleCountFlagBits::e64) {
-        store.max_samples = vk::SampleCountFlagBits::e64;
-    }
-    else if(sample_counts & vk::SampleCountFlagBits::e32) {
-        store.max_samples = vk::SampleCountFlagBits::e32;
-    }
-    else if(sample_counts & vk::SampleCountFlagBits::e16) {
-        store.max_samples = vk::SampleCountFlagBits::e16;
-    }
-    else if(sample_counts & vk::SampleCountFlagBits::e8) {
-        store.max_samples = vk::SampleCountFlagBits::e8;
-    }
-    else if(sample_counts & vk::SampleCountFlagBits::e4) {
-        store.max_samples = vk::SampleCountFlagBits::e4;
-    }
-    else if(sample_counts & vk::SampleCountFlagBits::e2) {
-        store.max_samples = vk::SampleCountFlagBits::e2;
-    }
-
-    store.max_samples = device_props.limits.framebufferColorSampleCounts;
-    store.max_aniso = device_props.limits.maxSamplerAnisotropy;
 }
 
 // =============================================================================

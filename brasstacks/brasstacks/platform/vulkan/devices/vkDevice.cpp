@@ -44,18 +44,28 @@ void vkDevice::create() {
     // We only need one device queue, so only need to specify one priority
     float const queue_priorities[] = { 1.0f };
 
+    auto const &device = *RenderConfig::current_device->device;
+
     // Populate the device queue create struct
     vk::DeviceQueueCreateInfo const queue_info[] {{
         .pNext = nullptr,
         .flags = { },
-        .queueFamilyIndex = RenderConfig::current_device->graphics_queue_index,
+        .queueFamilyIndex = device.queue_family_index(),
         .queueCount = static_cast<uint32_t>(std::size(queue_priorities)),
         .pQueuePriorities = queue_priorities,
     }};
 
     // The logical device wants to know what the physical device has enabled
-    auto const &extensions = RenderConfig::current_device->enabled_extensions;
-    auto const *features = &(RenderConfig::current_device->enabled_features);
+    auto const &enabled_extensions = device.enabled_extensions();
+
+    std::vector<char const *> extensions;
+    extensions.reserve(enabled_extensions.size());
+
+    for(auto const &extension : enabled_extensions) {
+        extensions.emplace_back(extension.extensionName);
+    }
+
+    auto const *features = &(device.enabled_features());
 
     // Enable dynamic rendering
     vk::PhysicalDeviceDynamicRenderingFeaturesKHR const dr_feature {
@@ -74,7 +84,7 @@ void vkDevice::create() {
     };
 
     // And try to create it
-    auto const result = RenderConfig::current_device->handle.createDevice(
+    auto const result = device.native().createDevice(
         &device_create_info,   // Create info
         nullptr,        // Allocator
         &_handle        // Destination handle
@@ -89,14 +99,14 @@ void vkDevice::create() {
 
     BTX_TRACE("Created logical device {}", _handle);
 
-    auto const index = RenderConfig::current_device->graphics_queue_index;
     // Set up the queue abstraction
-    _graphics_queue->set_family_index(index);
+    _graphics_queue->set_family_index(device.queue_family_index());
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-    _transient_pool->create(index, vk::CommandPoolCreateFlagBits::eTransient);
+    _transient_pool->create(_graphics_queue->family_index(),
+                            vk::CommandPoolCreateFlagBits::eTransient);
 }
 
 // =============================================================================
