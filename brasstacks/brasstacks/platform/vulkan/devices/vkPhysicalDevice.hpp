@@ -17,7 +17,7 @@ class vkPhysicalDevice final {
 public:
     static void populate_device_list(
         vkSurface const &surface,
-        vk::PhysicalDeviceFeatures const &features,
+        vk::PhysicalDeviceFeatures2 const &features,
         std::span<char const * const> const extensions);
 
     static void clear_device_list();
@@ -29,19 +29,13 @@ public:
 
     vkPhysicalDevice() = delete;
 
-    bool check_queue_families(vkSurface const &surface);
-    bool check_features(vk::PhysicalDeviceFeatures const &features);
-    bool check_extensions(std::span<char const * const> extensions);
-
-    auto native() const { return _handle; }
-    std::string_view const name() const { return _name; }
-    auto type() const { return _type; }
-    auto vram_bytes() const { return _vram_bytes; }
-    auto queue_family_index() const { return _queue_family_index; }
-    auto const & enabled_features() const { return _enabled_features; }
-    std::span<vk::ExtensionProperties const> const enabled_extensions() const {
-        return _enabled_extensions;
-    }
+    inline auto native() const { return _handle; }
+    inline std::string_view const name() const { return _name; }
+    inline auto type() const { return _type; }
+    inline auto vram_bytes() const { return _vram_bytes; }
+    inline auto queue_family_index() const { return _queue_family_index; }
+    inline auto & enabled_features() { return _enabled_features; }
+    inline auto enabled_extensions() const { return _enabled_extensions; }
 
     auto const & samples() const { return _samples; }
     auto max_aniso() const { return _max_aniso; }
@@ -63,7 +57,9 @@ private:
 
     uint32_t    _queue_family_index;
 
-    vk::PhysicalDeviceFeatures           _enabled_features;
+    vk::PhysicalDeviceFeatures2          _enabled_features;
+    vk::PhysicalDeviceVulkan11Features   _enabled_features11;
+    vk::PhysicalDeviceVulkan12Features   _enabled_features12;
     std::vector<vk::ExtensionProperties> _enabled_extensions;
 
     vk::SampleCountFlags _samples;
@@ -73,6 +69,10 @@ private:
 
     static void _print_family_flags(uint32_t const family,
                                     vk::QueueFlags const flags);
+
+    bool _check_queue_families(vkSurface const &surface);
+    bool _check_features(vk::PhysicalDeviceFeatures2 const &features);
+    bool _check_extensions(std::span<char const * const> extensions);
 };
 
 } // namespace btx

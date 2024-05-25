@@ -44,7 +44,7 @@ void vkDevice::create() {
     // We only need one device queue, so only need to specify one priority
     float const queue_priorities[] = { 1.0f };
 
-    auto const &device = *RenderConfig::current_device->device;
+    auto &device = *RenderConfig::current_device->device;
 
     // Populate the device queue create struct
     vk::DeviceQueueCreateInfo const queue_info[] {{
@@ -56,6 +56,15 @@ void vkDevice::create() {
     }};
 
     // The logical device wants to know what the physical device has enabled
+    auto *features = &(device.enabled_features());
+
+    // Enable dynamic rendering features
+    auto dr_features = vk::PhysicalDeviceDynamicRenderingFeaturesKHR {
+        .pNext = features,
+        .dynamicRendering = VK_TRUE,
+    };
+
+    // End extensions
     auto const &enabled_extensions = device.enabled_extensions();
 
     std::vector<char const *> extensions;
@@ -65,22 +74,15 @@ void vkDevice::create() {
         extensions.emplace_back(extension.extensionName);
     }
 
-    auto const *features = &(device.enabled_features());
-
-    // Enable dynamic rendering
-    vk::PhysicalDeviceDynamicRenderingFeaturesKHR const dr_feature {
-        .dynamicRendering = VK_TRUE,
-    };
-
     // Now populate the device's create struct
     vk::DeviceCreateInfo const device_create_info {
-        .pNext                   = &dr_feature,
+        .pNext                   = &dr_features,
         .flags                   = { },
         .queueCreateInfoCount    = static_cast<uint32_t>(std::size(queue_info)),
         .pQueueCreateInfos       = queue_info,
         .enabledExtensionCount   = static_cast<uint32_t>(extensions.size()),
         .ppEnabledExtensionNames = extensions.data(),
-        .pEnabledFeatures        = features,
+        .pEnabledFeatures        = nullptr,
     };
 
     // And try to create it

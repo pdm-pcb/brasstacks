@@ -8,7 +8,6 @@ namespace btx {
 class vkDescriptorPool;
 class vkDescriptorSetLayout;
 
-class vkBuffer;
 class vmaBuffer;
 
 class vkImage;
@@ -25,9 +24,6 @@ public:
 
     void allocate(vkDescriptorPool const &pool,
                   vkDescriptorSetLayout const &layout);
-
-    vkDescriptorSet & add_buffer(vkBuffer const &buffer,
-                                 vk::DescriptorType const type);
 
     vkDescriptorSet & add_buffer(vmaBuffer const &buffer,
                                  vk::DescriptorType const type);

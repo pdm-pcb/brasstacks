@@ -24,8 +24,8 @@ namespace btx {
 
 Application *Renderer::_application { nullptr };
 
-vkSurface   *Renderer::_surface   { nullptr };
-vkDevice     Renderer::_device    { };
+vkSurface *Renderer::_surface { nullptr };
+vkDevice   Renderer::_device  { };
 
 vkDescriptorPool *Renderer::_descriptor_pool { nullptr };
 
@@ -310,14 +310,27 @@ void Renderer::_populate_physical_devices() {
         return;
     }
 
-    auto features = vk::PhysicalDeviceFeatures { };
-    features.samplerAnisotropy = VK_TRUE;
-    features.fillModeNonSolid = VK_TRUE;
+    auto features12 = vk::PhysicalDeviceVulkan12Features {
+        .pNext = nullptr,
+        .bufferDeviceAddress = VK_TRUE,
+    };
 
-    std::array<char const *, 3> const extensions {{
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-            VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
-            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+    auto features11 = vk::PhysicalDeviceVulkan11Features {
+        .pNext = &features12,
+    };
+
+    auto features = vk::PhysicalDeviceFeatures2 {
+        .pNext = &features11,
+        .features {
+            .fillModeNonSolid = VK_TRUE,
+            .samplerAnisotropy = VK_TRUE,
+        }
+    };
+
+    std::vector<char const *> const extensions {{
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+        VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
     }};
 
     vkPhysicalDevice::populate_device_list(*_surface, features, extensions);

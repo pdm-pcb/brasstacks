@@ -13,41 +13,18 @@ namespace btx {
 class vkQueue;
 class vkCmdBufferPool;
 
-/**
- * @brief A class wrapping the Vulkan concept of a logical device
- *
- * This is a simple class given the simple use case for Vulkan's various
- * devices. While vkPhysicalDevice provides its features and extensions,
- * vkDevice is only worried about layers and its vkQueue.
- */
 class vkDevice final {
 public:
     vkDevice();
     ~vkDevice();
 
-    /**
-     * @brief Create the vkDevice object.
-     */
     void create();
     void destroy();
 
-    /**
-     * @brief Convenience wrapper for waiting on device idle
-     */
     void wait_idle() const;
 
-    /**
-     * @brief Return the native Vulkan device handle
-     * @return vk::Device const&
-     */
     inline auto const & native() const { return _handle; }
-
-    /**
-     * @brief Return the device queue
-     * @return vkQueue const&
-     */
-    inline auto const & graphics_queue()  const { return *_graphics_queue; }
-
+    inline auto const & graphics_queue() const { return *_graphics_queue; }
     inline auto const & transient_pool() const { return *_transient_pool; }
 
     vkDevice(vkDevice &&) = delete;

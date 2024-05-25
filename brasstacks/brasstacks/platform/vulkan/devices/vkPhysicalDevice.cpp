@@ -10,7 +10,7 @@ namespace btx {
 // =============================================================================
 void vkPhysicalDevice::populate_device_list(
     vkSurface const &surface,
-    vk::PhysicalDeviceFeatures const &features,
+    vk::PhysicalDeviceFeatures2 const &features,
     std::span<char const * const> const extensions)
 {
     if(!RenderConfig::available_devices.empty()) {
@@ -24,20 +24,21 @@ void vkPhysicalDevice::populate_device_list(
     BTX_TRACE("Found {} {}", devices.size(),
               (devices.size() == 1 ? "device" : "devices"));
 
+    // Run through the devices, and only store ones that have what we need
     for(auto const &device : devices) {
         auto *device_candidate = new vkPhysicalDevice(device);
 
-        if(!device_candidate->check_queue_families(surface)) {
+        if(!device_candidate->_check_queue_families(surface)) {
             delete device_candidate;
             continue;
         }
 
-        if(!device_candidate->check_features(features)) {
+        if(!device_candidate->_check_features(features)) {
             delete device_candidate;
             continue;
         }
 
-        if(!device_candidate->check_extensions(extensions)) {
+        if(!device_candidate->_check_extensions(extensions)) {
             delete device_candidate;
             continue;
         }
@@ -76,7 +77,9 @@ void vkPhysicalDevice::clear_device_list() {
 // =============================================================================
 vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const &handle) :
     _handle               { handle },
-    _enabled_features     { },
+    _enabled_features    { },
+    _enabled_features11   { },
+    _enabled_features12   { },
     _enabled_extensions   { },
     _samples   { vk::SampleCountFlagBits::e1 },
     _max_aniso { 0.0f }
@@ -117,6 +120,11 @@ vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const &handle) :
 
     _driver_version = std::string(driver_props.driverInfo.data());
 
+    // Set up the features structure chain
+    _enabled_features12.pNext = nullptr;
+    _enabled_features11.pNext = &_enabled_features12;
+    _enabled_features.pNext   = &_enabled_features11;
+
     BTX_TRACE(
         "\n"
         "\tDevice Name:    {}\n"
@@ -130,110 +138,6 @@ vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const &handle) :
         _driver_version,
         _vkapi_version
     );
-}
-
-// =============================================================================
-bool vkPhysicalDevice::check_queue_families(vkSurface const &surface) {
-    auto const &families = _handle.getQueueFamilyProperties();
-    BTX_TRACE("Found {} queue families for {}", families.size(), _name);
-
-    for(uint32_t i = 0u; i < families.size(); ++i) {
-        _print_family_flags(i, families[i].queueFlags);
-    }
-
-    bool found_unified_family = false;
-    for(uint32_t i = 0u; i < families.size(); ++i) {
-        // The first check is if this queue family supports graphics commands
-        if(families[i].queueFlags & vk::QueueFlagBits::eGraphics) {
-            auto const present_support =
-                _handle.getSurfaceSupportKHR(i, surface.native());
-
-            // And the second is if this device can present on the surface
-            // we've been given
-            if(present_support == VK_TRUE) {
-                found_unified_family = true;
-                _queue_family_index = i;
-
-                BTX_TRACE("{} queue family index {} supports graphics and "
-                          "present.",
-                          _name, _queue_family_index);
-
-                break;
-            }
-        }
-    }
-
-    if(!found_unified_family) {
-        BTX_WARN("{} doesn't support a unified graphics and present queue.",
-                 _name);
-    }
-
-    return found_unified_family;
-}
-
-// =============================================================================
-bool vkPhysicalDevice::check_features(
-    vk::PhysicalDeviceFeatures const &features)
-{
-    // Grab the supported features struct
-    auto const &supported_features = _handle.getFeatures();
-
-    bool all_features_supported = true;
-
-    // Check the features we care about
-    if(features.samplerAnisotropy && supported_features.samplerAnisotropy) {
-        BTX_TRACE("{} supports samplerAnisotropy.", _name);
-        _enabled_features.fillModeNonSolid = VK_TRUE;
-    }
-    else if(features.samplerAnisotropy) {
-        BTX_WARN("{} does not samplerAnisotropy.", _name);
-        all_features_supported = false;
-    }
-
-    if(features.fillModeNonSolid && supported_features.fillModeNonSolid) {
-        BTX_TRACE("{} supports fillModeNonSolid.", _name);
-        _enabled_features.samplerAnisotropy = VK_TRUE;
-    }
-    else if(features.fillModeNonSolid) {
-        BTX_WARN("{} does not support fillModeNonSolid.", _name);
-        all_features_supported = false;
-    }
-
-    return all_features_supported;
-}
-
-// =============================================================================
-bool
-vkPhysicalDevice::check_extensions(std::span<char const * const> extensions) {
-    // Get the list of supported extensions
-    auto const supported_extensions =
-        _handle.enumerateDeviceExtensionProperties();
-
-    BTX_TRACE("Found {} extensions for {}", supported_extensions.size(),
-                                            _name);
-
-    // Run through the required list and the supported list to make sure the
-    // latter contains all of the former
-    bool all_extensions_supported = true;
-    for(char const * const required : extensions) {
-        bool extension_found = false;
-
-        for(auto const &supported : supported_extensions) {
-            if(::strcmp(required, supported.extensionName) == 0) {
-                _enabled_extensions.push_back(supported);
-                extension_found = true;
-                BTX_TRACE("{} supports '{}'", _name, required);
-                break;
-            }
-        }
-
-        if(extension_found == false) {
-            BTX_WARN("{} does not support '{}'", _name, required);
-            all_extensions_supported = false;
-        }
-    }
-
-    return all_extensions_supported;
 }
 
 // =============================================================================
@@ -358,6 +262,139 @@ void vkPhysicalDevice::_print_family_flags(uint32_t const family,
 #endif // VK_NV_optical_flow
 
     BTX_TRACE("  {}", flags_str);
+}
+
+// =============================================================================
+bool vkPhysicalDevice::_check_queue_families(vkSurface const &surface) {
+    auto const &families = _handle.getQueueFamilyProperties();
+    BTX_TRACE("Found {} queue families for {}", families.size(), _name);
+
+    for(uint32_t i = 0u; i < families.size(); ++i) {
+        _print_family_flags(i, families[i].queueFlags);
+    }
+
+    bool found_unified_family = false;
+    for(uint32_t i = 0u; i < families.size(); ++i) {
+        // The first check is if this queue family supports graphics commands
+        if(families[i].queueFlags & vk::QueueFlagBits::eGraphics) {
+            auto const present_support =
+                _handle.getSurfaceSupportKHR(i, surface.native());
+
+            // And the second is if this device can present on the surface
+            // we've been given
+            if(present_support == VK_TRUE) {
+                found_unified_family = true;
+                _queue_family_index = i;
+
+                BTX_TRACE("{} queue family index {} supports graphics and "
+                          "present.",
+                          _name, _queue_family_index);
+
+                break;
+            }
+        }
+    }
+
+    if(!found_unified_family) {
+        BTX_WARN("{} doesn't support a unified graphics and present queue.",
+                 _name);
+    }
+
+    return found_unified_family;
+}
+
+// =============================================================================
+bool
+vkPhysicalDevice::_check_features(vk::PhysicalDeviceFeatures2 const &features)
+{
+    // First, pull the required features structs out for easier comparison
+    auto const &features11 =
+        *(static_cast<vk::PhysicalDeviceVulkan11Features *>(features.pNext));
+    auto const &features12 =
+        *(static_cast<vk::PhysicalDeviceVulkan12Features *>(features11.pNext));
+
+    // Next, build the struct chain to ask the device what we're working with
+    auto supported12 = vk::PhysicalDeviceVulkan12Features {
+        .pNext = nullptr,
+    };
+    auto supported11 = vk::PhysicalDeviceVulkan11Features {
+        .pNext = &supported12,
+    };
+    auto supported2 = vk::PhysicalDeviceFeatures2 {
+        .pNext = &supported11,
+    };
+
+    _handle.getFeatures2(&supported2);
+
+    // Now check the features we care about
+    bool all_features_supported = true;
+
+    if(features.features.fillModeNonSolid
+       && supported2.features.fillModeNonSolid)
+    {
+        BTX_TRACE("{} supports fillModeNonSolid.", _name);
+        _enabled_features.features.samplerAnisotropy = VK_TRUE;
+    }
+    else if(features.features.fillModeNonSolid) {
+        BTX_WARN("{} does not support fillModeNonSolid.", _name);
+        all_features_supported = false;
+    }
+
+    if(features.features.samplerAnisotropy
+       && supported2.features.samplerAnisotropy)
+    {
+        BTX_TRACE("{} supports samplerAnisotropy.", _name);
+        _enabled_features.features.fillModeNonSolid = VK_TRUE;
+    }
+    else if(features.features.samplerAnisotropy) {
+        BTX_WARN("{} does not samplerAnisotropy.", _name);
+        all_features_supported = false;
+    }
+
+    if(features12.bufferDeviceAddress && supported12.bufferDeviceAddress) {
+        BTX_TRACE("{} supports bufferDeviceAddress.", _name);
+        _enabled_features12.bufferDeviceAddress = VK_TRUE;
+    }
+    else if(features12.bufferDeviceAddress) {
+        BTX_TRACE("{} does not support bufferDeviceAddress.", _name);
+        all_features_supported = false;
+    }
+
+    return all_features_supported;
+}
+
+// =============================================================================
+bool
+vkPhysicalDevice::_check_extensions(std::span<char const * const> extensions) {
+    // Get the list of supported extensions
+    auto const supported_extensions =
+        _handle.enumerateDeviceExtensionProperties();
+
+    BTX_TRACE("Found {} extensions for {}", supported_extensions.size(),
+                                            _name);
+
+    // Run through the required list and the supported list to make sure the
+    // latter contains all of the former
+    bool all_extensions_supported = true;
+    for(char const * const required : extensions) {
+        bool extension_found = false;
+
+        for(auto const &supported : supported_extensions) {
+            if(::strcmp(required, supported.extensionName) == 0) {
+                _enabled_extensions.push_back(supported);
+                extension_found = true;
+                BTX_TRACE("{} supports '{}'", _name, required);
+                break;
+            }
+        }
+
+        if(extension_found == false) {
+            BTX_WARN("{} does not support '{}'", _name, required);
+            all_extensions_supported = false;
+        }
+    }
+
+    return all_extensions_supported;
 }
 
 } // namespace btx
