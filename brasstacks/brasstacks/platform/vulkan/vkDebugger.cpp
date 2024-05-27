@@ -22,6 +22,9 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL vkDebugger::messenger(
         BTX_INFO("{}", callback_data->pMessage);
     }
     if((severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) != 0) {
+        if(callback_data->messageIdNumber == 0x48a09f6c) {
+            return VK_FALSE;
+        }
         BTX_WARN("{}", callback_data->pMessage);
     }
     if((severity & ::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0) {

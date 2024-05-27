@@ -178,14 +178,18 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
                                 vk::ImageLayout const old_layout,
                                 vk::ImageLayout const new_layout)
 {
-    // BTX_TRACE("Image {}: '{:s}'->'{:s}'",
+    // BTX_TRACE("Depth image {}: '{:s}'->'{:s}'",
     //           _handle,
     //           vk::to_string(old_layout),
     //           vk::to_string(new_layout));
 
-    vk::ImageMemoryBarrier barrier {
-        .srcAccessMask = { },
-        .dstAccessMask = { },
+    vk::ImageMemoryBarrier2KHR barrier {
+        .pNext = nullptr,
+        .srcStageMask  = vk::PipelineStageFlagBits2KHR::eAllCommands,
+        .srcAccessMask = vk::AccessFlagBits2KHR::eMemoryWrite,
+        .dstStageMask  = vk::PipelineStageFlagBits2KHR::eAllCommands,
+        .dstAccessMask = vk::AccessFlagBits2KHR::eMemoryRead
+                         | vk::AccessFlagBits2KHR::eMemoryWrite,
         .oldLayout = old_layout,
         .newLayout = new_layout,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -194,61 +198,31 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
         .subresourceRange {
             .aspectMask     = _aspect_flags,
             .baseMipLevel   = 0u,
-            .levelCount     = 1u,
+            .levelCount     = VK_REMAINING_MIP_LEVELS,
             .baseArrayLayer = 0u,
-            .layerCount     = 1u,
+            .layerCount     = VK_REMAINING_ARRAY_LAYERS,
         }
     };
 
-    vk::PipelineStageFlags src_stage = vk::PipelineStageFlagBits::eNone;
-    vk::PipelineStageFlags dst_stage = vk::PipelineStageFlagBits::eNone;
-
     if(old_layout == vk::ImageLayout::eUndefined) {
-        barrier.srcAccessMask = vk::AccessFlagBits::eNone;
-
-        if(new_layout == vk::ImageLayout::eColorAttachmentOptimal) {
-            barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead
-                                    | vk::AccessFlagBits::eColorAttachmentWrite;
-
-            src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
-            dst_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        }
-        else if(new_layout == vk::ImageLayout::eDepthAttachmentOptimal) {
-            barrier.dstAccessMask =
-                vk::AccessFlagBits::eDepthStencilAttachmentRead
-                | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-
-            src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
-            dst_stage = vk::PipelineStageFlagBits::eEarlyFragmentTests
-                        | vk::PipelineStageFlagBits::eLateFragmentTests;
-        }
-        else {
-            BTX_CRITICAL("Unsupported image layout transition");
-            return;
+        if(new_layout == vk::ImageLayout::eDepthAttachmentOptimal) {
+            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eDepthStencilAttachmentRead
+                                    | vk::AccessFlagBits2KHR::eDepthStencilAttachmentWrite;
         }
     }
-    else if(old_layout == vk::ImageLayout::eColorAttachmentOptimal) {
-        barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentRead
-                                | vk::AccessFlagBits::eColorAttachmentWrite;
 
-        barrier.dstAccessMask = vk::AccessFlagBits::eNone;
+    auto dep_info = vk::DependencyInfoKHR {
+        .pNext = nullptr,
+        .dependencyFlags = { },
+        .memoryBarrierCount = { },
+        .pMemoryBarriers = { },
+        .bufferMemoryBarrierCount = { },
+        .pBufferMemoryBarriers = { },
+        .imageMemoryBarrierCount = 1u,
+        .pImageMemoryBarriers = &barrier,
+    };
 
-        src_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        dst_stage = vk::PipelineStageFlagBits::eBottomOfPipe;
-    }
-    else {
-        BTX_CRITICAL("Unsupported image layout transition");
-        return;
-    }
-
-    cmd_buffer.native().pipelineBarrier(
-        src_stage,  // Source stage
-        dst_stage,  // Destination stage
-        { },        // Dependency flags
-        nullptr,    // Memory barriers
-        nullptr,    // Buffer memory barriers
-        { barrier } // Image memory barriers
-    );
+    cmd_buffer.native().pipelineBarrier2KHR(dep_info);
 
     _layout = barrier.newLayout;
 }

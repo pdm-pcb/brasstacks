@@ -237,26 +237,44 @@ void Renderer::_end_recording() {
 
 // =============================================================================
 void Renderer::_submit_commands() {
-    auto &frame_sync = _frame_sync[_image_index];
+    auto const &frame_sync = _frame_sync[_image_index];
 
-    static vk::PipelineStageFlags const wait_stage {
-        vk::PipelineStageFlagBits::eColorAttachmentOutput
+    auto const cmd_submit_info = vk::CommandBufferSubmitInfo {
+        .pNext = nullptr,
+        .commandBuffer = frame_sync.cmd_buffer().native(),
+        .deviceMask = { },
     };
 
-    vk::SubmitInfo const submit_info {
-        .pNext                = nullptr,
-        .waitSemaphoreCount   = 1u,
-        .pWaitSemaphores      = &frame_sync.present_semaphore(),
-        .pWaitDstStageMask    = &wait_stage,
-        .commandBufferCount   = 1u,
-        .pCommandBuffers      = &frame_sync.cmd_buffer().native(),
-        .signalSemaphoreCount = 1u,
-        .pSignalSemaphores    = &frame_sync.queue_semaphore(),
+    auto const wait_info = vk::SemaphoreSubmitInfoKHR {
+        .pNext = nullptr,
+        .semaphore = frame_sync.present_semaphore(),
+        .value = { },
+        .stageMask = vk::PipelineStageFlagBits2KHR::eColorAttachmentOutput,
+        .deviceIndex = { },
     };
 
-    auto const result = _device.graphics_queue().native().submit(
+    auto const signal_info = vk::SemaphoreSubmitInfoKHR {
+        .pNext = nullptr,
+        .semaphore = frame_sync.queue_semaphore(),
+        .value = { },
+        .stageMask = vk::PipelineStageFlagBits2KHR::eAllGraphics,
+        .deviceIndex = { },
+    };
+
+    auto const queue_submit_info = vk::SubmitInfo2KHR {
+      .pNext = nullptr,
+      .flags = { },
+      .waitSemaphoreInfoCount = 1u,
+      .pWaitSemaphoreInfos = &wait_info,
+      .commandBufferInfoCount = 1u,
+      .pCommandBufferInfos = &cmd_submit_info,
+      .signalSemaphoreInfoCount = 1u,
+      .pSignalSemaphoreInfos = &signal_info,
+    };
+
+    auto const result = _device.graphics_queue().native().submit2KHR(
         1u,
-        &submit_info,
+        &queue_submit_info,
         frame_sync.queue_fence()
     );
 

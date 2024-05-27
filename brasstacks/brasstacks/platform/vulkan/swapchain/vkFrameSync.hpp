@@ -23,6 +23,7 @@ class vkFrameSync final {
 
     inline auto const & queue_fence() const { return _queue_fence; }
     inline auto & present_semaphore() { return _present_sem; }
+    inline auto const & present_semaphore() const { return _present_sem; }
     inline auto const & queue_semaphore() const {
         return _queue_sem;
     }

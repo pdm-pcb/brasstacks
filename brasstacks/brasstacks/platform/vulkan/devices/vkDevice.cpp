@@ -58,9 +58,15 @@ void vkDevice::create() {
     // The logical device wants to know what the physical device has enabled
     auto *features = &(device.enabled_features());
 
-    // Enable dynamic rendering features
-    auto dr_features = vk::PhysicalDeviceDynamicRenderingFeaturesKHR {
+    // Enable sync2
+    auto s2_features = vk::PhysicalDeviceSynchronization2FeaturesKHR {
         .pNext = features,
+        .synchronization2 = VK_TRUE,
+    };
+
+    // Enable dynamic rendering
+    auto dr_features = vk::PhysicalDeviceDynamicRenderingFeaturesKHR {
+        .pNext = &s2_features,
         .dynamicRendering = VK_TRUE,
     };
 

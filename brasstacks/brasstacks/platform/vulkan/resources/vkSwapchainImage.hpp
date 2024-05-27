@@ -29,8 +29,6 @@ public:
 private:
     vk::Image  _handle;
     vk::Format _format;
-
-    vk::ImageLayout _layout;
 };
 
 } // namespace btx
