@@ -523,7 +523,11 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
             barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
         }
         else {
-            BTX_CRITICAL("Unsupported image layout transition");
+            BTX_CRITICAL("Image {}: unsupported image layout transition: "
+                         "'{:s}'->'{:s}'",
+                         _handle,
+                         vk::to_string(old_layout),
+                         vk::to_string(new_layout));
             return;
         }
     }
@@ -543,7 +547,11 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
             barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
         }
         else {
-            BTX_CRITICAL("Unsupported image layout transition");
+            BTX_CRITICAL("Image {}: unsupported image layout transition: "
+                         "'{:s}'->'{:s}'",
+                         _handle,
+                         vk::to_string(old_layout),
+                         vk::to_string(new_layout));
             return;
         }
     }
@@ -556,12 +564,20 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
             barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eFragmentShader;
         }
         else {
-            BTX_CRITICAL("Unsupported image layout transition");
+            BTX_CRITICAL("Image {}: unsupported image layout transition: "
+                         "'{:s}'->'{:s}'",
+                         _handle,
+                         vk::to_string(old_layout),
+                         vk::to_string(new_layout));
             return;
         }
     }
     else {
-        BTX_CRITICAL("Unsupported image layout transition");
+        BTX_CRITICAL("Image {}: unsupported image layout transition: "
+                     "'{:s}'->'{:s}'",
+                     _handle,
+                     vk::to_string(old_layout),
+                     vk::to_string(new_layout));
         return;
     }
 
