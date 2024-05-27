@@ -178,7 +178,16 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
                                 vk::ImageLayout const old_layout,
                                 vk::ImageLayout const new_layout)
 {
-    // BTX_TRACE("Depth image {}: '{:s}'->'{:s}'",
+    if(old_layout != vk::ImageLayout::eUndefined && old_layout != _layout) {
+        BTX_ERROR("Image {}: attempting layout transition '{:s}'->'{:s}' while "
+                  "current layout is '{:s}'",
+                  _handle,
+                  vk::to_string(old_layout),
+                  vk::to_string(new_layout),
+                  vk::to_string(_layout));
+    }
+
+    // BTX_TRACE("Image {}: '{:s}'->'{:s}'",
     //           _handle,
     //           vk::to_string(old_layout),
     //           vk::to_string(new_layout));
@@ -209,6 +218,22 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
             barrier.dstAccessMask = vk::AccessFlagBits2KHR::eDepthStencilAttachmentRead
                                     | vk::AccessFlagBits2KHR::eDepthStencilAttachmentWrite;
         }
+        else {
+            BTX_CRITICAL("Image {}: unsupported image layout transition: "
+                         "'{:s}'->'{:s}'",
+                         _handle,
+                         vk::to_string(old_layout),
+                         vk::to_string(new_layout));
+            return;
+        }
+    }
+    else {
+        BTX_CRITICAL("Image {}: unsupported image layout transition: "
+                     "'{:s}'->'{:s}'",
+                     _handle,
+                     vk::to_string(old_layout),
+                     vk::to_string(new_layout));
+        return;
     }
 
     auto dep_info = vk::DependencyInfoKHR {
@@ -461,7 +486,21 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
                                  uint32_t const base_array_layer,
                                  uint32_t const array_layer_count)
 {
-    vk::ImageMemoryBarrier barrier {
+    // BTX_TRACE(
+    //     "Image {}, mip {}/{}, layer {}/{}: '{:s}' -> '{:s}'",
+    //     _handle,
+    //     base_mip_level, _mip_levels,
+    //     base_array_layer, _array_layers,
+    //     vk::to_string(barrier.oldLayout),
+    //     vk::to_string(barrier.newLayout)
+    // );
+
+    vk::ImageMemoryBarrier2KHR barrier {
+        .pNext = nullptr,
+        .srcStageMask  = { },
+        .srcAccessMask = { },
+        .dstStageMask  = { },
+        .dstAccessMask = { },
         .oldLayout = old_layout,
         .newLayout = new_layout,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -476,24 +515,12 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
         }
     };
 
-    // BTX_TRACE(
-    //     "Image {}, mip {}/{}, layer {}/{}: '{:s}' -> '{:s}'",
-    //     _handle,
-    //     base_mip_level, _mip_levels,
-    //     base_array_layer, _array_layers,
-    //     vk::to_string(barrier.oldLayout),
-    //     vk::to_string(barrier.newLayout)
-    // );
-
-    vk::PipelineStageFlags src_stage = vk::PipelineStageFlagBits::eNone;
-    vk::PipelineStageFlags dst_stage = vk::PipelineStageFlagBits::eNone;
-
     if(barrier.oldLayout == vk::ImageLayout::eUndefined) {
         if(new_layout == vk::ImageLayout::eTransferDstOptimal) {
-            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eTransferWrite;
 
-            src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
-            dst_stage = vk::PipelineStageFlagBits::eTransfer;
+            barrier.srcStageMask = vk::PipelineStageFlagBits2KHR::eTopOfPipe;
+            barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
         }
         else {
             BTX_CRITICAL("Unsupported image layout transition");
@@ -502,18 +529,18 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
     }
     else if(barrier.oldLayout == vk::ImageLayout::eTransferDstOptimal) {
         if(barrier.newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+            barrier.srcAccessMask = vk::AccessFlagBits2KHR::eTransferWrite;
+            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eShaderRead;
 
-            src_stage      = vk::PipelineStageFlagBits::eTransfer;
-            dst_stage = vk::PipelineStageFlagBits::eFragmentShader;
+            barrier.srcStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
+            barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eFragmentShader;
         }
         else if(barrier.newLayout == vk::ImageLayout::eTransferSrcOptimal) {
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-            barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+            barrier.srcAccessMask = vk::AccessFlagBits2KHR::eTransferWrite;
+            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eTransferRead;
 
-            src_stage = vk::PipelineStageFlagBits::eTransfer;
-            dst_stage = vk::PipelineStageFlagBits::eTransfer;
+            barrier.srcStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
+            barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
         }
         else {
             BTX_CRITICAL("Unsupported image layout transition");
@@ -522,11 +549,11 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
     }
     else if(barrier.oldLayout == vk::ImageLayout::eTransferSrcOptimal) {
         if(barrier.newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
-            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+            barrier.srcAccessMask = vk::AccessFlagBits2KHR::eTransferRead;
+            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eShaderRead;
 
-            src_stage = vk::PipelineStageFlagBits::eTransfer;
-            dst_stage = vk::PipelineStageFlagBits::eFragmentShader;
+            barrier.srcStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
+            barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eFragmentShader;
         }
         else {
             BTX_CRITICAL("Unsupported image layout transition");
@@ -538,14 +565,18 @@ void vkImage::_transition_layout(vkCmdBuffer const &cmd_buffer,
         return;
     }
 
-    cmd_buffer.native().pipelineBarrier(
-        src_stage,  // Source stage
-        dst_stage,  // Destination stage
-        { },        // Dependency flags
-        nullptr,    // Memory barriers
-        nullptr,    // Buffer memory barriers
-        { barrier } // Image memory barriers
-    );
+    auto dep_info = vk::DependencyInfoKHR {
+        .pNext = nullptr,
+        .dependencyFlags = { },
+        .memoryBarrierCount = { },
+        .pMemoryBarriers = { },
+        .bufferMemoryBarrierCount = { },
+        .pBufferMemoryBarriers = { },
+        .imageMemoryBarrierCount = 1u,
+        .pImageMemoryBarriers = &barrier,
+    };
+
+    cmd_buffer.native().pipelineBarrier2KHR(dep_info);
 
     _layout = barrier.newLayout;
 }

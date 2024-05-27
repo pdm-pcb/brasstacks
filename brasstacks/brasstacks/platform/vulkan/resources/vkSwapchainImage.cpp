@@ -75,6 +75,14 @@ void vkSwapchainImage::transition_layout(vkCmdBuffer const &cmd_buffer,
             barrier.dstAccessMask = vk::AccessFlagBits2KHR::eColorAttachmentRead
                                     | vk::AccessFlagBits2KHR::eColorAttachmentWrite;
         }
+        else {
+            BTX_CRITICAL("Image {}: unsupported swapchain image layout "
+                         "transition: '{:s}'->'{:s}'",
+                         _handle,
+                         vk::to_string(old_layout),
+                         vk::to_string(new_layout));
+            return;
+        }
     }
     else if(old_layout == vk::ImageLayout::eColorAttachmentOptimal) {
         if(new_layout == vk::ImageLayout::ePresentSrcKHR) {
@@ -82,6 +90,22 @@ void vkSwapchainImage::transition_layout(vkCmdBuffer const &cmd_buffer,
                                     | vk::AccessFlagBits2KHR::eColorAttachmentWrite;
             barrier.dstAccessMask = { };
         }
+        else {
+            BTX_CRITICAL("Image {}: unsupported swapchain image layout "
+                         "transition: '{:s}'->'{:s}'",
+                         _handle,
+                         vk::to_string(old_layout),
+                         vk::to_string(new_layout));
+            return;
+        }
+    }
+    else {
+        BTX_CRITICAL("Image {}: unsupported swapchain image layout transition: "
+                     "'{:s}'->'{:s}'",
+                     _handle,
+                     vk::to_string(old_layout),
+                     vk::to_string(new_layout));
+        return;
     }
 
     auto dep_info = vk::DependencyInfoKHR {
