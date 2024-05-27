@@ -77,9 +77,9 @@ void vkSwapchainImage::transition_layout(vkCmdBuffer const &cmd_buffer,
         }
     }
     else if(old_layout == vk::ImageLayout::eColorAttachmentOptimal) {
+        if(new_layout == vk::ImageLayout::ePresentSrcKHR) {
             barrier.srcAccessMask = vk::AccessFlagBits2KHR::eColorAttachmentRead
                                     | vk::AccessFlagBits2KHR::eColorAttachmentWrite;
-        if(new_layout == vk::ImageLayout::ePresentSrcKHR) {
             barrier.dstAccessMask = { };
         }
     }
