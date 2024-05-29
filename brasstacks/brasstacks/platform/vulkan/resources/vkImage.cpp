@@ -217,10 +217,10 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
                                 uint32_t const base_array_layer,
                                 uint32_t const array_layer_count)
 {
-    // BTX_TRACE("Image {}: '{:s}'->'{:s}'",
-    //           _handle,
-    //           vk::to_string(old_layout),
-    //           vk::to_string(new_layout));
+    BTX_TRACE("Image {}: '{:s}'->'{:s}'",
+              _handle,
+              vk::to_string(old_layout),
+              vk::to_string(new_layout));
 
     vk::ImageMemoryBarrier2KHR barrier {
         .pNext = nullptr,
@@ -245,22 +245,34 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
 
     if(old_layout == vk::ImageLayout::eUndefined) {
         if(new_layout == vk::ImageLayout::eColorAttachmentOptimal) {
+            barrier.srcStageMask =
+                vk::PipelineStageFlagBits2KHR::eColorAttachmentOutput;
             barrier.srcAccessMask =
                 vk::AccessFlagBits2KHR::eColorAttachmentRead
                 | vk::AccessFlagBits2KHR::eColorAttachmentWrite;
+
+            barrier.dstStageMask =
+                vk::PipelineStageFlagBits2KHR::eColorAttachmentOutput;
             barrier.dstAccessMask =
                 vk::AccessFlagBits2KHR::eColorAttachmentRead
                 | vk::AccessFlagBits2KHR::eColorAttachmentWrite;
         }
         else if(new_layout == vk::ImageLayout::eDepthAttachmentOptimal) {
+            barrier.srcStageMask =
+                vk::PipelineStageFlagBits2KHR::eEarlyFragmentTests
+                | vk::PipelineStageFlagBits2KHR::eLateFragmentTests;
+
+            barrier.dstStageMask =
+                vk::PipelineStageFlagBits2KHR::eEarlyFragmentTests;
             barrier.dstAccessMask =
                 vk::AccessFlagBits2KHR::eDepthStencilAttachmentRead
                 | vk::AccessFlagBits2KHR::eDepthStencilAttachmentWrite;
         }
         else if(new_layout == vk::ImageLayout::eTransferDstOptimal) {
-            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eTransferWrite;
+            barrier.srcStageMask = vk::PipelineStageFlagBits2KHR::eNone;
 
             barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
+            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eTransferWrite;
         }
         else {
             BTX_CRITICAL("Image {}: unsupported image layout transition: "
@@ -273,9 +285,14 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
     }
     else if(old_layout == vk::ImageLayout::eColorAttachmentOptimal) {
         if(new_layout == vk::ImageLayout::ePresentSrcKHR) {
+            barrier.srcStageMask =
+                vk::PipelineStageFlagBits2KHR::eColorAttachmentOutput;
             barrier.srcAccessMask =
                 vk::AccessFlagBits2KHR::eColorAttachmentRead
                 | vk::AccessFlagBits2KHR::eColorAttachmentWrite;
+
+            barrier.dstStageMask =
+                vk::PipelineStageFlagBits2KHR::eColorAttachmentOutput;
             barrier.dstAccessMask = { };
         }
         else {
@@ -289,17 +306,17 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
     }
     else if(barrier.oldLayout == vk::ImageLayout::eTransferDstOptimal) {
         if(barrier.newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
-            barrier.srcAccessMask = vk::AccessFlagBits2KHR::eTransferWrite;
-            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eShaderRead;
-
             barrier.srcStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
+            barrier.srcAccessMask = vk::AccessFlagBits2KHR::eTransferWrite;
+
+            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eShaderRead;
             barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eFragmentShader;
         }
         else if(barrier.newLayout == vk::ImageLayout::eTransferSrcOptimal) {
-            barrier.srcAccessMask = vk::AccessFlagBits2KHR::eTransferWrite;
-            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eTransferRead;
-
             barrier.srcStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
+            barrier.srcAccessMask = vk::AccessFlagBits2KHR::eTransferWrite;
+
+            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eTransferRead;
             barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
         }
         else {
@@ -313,10 +330,10 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
     }
     else if(barrier.oldLayout == vk::ImageLayout::eTransferSrcOptimal) {
         if(barrier.newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
-            barrier.srcAccessMask = vk::AccessFlagBits2KHR::eTransferRead;
-            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eShaderRead;
-
             barrier.srcStageMask = vk::PipelineStageFlagBits2KHR::eTransfer;
+            barrier.srcAccessMask = vk::AccessFlagBits2KHR::eTransferRead;
+
+            barrier.dstAccessMask = vk::AccessFlagBits2KHR::eShaderRead;
             barrier.dstStageMask = vk::PipelineStageFlagBits2KHR::eFragmentShader;
         }
         else {
