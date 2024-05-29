@@ -8,7 +8,7 @@ namespace btx {
 
 class vkSurface;
 class vkFrameSync;
-class vkSwapchainImage;
+class vkImage;
 class vkImageView;
 
 class vkSwapchain final {
@@ -47,8 +47,8 @@ private:
     vk::SurfaceFormatKHR _image_format;
     vk::PresentModeKHR   _present_mode;
 
-    std::vector<vkSwapchainImage *> _images;
-    std::vector<vkImageView *>      _image_views;
+    std::vector<vkImage *>     _images;
+    std::vector<vkImageView *> _image_views;
 
     RenderConfig::Size   _size;
     RenderConfig::Offset _offset;

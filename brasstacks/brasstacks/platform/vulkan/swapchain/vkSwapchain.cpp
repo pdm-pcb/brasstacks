@@ -6,7 +6,7 @@
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
-#include "brasstacks/platform/vulkan/resources/vkSwapchainImage.hpp"
+#include "brasstacks/platform/vulkan/resources/vkImage.hpp"
 #include "brasstacks/platform/vulkan/resources/vkImageView.hpp"
 
 namespace btx {
@@ -246,7 +246,7 @@ void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
             std::back_inserter(_images),
             _images.capacity(),
             []() {
-                return new vkSwapchainImage;
+                return new vkImage;
             }
         );
 
