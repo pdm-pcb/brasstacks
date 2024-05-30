@@ -217,10 +217,10 @@ void vkImage::transition_layout(vkCmdBuffer const &cmd_buffer,
                                 uint32_t const base_array_layer,
                                 uint32_t const array_layer_count)
 {
-    BTX_TRACE("Image {}: '{:s}'->'{:s}'",
-              _handle,
-              vk::to_string(old_layout),
-              vk::to_string(new_layout));
+    // BTX_TRACE("Image {}: '{:s}'->'{:s}'",
+    //           _handle,
+    //           vk::to_string(old_layout),
+    //           vk::to_string(new_layout));
 
     vk::ImageMemoryBarrier2KHR barrier {
         .pNext = nullptr,

@@ -17,7 +17,7 @@ void Demo::init() {
     _cube_mesh = btx::MeshLibrary::new_cube_mesh(0.75f);
 
     _texture =
-        btx::TextureLibrary::load_texture("textures/woodfloor_051_d.jpg");
+        btx::TextureLibrary::load_texture("textures/wood_051d.jpg");
 
     create_pipeline();
 }
