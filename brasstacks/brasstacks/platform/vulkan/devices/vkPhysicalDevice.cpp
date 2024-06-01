@@ -76,13 +76,13 @@ void vkPhysicalDevice::clear_device_list() {
 
 // =============================================================================
 vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const &handle) :
-    _handle               { handle },
-    _enabled_features    { },
-    _enabled_features11   { },
-    _enabled_features12   { },
-    _enabled_extensions   { },
-    _samples   { vk::SampleCountFlagBits::e1 },
-    _max_aniso { 0.0f }
+    _handle             { handle },
+    _enabled_features   { },
+    _enabled_features11 { },
+    _enabled_features12 { },
+    _enabled_extensions { },
+    _samples            { vk::SampleCountFlagBits::e1 },
+    _max_aniso          { 0.0f }
 {
     // Retrieve the basic properties of the card
     auto const &device_props = _handle.getProperties();

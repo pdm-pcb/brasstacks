@@ -43,28 +43,11 @@ vkPipeline::~vkPipeline() {
 }
 
 // =============================================================================
-vk::SampleCountFlagBits vkPipeline::samples_to_flag(uint32_t const samples) {
-    if(samples == 64u) { return vk::SampleCountFlagBits::e64; }
-    if(samples == 32u) { return vk::SampleCountFlagBits::e32; }
-    if(samples == 16u) { return vk::SampleCountFlagBits::e16; }
-    if(samples == 8u)  { return vk::SampleCountFlagBits::e8;  }
-    if(samples == 4u)  { return vk::SampleCountFlagBits::e4;  }
-    if(samples == 2u)  { return vk::SampleCountFlagBits::e2;  }
-    if(samples == 1u)  { return vk::SampleCountFlagBits::e1;  }
-
-    BTX_CRITICAL("Unsupported MSAA sample count {}", samples);
-
-    return { };
-}
-
-// =============================================================================
-vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
-                                           vk::ShaderStageFlagBits const stage,
-                                           std::string_view entry_point)
-{
+vkPipeline & vkPipeline::add_shader(std::string_view const filepath) {
     if(_handle) {
-        BTX_CRITICAL("Adding a fragment stage to a pipeline that's already "
-                     "been created.");
+        BTX_CRITICAL("Adding a shader to a pipeline that's already been "
+                     "created.");
+        return;
     }
 
     _shaders.emplace_back(new vkShader);
@@ -72,54 +55,11 @@ vkPipeline & vkPipeline::module_from_spirv(std::string_view const filepath,
 
     _shader_stages.emplace_back(
         vk::PipelineShaderStageCreateInfo {
-            .stage  = stage,
+            .stage  = _shaders.back()->stage(),
             .module = _shaders.back()->native(),
-            .pName  = entry_point.data(),
+            .pName  = _shaders.back()->entry_point().data(),
         }
     );
-
-    return *this;
-}
-
-// =============================================================================
-vkPipeline & vkPipeline::describe_vertex_input(VertBindings const &bindings,
-                                               VertAttribs const &attributes)
-{
-    auto const binding_count = static_cast<uint32_t>(bindings.size());
-    auto const attrib_count  = static_cast<uint32_t>(attributes.size());
-
-    _vert_input_info = {
-        .vertexBindingDescriptionCount = binding_count,
-        .pVertexBindingDescriptions    = bindings.data(),
-
-        .vertexAttributeDescriptionCount = attrib_count,
-        .pVertexAttributeDescriptions   = attributes.data(),
-    };
-
-    return *this;
-}
-
-// =============================================================================
-vkPipeline &
-vkPipeline::add_descriptor_set_layout(vkDescriptorSetLayout const &layout) {
-    if(_handle) {
-        BTX_CRITICAL("Adding a descriptor set to a pipeline that's already "
-                     "been created.");
-    }
-
-    _set_layouts.push_back(layout.native());
-    return *this;
-}
-
-// =============================================================================
-vkPipeline & vkPipeline::add_push_constant(PushConstant const &push_constant) {
-    _push_constants.push_back({
-        .stageFlags = push_constant.stage_flags,
-        .offset = static_cast<uint32_t>(_push_constant_offset),
-        .size = static_cast<uint32_t>(push_constant.size_bytes)
-    });
-
-    _push_constant_offset += push_constant.size_bytes;
 
     return *this;
 }
@@ -240,17 +180,17 @@ void vkPipeline::bind_descriptor_set(vkDescriptorSet const &set) const {
         return;
     }
 
-    auto const set_layout_key = reinterpret_cast<uint64_t>(
-        VkDescriptorSetLayout(set.layout())
-    );
+    // auto const set_layout_key = reinterpret_cast<uint64_t>(
+    //     VkDescriptorSetLayout(set.layout())
+    // );
 
-    _cmd_buffer->native().bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics,
-        _layout,
-        _set_bind_points.at(set_layout_key),
-        1u, &(set.native()),
-        0u, nullptr
-    );
+    // _cmd_buffer->native().bindDescriptorSets(
+    //     vk::PipelineBindPoint::eGraphics,
+    //     _layout,
+    //     _set_bind_points.at(set_layout_key),
+    //     1u, &(set.native()),
+    //     0u, nullptr
+    // );
 }
 
 // =============================================================================
@@ -400,15 +340,15 @@ void vkPipeline::_init_blend_states() {
     _blend_states.resize(1u);
 
     for(auto &state : _blend_states) {
-    // Even though blending is disabled, the pipeline still runs a blend stage
-    state.blendEnable = VK_FALSE;
+        // Even though blending is disabled, the pipeline still runs this stage
+        state.blendEnable = VK_FALSE;
 
-    // ...and the blend stage needs to know the color channels to which
-    // it's allowed to write
-    state.colorWriteMask = vk::ColorComponentFlagBits::eR |
-                           vk::ColorComponentFlagBits::eG |
-                           vk::ColorComponentFlagBits::eB |
-                           vk::ColorComponentFlagBits::eA;
+        // ...and the blend stage needs to know the color channels to which
+        // it's allowed to write
+        state.colorWriteMask = vk::ColorComponentFlagBits::eR |
+                               vk::ColorComponentFlagBits::eG |
+                               vk::ColorComponentFlagBits::eB |
+                               vk::ColorComponentFlagBits::eA;
     }
 
     _blend_info = {
@@ -437,17 +377,12 @@ void vkPipeline::_init_dynamic_states() {
 
 // =============================================================================
 void vkPipeline::_init_layout() {
-    uint32_t set_binding_point = 0u;
-
-    for(auto const &layout : _set_layouts) {
-        auto const set_key = reinterpret_cast<uint64_t>(
-            VkDescriptorSetLayout(layout)
-        );
-
-        _set_bind_points[set_key] = set_binding_point++;
+    std::vector<vk::DescriptorSetLayoutBinding> layout_bindings;
+    for(auto const &shader : _shaders) {
+        std::ranges::copy(shader->bindings(), std::back_inserter(layout_bindings));
     }
 
-    const vk::PipelineLayoutCreateInfo layout_info {
+    vk::PipelineLayoutCreateInfo const layout_info {
         .setLayoutCount         = static_cast<uint32_t>(_set_layouts.size()),
         .pSetLayouts            = _set_layouts.data(),
         .pushConstantRangeCount = static_cast<uint32_t>(_push_constants.size()),

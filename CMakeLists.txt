@@ -29,11 +29,13 @@ include("fetch_fmt")
 include("fetch_spdlog")
 include("fetch_glfw3")
 include("fetch_VulkanMemoryAllocator")
+include("fetch_SPIRVReflect")
 
 fetch_fmt()
 fetch_spdlog()
 fetch_glfw3()
 fetch_VulkanMemoryAllocator()
+fetch_SPIRVReflect()
 
 # Use standard C++20
 set(CMAKE_CXX_STANDARD          20)

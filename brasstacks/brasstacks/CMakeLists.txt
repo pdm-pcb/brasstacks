@@ -23,6 +23,7 @@ target_link_libraries(
         GPUOpen::VulkanMemoryAllocator
     PRIVATE
         stb
+        spirv-reflect-static
 )
 
 set_target_properties(

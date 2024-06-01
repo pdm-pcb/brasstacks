@@ -16,26 +16,7 @@ public:
     vkPipeline();
     ~vkPipeline();
 
-    static vk::SampleCountFlagBits samples_to_flag(uint32_t const samples);
-
-    vkPipeline & module_from_spirv(std::string_view const filepath,
-                                   vk::ShaderStageFlagBits const stage,
-                                   std::string_view const entry_point = "main");
-
-    using VertBindings = std::vector<vk::VertexInputBindingDescription>;
-    using VertAttribs  = std::vector<vk::VertexInputAttributeDescription>;
-    vkPipeline & describe_vertex_input(VertBindings const &bindings,
-                                       VertAttribs const &attributes);
-
-    vkPipeline & add_descriptor_set_layout(vkDescriptorSetLayout const &layout);
-
-    struct PushConstant {
-        vk::ShaderStageFlags const stage_flags = vk::ShaderStageFlagBits::eAll;
-        size_t const size_bytes = 0;
-        void const *data = nullptr;
-    };
-
-    vkPipeline & add_push_constant(PushConstant const &push_constant);
+    vkPipeline & add_shader(std::string_view const filepath);
 
     struct Config {
         // Viewport settings
@@ -64,6 +45,12 @@ public:
     void bind(vkCmdBuffer const &cmd_buffer);
     void bind_descriptor_set(vkDescriptorSet const &set) const;
     void unbind();
+
+    struct PushConstant {
+        vk::ShaderStageFlags const stage_flags = vk::ShaderStageFlagBits::eAll;
+        size_t const size_bytes = 0;
+        void const *data = nullptr;
+    };
 
     void send_push_constants(std::span<PushConstant const> const push_constants);
 
@@ -106,9 +93,6 @@ private:
 
     std::vector<vk::DynamicState>            _dynamic_states;
     vk::PipelineDynamicStateCreateInfo       _dynamic_state_info;
-
-    std::vector<vk::DescriptorSetLayout>   _set_layouts;
-    std::unordered_map<uint64_t, uint32_t> _set_bind_points;
 
     std::vector<vk::Format> _color_attachment_formats;
     vk::PipelineRenderingCreateInfoKHR _rendering_info;
