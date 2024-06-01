@@ -7,8 +7,6 @@
 #include "brasstacks/events/mouse_events.hpp"
 #include "brasstacks/platform/input/GLFWToBTXKeys.hpp"
 
-#include "brasstacks/platform/imgui/UIOverlay.hpp"
-
 namespace btx {
 GLFWwindow *TargetWindow::_window { nullptr };
 
@@ -66,13 +64,10 @@ void TargetWindow::init(std::string_view const app_name) {
     ::glfwSetCursorPosCallback(_window, _mouse_move_callback);
     ::glfwSetWindowIconifyCallback(_window,
                                    TargetWindow::_window_iconify_callback);
-
-    UIOverlay::init_window(_window, app_name);
 }
 
 // =============================================================================
 void TargetWindow::shutdown() {
-    UIOverlay::shutdown_window();
 
     ::glfwDestroyWindow(_window);
     ::glfwTerminate();
@@ -85,7 +80,6 @@ void TargetWindow::capture_mouse() {
     ::glfwGetCursorPos(_window, &_last_cursor_x, &_last_cursor_y);
 
     _mouse_captured = true;
-    UIOverlay::set_enabled(false);
 }
 
 // =============================================================================
@@ -94,7 +88,6 @@ void TargetWindow::release_mouse() {
     ::glfwSetInputMode(_window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 
     _mouse_captured = false;
-    UIOverlay::set_enabled(true);
 }
 
 // =============================================================================
@@ -220,10 +213,6 @@ void TargetWindow::_key_callback([[maybe_unused]] GLFWwindow *window,
                                  [[maybe_unused]] int action,
                                  [[maybe_unused]] int mods)
 {
-    if(!_mouse_captured && UIOverlay::key_callback_handled()) {
-        return;
-    }
-
     auto const code = GLFWToBTXKeys::translate(key);
     if(action == GLFW_PRESS) {
         EventBus::publish(KeyboardEvent(KeyboardEventType::KEY_PRESS, code));
@@ -259,10 +248,6 @@ void TargetWindow::_mouse_button_callback([[maybe_unused]] GLFWwindow* window,
                                           [[maybe_unused]] int action,
                                           [[maybe_unused]] int mods)
 {
-    if(!_mouse_captured && UIOverlay::mouse_button_callback_handled()) {
-        return;
-    }
-
     auto const code = GLFWToBTXKeys::translate(button);
 
     if(action == GLFW_PRESS) {

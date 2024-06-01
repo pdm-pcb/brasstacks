@@ -7,7 +7,6 @@
 #include "brasstacks/tools/TimeKeeper.hpp"
 #include "brasstacks/core/Application.hpp"
 #include "brasstacks/core/TargetWindow.hpp"
-#include "brasstacks/core/Simulation.hpp"
 #include "brasstacks/core/Renderer.hpp"
 
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"

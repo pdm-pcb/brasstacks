@@ -23,7 +23,6 @@ target_link_libraries(
         GPUOpen::VulkanMemoryAllocator
     PRIVATE
         stb
-        imgui
 )
 
 set_target_properties(
