@@ -32,14 +32,14 @@ void Application::run() {
     this->init();
 
     TargetWindow::capture_mouse();
-    CameraController::activate_camera();
+    // CameraController::activate_camera();
     TargetWindow::show();
 
     while(_running) {
         TimeKeeper::update_run_time();
         TargetWindow::poll_events();
         _process_events();
-        CameraController::update_camera();
+        // CameraController::update_camera();
         this->update();
         Renderer::run();
     }

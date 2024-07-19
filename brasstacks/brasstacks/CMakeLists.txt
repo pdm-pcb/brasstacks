@@ -20,10 +20,10 @@ target_link_libraries(
         spdlog::spdlog
         glfw
         Vulkan::Vulkan
+        spirv-reflect-static
         GPUOpen::VulkanMemoryAllocator
     PRIVATE
         stb
-        spirv-reflect-static
 )
 
 set_target_properties(

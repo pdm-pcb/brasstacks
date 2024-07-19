@@ -35,10 +35,10 @@ Texture::Texture(std::string_view const filepath) :
                      vk::SamplerAddressMode::eRepeat,
                      vk::SamplerAddressMode::eRepeat);
 
-    _descriptor_set_layout
-        .add_binding(vk::DescriptorType::eCombinedImageSampler,
-                     vk::ShaderStageFlagBits::eFragment)
-        .create();
+    // _descriptor_set_layout
+    //     .add_binding(vk::DescriptorType::eCombinedImageSampler,
+    //                  vk::ShaderStageFlagBits::eFragment)
+    //     .create();
 
     _descriptor_set.allocate(btx::Renderer::descriptor_pool(),
                              _descriptor_set_layout);

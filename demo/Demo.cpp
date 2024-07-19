@@ -1,6 +1,6 @@
 #include "Demo.hpp"
 
-#include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
+#include "brasstacks/platform/vulkan/pipeline/vkShaderStage.hpp"
 
 // =============================================================================
 Demo::Demo() :
@@ -9,10 +9,8 @@ Demo::Demo() :
 
 // =============================================================================
 void Demo::init() {
-    btx::vkShader vert;
-    vert.create("shaders/demo.vert");
-    btx::vkShader frag;
-    frag.create("shaders/demo.frag");
+    btx::vkShaderStage vert("shaders/demo.vert");
+    // btx::vkShaderStage frag("shaders/demo.frag");
 }
 
 // =============================================================================

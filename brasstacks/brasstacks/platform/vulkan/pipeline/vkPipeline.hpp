@@ -6,7 +6,7 @@
 
 namespace btx {
 
-class vkShader;
+class vkShaderStage;
 class vkCmdBuffer;
 class vkDescriptorSet;
 class vkDescriptorSetLayout;
@@ -15,8 +15,6 @@ class vkPipeline final {
 public:
     vkPipeline();
     ~vkPipeline();
-
-    vkPipeline & add_shader(std::string_view const filepath);
 
     struct Config {
         // Viewport settings
@@ -70,13 +68,10 @@ public:
     vkPipeline& operator=(const vkPipeline &) = delete;
 
 private:
-    vk::Pipeline       _handle;
-    vk::PipelineLayout _layout;
+    vk::Pipeline _handle;
+    vk::Device   _device;
 
-    vk::Device _device;
-
-    std::vector<vkShader *> _shaders;
-    std::vector<vk::PipelineShaderStageCreateInfo> _shader_stages;
+    std::vector<vkShaderStage> _shader_stages;
 
     vk::Viewport _viewport;
     vk::Rect2D   _scissor;
@@ -97,8 +92,14 @@ private:
     std::vector<vk::Format> _color_attachment_formats;
     vk::PipelineRenderingCreateInfoKHR _rendering_info;
 
+    std::vector<vkDescriptorSetLayout> _desc_set_layouts;
+
     std::vector<vk::PushConstantRange> _push_constants;
     size_t _push_constant_offset;
+
+    vk::PipelineLayout _layout;
+
+    vk::GraphicsPipelineCreateInfo _create_info;
 
     vkCmdBuffer const *_cmd_buffer;
 

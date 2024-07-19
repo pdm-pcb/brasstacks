@@ -2,7 +2,7 @@
 #include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
 
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/pipeline/vkShader.hpp"
+#include "brasstacks/platform/vulkan/pipeline/vkShaderStage.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkColorDepth.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorSet.hpp"
@@ -13,9 +13,7 @@ namespace btx {
 // =============================================================================
 vkPipeline::vkPipeline() :
     _handle                   { nullptr },
-    _layout                   { nullptr },
     _device                   { nullptr },
-    _shaders                  { },
     _shader_stages            { },
     _viewport                 { 0, 0 },
     _scissor                  {{ 0, 0 }},
@@ -30,8 +28,11 @@ vkPipeline::vkPipeline() :
     _dynamic_state_info       { },
     _color_attachment_formats { },
     _rendering_info           { },
+    _desc_set_layouts         { },
     _push_constants           { },
     _push_constant_offset     { 0 },
+    _layout                   { nullptr },
+    _create_info              { },
     _cmd_buffer               { nullptr }
 { }
 
@@ -40,28 +41,6 @@ vkPipeline::~vkPipeline() {
     if(_handle || _layout) {
         destroy();
     }
-}
-
-// =============================================================================
-vkPipeline & vkPipeline::add_shader(std::string_view const filepath) {
-    if(_handle) {
-        BTX_CRITICAL("Adding a shader to a pipeline that's already been "
-                     "created.");
-        return;
-    }
-
-    _shaders.emplace_back(new vkShader);
-    _shaders.back()->create(filepath);
-
-    _shader_stages.emplace_back(
-        vk::PipelineShaderStageCreateInfo {
-            .stage  = _shaders.back()->stage(),
-            .module = _shaders.back()->native(),
-            .pName  = _shaders.back()->entry_point().data(),
-        }
-    );
-
-    return *this;
 }
 
 // =============================================================================
@@ -91,8 +70,8 @@ void vkPipeline::create(Config const &config) {
             .flags = vk::PipelineCreateFlagBits::eDisableOptimization,
         #endif // BTX_DEBUG
 
-        .stageCount = static_cast<uint32_t>(_shader_stages.size()),
-        .pStages    = _shader_stages.data(),
+        // .stageCount = static_cast<uint32_t>(_shader_stages.size()),
+        // .pStages    = _shader_stages.data(),
 
         .pVertexInputState   = &_vert_input_info,
         .pInputAssemblyState = &_assembly_info,
@@ -124,26 +103,14 @@ void vkPipeline::create(Config const &config) {
 
     _handle = result.value;
     BTX_TRACE("Created Vulkan pipeline {}", _handle);
-
-    // Destroy the shader modules now that the pipeline is baked
-    for(auto *shader : _shaders) {
-        delete shader;
-    }
-    _shaders.clear();
 }
 
 // =============================================================================
 void vkPipeline::destroy() {
-    for(auto *shader : _shaders) {
-        shader->destroy();
-    }
-    _shaders.clear();
-
     _shader_stages.clear();
     _blend_states.clear();
     _dynamic_states.clear();
-    _set_layouts.clear();
-    _set_bind_points.clear();
+    _desc_set_layouts.clear();
     _push_constants.clear();
 
     _push_constant_offset = 0u;
@@ -377,20 +344,23 @@ void vkPipeline::_init_dynamic_states() {
 
 // =============================================================================
 void vkPipeline::_init_layout() {
-    std::vector<vk::DescriptorSetLayoutBinding> layout_bindings;
-    for(auto const &shader : _shaders) {
-        std::ranges::copy(shader->bindings(), std::back_inserter(layout_bindings));
-    }
+    // for(auto const &shader : _shaders) {
+    //     for(auto const &binding : shader.bindings()) {
+    //         _desc_set_layouts.add_binding(binding);
+    //     }
+    // }
 
-    vk::PipelineLayoutCreateInfo const layout_info {
-        .setLayoutCount         = static_cast<uint32_t>(_set_layouts.size()),
-        .pSetLayouts            = _set_layouts.data(),
-        .pushConstantRangeCount = static_cast<uint32_t>(_push_constants.size()),
-        .pPushConstantRanges    = _push_constants.data()
-    };
+    // _desc_set_layout.create();
 
-    _layout = _device.createPipelineLayout(layout_info);
-    BTX_TRACE("Created pipeline layout {}", _layout);
+    // vk::PipelineLayoutCreateInfo const layout_info {
+    //     .setLayoutCount         = static_cast<uint32_t>(_desc_set_layouts.size()),
+    //     .pSetLayouts            = _desc_set_layouts.data(),
+    //     .pushConstantRangeCount = static_cast<uint32_t>(_push_constants.size()),
+    //     .pPushConstantRanges    = _push_constants.data()
+    // };
+
+    // _layout = _device.createPipelineLayout(layout_info);
+    // BTX_TRACE("Created pipeline layout {}", _layout);
 }
 
 // =============================================================================

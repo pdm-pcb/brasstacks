@@ -61,12 +61,12 @@ void Renderer::init(Application *const application) {
 
     MeshLibrary::init();
     TextureLibrary::init();
-    CameraController::init();
+    // CameraController::init();
 }
 
 // =============================================================================
 void Renderer::shutdown() {
-    CameraController::shutdown();
+    // CameraController::shutdown();
     MeshLibrary::shutdown();
     TextureLibrary::shutdown();
 
@@ -108,7 +108,7 @@ void Renderer::run() {
     }
 
     _begin_recording();
-        CameraController::update_ubo();
+        // CameraController::update_ubo();
         _color_depth->begin();
         _application->draw();
         _color_depth->end();
@@ -125,7 +125,7 @@ void Renderer::run() {
 void Renderer::change_device() {
     wait_device_idle();
 
-    CameraController::destroy_device_resources();
+    // CameraController::destroy_device_resources();
     MeshLibrary::shutdown();
     TextureLibrary::shutdown();
 
@@ -169,7 +169,7 @@ void Renderer::change_device() {
 
     MeshLibrary::init();
     TextureLibrary::init();
-    CameraController::create_device_resources();
+    // CameraController::create_device_resources();
 
     _application->init();
 }
@@ -183,7 +183,7 @@ void Renderer::recreate_swapchain() {
     _create_swapchain();
     create_swapchain_resources();
 
-    CameraController::update_perspective();
+    // CameraController::update_perspective();
 }
 
 // =============================================================================

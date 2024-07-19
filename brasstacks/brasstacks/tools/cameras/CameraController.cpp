@@ -97,10 +97,10 @@ void CameraController::create_device_resources() {
                        vk::MemoryPropertyFlagBits::eHostCoherent));
     }
 
-    _camera_ubo_layout
-        .add_binding(vk::DescriptorType::eUniformBuffer,
-                     vk::ShaderStageFlagBits::eAll)
-        .create();
+    // _camera_ubo_layout
+    //     .add_binding(vk::DescriptorType::eUniformBuffer,
+    //                  vk::ShaderStageFlagBits::eAll)
+    //     .create();
 
     if(_camera_ubo_sets.size() != image_count) {
         _camera_ubo_sets.reserve(image_count);
@@ -115,14 +115,14 @@ void CameraController::create_device_resources() {
         );
     }
 
-    for(uint32_t i = 0; i < image_count; ++i) {
-        _camera_ubo_sets[i].allocate(Renderer::descriptor_pool(),
-                                     _camera_ubo_layout);
+    // for(uint32_t i = 0; i < image_count; ++i) {
+    //     _camera_ubo_sets[i].allocate(Renderer::descriptor_pool(),
+    //                                  _camera_ubo_layout);
 
-        _camera_ubo_sets[i]
-            .add_buffer(_camera_ubos[i], vk::DescriptorType::eUniformBuffer)
-            .update_set();
-    }
+    //     _camera_ubo_sets[i]
+    //         .add_buffer(_camera_ubos[i], vk::DescriptorType::eUniformBuffer)
+    //         .update_set();
+    // }
 }
 
 // =============================================================================
