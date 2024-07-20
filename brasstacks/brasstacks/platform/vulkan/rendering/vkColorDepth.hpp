@@ -16,7 +16,7 @@ public:
     void begin();
     void end();
 
-    auto const & depth_view() const { return _depth_view; }
+    // auto const & depth_view() const { return _depth_view; }
     auto depth_format() const { return _depth_format; }
 
     vkColorDepth(vkColorDepth &&) = delete;
@@ -27,8 +27,8 @@ public:
 
 private:
     vk::Format  _depth_format;
-    vkImage     _depth_buffer;
-    vkImageView _depth_view;
+    // vkImage     _depth_buffer;
+    // vkImageView _depth_view;
 
     std::vector<vk::RenderingAttachmentInfo> _color_attachments;
     vk::RenderingAttachmentInfo              _depth_attachment;

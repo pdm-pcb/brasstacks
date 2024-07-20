@@ -41,80 +41,80 @@ void vkDevice::create() {
         return;
     }
 
-    // We only need one device queue, so only need to specify one priority
-    float const queue_priorities[] = { 1.0f };
+    // // We only need one device queue, so only need to specify one priority
+    // float const queue_priorities[] = { 1.0f };
 
-    auto &device = *RenderConfig::current_device->device;
+    // auto &device = *RenderConfig::current_device->device;
 
-    // Populate the device queue create struct
-    vk::DeviceQueueCreateInfo const queue_info[] {{
-        .pNext = nullptr,
-        .flags = { },
-        .queueFamilyIndex = device.queue_family_index(),
-        .queueCount = static_cast<uint32_t>(std::size(queue_priorities)),
-        .pQueuePriorities = queue_priorities,
-    }};
+    // // Populate the device queue create struct
+    // vk::DeviceQueueCreateInfo const queue_info[] {{
+    //     .pNext = nullptr,
+    //     .flags = { },
+    //     .queueFamilyIndex = device.queue_family_index(),
+    //     .queueCount = static_cast<uint32_t>(std::size(queue_priorities)),
+    //     .pQueuePriorities = queue_priorities,
+    // }};
 
-    // The logical device wants to know what the physical device has enabled
-    auto *features = &(device.enabled_features());
+    // // The logical device wants to know what the physical device has enabled
+    // auto *features = &(device.enabled_features());
 
-    // Enable sync2
-    auto s2_features = vk::PhysicalDeviceSynchronization2FeaturesKHR {
-        .pNext = features,
-        .synchronization2 = VK_TRUE,
-    };
+    // // Enable sync2
+    // auto s2_features = vk::PhysicalDeviceSynchronization2FeaturesKHR {
+    //     .pNext = features,
+    //     .synchronization2 = VK_TRUE,
+    // };
 
-    // Enable dynamic rendering
-    auto dr_features = vk::PhysicalDeviceDynamicRenderingFeaturesKHR {
-        .pNext = &s2_features,
-        .dynamicRendering = VK_TRUE,
-    };
+    // // Enable dynamic rendering
+    // auto dr_features = vk::PhysicalDeviceDynamicRenderingFeaturesKHR {
+    //     .pNext = &s2_features,
+    //     .dynamicRendering = VK_TRUE,
+    // };
 
-    // End extensions
-    auto const &enabled_extensions = device.enabled_extensions();
+    // // End extensions
+    // auto const &enabled_extensions = device.enabled_extensions();
 
-    std::vector<char const *> extensions;
-    extensions.reserve(enabled_extensions.size());
+    // std::vector<char const *> extensions;
+    // extensions.reserve(enabled_extensions.size());
 
-    for(auto const &extension : enabled_extensions) {
-        extensions.emplace_back(extension.extensionName);
-    }
+    // for(auto const &extension : enabled_extensions) {
+    //     extensions.emplace_back(extension.extensionName);
+    // }
 
-    // Now populate the device's create struct
-    vk::DeviceCreateInfo const device_create_info {
-        .pNext                   = &dr_features,
-        .flags                   = { },
-        .queueCreateInfoCount    = static_cast<uint32_t>(std::size(queue_info)),
-        .pQueueCreateInfos       = queue_info,
-        .enabledExtensionCount   = static_cast<uint32_t>(extensions.size()),
-        .ppEnabledExtensionNames = extensions.data(),
-        .pEnabledFeatures        = nullptr,
-    };
+    // // Now populate the device's create struct
+    // vk::DeviceCreateInfo const device_create_info {
+    //     .pNext                   = &dr_features,
+    //     .flags                   = { },
+    //     .queueCreateInfoCount    = static_cast<uint32_t>(std::size(queue_info)),
+    //     .pQueueCreateInfos       = queue_info,
+    //     .enabledExtensionCount   = static_cast<uint32_t>(extensions.size()),
+    //     .ppEnabledExtensionNames = extensions.data(),
+    //     .pEnabledFeatures        = nullptr,
+    // };
 
-    // And try to create it
-    auto const result = device.native().createDevice(
-        &device_create_info,   // Create info
-        nullptr,        // Allocator
-        &_handle        // Destination handle
-    );
+    // // And try to create it
+    // auto const result = device.native().createDevice(
+    //     &device_create_info,   // Create info
+    //     nullptr,        // Allocator
+    //     &_handle        // Destination handle
+    // );
 
-    // Check that we've got good results to work with
-    if(result != vk::Result::eSuccess || !_handle) {
-        BTX_CRITICAL("Unable to create logical device: '{}'",
-                     vk::to_string(result));
-        return;
-    }
+    // // Check that we've got good results to work with
+    // if(result != vk::Result::eSuccess || !_handle) {
+    //     BTX_CRITICAL("Unable to create logical device: '{}'",
+    //                  vk::to_string(result));
+    //     return;
+    // }
 
-    BTX_TRACE("Created logical device {}", _handle);
+    // BTX_TRACE("Created logical device {}", _handle);
 
-    // Set up the queue abstraction
-    _graphics_queue->set_family_index(device.queue_family_index());
+    // // Set up the queue abstraction
+    // _graphics_queue->set_family_index(device.queue_family_index());
 
-    // This is the final step in providing the dynamic loader with information
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
+    // // This is the final step in providing the dynamic loader with information
+    // VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-    _transient_pool->create(_graphics_queue->family_index(),
-                            vk::CommandPoolCreateFlagBits::eTransient);
+    // _transient_pool->create(_graphics_queue->family_index(),
+    //                         vk::CommandPoolCreateFlagBits::eTransient);
 }
 
 // =============================================================================

@@ -9,10 +9,6 @@
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/core/Renderer.hpp"
 
-#include "brasstacks/platform/vulkan/pipeline/vkPipeline.hpp"
-#include "brasstacks/assets/libraries/MeshLibrary.hpp"
-#include "brasstacks/assets/libraries/TextureLibrary.hpp"
-
 #include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 
 #ifdef BTX_DEBUG

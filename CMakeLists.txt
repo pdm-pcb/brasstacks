@@ -8,8 +8,8 @@ project(
 )
 
 # Everything depends on Vulkan
-set(BTX_VK_TARGET_VERSION "1.2" CACHE STRING "Target Vulkan version" FORCE)
-add_compile_definitions("BTX_VK_TARGET_VERSION=VK_API_VERSION_1_2")
+set(BTX_VK_TARGET_VERSION "1.3" CACHE STRING "Target Vulkan version" FORCE)
+add_compile_definitions("BTX_VK_TARGET_VERSION=VK_API_VERSION_1_3")
 find_package(Vulkan ${BTX_VK_TARGET_VERSION} REQUIRED)
 
 # Where we keep the helpful extra CMake

@@ -160,30 +160,30 @@ void vkBuffer::send_to_device(void const *data) const {
 uint32_t vkBuffer::_get_memory_type_index(vk::MemoryPropertyFlags const flags,
                                           vk::MemoryRequirements const &reqs)
 {
-    auto const &device = *RenderConfig::current_device->device;
-    auto const &memory_props = device.native().getMemoryProperties();
-    auto const type_count = memory_props.memoryTypeCount;
+    // auto const &device = *RenderConfig::current_device->device;
+    // auto const &memory_props = device.native().getMemoryProperties();
+    // auto const type_count = memory_props.memoryTypeCount;
 
-    // This bit-rithmetic bears some explanation. We're checking two bit fields
-    // against our requirements for the memory itself.
+    // // This bit-rithmetic bears some explanation. We're checking two bit fields
+    // // against our requirements for the memory itself.
 
-    for(uint32_t type_index = 0u; type_index < type_count; ++type_index) {
-        auto const type = memory_props.memoryTypes[type_index];
+    // for(uint32_t type_index = 0u; type_index < type_count; ++type_index) {
+    //     auto const type = memory_props.memoryTypes[type_index];
 
-        // Each type index is actually a field in memoryTypeBits. If the index
-        // we're currently on is enabled, that means we've found a matching
-        // memory type.
+    //     // Each type index is actually a field in memoryTypeBits. If the index
+    //     // we're currently on is enabled, that means we've found a matching
+    //     // memory type.
 
-        if((reqs.memoryTypeBits & (1u << type_index)) != 0u) {
-            // The second check is against the memory properties. This can be
-            // any combination of local to the CPU, local to the GPU, visible
-            // to the CPU or not, and more.
+    //     if((reqs.memoryTypeBits & (1u << type_index)) != 0u) {
+    //         // The second check is against the memory properties. This can be
+    //         // any combination of local to the CPU, local to the GPU, visible
+    //         // to the CPU or not, and more.
 
-            if(type.propertyFlags & flags) {
-                return type_index;
-            }
-        }
-    }
+    //         if(type.propertyFlags & flags) {
+    //             return type_index;
+    //         }
+    //     }
+    // }
 
     BTX_CRITICAL("Could not find memory to match buffer requirements.");
     return std::numeric_limits<uint32_t>::max();

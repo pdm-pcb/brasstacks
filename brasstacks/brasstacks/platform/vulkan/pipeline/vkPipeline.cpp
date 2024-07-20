@@ -188,9 +188,7 @@ vkPipeline::send_push_constants(std::span<PushConstant const> const push_constan
 }
 
 // =============================================================================
-void vkPipeline::update_dimensions(RenderConfig::Size const &size,
-                                   RenderConfig::Offset const &offset)
-{
+void vkPipeline::update_dimensions(Size const &size, Offset const &offset) {
     _viewport = vk::Viewport {
         .x         = static_cast<float>(offset.x),
         .y         = static_cast<float>(size.height),
@@ -201,8 +199,14 @@ void vkPipeline::update_dimensions(RenderConfig::Size const &size,
     };
 
     _scissor = vk::Rect2D {
-        .offset = { .x = offset.x, .y = offset.y },
-        .extent = { .width = size.width, .height = size.height },
+        .offset = {
+            .x = static_cast<int32_t>(offset.x),
+            .y = static_cast<int32_t>(offset.y),
+        },
+        .extent = {
+            .width  = static_cast<uint32_t>(size.width),
+            .height = static_cast<uint32_t>(size.height),
+        },
     };
 
     BTX_TRACE(

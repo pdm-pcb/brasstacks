@@ -2,7 +2,6 @@
 #define BRASSTACKS_PLATFORM_VULKAN_PIPELINE_VKPIPELINE_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -18,8 +17,8 @@ public:
 
     struct Config {
         // Viewport settings
-        RenderConfig::Size   viewport_extent { 0u, 0u };
-        RenderConfig::Offset viewport_offset { 0, 0 };
+        Size   viewport_extent { };
+        Offset viewport_offset { };
 
         // Drawing options
         vk::PolygonMode   polygon_mode = vk::PolygonMode::eFill;
@@ -52,8 +51,7 @@ public:
 
     void send_push_constants(std::span<PushConstant const> const push_constants);
 
-    void update_dimensions(RenderConfig::Size const &size,
-                           RenderConfig::Offset const &offset);
+    void update_dimensions(Size const &size, Offset const &offset);
 
     inline auto const & native()         const { return _handle; }
     inline auto const & layout()         const { return _layout; }

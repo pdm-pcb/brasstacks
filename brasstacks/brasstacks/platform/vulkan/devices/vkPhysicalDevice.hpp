@@ -1,13 +1,7 @@
-/**
- * @file vkPhysicalDevice.hpp
- * @brief A wrapper class for Vulkan's idea of a physical GPU.
- */
-
 #ifndef BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKPHYSICALDEVICE_HPP
 #define BRASSTACKS_PLATFORM_VULKAN_DEVICES_VKPHYSICALDEVICE_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -21,10 +15,12 @@ public:
         std::span<char const * const> const extensions);
 
     static void clear_device_list();
-    static void set_msaa_levels();
-    static void set_aniso_levels();
 
-    explicit vkPhysicalDevice(vk::PhysicalDevice const &handle);
+    static inline auto const &current_device() {
+        return *_current_device;
+    }
+
+    explicit vkPhysicalDevice(vk::PhysicalDevice const handle);
     ~vkPhysicalDevice() = default;
 
     vkPhysicalDevice() = delete;
@@ -52,20 +48,24 @@ private:
 
     std::string _name;
     std::string _vkapi_version;
-    size_t      _vram_bytes;
+    uint64_t    _vram_bytes;
     std::string _driver_version;
 
     uint32_t    _queue_family_index;
 
-    vk::PhysicalDeviceFeatures2          _enabled_features;
-    vk::PhysicalDeviceVulkan11Features   _enabled_features11;
-    vk::PhysicalDeviceVulkan12Features   _enabled_features12;
-    std::vector<vk::ExtensionProperties> _enabled_extensions;
-
     vk::SampleCountFlags _samples;
     float _max_aniso;
 
-    static void _sort_device_list();
+    vk::PhysicalDeviceFeatures2          _enabled_features;
+    vk::PhysicalDeviceVulkan11Features   _enabled_features11;
+    vk::PhysicalDeviceVulkan12Features   _enabled_features12;
+    vk::PhysicalDeviceVulkan13Features   _enabled_features13;
+    std::vector<vk::ExtensionProperties> _enabled_extensions;
+
+    static std::vector<vkPhysicalDevice *> _available_devices;
+    static vkPhysicalDevice const *_current_device;
+
+    static void _sort_devices();
 
     static void _print_family_flags(uint32_t const family,
                                     vk::QueueFlags const flags);
@@ -73,6 +73,8 @@ private:
     bool _check_queue_families(vkSurface const &surface);
     bool _check_features(vk::PhysicalDeviceFeatures2 const &features);
     bool _check_extensions(std::span<char const * const> extensions);
+
+    static uint64_t _get_vram_bytes(vk::PhysicalDevice const device);
 };
 
 } // namespace btx

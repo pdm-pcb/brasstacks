@@ -3,7 +3,6 @@
 
 #include "brasstacks/pch.hpp"
 #include "brasstacks/platform/vulkan/devices/vkDevice.hpp"
-#include "brasstacks/platform/vulkan/vmaAllocator.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkFrameSync.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSwapchain.hpp"
 
@@ -20,15 +19,6 @@ class Renderer final {
 public:
     static void init(Application *const application);
     static void shutdown();
-    static void run();
-
-    static void change_device();
-
-    static void recreate_swapchain();
-    static void create_swapchain_resources();
-    static void destroy_swapchain_resources();
-
-    static inline void wait_device_idle() { _device.wait_idle(); }
 
     static inline auto const & device()    { return _device; }
     static inline auto const & swapchain() { return _swapchain; }
@@ -58,8 +48,8 @@ public:
 private:
     static Application *_application;
 
-    static vkSurface   *_surface;
-    static vkDevice    _device;
+    static vkSurface *_surface;
+    static vkDevice  _device;
 
     static vkDescriptorPool *_descriptor_pool;
 
@@ -78,9 +68,8 @@ private:
     [[nodiscard]] static bool _present_image();
 
     static void _create_surface();
-    static void _populate_physical_devices();
+    static void _select_physical_device();
     static void _create_device();
-    static void _create_allocator(uint32_t const api_version);
 
     static void _create_swapchain();
     static void _destroy_swapchain();

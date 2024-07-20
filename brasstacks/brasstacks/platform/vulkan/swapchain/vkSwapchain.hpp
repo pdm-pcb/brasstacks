@@ -2,7 +2,6 @@
 #define BRASSTACKS_PLATFORM_VULKAN_SWAPCHAIN_VKSWAPCHAIN_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
 
@@ -50,8 +49,8 @@ private:
     std::vector<vkImage *>     _images;
     std::vector<vkImageView *> _image_views;
 
-    RenderConfig::Size   _size;
-    RenderConfig::Offset _offset;
+    Size   _size;
+    Offset _offset;
 
     float _aspect_ratio;
 

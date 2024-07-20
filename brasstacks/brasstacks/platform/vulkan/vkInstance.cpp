@@ -12,7 +12,6 @@ namespace btx {
 vk::Instance vkInstance::_handle { nullptr };
 
 vk::DynamicLoader         vkInstance::_loader { };
-uint32_t                  vkInstance::_target_api_version { };
 vk::ApplicationInfo       vkInstance::_app_info { };
 std::vector<char const *> vkInstance::_enabled_layers { };
 std::vector<char const *> vkInstance::_enabled_extensions { };
@@ -21,13 +20,11 @@ std::vector<vk::ValidationFeatureEnableEXT> vkInstance::_vvl_enabled { };
 vk::ValidationFeaturesEXT vkInstance::_vvl_features { };
 
 // =============================================================================
-void vkInstance::create(uint32_t const api_version) {
+void vkInstance::create() {
     if(_handle) {
         BTX_CRITICAL("Vulkan instance {} already exists", _handle);
         return;
     }
-
-    _target_api_version = api_version;
 
     _init_dynamic_loader(); // The first step for using the dynamic loader
     _init_app_info();       // Provide hints about this app to the driver
@@ -131,7 +128,7 @@ void vkInstance::_init_app_info() {
     _app_info.applicationVersion = 0u;
     _app_info.pEngineName        = BTX_NAME;
     _app_info.engineVersion      = BTX_VERSION;
-    _app_info.apiVersion         = _target_api_version;
+    _app_info.apiVersion         = BTX_VK_TARGET_VERSION;
 }
 
 // =============================================================================

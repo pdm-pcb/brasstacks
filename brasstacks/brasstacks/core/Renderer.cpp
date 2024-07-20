@@ -1,22 +1,14 @@
 #include "brasstacks/brasstacks.hpp"
 #include "brasstacks/core/Renderer.hpp"
 
-#include "brasstacks/events/EventBus.hpp"
-
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
-#include "brasstacks/platform/vulkan/vmaAllocator.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
 #include "brasstacks/platform/vulkan/descriptors/vkDescriptorPool.hpp"
 #include "brasstacks/platform/vulkan/rendering/vkColorDepth.hpp"
-
-#include "brasstacks/tools/cameras/CameraController.hpp"
-
-#include "brasstacks/assets/libraries/MeshLibrary.hpp"
-#include "brasstacks/assets/libraries/TextureLibrary.hpp"
 
 namespace btx {
 
@@ -35,54 +27,17 @@ vkColorDepth *Renderer::_color_depth { nullptr };
 
 // =============================================================================
 void Renderer::init(Application *const application) {
-    vkInstance::create(BTX_VK_TARGET_VERSION);
-
     _application = application;
+
+    vkInstance::create();
     _create_surface();
-    _populate_physical_devices();
-    _create_device();
-    _create_allocator(BTX_VK_TARGET_VERSION);
-
-    _descriptor_pool = new vkDescriptorPool;
-    _descriptor_pool->create(
-        vk::DescriptorPoolCreateFlags { },
-        1000u,
-        {
-            { vk::DescriptorType::eUniformBuffer,        1000u, },
-            { vk::DescriptorType::eCombinedImageSampler, 1000u, },
-        }
-    );
-
-    _create_swapchain();
-    _create_frame_sync();
-
-    _color_depth = new vkColorDepth;
-    _color_depth->create_swapchain_resources();
-
-    MeshLibrary::init();
-    TextureLibrary::init();
-    // CameraController::init();
+    _select_physical_device();
+    // _create_device();
 }
 
 // =============================================================================
 void Renderer::shutdown() {
-    // CameraController::shutdown();
-    MeshLibrary::shutdown();
-    TextureLibrary::shutdown();
-
-    destroy_swapchain_resources();
-    _destroy_swapchain();
-
-    delete _color_depth;
-    _color_depth = nullptr;
-
-    _descriptor_pool->destroy();
-    delete _descriptor_pool;
-    _descriptor_pool = nullptr;
-
-    vmaAllocator::destroy();
-
-    _device.destroy();
+    // _device.destroy();
 
     vkPhysicalDevice::clear_device_list();
 
@@ -91,185 +46,6 @@ void Renderer::shutdown() {
     _surface = nullptr;
 
     vkInstance::destroy();
-}
-
-// =============================================================================
-void Renderer::run() {
-    auto const swapchain_index = _acquire_next_image();
-    if(swapchain_index == std::numeric_limits<uint32_t>::max()) {
-        BTX_WARN("Swapchain provided invalid index.");
-        recreate_swapchain();
-        return;
-    }
-
-    if(swapchain_index != _image_index) {
-        BTX_ERROR("Swapchain reported {} and we're on {}",
-                  swapchain_index, _image_index);
-    }
-
-    _begin_recording();
-        // CameraController::update_ubo();
-        _color_depth->begin();
-        _application->draw();
-        _color_depth->end();
-    _end_recording();
-    _submit_commands();
-
-    if(!_present_image()) {
-        BTX_WARN("Swapchain presentation failed.");
-        recreate_swapchain();
-    }
-}
-
-// =============================================================================
-void Renderer::change_device() {
-    wait_device_idle();
-
-    // CameraController::destroy_device_resources();
-    MeshLibrary::shutdown();
-    TextureLibrary::shutdown();
-
-    destroy_swapchain_resources();
-    _destroy_swapchain();
-
-    _descriptor_pool->destroy();
-
-    vmaAllocator::destroy();
-
-    _device.destroy();
-
-    // Now that everything's thoroughly undone, start anew
-
-    vkPhysicalDevice::set_msaa_levels();
-    vkPhysicalDevice::set_aniso_levels();
-
-    _create_device();
-    _create_allocator(BTX_VK_TARGET_VERSION);
-
-    _descriptor_pool->create(
-        vk::DescriptorPoolCreateFlags { },
-        1000u,
-        {
-            { vk::DescriptorType::eUniformBuffer,        1000u, },
-            { vk::DescriptorType::eCombinedImageSampler, 1000u, },
-        }
-    );
-
-    _create_swapchain();
-    _create_frame_sync();
-
-    // if(RenderConfig::current_msaa->msaa > 1u) {
-    //     _render_pass = new vkColorDepthResolvePass;
-    // }
-    // else {
-    //     _render_pass = new vkColorDepthPass;
-    // }
-
-    _color_depth->create_swapchain_resources();
-
-    MeshLibrary::init();
-    TextureLibrary::init();
-    // CameraController::create_device_resources();
-
-    _application->init();
-}
-
-// =============================================================================
-void Renderer::recreate_swapchain() {
-    wait_device_idle();
-
-    destroy_swapchain_resources();
-    _destroy_swapchain();
-    _create_swapchain();
-    create_swapchain_resources();
-
-    // CameraController::update_perspective();
-}
-
-// =============================================================================
-void Renderer::create_swapchain_resources() {
-    _create_frame_sync();
-    _color_depth->create_swapchain_resources();
-}
-
-// =============================================================================
-void Renderer::destroy_swapchain_resources() {
-    _color_depth->destroy_swapchain_resources();
-    _destroy_frame_sync();
-}
-
-// =============================================================================
-uint32_t Renderer::_acquire_next_image() {
-    _image_index = (_image_index + 1u) % _swapchain.images().size();
-    auto &frame = _frame_sync[_image_index];
-    frame.wait_and_reset();
-
-    return _swapchain.get_next_image_index(frame.present_semaphore());
-}
-
-// =============================================================================
-void Renderer::_begin_recording() {
-    _frame_sync[_image_index].cmd_buffer().begin_one_time_submit();
-}
-
-// =============================================================================
-void Renderer::_end_recording() {
-    _frame_sync[_image_index].cmd_buffer().end_recording();
-}
-
-// =============================================================================
-void Renderer::_submit_commands() {
-    auto const &frame_sync = _frame_sync[_image_index];
-
-    auto const cmd_submit_info = vk::CommandBufferSubmitInfo {
-        .pNext = nullptr,
-        .commandBuffer = frame_sync.cmd_buffer().native(),
-        .deviceMask = { },
-    };
-
-    auto const wait_info = vk::SemaphoreSubmitInfoKHR {
-        .pNext = nullptr,
-        .semaphore = frame_sync.present_semaphore(),
-        .value = { },
-        .stageMask = vk::PipelineStageFlagBits2KHR::eColorAttachmentOutput,
-        .deviceIndex = { },
-    };
-
-    auto const signal_info = vk::SemaphoreSubmitInfoKHR {
-        .pNext = nullptr,
-        .semaphore = frame_sync.queue_semaphore(),
-        .value = { },
-        .stageMask = vk::PipelineStageFlagBits2KHR::eAllGraphics,
-        .deviceIndex = { },
-    };
-
-    auto const queue_submit_info = vk::SubmitInfo2KHR {
-      .pNext = nullptr,
-      .flags = { },
-      .waitSemaphoreInfoCount = 1u,
-      .pWaitSemaphoreInfos = &wait_info,
-      .commandBufferInfoCount = 1u,
-      .pCommandBufferInfos = &cmd_submit_info,
-      .signalSemaphoreInfoCount = 1u,
-      .pSignalSemaphoreInfos = &signal_info,
-    };
-
-    auto const result = _device.graphics_queue().native().submit2KHR(
-        1u,
-        &queue_submit_info,
-        frame_sync.queue_fence()
-    );
-
-    if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL("Failed to submit commands to device queue: '{}'",
-                     vk::to_string(result));
-    }
-}
-
-// =============================================================================
-bool Renderer::_present_image() {
-    auto &frame_sync = _frame_sync[_image_index];
-    return _swapchain.present(frame_sync, _image_index);
 }
 
 // =============================================================================
@@ -304,15 +80,18 @@ void Renderer::_create_surface() {
 }
 
 // =============================================================================
-void Renderer::_populate_physical_devices() {
+void Renderer::_select_physical_device() {
     if(!_surface->native()) {
         BTX_CRITICAL("Cannot select physical device without surface.");
         return;
     }
 
-    auto features12 = vk::PhysicalDeviceVulkan12Features {
+    auto features13 = vk::PhysicalDeviceVulkan13Features {
         .pNext = nullptr,
-        .bufferDeviceAddress = VK_TRUE,
+    };
+
+    auto features12 = vk::PhysicalDeviceVulkan12Features {
+        .pNext = &features13,
     };
 
     auto features11 = vk::PhysicalDeviceVulkan11Features {
@@ -329,8 +108,6 @@ void Renderer::_populate_physical_devices() {
 
     std::vector<char const *> const extensions {{
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
-        VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
     }};
 
     vkPhysicalDevice::populate_device_list(*_surface, features, extensions);
@@ -344,11 +121,6 @@ void Renderer::_create_device() {
     }
 
     _device.create();
-}
-
-// =============================================================================
-void Renderer::_create_allocator(uint32_t const api_version) {
-    vmaAllocator::create(api_version);
 }
 
 // =============================================================================

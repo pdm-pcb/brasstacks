@@ -3,13 +3,6 @@
 
 #include "brasstacks/pch.hpp"
 
-#include "brasstacks/events/EventQueue.hpp"
-#include "brasstacks/events/state_events.hpp"
-#include "brasstacks/events/window_events.hpp"
-#include "brasstacks/events/ui_events.hpp"
-#include "brasstacks/events/keyboard_events.hpp"
-#include "brasstacks/events/mouse_events.hpp"
-
 namespace btx {
 
 class Application {
@@ -32,16 +25,6 @@ public:
 
     Application & operator=(Application &&) = delete;
     Application & operator=(Application const &) = delete;
-
-private:
-    bool _running;
-
-    EventQueue<WindowEvent>   _window_events;
-    EventQueue<KeyboardEvent> _keyboard_events;
-
-    void _process_events();
-    void _window_event(WindowEvent const &event);
-    void _keyboard_event(KeyboardEvent const &event);
 };
 
 } // namespace btx

@@ -2,7 +2,6 @@
 #define BRASSTACKS_CORE_TARGETWINDOW_HPP
 
 #include "brasstacks/pch.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
 
 #ifdef BTX_LINUX
     #define GLFW_EXPOSE_NATIVE_X11
@@ -23,12 +22,7 @@ public:
     static inline void show() { ::glfwShowWindow(_window); }
     static inline void hide() { ::glfwHideWindow(_window); }
 
-    static void capture_mouse();
-    static void release_mouse();
-
-    static void poll_events();
-
-    static void size_and_place(RenderConfig::Size const &size = { });
+    static [[nodiscard]] bool poll_events();
 
 #ifdef BTX_LINUX
     static inline auto native() { return ::glfwGetX11Window(_window); }
@@ -51,18 +45,12 @@ public:
 private:
     static GLFWwindow *_window;
 
-    static RenderConfig::Size   _screen_size;
-    static RenderConfig::Offset _screen_center;
+    static Offset _screen_center;
+    static Size   _window_size;
+    static Offset _window_position;
 
-    static RenderConfig::Size   _window_size;
-    static RenderConfig::Offset _window_position;
-
-    static double _last_cursor_x;
-    static double _last_cursor_y;
-
-    static bool _mouse_captured;
-
-    static void _get_resolutions();
+    static void _get_resolution();
+    static void _size_and_place();
 
     static void _error_callback(int code, char const *message);
 

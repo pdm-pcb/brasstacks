@@ -7,7 +7,7 @@ namespace btx {
 
 class vkInstance final {
 public:
-    static void create(uint32_t const api_version);
+    static void create();
     static void destroy();
 
     static inline auto const & native() { return _handle; }
@@ -23,38 +23,10 @@ public:
     vkInstance& operator=(const vkInstance &other) = delete;
 
 private:
-    /**
-     * @brief Native Vulkan instance handle.
-     */
     static vk::Instance _handle;
-
-    /**
-     * @brief Allows the application to call Vulkan functions without first
-     * loading the function pointers manually.
-     */
     static vk::DynamicLoader _loader;
-
-    /**
-     * @brief Which version of the API we want to use.
-     */
-    static uint32_t _target_api_version;
-
-    /**
-     * @brief Hints provided to the driver like API version, engine/application
-     * name, etc.
-     */
     static vk::ApplicationInfo _app_info;
-
-    /**
-     * @brief The collection of layers being requested. Typically, the
-     * validation layer will be requested in debug and none will be requested
-     * in release.
-     */
     static std::vector<char const *> _enabled_layers;
-
-    /**
-     * @brief The collection of instance extensions being requested.
-     */
     static std::vector<char const *> _enabled_extensions;
 
     static std::vector<vk::ValidationFeatureEnableEXT> _vvl_enabled;

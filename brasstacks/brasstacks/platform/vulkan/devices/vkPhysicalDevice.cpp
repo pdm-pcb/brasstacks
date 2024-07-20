@@ -3,9 +3,11 @@
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
 #include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
-#include "brasstacks/config/RenderConfig.hpp"
 
 namespace btx {
+
+std::vector<vkPhysicalDevice *> vkPhysicalDevice::_available_devices;
+vkPhysicalDevice const *vkPhysicalDevice::_current_device { nullptr };
 
 // =============================================================================
 void vkPhysicalDevice::populate_device_list(
@@ -13,11 +15,6 @@ void vkPhysicalDevice::populate_device_list(
     vk::PhysicalDeviceFeatures2 const &features,
     std::span<char const * const> const extensions)
 {
-    if(!RenderConfig::available_devices.empty()) {
-        BTX_CRITICAL("Already populated physical device list");
-        return;
-    }
-
     // Ask the instance for a list of devices
     auto const devices = vkInstance::native().enumeratePhysicalDevices();
 
@@ -26,61 +23,57 @@ void vkPhysicalDevice::populate_device_list(
 
     // Run through the devices, and only store ones that have what we need
     for(auto const &device : devices) {
-        auto *device_candidate = new vkPhysicalDevice(device);
+        auto *candidate = new vkPhysicalDevice(device);
 
-        if(!device_candidate->_check_queue_families(surface)) {
-            delete device_candidate;
+        if(!candidate->_check_queue_families(surface)) {
+            delete candidate;
             continue;
         }
 
-        if(!device_candidate->_check_features(features)) {
-            delete device_candidate;
+        if(!candidate->_check_features(features)) {
+            delete candidate;
             continue;
         }
 
-        if(!device_candidate->_check_extensions(extensions)) {
-            delete device_candidate;
+        if(!candidate->_check_extensions(extensions)) {
+            delete candidate;
             continue;
         }
 
-        RenderConfig::available_devices.emplace_back(
-            RenderConfig::SelectedDevice {
-            .device = device_candidate,
-            .selected = false
-        });
+        _available_devices.emplace_back(candidate);
     }
 
-    if(RenderConfig::available_devices.empty()) {
+    if(_available_devices.empty()) {
         BTX_CRITICAL("Could not find suitable physical device.");
         return;
     }
 
     // Sort remaining devices by "performance"
-    _sort_device_list();
+    _sort_devices();
 
-    RenderConfig::current_device = &RenderConfig::available_devices.front();
-    RenderConfig::current_device->selected = true;
-    BTX_INFO("Selected {}", RenderConfig::current_device->device->name());
-
-    set_msaa_levels();
-    set_aniso_levels();
+    // And choose the "best"
+    _current_device = _available_devices.front();
+    BTX_INFO("Selecting {}", _current_device->_name);
 }
 
 // =============================================================================
 void vkPhysicalDevice::clear_device_list() {
-    for(auto &device : RenderConfig::available_devices) {
-        delete device.device;
-        device.device = nullptr;
+    for(auto *device : _available_devices) {
+        delete device;
     }
+
+    _available_devices.clear();
 }
 
 // =============================================================================
-vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const &handle) :
+vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const handle) :
     _handle             { handle },
-    _enabled_features   { },
-    _enabled_features11 { },
-    _enabled_features12 { },
-    _enabled_extensions { },
+    _type               { },
+    _name               { },
+    _vkapi_version      { },
+    _vram_bytes         { 0u },
+    _driver_version     { },
+    _queue_family_index { 0u },
     _samples            { vk::SampleCountFlagBits::e1 },
     _max_aniso          { 0.0f }
 {
@@ -99,17 +92,7 @@ vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const &handle) :
     _max_aniso = device_props.limits.maxSamplerAnisotropy;
 
     // Pulling the VRAM count from here
-    auto const &memory_props = _handle.getMemoryProperties();
-    size_t vram_bytes = 0u;
-    for(uint32_t index = 0u; index < memory_props.memoryHeapCount; ++index) {
-        auto const flags = memory_props.memoryHeaps[index].flags;
-
-        if((flags & vk::MemoryHeapFlagBits::eDeviceLocal) == flags) {
-            vram_bytes = memory_props.memoryHeaps[index].size;
-            break;
-        }
-    }
-    _vram_bytes = vram_bytes;
+    _vram_bytes = _get_vram_bytes(_handle);
 
     // And the driver version from here
     vk::PhysicalDeviceDriverProperties driver_props { };
@@ -121,17 +104,18 @@ vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const &handle) :
     _driver_version = std::string(driver_props.driverInfo.data());
 
     // Set up the features structure chain
-    _enabled_features12.pNext = nullptr;
+    _enabled_features13.pNext = nullptr;
+    _enabled_features12.pNext = &_enabled_features13;
     _enabled_features11.pNext = &_enabled_features12;
     _enabled_features.pNext   = &_enabled_features11;
 
     BTX_TRACE(
-        "\n"
+        "\n\n"
         "\tDevice Name:    {}\n"
         "\tDevice Type:    {}\n"
         "\tVRAM:           {} MB\n"
         "\tDriver Version: {}\n"
-        "\tVulkan Version: {}\n",
+        "\tVulkan Version: {}",
         _name,
         vk::to_string(_type),
         _vram_bytes / 1000 / 1000,
@@ -141,79 +125,39 @@ vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const &handle) :
 }
 
 // =============================================================================
-void vkPhysicalDevice::set_msaa_levels() {
-    auto const &device = *RenderConfig::current_device->device;
-    auto const &samples = device.samples();
-
-    RenderConfig::available_msaa.clear();
-
-    if(samples & vk::SampleCountFlagBits::e64) {
-        RenderConfig::available_msaa.push_back({ 64u, false });
-    }
-    if(samples & vk::SampleCountFlagBits::e32) {
-        RenderConfig::available_msaa.push_back({ 32u, false });
-    }
-    if(samples & vk::SampleCountFlagBits::e16) {
-        RenderConfig::available_msaa.push_back({ 16u, false });
-    }
-    if(samples & vk::SampleCountFlagBits::e8) {
-        RenderConfig::available_msaa.push_back({ 8u, false});
-    }
-    if(samples & vk::SampleCountFlagBits::e4) {
-        RenderConfig::available_msaa.push_back({ 4u, false });
-    }
-    if(samples & vk::SampleCountFlagBits::e2) {
-        RenderConfig::available_msaa.push_back({ 2u, false });
-    }
-    if(samples & vk::SampleCountFlagBits::e1) {
-        RenderConfig::available_msaa.push_back({ 1u, false });
-    }
-
-    RenderConfig::current_msaa = &RenderConfig::available_msaa.back();
-    RenderConfig::current_msaa->selected = true;
-}
-
-// =============================================================================
-void vkPhysicalDevice::set_aniso_levels() {
-    auto const &device = *RenderConfig::current_device->device;
-    auto aniso_level = static_cast<uint8_t>(device.max_aniso());
-
-    RenderConfig::available_aniso.clear();
-
-    while(aniso_level >= 1u) {
-        RenderConfig::available_aniso.push_back({ aniso_level, false });
-        aniso_level = static_cast<uint8_t>(
-            static_cast<float>(aniso_level) * 0.5f
-        );
-    }
-
-    RenderConfig::current_aniso = &RenderConfig::available_aniso.front();
-    RenderConfig::current_aniso->selected = true;
-}
-
-// =============================================================================
-void vkPhysicalDevice::_sort_device_list() {
+void vkPhysicalDevice::_sort_devices() {
     // Sort the available devices by VRAM, favoring discrete GPUs
-    std::sort(RenderConfig::available_devices.begin(),
-              RenderConfig::available_devices.end(),
-        [&](auto const &a, auto const &b) {
-            if(a.device->type() == vk::PhysicalDeviceType::eDiscreteGpu &&
-               b.device->type() != vk::PhysicalDeviceType::eDiscreteGpu)
+    std::sort(_available_devices.begin(), _available_devices.end(),
+        [&](auto const &a, auto const &b)
+        {
+            if(a->_type == vk::PhysicalDeviceType::eDiscreteGpu &&
+               b->_type != vk::PhysicalDeviceType::eDiscreteGpu)
             {
                 return true;
             }
 
-            if((a.device->type() == vk::PhysicalDeviceType::eDiscreteGpu &&
-                b.device->type() == vk::PhysicalDeviceType::eDiscreteGpu) ||
-               (a.device->type() == vk::PhysicalDeviceType::eIntegratedGpu &&
-                b.device->type() == vk::PhysicalDeviceType::eIntegratedGpu))
-            {
-                return a.device->vram_bytes() > b.device->vram_bytes();
+            if(a->_type == b->_type) {
+                return a->_vram_bytes > b->_vram_bytes;
             }
 
             return false;
         }
     );
+}
+
+// =============================================================================
+uint64_t vkPhysicalDevice::_get_vram_bytes(vk::PhysicalDevice const device) {
+    auto const &memory_props = device.getMemoryProperties();
+    size_t vram_bytes = 0u;
+    for(uint32_t index = 0u; index < memory_props.memoryHeapCount; ++index) {
+        auto const flags = memory_props.memoryHeaps[index].flags;
+
+        if((flags & vk::MemoryHeapFlagBits::eDeviceLocal) == flags) {
+            vram_bytes = memory_props.memoryHeaps[index].size;
+            break;
+        }
+    }
+    return vram_bytes;
 }
 
 // =============================================================================
@@ -267,7 +211,7 @@ void vkPhysicalDevice::_print_family_flags(uint32_t const family,
 // =============================================================================
 bool vkPhysicalDevice::_check_queue_families(vkSurface const &surface) {
     auto const &families = _handle.getQueueFamilyProperties();
-    BTX_TRACE("Found {} queue families for {}", families.size(), _name);
+    // BTX_TRACE("Found {} queue families for {}", families.size(), _name);
 
     for(uint32_t i = 0u; i < families.size(); ++i) {
         _print_family_flags(i, families[i].queueFlags);
@@ -310,16 +254,26 @@ vkPhysicalDevice::_check_features(vk::PhysicalDeviceFeatures2 const &features)
     // First, pull the required features structs out for easier comparison
     auto const &features11 =
         *(static_cast<vk::PhysicalDeviceVulkan11Features *>(features.pNext));
+
     auto const &features12 =
         *(static_cast<vk::PhysicalDeviceVulkan12Features *>(features11.pNext));
 
+    auto const &features13 =
+        *(static_cast<vk::PhysicalDeviceVulkan13Features *>(features12.pNext));
+
     // Next, build the struct chain to ask the device what we're working with
-    auto supported12 = vk::PhysicalDeviceVulkan12Features {
+    auto supported13 = vk::PhysicalDeviceVulkan13Features {
         .pNext = nullptr,
     };
+
+    auto supported12 = vk::PhysicalDeviceVulkan12Features {
+        .pNext = &supported13,
+    };
+
     auto supported11 = vk::PhysicalDeviceVulkan11Features {
         .pNext = &supported12,
     };
+
     auto supported2 = vk::PhysicalDeviceFeatures2 {
         .pNext = &supported11,
     };
@@ -348,15 +302,6 @@ vkPhysicalDevice::_check_features(vk::PhysicalDeviceFeatures2 const &features)
     }
     else if(features.features.samplerAnisotropy) {
         BTX_WARN("{} does not samplerAnisotropy.", _name);
-        all_features_supported = false;
-    }
-
-    if(features12.bufferDeviceAddress && supported12.bufferDeviceAddress) {
-        BTX_TRACE("{} supports bufferDeviceAddress.", _name);
-        _enabled_features12.bufferDeviceAddress = VK_TRUE;
-    }
-    else if(features12.bufferDeviceAddress) {
-        BTX_TRACE("{} does not support bufferDeviceAddress.", _name);
         all_features_supported = false;
     }
 
