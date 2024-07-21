@@ -4,12 +4,12 @@ layout(location = 0) in vec3 in_pos;
 layout(location = 1) in vec3 in_color;
 layout(location = 2) in vec2 in_uv;
 
-layout(set = 0, binding = 0) uniform CameraData {
+layout(set = 0, binding = 0) uniform camera {
     mat4 view_mat;
     mat4 proj_mat;
 };
 
-layout(push_constant) uniform vert_constants {
+layout(push_constant) uniform vert_push {
 	mat4 model_mat;
 };
 

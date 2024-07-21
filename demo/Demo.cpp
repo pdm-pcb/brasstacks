@@ -9,8 +9,8 @@ Demo::Demo() :
 
 // =============================================================================
 void Demo::init() {
-    // btx::vkShaderStage vert("shaders/demo.vert");
-    // btx::vkShaderStage frag("shaders/demo.frag");
+    btx::vkShaderStage vert("shaders/demo.vert");
+    btx::vkShaderStage frag("shaders/demo.frag");
 }
 
 // =============================================================================

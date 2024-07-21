@@ -27,7 +27,7 @@
     #include <vulkan/vulkan_win32.h>
 #endif // BTX platform
 
-// #include <spirv_reflect.h>
+#include <spirv_reflect.h>
 
 // #define VMA_STATIC_VULKAN_FUNCTIONS 0
 // #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
