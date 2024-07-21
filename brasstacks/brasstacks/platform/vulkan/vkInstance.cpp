@@ -13,10 +13,11 @@ vk::Instance vkInstance::_handle { nullptr };
 
 vk::DynamicLoader         vkInstance::_loader { };
 vk::ApplicationInfo       vkInstance::_app_info { };
-std::vector<char const *> vkInstance::_enabled_layers { };
-std::vector<char const *> vkInstance::_enabled_extensions { };
+std::vector<char const *> vkInstance::_enabled_layers;
+std::vector<char const *> vkInstance::_enabled_extensions;
 
-std::vector<vk::ValidationFeatureEnableEXT> vkInstance::_vvl_enabled { };
+std::vector<vk::ValidationFeatureEnableEXT> vkInstance::_vvl_enabled;
+std::vector<vk::ValidationFeatureDisableEXT> vkInstance::_vvl_disabled;
 vk::ValidationFeaturesEXT vkInstance::_vvl_features { };
 
 // =============================================================================
@@ -84,7 +85,7 @@ void vkInstance::create() {
     // Inform the dynamic dispatcher that we've got an instance.
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-    BTX_INFO(
+    BTX_TRACE(
         "Created Vulkan v{}.{}.{} instance: {}",
         VK_API_VERSION_MAJOR(_app_info.apiVersion),
         VK_API_VERSION_MINOR(_app_info.apiVersion),
@@ -103,20 +104,26 @@ void vkInstance::destroy() {
     vkDebugger::destroy();
 #endif // BTX_DEBUG
 
-    BTX_TRACE("Destroying Vulkan instance {}", _handle);
+    BTX_TRACE(
+        "Destroying Vulkan v{}.{}.{} instance: {}",
+        VK_API_VERSION_MAJOR(_app_info.apiVersion),
+        VK_API_VERSION_MINOR(_app_info.apiVersion),
+        VK_API_VERSION_PATCH(_app_info.apiVersion),
+        _handle
+    );
+
     _handle.destroy();
     _handle = nullptr;
 }
 
 // =============================================================================
 void vkInstance::_init_dynamic_loader() {
-    using instance_proc = PFN_vkGetInstanceProcAddr;
-
     // The dynamic loader needs something to boostrap itself, so provide it a
     // pointer to find the instance at least
-    auto vkGetInstanceProcAddr = _loader.getProcAddress<instance_proc>(
-        "vkGetInstanceProcAddr"
-    );
+    auto vkGetInstanceProcAddr =
+        _loader.getProcAddress<PFN_vkGetInstanceProcAddr>(
+            "vkGetInstanceProcAddr"
+        );
 
     // Now we're ready to let it run
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
@@ -133,38 +140,36 @@ void vkInstance::_init_app_info() {
 
 // =============================================================================
 void vkInstance::_init_layers() {
-#ifdef BTX_DEBUG
     // The validation layer helps you know if you've strayed too far from the
     // expected path. It's also extremely opinionated, so each message should
     // be considered individually.
+#ifdef BTX_DEBUG
     _enabled_layers = { "VK_LAYER_KHRONOS_validation" };
 #endif // BTX_DEBUG
 }
 
 // =============================================================================
 void vkInstance::_init_extensions() {
+    // Surfaces describe the spaces to which you can draw in Vulkan.
     _enabled_extensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
-    // Surfaces describe the spaces to which you can draw in Vulkan. They're
-    // also platform dependant.
+    // They're also platform-dependent.
 #ifdef BTX_LINUX
     _enabled_extensions.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
 #elif BTX_WINDOWS
     _enabled_extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif // BTX platform
 
-    // And for dynamic rendering:
-    _enabled_extensions.emplace_back(
-        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
-    );
-
 #ifdef BTX_DEBUG
-    // The first steps toward giving the driver a path to keep us abreast of
-    // myriad details.
+    // This extension enables debugging callbacks from Vulkan
+    // "VK_EXT_debug_utils has been introduced based on feedback for the initial
+    //  Vulkan debugging extensions VK_EXT_debug_report and VK_EXT_debug_marker,
+    //  combining these into a single instance extensions with some added
+    //  functionality."
+    // https://docs.vulkan.org/samples/latest/samples/extensions/debug_utils/README.html
     _enabled_extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    _enabled_extensions.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
-    // As with the last lines, these features support our debugging efforts
+    // Next we configure what we want the validation layers to report
     _vvl_enabled = {
         vk::ValidationFeatureEnableEXT::eBestPractices,
         vk::ValidationFeatureEnableEXT::eSynchronizationValidation,
@@ -173,12 +178,17 @@ void vkInstance::_init_extensions() {
         vk::ValidationFeatureEnableEXT::eGpuAssistedReserveBindingSlot,
     };
 
+    // Perhaps this'll be useful some time?
+    _vvl_disabled = { };
+
+    // Build the final structure
     _vvl_features = {
         .enabledValidationFeatureCount =
             static_cast<uint32_t>(_vvl_enabled.size()),
         .pEnabledValidationFeatures = _vvl_enabled.data(),
-        .disabledValidationFeatureCount = 0u,
-        .pDisabledValidationFeatures = nullptr
+        .disabledValidationFeatureCount =
+            static_cast<uint32_t>(_vvl_disabled.size()),
+        .pDisabledValidationFeatures = _vvl_disabled.data(),
     };
 #endif // BTX_DEBUG
 }

@@ -7,7 +7,7 @@
 namespace btx {
 
 std::vector<vkPhysicalDevice *> vkPhysicalDevice::_available_devices;
-vkPhysicalDevice const *vkPhysicalDevice::_current_device { nullptr };
+vkPhysicalDevice *vkPhysicalDevice::_current_device { nullptr };
 
 // =============================================================================
 void vkPhysicalDevice::populate_device_list(
@@ -66,6 +66,14 @@ void vkPhysicalDevice::clear_device_list() {
 }
 
 // =============================================================================
+vkPhysicalDevice & vkPhysicalDevice::current_device() {
+    if(_current_device == nullptr) {
+        BTX_CRITICAL("No physical device selected.");
+    }
+    return *_current_device;
+}
+
+// =============================================================================
 vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const handle) :
     _handle             { handle },
     _type               { },
@@ -75,7 +83,11 @@ vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const handle) :
     _driver_version     { },
     _queue_family_index { 0u },
     _samples            { vk::SampleCountFlagBits::e1 },
-    _max_aniso          { 0.0f }
+    _max_aniso          { 0.0f },
+    _features           { },
+    _features11         { },
+    _features12         { },
+    _features13         { }
 {
     // Retrieve the basic properties of the card
     auto const &device_props = _handle.getProperties();
@@ -87,27 +99,12 @@ vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const handle) :
         VK_API_VERSION_MINOR(device_props.apiVersion),
         VK_API_VERSION_PATCH(device_props.apiVersion)
     );
-
-    _samples = device_props.limits.framebufferColorSampleCounts;
+    _samples   = device_props.limits.framebufferColorSampleCounts;
     _max_aniso = device_props.limits.maxSamplerAnisotropy;
 
-    // Pulling the VRAM count from here
-    _vram_bytes = _get_vram_bytes(_handle);
-
-    // And the driver version from here
-    vk::PhysicalDeviceDriverProperties driver_props { };
-    vk::PhysicalDeviceProperties2 physical_props2 {
-        .pNext = &driver_props
-    };
-    _handle.getProperties2(&physical_props2);
-
-    _driver_version = std::string(driver_props.driverInfo.data());
-
-    // Set up the features structure chain
-    _enabled_features13.pNext = nullptr;
-    _enabled_features12.pNext = &_enabled_features13;
-    _enabled_features11.pNext = &_enabled_features12;
-    _enabled_features.pNext   = &_enabled_features11;
+    // And grab some of the sneakier features we're interested in
+    _vram_bytes     = _get_vram_bytes(_handle);
+    _driver_version = _get_driver_version(_handle);
 
     BTX_TRACE(
         "\n\n"
@@ -158,6 +155,18 @@ uint64_t vkPhysicalDevice::_get_vram_bytes(vk::PhysicalDevice const device) {
         }
     }
     return vram_bytes;
+}
+
+// =============================================================================
+std::string
+vkPhysicalDevice::_get_driver_version(vk::PhysicalDevice const device) {
+    vk::PhysicalDeviceDriverProperties driver_props { };
+    vk::PhysicalDeviceProperties2 physical_props2 {
+        .pNext = &driver_props
+    };
+    device.getProperties2(&physical_props2);
+
+    return std::string(driver_props.driverInfo.data());
 }
 
 // =============================================================================
@@ -249,19 +258,20 @@ bool vkPhysicalDevice::_check_queue_families(vkSurface const &surface) {
 
 // =============================================================================
 bool
-vkPhysicalDevice::_check_features(vk::PhysicalDeviceFeatures2 const &features)
-{
-    // First, pull the required features structs out for easier comparison
-    auto const &features11 =
-        *(static_cast<vk::PhysicalDeviceVulkan11Features *>(features.pNext));
+vkPhysicalDevice::_check_features(vk::PhysicalDeviceFeatures2 const &features) {
+    // Copy over the requested features
+    _features = features;
+    _features11 = *(static_cast<vk::PhysicalDeviceVulkan11Features *>(_features.pNext));
+    _features12 = *(static_cast<vk::PhysicalDeviceVulkan12Features *>(_features11.pNext));
+    _features13 = *(static_cast<vk::PhysicalDeviceVulkan13Features *>(_features12.pNext));
 
-    auto const &features12 =
-        *(static_cast<vk::PhysicalDeviceVulkan12Features *>(features11.pNext));
+    // Fix up the local features structure chain
+    _features.pNext   = &_features11;
+    _features11.pNext = &_features12;
+    _features12.pNext = &_features13;
+    _features13.pNext = nullptr;
 
-    auto const &features13 =
-        *(static_cast<vk::PhysicalDeviceVulkan13Features *>(features12.pNext));
-
-    // Next, build the struct chain to ask the device what we're working with
+    // Build the structure chain we'll use to query the device
     auto supported13 = vk::PhysicalDeviceVulkan13Features {
         .pNext = nullptr,
     };
@@ -274,34 +284,71 @@ vkPhysicalDevice::_check_features(vk::PhysicalDeviceFeatures2 const &features)
         .pNext = &supported12,
     };
 
-    auto supported2 = vk::PhysicalDeviceFeatures2 {
+    auto supported = vk::PhysicalDeviceFeatures2 {
         .pNext = &supported11,
     };
 
-    _handle.getFeatures2(&supported2);
+    // Ask the device what we're dealing with
+    _handle.getFeatures2(&supported);
 
-    // Now check the features we care about
+    // Run through and check what we care about
     bool all_features_supported = true;
 
-    if(features.features.fillModeNonSolid
-       && supported2.features.fillModeNonSolid)
+    // VK1.0 features ----------------------------------------------------------
+    if(_features.features.fillModeNonSolid
+       && supported.features.fillModeNonSolid)
     {
         BTX_TRACE("{} supports fillModeNonSolid.", _name);
-        _enabled_features.features.samplerAnisotropy = VK_TRUE;
     }
-    else if(features.features.fillModeNonSolid) {
+    else if(_features.features.fillModeNonSolid) {
         BTX_WARN("{} does not support fillModeNonSolid.", _name);
         all_features_supported = false;
     }
 
-    if(features.features.samplerAnisotropy
-       && supported2.features.samplerAnisotropy)
+    if(_features.features.samplerAnisotropy
+       && supported.features.samplerAnisotropy)
     {
         BTX_TRACE("{} supports samplerAnisotropy.", _name);
-        _enabled_features.features.fillModeNonSolid = VK_TRUE;
     }
-    else if(features.features.samplerAnisotropy) {
+    else if(_features.features.samplerAnisotropy) {
         BTX_WARN("{} does not samplerAnisotropy.", _name);
+        all_features_supported = false;
+    }
+
+    // VK1.2 features ----------------------------------------------------------
+    if(_features12.uniformAndStorageBuffer8BitAccess
+       && supported12.uniformAndStorageBuffer8BitAccess)
+    {
+        BTX_TRACE("{} supports unfiformAndStorageBuffer8BitAccess.", _name);
+    }
+    else if(_features12.uniformAndStorageBuffer8BitAccess) {
+        BTX_TRACE("{} does not support unfiformAndStorageBuffer8BitAccess.",
+                  _name);
+        all_features_supported = false;
+    }
+
+    if(_features12.bufferDeviceAddress && supported12.bufferDeviceAddress) {
+        BTX_TRACE("{} supports bufferDeviceAddress.", _name);
+    }
+    else if(_features12.bufferDeviceAddress) {
+        BTX_TRACE("{} does not support bufferDeviceAddress.", _name);
+        all_features_supported = false;
+    }
+
+    // VK1.3 features ----------------------------------------------------------
+    if(_features13.synchronization2 && supported13.synchronization2) {
+        BTX_TRACE("{} supports synchronization2.", _name);
+    }
+    else if(_features13.synchronization2) {
+        BTX_TRACE("{} does not support synchronization2.", _name);
+        all_features_supported = false;
+    }
+
+    if(_features13.dynamicRendering && supported13.dynamicRendering) {
+        BTX_TRACE("{} supports dynamicRendering.", _name);
+    }
+    else if(_features13.dynamicRendering) {
+        BTX_TRACE("{} does not support dynamicRendering.", _name);
         all_features_supported = false;
     }
 
@@ -326,7 +373,7 @@ vkPhysicalDevice::_check_extensions(std::span<char const * const> extensions) {
 
         for(auto const &supported : supported_extensions) {
             if(::strcmp(required, supported.extensionName) == 0) {
-                _enabled_extensions.push_back(supported);
+                _extensions.push_back(supported);
                 extension_found = true;
                 BTX_TRACE("{} supports '{}'", _name, required);
                 break;

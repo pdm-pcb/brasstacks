@@ -41,86 +41,75 @@ void vkDevice::create() {
         return;
     }
 
-    // // We only need one device queue, so only need to specify one priority
-    // float const queue_priorities[] = { 1.0f };
+    // We'll be asking the current physical device for its logical
+    // representation
+    auto &physical_device = vkPhysicalDevice::current_device();
 
-    // auto &device = *RenderConfig::current_device->device;
+    // We only need one device queue, so only need to specify one priority
+    float const queue_priorities[] = { 1.0f };
 
-    // // Populate the device queue create struct
-    // vk::DeviceQueueCreateInfo const queue_info[] {{
-    //     .pNext = nullptr,
-    //     .flags = { },
-    //     .queueFamilyIndex = device.queue_family_index(),
-    //     .queueCount = static_cast<uint32_t>(std::size(queue_priorities)),
-    //     .pQueuePriorities = queue_priorities,
-    // }};
+    // Populate the device queue create struct
+    vk::DeviceQueueCreateInfo const queue_info[] {{
+        .pNext = nullptr,
+        .flags = { },
+        .queueFamilyIndex = physical_device.queue_family_index(),
+        .queueCount = static_cast<uint32_t>(std::size(queue_priorities)),
+        .pQueuePriorities = queue_priorities,
+    }};
 
-    // // The logical device wants to know what the physical device has enabled
-    // auto *features = &(device.enabled_features());
+    // The logical device concerns itself with the features and extensions
+    // enabled on the physical device
+    auto const &features = physical_device.features();
+    auto const &extensions = physical_device.extensions();
 
-    // // Enable sync2
-    // auto s2_features = vk::PhysicalDeviceSynchronization2FeaturesKHR {
-    //     .pNext = features,
-    //     .synchronization2 = VK_TRUE,
-    // };
+    std::vector<char const *> extension_names;
+    extension_names.reserve(extensions.size());
 
-    // // Enable dynamic rendering
-    // auto dr_features = vk::PhysicalDeviceDynamicRenderingFeaturesKHR {
-    //     .pNext = &s2_features,
-    //     .dynamicRendering = VK_TRUE,
-    // };
+    for(auto const &extension : extensions) {
+        extension_names.emplace_back(extension.extensionName);
+    }
 
-    // // End extensions
-    // auto const &enabled_extensions = device.enabled_extensions();
+    // Now populate the device's create struct
+    vk::DeviceCreateInfo const device_create_info {
+        .pNext                   = &features,
+        .flags                   = { },
+        .queueCreateInfoCount    = static_cast<uint32_t>(std::size(queue_info)),
+        .pQueueCreateInfos       = queue_info,
+        .enabledExtensionCount   = static_cast<uint32_t>(extension_names.size()),
+        .ppEnabledExtensionNames = extension_names.data(),
+        .pEnabledFeatures        = nullptr,
+    };
 
-    // std::vector<char const *> extensions;
-    // extensions.reserve(enabled_extensions.size());
+    // And try to create it
+    auto const result = physical_device.native().createDevice(
+        &device_create_info, // Create info
+        nullptr,             // Allocator
+        &_handle             // Destination handle
+    );
 
-    // for(auto const &extension : enabled_extensions) {
-    //     extensions.emplace_back(extension.extensionName);
-    // }
+    // Check that we've got good results to work with
+    if(result != vk::Result::eSuccess || !_handle) {
+        BTX_CRITICAL("Unable to create logical device: '{}'",
+                     vk::to_string(result));
+        return;
+    }
 
-    // // Now populate the device's create struct
-    // vk::DeviceCreateInfo const device_create_info {
-    //     .pNext                   = &dr_features,
-    //     .flags                   = { },
-    //     .queueCreateInfoCount    = static_cast<uint32_t>(std::size(queue_info)),
-    //     .pQueueCreateInfos       = queue_info,
-    //     .enabledExtensionCount   = static_cast<uint32_t>(extensions.size()),
-    //     .ppEnabledExtensionNames = extensions.data(),
-    //     .pEnabledFeatures        = nullptr,
-    // };
+    BTX_TRACE("Created logical device {}", _handle);
 
-    // // And try to create it
-    // auto const result = device.native().createDevice(
-    //     &device_create_info,   // Create info
-    //     nullptr,        // Allocator
-    //     &_handle        // Destination handle
-    // );
+    // Set up the queue abstraction
+    _graphics_queue->create(physical_device.queue_family_index());
 
-    // // Check that we've got good results to work with
-    // if(result != vk::Result::eSuccess || !_handle) {
-    //     BTX_CRITICAL("Unable to create logical device: '{}'",
-    //                  vk::to_string(result));
-    //     return;
-    // }
+    // This is the final step in providing the dynamic loader with information
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
 
-    // BTX_TRACE("Created logical device {}", _handle);
-
-    // // Set up the queue abstraction
-    // _graphics_queue->set_family_index(device.queue_family_index());
-
-    // // This is the final step in providing the dynamic loader with information
-    // VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
-
-    // _transient_pool->create(_graphics_queue->family_index(),
-    //                         vk::CommandPoolCreateFlagBits::eTransient);
+    _transient_pool->create(_graphics_queue->family_index(),
+                            vk::CommandPoolCreateFlagBits::eTransient);
 }
 
 // =============================================================================
 void vkDevice::destroy() {
     _transient_pool->destroy();
-    _graphics_queue->clear_family_index();
+    _graphics_queue->destroy();
 
     BTX_TRACE("Destroying logical device {}", _handle);
     _handle.destroy();

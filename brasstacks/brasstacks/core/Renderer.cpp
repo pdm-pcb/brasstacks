@@ -2,8 +2,8 @@
 #include "brasstacks/core/Renderer.hpp"
 
 #include "brasstacks/core/TargetWindow.hpp"
-#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 #include "brasstacks/platform/vulkan/devices/vkCmdBuffer.hpp"
 #include "brasstacks/platform/vulkan/devices/vkQueue.hpp"
@@ -32,12 +32,12 @@ void Renderer::init(Application *const application) {
     vkInstance::create();
     _create_surface();
     _select_physical_device();
-    // _create_device();
+    _create_device();
 }
 
 // =============================================================================
 void Renderer::shutdown() {
-    // _device.destroy();
+    _device.destroy();
 
     vkPhysicalDevice::clear_device_list();
 
@@ -49,6 +49,11 @@ void Renderer::shutdown() {
 }
 
 // =============================================================================
+void Renderer::wait_device_idle() {
+    _device.wait_idle();
+}
+
+// =============================================================================
 void Renderer::_create_surface() {
     if(_surface != nullptr) {
         BTX_CRITICAL("Surface already created");
@@ -56,23 +61,19 @@ void Renderer::_create_surface() {
     }
 
 #ifdef BTX_LINUX
-
     vk::XlibSurfaceCreateInfoKHR const create_info {
         .pNext = nullptr,
         .flags = { },
         .dpy = TargetWindow::display(),
         .window = TargetWindow::native()
     };
-
 #elif BTX_WINDOWS
-
     vk::Win32SurfaceCreateInfoKHR const create_info {
         .pNext = nullptr,
         .flags = { },
         .hinstance = nullptr,
         .hwnd = TargetWindow::native()
     };
-
 #endif // BTX platform
 
     _surface = new vkSurface;
@@ -88,10 +89,17 @@ void Renderer::_select_physical_device() {
 
     auto features13 = vk::PhysicalDeviceVulkan13Features {
         .pNext = nullptr,
+        // .synchronization2 = VK_TRUE,
+        // .dynamicRendering = VK_TRUE,
     };
 
     auto features12 = vk::PhysicalDeviceVulkan12Features {
         .pNext = &features13,
+        // These two features are required for some validation layer features
+        // that I can't figure out how to disable. They're probably worth it,
+        // though?
+        .uniformAndStorageBuffer8BitAccess = VK_TRUE,
+        .bufferDeviceAddress = VK_TRUE,
     };
 
     auto features11 = vk::PhysicalDeviceVulkan11Features {
@@ -106,9 +114,9 @@ void Renderer::_select_physical_device() {
         }
     };
 
-    std::vector<char const *> const extensions {{
+    std::vector<char const *> const extensions {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    }};
+    };
 
     vkPhysicalDevice::populate_device_list(*_surface, features, extensions);
 }

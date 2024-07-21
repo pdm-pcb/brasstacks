@@ -22,7 +22,7 @@ public:
     static inline void show() { ::glfwShowWindow(_window); }
     static inline void hide() { ::glfwHideWindow(_window); }
 
-    static [[nodiscard]] bool poll_events();
+    [[nodiscard]] static bool poll_events();
 
 #ifdef BTX_LINUX
     static inline auto native() { return ::glfwGetX11Window(_window); }
@@ -30,8 +30,6 @@ public:
 #elif BTX_WINDOWS
     static inline auto * native() { return ::glfwGetWin32Window(_window); }
 #endif // BTX platform
-
-    static float scale_factor();
 
     TargetWindow() = delete;
     ~TargetWindow() = delete;

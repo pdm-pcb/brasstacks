@@ -16,25 +16,22 @@ public:
 
     static void clear_device_list();
 
-    static inline auto const &current_device() {
-        return *_current_device;
-    }
+    static vkPhysicalDevice & current_device();
 
     explicit vkPhysicalDevice(vk::PhysicalDevice const handle);
     ~vkPhysicalDevice() = default;
 
     vkPhysicalDevice() = delete;
 
-    inline auto native() const { return _handle; }
+    inline auto native()                 const { return _handle; }
     inline std::string_view const name() const { return _name; }
-    inline auto type() const { return _type; }
-    inline auto vram_bytes() const { return _vram_bytes; }
-    inline auto queue_family_index() const { return _queue_family_index; }
-    inline auto & enabled_features() { return _enabled_features; }
-    inline auto enabled_extensions() const { return _enabled_extensions; }
-
-    auto const & samples() const { return _samples; }
-    auto max_aniso() const { return _max_aniso; }
+    inline auto type()                   const { return _type; }
+    inline auto vram_bytes()             const { return _vram_bytes; }
+    inline auto queue_family_index()     const { return _queue_family_index; }
+    inline auto const & features()       const { return _features; }
+    inline auto const & extensions()     const { return _extensions; }
+    inline auto const & samples()        const { return _samples; }
+    inline auto max_aniso()              const { return _max_aniso; }
 
     vkPhysicalDevice(vkPhysicalDevice &&) = delete;
     vkPhysicalDevice(const vkPhysicalDevice &) = delete;
@@ -44,37 +41,35 @@ public:
 
 private:
     vk::PhysicalDevice _handle;
+
     vk::PhysicalDeviceType _type;
+    std::string            _name;
+    std::string            _vkapi_version;
+    uint64_t               _vram_bytes;
+    std::string            _driver_version;
+    uint32_t               _queue_family_index;
+    vk::SampleCountFlags   _samples;
+    float                  _max_aniso;
 
-    std::string _name;
-    std::string _vkapi_version;
-    uint64_t    _vram_bytes;
-    std::string _driver_version;
-
-    uint32_t    _queue_family_index;
-
-    vk::SampleCountFlags _samples;
-    float _max_aniso;
-
-    vk::PhysicalDeviceFeatures2          _enabled_features;
-    vk::PhysicalDeviceVulkan11Features   _enabled_features11;
-    vk::PhysicalDeviceVulkan12Features   _enabled_features12;
-    vk::PhysicalDeviceVulkan13Features   _enabled_features13;
-    std::vector<vk::ExtensionProperties> _enabled_extensions;
+    vk::PhysicalDeviceFeatures2          _features;
+    vk::PhysicalDeviceVulkan11Features   _features11;
+    vk::PhysicalDeviceVulkan12Features   _features12;
+    vk::PhysicalDeviceVulkan13Features   _features13;
+    std::vector<vk::ExtensionProperties> _extensions;
 
     static std::vector<vkPhysicalDevice *> _available_devices;
-    static vkPhysicalDevice const *_current_device;
+    static vkPhysicalDevice *_current_device;
 
     static void _sort_devices();
 
+    static uint64_t _get_vram_bytes(vk::PhysicalDevice const device);
+    static std::string _get_driver_version(vk::PhysicalDevice const device);
     static void _print_family_flags(uint32_t const family,
                                     vk::QueueFlags const flags);
 
     bool _check_queue_families(vkSurface const &surface);
     bool _check_features(vk::PhysicalDeviceFeatures2 const &features);
     bool _check_extensions(std::span<char const * const> extensions);
-
-    static uint64_t _get_vram_bytes(vk::PhysicalDevice const device);
 };
 
 } // namespace btx

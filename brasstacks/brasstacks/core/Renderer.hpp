@@ -20,6 +20,8 @@ public:
     static void init(Application *const application);
     static void shutdown();
 
+    static void wait_device_idle();
+
     static inline auto const & device()    { return _device; }
     static inline auto const & swapchain() { return _swapchain; }
 

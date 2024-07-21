@@ -1,20 +1,12 @@
 #ifndef BRASSTACKS_PCH_HPP
 #define BRASSTACKS_PCH_HPP
 
-#include <cstdint>
-#include <cstdlib>
-#include <string>
-#include <span>
-#include <optional>
-#include <cmath>
 #include <numbers>
-#include <limits>
 #include <set>
-#include <list>
 #include <filesystem>
 #include <fstream>
 #include <queue>
-#include <stack>
+#include <functional>
 
 // Allow for the use of designated initializers
 // https://github.com/KhronosGroup/Vulkan-Hpp#designated-initializers
@@ -41,6 +33,8 @@
 // #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 // #define VMA_VULKLAN_VERSION BTX_VK_TARGET_VERSION
 // #include <vk_mem_alloc.h>
+
+#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
 
 namespace btx {
 

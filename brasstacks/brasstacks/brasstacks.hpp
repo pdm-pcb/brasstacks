@@ -9,8 +9,6 @@
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/core/Renderer.hpp"
 
-#include "brasstacks/platform/vulkan/vulkan_formatters.hpp"
-
 #ifdef BTX_DEBUG
     static std::filesystem::path const BTX_ASSET_PATH("assets/");
     static std::string           const BTX_SHADER_EXT("-debug.spv");

@@ -24,13 +24,15 @@ public:
 
 private:
     static vk::Instance _handle;
-    static vk::DynamicLoader _loader;
-    static vk::ApplicationInfo _app_info;
+
+    static vk::DynamicLoader         _loader;
+    static vk::ApplicationInfo       _app_info;
     static std::vector<char const *> _enabled_layers;
     static std::vector<char const *> _enabled_extensions;
 
-    static std::vector<vk::ValidationFeatureEnableEXT> _vvl_enabled;
-    static vk::ValidationFeaturesEXT _vvl_features;
+    static std::vector<vk::ValidationFeatureEnableEXT>  _vvl_enabled;
+    static std::vector<vk::ValidationFeatureDisableEXT> _vvl_disabled;
+    static vk::ValidationFeaturesEXT                    _vvl_features;
 
     static void _init_dynamic_loader();
     static void _init_app_info();

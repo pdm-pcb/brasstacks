@@ -80,21 +80,6 @@ void TargetWindow::_size_and_place() {
 }
 
 // =============================================================================
-float TargetWindow::scale_factor() {
-    float x;
-    float y;
-
-    ::glfwGetWindowContentScale(_window, &x, &y);
-
-    if(std::abs(x - y) >= 0.000001f) {
-        BTX_WARN("GLFW reported scaling factor x: {:.06f}, y: {:.06f}; "
-                 "returning larger of the two.", x, y);
-    }
-
-    return std::max(x, y);
-}
-
-// =============================================================================
 void TargetWindow::_get_resolution() {
     auto const *current_mode = ::glfwGetVideoMode(::glfwGetPrimaryMonitor());
 

@@ -1,7 +1,7 @@
 #ifndef BRASSTACKS_PLATFORM_VULKAN_VULKAN_FORMATTERS_HPP
 #define BRASSTACKS_PLATFORM_VULKAN_VULKAN_FORMATTERS_HPP
 
-#include "brasstacks/pch.hpp"
+#include <fmt/format.h>
 
 template <> struct fmt::formatter<vk::Instance> {
     constexpr auto parse(fmt::format_parse_context &ctx) {

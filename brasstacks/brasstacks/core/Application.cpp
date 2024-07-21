@@ -24,13 +24,13 @@ void Application::run() {
     this->init();
     TargetWindow::show();
 
-    while(TargetWindow::poll_events()) {
+    while(!TargetWindow::poll_events()) {
         TimeKeeper::update_run_time();
         this->update();
     }
 
     TargetWindow::hide();
-    // Renderer::wait_device_idle();
+    Renderer::wait_device_idle();
     this->shutdown();
 }
 
