@@ -7,6 +7,7 @@
 #include <fstream>
 #include <queue>
 #include <functional>
+#include <list>
 
 // Allow for the use of designated initializers
 // https://github.com/KhronosGroup/Vulkan-Hpp#designated-initializers
