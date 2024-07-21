@@ -11,26 +11,25 @@ public:
     ~vkShaderStage();
 
     inline auto const & native() const { return _handle; }
-    inline auto stage() const { return _stage; }
-    inline std::string_view const entry_point() const { return _entry_point; }
+    inline auto const & push_constants() const { return _push_constants; }
+    inline auto const & desc_set_bindings() const { return _desc_set_bindings; }
 
     vkShaderStage() = delete;
 
-    vkShaderStage(vkShaderStage &&rhs) = delete;
-    vkShaderStage(const vkShaderStage &) = delete;
+    vkShaderStage(vkShaderStage &&rhs);
+    vkShaderStage(vkShaderStage const &) = delete;
 
     vkShaderStage& operator=(vkShaderStage &&) = delete;
-    vkShaderStage& operator=(const vkShaderStage &) = delete;
+    vkShaderStage& operator=(vkShaderStage const &) = delete;
 
 private:
     vk::ShaderModule _handle;
     vk::Device _device;
 
     vk::ShaderStageFlagBits _stage;
-    std::string _entry_point;
     std::vector<vk::VertexInputBindingDescription> _input_bindings;
     std::vector<vk::VertexInputAttributeDescription> _input_attribs;
-    std::vector<vk::PushConstantRange> _push_constants;
+    vk::PushConstantRange _push_constants;
     std::vector<vk::DescriptorSetLayoutBinding> _desc_set_bindings;
 
     using StringData = std::vector<char>;

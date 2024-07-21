@@ -12,7 +12,9 @@ vkShaderStage::vkShaderStage(std::string_view const filepath) :
     _handle            { nullptr },
     _device            { Renderer::device().native() },
     _stage             { },
-    _entry_point       { },
+    _input_bindings    { },
+    _input_attribs     { },
+    _push_constants    { },
     _desc_set_bindings { }
 {
     // Here we're just accounting for the path and filename differences
@@ -39,9 +41,30 @@ vkShaderStage::vkShaderStage(std::string_view const filepath) :
 
 // =============================================================================
 vkShaderStage::~vkShaderStage() {
-    BTX_TRACE("Destroying shader module {}", _handle);
-    _device.destroyShaderModule(_handle);
-    _handle = nullptr;
+    if(_handle && _device) {
+        BTX_TRACE("Destroying shader module {}", _handle);
+        _device.destroyShaderModule(_handle);
+        _handle = nullptr;
+    }
+}
+
+// =============================================================================
+vkShaderStage::vkShaderStage(vkShaderStage &&rhs) :
+    _handle            { rhs._handle },
+    _device            { rhs._device },
+    _stage             { rhs._stage },
+    _input_bindings    { rhs._input_bindings },
+    _input_attribs     { rhs._input_attribs },
+    _push_constants    { rhs._push_constants },
+    _desc_set_bindings { rhs._desc_set_bindings }
+{
+    rhs._handle            = nullptr;
+    rhs._device            = nullptr;
+    rhs._stage             = { };
+    rhs._input_bindings    = { };
+    rhs._input_attribs     = { };
+    rhs._push_constants    = { };
+    rhs._desc_set_bindings = { };
 }
 
 // =============================================================================
@@ -98,8 +121,6 @@ void vkShaderStage::_reflect_shader(StringData const &shader_string) {
     }
 
     // Gather the basics
-    _entry_point = module.entry_point_name;
-
     if(!_get_stage(module)) {
         ::spvReflectDestroyShaderModule(&module);
         return;
@@ -198,20 +219,19 @@ bool vkShaderStage::_get_inputs(::SpvReflectShaderModule const &module) {
 bool vkShaderStage::_get_push_constants(::SpvReflectShaderModule const &module)
 {
     // This has got to be wrong... right?
-    _push_constants.emplace_back(vk::PushConstantRange {
+    _push_constants = vk::PushConstantRange {
         .stageFlags = _stage,
         .offset = module.push_constant_blocks->offset,
         .size = module.push_constant_blocks->size
-    });
+    };
 
     BTX_TRACE(
-        "\n{:s} Push Constant {}"
+        "\n{:s} Push Constant Block"
         "\n\toffset: {}"
         "\n\tsize: {}",
-        vk::to_string(_push_constants.back().stageFlags),
-        _push_constants.size(),
-        _push_constants.back().offset,
-        _push_constants.back().size
+        vk::to_string(_push_constants.stageFlags),
+        _push_constants.offset,
+        _push_constants.size
     );
 
     return true;

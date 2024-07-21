@@ -15,16 +15,20 @@ public:
     vkShaderProgram & add_stage(std::string_view const filepath);
 
     void create();
+    void destroy();
 
-    vkShaderProgram(vkShaderProgram &&rhs) = delete;
-    vkShaderProgram(const vkShaderProgram &) = delete;
+    vkShaderProgram(vkShaderProgram &&rhs);
+    vkShaderProgram(vkShaderProgram const &) = delete;
 
     vkShaderProgram& operator=(vkShaderProgram &&) = delete;
-    vkShaderProgram& operator=(const vkShaderProgram &) = delete;
+    vkShaderProgram& operator=(vkShaderProgram const &) = delete;
 
 private:
-    vk::Device _device;
     std::vector<vkShaderStage> _stages;
+    vk::PushConstantRange _push_constants;
+
+    void _merge_push_constants();
+    void _merge_desc_set_bindings();
 };
 
 } // namespace btx
