@@ -10,12 +10,9 @@ namespace btx {
 Application::Application(std::string_view const app_name)
 {
     TargetWindow::init(app_name);
-    Renderer::init(
-        this,
-        Renderer::Config {
-            .vsync_on = true
-        }
-    );
+    Renderer::init(Renderer::Config {
+        .vsync_on = true
+    });
 }
 
 // =============================================================================

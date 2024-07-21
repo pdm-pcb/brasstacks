@@ -21,7 +21,7 @@ public:
         bool vsync_on = true;
     };
 
-    static void init(Application *const application, Config const &config);
+    static void init(Config const &config);
     static void shutdown();
 
     static inline void wait_device_idle() { _device.wait_idle(); }

@@ -12,8 +12,6 @@
 
 namespace btx {
 
-Application *Renderer::_application { nullptr };
-
 Renderer::Config Renderer::_config { };
 
 vkSurface *Renderer::_surface { nullptr };
@@ -28,8 +26,7 @@ uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
 vkColorDepth *Renderer::_color_depth { nullptr };
 
 // =============================================================================
-void Renderer::init(Application *const application, Config const &config) {
-    _application = application;
+void Renderer::init(Config const &config) {
     _config = config;
 
     vkInstance::create();
