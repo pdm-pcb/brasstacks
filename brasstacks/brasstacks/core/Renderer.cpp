@@ -14,6 +14,8 @@ namespace btx {
 
 Application *Renderer::_application { nullptr };
 
+Renderer::Config Renderer::_config { };
+
 vkSurface *Renderer::_surface { nullptr };
 vkDevice   Renderer::_device  { };
 
@@ -26,17 +28,20 @@ uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
 vkColorDepth *Renderer::_color_depth { nullptr };
 
 // =============================================================================
-void Renderer::init(Application *const application) {
+void Renderer::init(Application *const application, Config const &config) {
     _application = application;
+    _config = config;
 
     vkInstance::create();
     _create_surface();
     _select_physical_device();
     _create_device();
+    _create_swapchain();
 }
 
 // =============================================================================
 void Renderer::shutdown() {
+    _swapchain.destroy();
     _device.destroy();
 
     vkPhysicalDevice::clear_device_list();
@@ -46,11 +51,6 @@ void Renderer::shutdown() {
     _surface = nullptr;
 
     vkInstance::destroy();
-}
-
-// =============================================================================
-void Renderer::wait_device_idle() {
-    _device.wait_idle();
 }
 
 // =============================================================================
@@ -138,13 +138,8 @@ void Renderer::_create_swapchain() {
         return;
     }
 
-    _swapchain.create(*_surface);
+    _swapchain.create(_device.native(), *_surface);
     _image_index = std::numeric_limits<uint32_t>::max();
-}
-
-// =============================================================================
-void Renderer::_destroy_swapchain() {
-    _swapchain.destroy();
 }
 
 // =============================================================================

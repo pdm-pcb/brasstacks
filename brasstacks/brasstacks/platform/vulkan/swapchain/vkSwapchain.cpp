@@ -29,25 +29,15 @@ vkSwapchain::~vkSwapchain() {
     if(_handle) {
         destroy();
     }
-
-    for(auto *image : _images) {
-        delete image;
-    }
-    _images.clear();
-
-    for(auto *view : _image_views) {
-        delete view;
-    }
-    _image_views.clear();
 }
 
 // =============================================================================
-void vkSwapchain::create(vkSurface const &surface) {
+void vkSwapchain::create(vk::Device const device, vkSurface const &surface) {
     if(_handle) {
         BTX_CRITICAL("Swapchain {} already exists", _handle);
     }
 
-    _device = Renderer::device().native();
+    _device = device;
 
     // Grab the supported image counts, resolutions, etc from the surface
     _query_surface_capabilities(surface.native());
@@ -75,11 +65,15 @@ void vkSwapchain::create(vkSurface const &surface) {
 void vkSwapchain::destroy() {
     for(auto *image : _images) {
         image->destroy();
+        delete image;
     }
+    _images.clear();
 
     for(auto *view : _image_views) {
         view->destroy();
+        delete view;
     }
+    _image_views.clear();
 
     BTX_TRACE("Destroying swapchain {}", _handle);
     _device.destroy(_handle);
@@ -156,200 +150,200 @@ bool vkSwapchain::present(vkFrameSync const &frame, uint32_t const image_index)
 
 // =============================================================================
 void vkSwapchain::_query_surface_capabilities(vk::SurfaceKHR const &surface) {
-    // auto const &device = *(RenderConfig::current_device->device);
-    // auto const caps = device.native().getSurfaceCapabilitiesKHR(surface);
+    auto const &device = vkPhysicalDevice::current_device();
+    auto const caps = device.native().getSurfaceCapabilitiesKHR(surface);
 
-    // BTX_TRACE(
-    //     "\nSurface Capabilities:"
-    //     "\n\t Minimum Image Count: {}"
-    //     "\n\t Maximum Image Count: {}"
-    //     "\n\t Current Extent: {} x {}"
-    //     "\n\t Minimum Extent: {} x {}"
-    //     "\n\t Maximum Extent: {} x {}"
-    //     "\n\t Maximum Image Array Layers: {}",
-    //     caps.minImageCount,
-    //     caps.maxImageCount,
-    //     caps.currentExtent.width,
-    //     caps.currentExtent.height,
-    //     caps.minImageExtent.width,
-    //     caps.minImageExtent.height,
-    //     caps.maxImageExtent.width,
-    //     caps.maxImageExtent.height,
-    //     caps.maxImageArrayLayers
-    // );
+    BTX_TRACE(
+        "\nSurface Capabilities:"
+        "\n\t Minimum Image Count: {}"
+        "\n\t Maximum Image Count: {}"
+        "\n\t Current Extent: {} x {}"
+        "\n\t Minimum Extent: {} x {}"
+        "\n\t Maximum Extent: {} x {}"
+        "\n\t Maximum Image Array Layers: {}",
+        caps.minImageCount,
+        caps.maxImageCount,
+        caps.currentExtent.width,
+        caps.currentExtent.height,
+        caps.minImageExtent.width,
+        caps.minImageExtent.height,
+        caps.maxImageExtent.width,
+        caps.maxImageExtent.height,
+        caps.maxImageArrayLayers
+    );
 
-    // if(caps.currentExtent.width == 0u || caps.currentExtent.height == 0u
-    //    || caps.minImageExtent.width == 0u || caps.minImageExtent.height == 0u
-    //    || caps.maxImageExtent.width == 0u || caps.maxImageExtent.height == 0u)
-    // {
-    //     BTX_CRITICAL("Cannot create swapchain with zero width or height.");
-    //     return;
-    // }
+    if(caps.currentExtent.width == 0u || caps.currentExtent.height == 0u
+       || caps.minImageExtent.width == 0u || caps.minImageExtent.height == 0u
+       || caps.maxImageExtent.width == 0u || caps.maxImageExtent.height == 0u)
+    {
+        BTX_CRITICAL("Cannot create swapchain with zero width or height.");
+        return;
+    }
 
-    // // We intend to draw to the whole surface
-    // _size.width = caps.currentExtent.width;
-    // _size.height = caps.currentExtent.height;
+    // We intend to draw to the whole surface
+    _size.width = caps.currentExtent.width;
+    _size.height = caps.currentExtent.height;
 
-    // if(_size.width < caps.minImageExtent.width) {
-    //     BTX_WARN("Surface width {} capped to minimum {}",
-    //              _size.width,
-    //              caps.minImageExtent.width);
+    if(_size.width < caps.minImageExtent.width) {
+        BTX_WARN("Surface width {} capped to minimum {}",
+                 _size.width,
+                 caps.minImageExtent.width);
 
-    //     _size.width = caps.minImageExtent.width;
-    // }
-    // else if(_size.width > caps.maxImageExtent.width) {
-    //     BTX_WARN("Surface width {} capped to maximum {}",
-    //              _size.width,
-    //              caps.minImageExtent.width);
+        _size.width = caps.minImageExtent.width;
+    }
+    else if(_size.width > caps.maxImageExtent.width) {
+        BTX_WARN("Surface width {} capped to maximum {}",
+                 _size.width,
+                 caps.minImageExtent.width);
 
-    //     _size.width = caps.maxImageExtent.width;
-    // }
+        _size.width = caps.maxImageExtent.width;
+    }
 
-    // if(_size.height < caps.minImageExtent.height) {
-    //     BTX_WARN("Surface height {} capped to minimum {}",
-    //              _size.height,
-    //              caps.minImageExtent.height);
+    if(_size.height < caps.minImageExtent.height) {
+        BTX_WARN("Surface height {} capped to minimum {}",
+                 _size.height,
+                 caps.minImageExtent.height);
 
-    //     _size.height = caps.minImageExtent.height;
-    // }
-    // else if(_size.height > caps.maxImageExtent.height) {
-    //     BTX_WARN("Surface height {} capped to maximum {}",
-    //              _size.height,
-    //              caps.minImageExtent.height);
+        _size.height = caps.minImageExtent.height;
+    }
+    else if(_size.height > caps.maxImageExtent.height) {
+        BTX_WARN("Surface height {} capped to maximum {}",
+                 _size.height,
+                 caps.minImageExtent.height);
 
-    //     _size.height = caps.maxImageExtent.height;
-    // }
+        _size.height = caps.maxImageExtent.height;
+    }
 
-    // // Update the aspect ratio
-    // _aspect_ratio = static_cast<float>(_size.width) /
-    //                 static_cast<float>(_size.height);
+    // Update the aspect ratio
+    _aspect_ratio = static_cast<float>(_size.width) /
+                    static_cast<float>(_size.height);
 
-    // // Reserve minimum image count plus one so the CPU always has something to
-    // // work on while the GPU does its thing
-    // auto const image_count = caps.minImageCount + 1;
-    // if(_images.size() != image_count && _image_views.size() != image_count) {
-    //     for(auto *image : _images) {
-    //         delete image;
-    //     }
-    //     _images.clear();
+    // Reserve minimum image count plus one so the CPU always has something to
+    // work on while the GPU does its thing
+    auto const image_count = caps.minImageCount + 1;
+    if(_images.size() != image_count && _image_views.size() != image_count) {
+        for(auto *image : _images) {
+            delete image;
+        }
+        _images.clear();
 
-    //     for(auto *view : _image_views) {
-    //         delete view;
-    //     }
-    //     _image_views.clear();
+        for(auto *view : _image_views) {
+            delete view;
+        }
+        _image_views.clear();
 
-    //     _images.reserve(image_count);
-    //     _image_views.reserve(image_count);
+        _images.reserve(image_count);
+        _image_views.reserve(image_count);
 
-    //     // Fill in the still undefined images with in-place construction
-    //     std::generate_n(
-    //         std::back_inserter(_images),
-    //         _images.capacity(),
-    //         []() {
-    //             return new vkImage;
-    //         }
-    //     );
+        // Fill in the still undefined images with in-place construction
+        std::generate_n(
+            std::back_inserter(_images),
+            _images.capacity(),
+            []() {
+                return new vkImage;
+            }
+        );
 
-    //     // And likewise the views
-    //     std::generate_n(
-    //         std::back_inserter(_image_views),
-    //         _image_views.capacity(),
-    //         []() {
-    //             return new vkImageView;
-    //         }
-    //     );
-    // }
+        // And likewise the views
+        std::generate_n(
+            std::back_inserter(_image_views),
+            _image_views.capacity(),
+            []() {
+                return new vkImageView;
+            }
+        );
+    }
 }
 
 // =============================================================================
 void vkSwapchain::_query_surface_format(vk::SurfaceKHR const &surface) {
-    // auto const &device = *(RenderConfig::current_device->device);
-    // auto const formats = device.native().getSurfaceFormatsKHR(surface);
+    auto const &device = vkPhysicalDevice::current_device();
+    auto const formats = device.native().getSurfaceFormatsKHR(surface);
 
-    // BTX_TRACE("Found {} surface formats.", formats.size());
+    BTX_TRACE("Found {} surface formats.", formats.size());
 
-    // // These format details were chosen to produce the most intuitive and/or
-    // // predictable results on the average desktop disaply
-    // auto const desired_format = vk::Format::eB8G8R8A8Unorm;
-    // auto const deisred_space = vk::ColorSpaceKHR::eSrgbNonlinear;
+    // These format details were chosen to produce the most intuitive and/or
+    // predictable results on the average desktop disaply
+    auto const desired_format = vk::Format::eB8G8R8A8Unorm;
+    auto const deisred_space = vk::ColorSpaceKHR::eSrgbNonlinear;
 
-    // bool found_desired = false;
+    bool found_desired = false;
 
-    // for(auto const& format : formats) {
-    //     if(format.format == desired_format &&
-    //        format.colorSpace == deisred_space)
-    //     {
-    //         _image_format = format;
-    //         found_desired = true;
-    //     }
+    for(auto const& format : formats) {
+        if(format.format == desired_format &&
+           format.colorSpace == deisred_space)
+        {
+            _image_format = format;
+            found_desired = true;
+        }
 
-    //     BTX_TRACE(
-    //         "    {} / {}",
-    //         vk::to_string(format.format),
-    //         vk::to_string(format.colorSpace)
-    //     );
-    // }
+        BTX_TRACE(
+            "    {} / {}",
+            vk::to_string(format.format),
+            vk::to_string(format.colorSpace)
+        );
+    }
 
-    // if(!found_desired) {
-    //     // In the event that our desired combination isn't found, just go with
-    //     // whatever the implementation has as its first result
-    //     _image_format = formats[0];
+    if(!found_desired) {
+        // In the event that our desired combination isn't found, just go with
+        // whatever the implementation has as its first result
+        _image_format = formats[0];
 
-    //     BTX_WARN(
-    //         "Could not find desired swapchain surface format/color space of "
-    //         "{} / {}. Defaulting instead to {} / {}.",
-    //         vk::to_string(desired_format),
-    //         vk::to_string(deisred_space),
-    //         vk::to_string(_image_format.format),
-    //         vk::to_string(_image_format.colorSpace)
-    //     );
-    // }
+        BTX_WARN(
+            "Could not find desired swapchain surface format/color space of "
+            "{} / {}. Defaulting instead to {} / {}.",
+            vk::to_string(desired_format),
+            vk::to_string(deisred_space),
+            vk::to_string(_image_format.format),
+            vk::to_string(_image_format.colorSpace)
+        );
+    }
 }
 
 // =============================================================================
 void vkSwapchain::_query_surface_present_modes(vk::SurfaceKHR const &surface) {
-    // auto const &device = *(RenderConfig::current_device->device);
-    // auto const modes = device.native().getSurfacePresentModesKHR(surface);
+    auto const &device = vkPhysicalDevice::current_device();
+    auto const modes = device.native().getSurfacePresentModesKHR(surface);
 
-    // BTX_TRACE("Found {} present modes.", modes.size());
+    BTX_TRACE("Found {} present modes.", modes.size());
 
-    // // This is the order of preference for present modes:
-    // bool has_fifo_relaxed = false;  // V-Sync on, but with some latency tweaks
-    // bool has_fifo         = false;  // Strict V-Sync
-    // bool has_immediate    = false;  // V-Sync off; draw as fast as possible
+    // This is the order of preference for present modes:
+    bool has_fifo_relaxed = false;  // V-Sync on, but with some latency tweaks
+    bool has_fifo         = false;  // Strict V-Sync
+    bool has_immediate    = false;  // V-Sync off; draw as fast as possible
 
-    // for(auto const mode : modes) {
-    //     BTX_TRACE("    {}", vk::to_string(mode));
-    //     if(mode == vk::PresentModeKHR::eFifoRelaxed) {
-    //         has_fifo_relaxed = true;
-    //     }
-    //     else if(mode == vk::PresentModeKHR::eFifo) {
-    //         has_fifo = true;
-    //     }
-    //     else if(mode == vk::PresentModeKHR::eImmediate) {
-    //         has_immediate = true;
-    //     }
-    // }
+    for(auto const mode : modes) {
+        BTX_TRACE("    {}", vk::to_string(mode));
+        if(mode == vk::PresentModeKHR::eFifoRelaxed) {
+            has_fifo_relaxed = true;
+        }
+        else if(mode == vk::PresentModeKHR::eFifo) {
+            has_fifo = true;
+        }
+        else if(mode == vk::PresentModeKHR::eImmediate) {
+            has_immediate = true;
+        }
+    }
 
-    // // Use a FIFO variant if they're available and V-Sync has been chosen by
-    // // the user
-    // if(has_fifo_relaxed && RenderConfig::vsync_on) {
-    //     _present_mode = vk::PresentModeKHR::eFifoRelaxed;
-    // }
-    // else if(has_fifo && RenderConfig::vsync_on) {
-    //     _present_mode = vk::PresentModeKHR::eFifo;
-    // }
-    // else if(RenderConfig::vsync_on) {
-    //     BTX_WARN("V-Sync requested but the available present modes don't "
-    //              "support it.");
-    // }
-    // else if(has_immediate) {
-    //     _present_mode = vk::PresentModeKHR::eImmediate;
-    // }
-    // else {
-    //     BTX_CRITICAL("Neither immediate nor FIFO presentation modes are "
-    //                  "supported.");
-    // }
+    // Use a FIFO variant if they're available and V-Sync has been chosen by
+    // the user
+    if(has_fifo_relaxed && Renderer::config().vsync_on) {
+        _present_mode = vk::PresentModeKHR::eFifoRelaxed;
+    }
+    else if(has_fifo && Renderer::config().vsync_on) {
+        _present_mode = vk::PresentModeKHR::eFifo;
+    }
+    else if(Renderer::config().vsync_on) {
+        BTX_WARN("V-Sync requested but the available present modes don't "
+                 "support it.");
+    }
+    else if(has_immediate) {
+        _present_mode = vk::PresentModeKHR::eImmediate;
+    }
+    else {
+        BTX_CRITICAL("Neither immediate nor FIFO presentation modes are "
+                     "supported.");
+    }
 }
 
 // =============================================================================

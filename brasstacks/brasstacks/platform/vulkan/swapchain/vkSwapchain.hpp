@@ -15,7 +15,7 @@ public:
     vkSwapchain();
     ~vkSwapchain();
 
-    void create(vkSurface const &surface);
+    void create(vk::Device const device, vkSurface const &surface);
     void destroy();
 
     uint32_t get_next_image_index(vk::Semaphore const &semaphore);

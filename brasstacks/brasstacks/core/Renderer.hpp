@@ -17,11 +17,16 @@ class vkDescriptorPool;
 
 class Renderer final {
 public:
-    static void init(Application *const application);
+    struct Config {
+        bool vsync_on = true;
+    };
+
+    static void init(Application *const application, Config const &config);
     static void shutdown();
 
-    static void wait_device_idle();
+    static inline void wait_device_idle() { _device.wait_idle(); }
 
+    static inline auto const & config()    { return _config; }
     static inline auto const & device()    { return _device; }
     static inline auto const & swapchain() { return _swapchain; }
 
@@ -50,6 +55,8 @@ public:
 private:
     static Application *_application;
 
+    static Config _config;
+
     static vkSurface *_surface;
     static vkDevice  _device;
 
@@ -72,9 +79,7 @@ private:
     static void _create_surface();
     static void _select_physical_device();
     static void _create_device();
-
     static void _create_swapchain();
-    static void _destroy_swapchain();
 
     static void _create_frame_sync();
     static void _destroy_frame_sync();
