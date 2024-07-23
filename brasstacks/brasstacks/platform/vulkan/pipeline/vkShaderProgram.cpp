@@ -27,6 +27,7 @@ vkShaderProgram & vkShaderProgram::add_stage(std::string_view const filepath) {
 // =============================================================================
 void vkShaderProgram::create() {
     _merge_push_constants();
+    _merge_descriptor_sets();
 }
 
 // =============================================================================
@@ -51,10 +52,10 @@ void vkShaderProgram::_merge_push_constants() {
     }
 
     BTX_TRACE(
-        "Push Constant Block:"
+        "\nPush Constant Block:"
         "\n\toffset: {}"
         "\n\tsize: {}"
-        "\n\tflags: {:s}",
+        "\n\tstages: {:s}",
         _push_constants.offset,
         _push_constants.size,
         vk::to_string(_push_constants.stageFlags)
@@ -62,25 +63,43 @@ void vkShaderProgram::_merge_push_constants() {
 }
 
 // =============================================================================
-void vkShaderProgram::_merge_desc_set_bindings() {
-    // for (const Shader& rShader : _rShaders)
-    // {
-    //     for (const VkDescriptorSetLayoutBinding& rLayoutBinding : rShader.layoutBindings)
-    //     {
-    //         if (tryUpdateBindingShaderStage(mergedLayoutBindings, rLayoutBinding))
-    //         {
+void vkShaderProgram::_merge_descriptor_sets() {
+    // for(auto const &stage : _stages) {
+    //     for(auto const &binding : stage.desc_set_bindings()) {
+    //         if(_update_binding_stage(binding)) {
     //             continue;
     //         }
 
-    //         mergedLayoutBindings.push_back(rLayoutBinding);
+    //         _desc_set_bindings.push_back(binding);
     //     }
     // }
 
-    for(auto const &stage : _stages) {
-        for(auto const &set_binding : stage.desc_set_bindings()) {
+    // for(auto const &binding : _desc_set_bindings) {
+    //     BTX_TRACE(
+    //         "\nDescriptor set binding ({})"
+    //         "\n\ttype: {:s}"
+    //         "\n\tcount: {}"
+    //         "\n\tstages: {:s}",
+    //         binding.binding,
+    //         vk::to_string(binding.descriptorType),
+    //         binding.descriptorCount,
+    //         vk::to_string(binding.stageFlags)
+    //     );
+    // }
+}
 
-        }
-    }
+// =============================================================================
+bool vkShaderProgram::_update_binding_stage(
+    vk::DescriptorSetLayoutBinding const &binding)
+{
+    // for(auto &merged_binding : _desc_set_bindings) {
+    //     if(merged_binding.binding == binding.binding) {
+    //         merged_binding.stageFlags |= binding.stageFlags;
+    //         return true;
+    //     }
+    // }
+
+    return false;
 }
 
 } // namespace btx

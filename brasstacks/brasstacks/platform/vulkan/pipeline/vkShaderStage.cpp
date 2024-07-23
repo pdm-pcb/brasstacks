@@ -9,14 +9,15 @@ namespace btx {
 
 // =============================================================================
 vkShaderStage::vkShaderStage(std::string_view const filepath) :
-    _handle            { nullptr },
-    _device            { Renderer::device().native() },
-    _stage             { },
-    _input_bindings    { },
-    _input_attribs     { },
-    _push_constants    { },
-    _desc_set_bindings { }
+    _handle          { nullptr },
+    _device          { Renderer::device().native() },
+    _stage           { },
+    _input_bindings  { },
+    _input_attribs   { },
+    _push_constants  { },
+    _descriptor_sets { }
 {
+    BTX_ERROR("==============================================================");
     // Here we're just accounting for the path and filename differences
     // between debug and release builds
     std::filesystem::path shader_path = BTX_ASSET_PATH / filepath.data();
@@ -37,6 +38,7 @@ vkShaderStage::vkShaderStage(std::string_view const filepath) :
 
     _handle = _device.createShaderModule(module_info);
     BTX_TRACE("Created vkShaderStage module {} from '{}'", _handle, filepath);
+    BTX_ERROR("==============================================================");
 }
 
 // =============================================================================
@@ -50,21 +52,21 @@ vkShaderStage::~vkShaderStage() {
 
 // =============================================================================
 vkShaderStage::vkShaderStage(vkShaderStage &&rhs) :
-    _handle            { rhs._handle },
-    _device            { rhs._device },
-    _stage             { rhs._stage },
-    _input_bindings    { rhs._input_bindings },
-    _input_attribs     { rhs._input_attribs },
-    _push_constants    { rhs._push_constants },
-    _desc_set_bindings { rhs._desc_set_bindings }
+    _handle          { rhs._handle },
+    _device          { rhs._device },
+    _stage           { rhs._stage },
+    _input_bindings  { rhs._input_bindings },
+    _input_attribs   { rhs._input_attribs },
+    _push_constants  { rhs._push_constants },
+    _descriptor_sets { rhs._descriptor_sets }
 {
-    rhs._handle            = nullptr;
-    rhs._device            = nullptr;
-    rhs._stage             = { };
-    rhs._input_bindings    = { };
-    rhs._input_attribs     = { };
-    rhs._push_constants    = { };
-    rhs._desc_set_bindings = { };
+    rhs._handle          = nullptr;
+    rhs._device          = nullptr;
+    rhs._stage           = { };
+    rhs._input_bindings  = { };
+    rhs._input_attribs   = { };
+    rhs._push_constants  = { };
+    rhs._descriptor_sets = { };
 }
 
 // =============================================================================
@@ -139,7 +141,7 @@ void vkShaderStage::_reflect_shader(StringData const &shader_string) {
     }
 
     // Gather descriptors
-    if(module.descriptor_binding_count > 0u && !_get_descriptors(module)) {
+    if(module.descriptor_set_count > 0u && !_get_descriptor_sets(module)) {
         ::spvReflectDestroyShaderModule(&module);
         return;
     }
@@ -238,62 +240,50 @@ bool vkShaderStage::_get_push_constants(::SpvReflectShaderModule const &module)
 }
 
 // =============================================================================
-bool vkShaderStage::_get_descriptors(::SpvReflectShaderModule const &module)
+bool vkShaderStage::_get_descriptor_sets(::SpvReflectShaderModule const &module)
 {
-	uint32_t binding_count = 0u;
-	auto result = ::spvReflectEnumerateDescriptorBindings(
-        &module,
-        &binding_count,
-        nullptr
-    );
+    for(uint32_t set = 0u; set < module.descriptor_set_count; ++set) {
+        _descriptor_sets.emplace_back();
 
-    if(result != ::SPV_REFLECT_RESULT_SUCCESS) {
-        BTX_CRITICAL("SPIRV-reflect failed to get descriptor binding count "
-                     "with error code {}", result);
-        return false;
+        auto &local_set = _descriptor_sets.back();
+        auto const &refl_set = module.descriptor_sets[set];
+
+        local_set.set_number = refl_set.set;
+        local_set.bindings.resize(refl_set.binding_count);
+
+        for(uint32_t binding = 0u; binding < refl_set.binding_count; ++binding)
+        {
+            auto &local_binding = local_set.bindings[binding];
+            auto const &refl_binding = *(refl_set.bindings[binding]);
+
+            local_binding.binding = refl_binding.binding;
+
+            local_binding.descriptorType =
+                vk::DescriptorType(refl_binding.descriptor_type);
+
+            local_binding.descriptorCount = 1u;
+            for(uint32_t dim = 0u; dim < refl_binding.array.dims_count; ++dim) {
+                local_binding.descriptorCount *= refl_binding.array.dims[dim];
+            }
+
+            local_binding.stageFlags = _stage;
+        }
     }
 
-    if(binding_count != module.descriptor_binding_count) {
-        BTX_CRITICAL("SPIRV-reflect first reported {} descriptor bindings, "
-                     "but now reports {} descriptor bindings.",
-                     module.descriptor_binding_count,
-                     binding_count);
-        return false;
-    }
-
-	std::vector<SpvReflectDescriptorBinding *> bindings(binding_count);
-
-	result = ::spvReflectEnumerateDescriptorBindings(
-        &module,
-        &binding_count,
-        bindings.data()
-    );
-
-    if(result != ::SPV_REFLECT_RESULT_SUCCESS) {
-        BTX_CRITICAL("SPIRV-reflect failed to enumerate descriptor bindings "
-                     "with error code {}", result);
-        return false;
-    }
-
-    for(auto const *binding : bindings) {
-        _desc_set_bindings.emplace_back(vk::DescriptorSetLayoutBinding {
-            .binding = binding->binding,
-            .descriptorType = _get_descriptor_type(binding->descriptor_type),
-            .descriptorCount = 1u,
-            .stageFlags = _stage,
-            .pImmutableSamplers = nullptr
-        });
-
-        BTX_TRACE(
-            "\n{:s} Descriptor set binding {} ({})"
-            "\n\ttype: {:s}"
-            "\n\tcount: {}",
-            vk::to_string(_desc_set_bindings.back().stageFlags),
-            _desc_set_bindings.size(),
-            _desc_set_bindings.back().binding,
-            vk::to_string(_desc_set_bindings.back().descriptorType),
-            _desc_set_bindings.back().descriptorCount
-        );
+    for(auto const &set : _descriptor_sets) {
+        for(auto const &binding : set.bindings) {
+            BTX_TRACE(
+                "\nSet {}, Binding {}"
+                "\n\ttype: {:s}"
+                "\n\tcount: {}"
+                "\n\tstage: {:s}",
+                set.set_number,
+                binding.binding,
+                vk::to_string(binding.descriptorType),
+                binding.descriptorCount,
+                vk::to_string(binding.stageFlags)
+            );
+        }
     }
 
     return true;

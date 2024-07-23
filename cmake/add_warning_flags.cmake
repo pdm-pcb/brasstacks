@@ -18,6 +18,13 @@ function(add_warning_flags)
                 "-Wno-padded" # Dont worry about padded structs etc
                 "-Wno-weak-vtables" # Not quite sure what to do about this one
             )
+
+            if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)
+                add_compile_options(
+                    "-Wno-unsafe-buffer-usage" # A fine reminder, but no thanks
+                )
+            endif()
+
         endif()
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         add_compile_options(

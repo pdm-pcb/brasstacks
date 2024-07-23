@@ -26,9 +26,11 @@ public:
 private:
     std::vector<vkShaderStage> _stages;
     vk::PushConstantRange _push_constants;
+    std::vector<vk::DescriptorSetLayoutBinding> _desc_sets;
 
     void _merge_push_constants();
-    void _merge_desc_set_bindings();
+    void _merge_descriptor_sets();
+    bool _update_binding_stage(vk::DescriptorSetLayoutBinding const &binding);
 };
 
 } // namespace btx

@@ -12,7 +12,7 @@ public:
 
     inline auto const & native() const { return _handle; }
     inline auto const & push_constants() const { return _push_constants; }
-    inline auto const & desc_set_bindings() const { return _desc_set_bindings; }
+    inline auto const & descriptor_sets() const { return _descriptor_sets; }
 
     vkShaderStage() = delete;
 
@@ -30,7 +30,12 @@ private:
     std::vector<vk::VertexInputBindingDescription> _input_bindings;
     std::vector<vk::VertexInputAttributeDescription> _input_attribs;
     vk::PushConstantRange _push_constants;
-    std::vector<vk::DescriptorSetLayoutBinding> _desc_set_bindings;
+
+    struct DescriptorSetInfo {
+        uint32_t set_number;
+        std::vector<vk::DescriptorSetLayoutBinding> bindings;
+    };
+    std::vector<DescriptorSetInfo> _descriptor_sets;
 
     using StringData = std::vector<char>;
     static StringData _spirv_to_string(std::filesystem::path const &filepath);
@@ -42,7 +47,7 @@ private:
     bool _get_stage(::SpvReflectShaderModule const &module);
     bool _get_inputs(::SpvReflectShaderModule const &module);
     bool _get_push_constants(::SpvReflectShaderModule const &module);
-    bool _get_descriptors(::SpvReflectShaderModule const &module);
+    bool _get_descriptor_sets(::SpvReflectShaderModule const &module);
 
     static vk::Format _get_format(::SpvReflectFormat const format);
 

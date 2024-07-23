@@ -24,14 +24,15 @@ Application::~Application() {
 // =============================================================================
 void Application::run() {
     this->init();
-    TargetWindow::show();
+    // TargetWindow::show();
 
-    while(!TargetWindow::poll_events()) {
+    // while(!TargetWindow::poll_events()) {
         TimeKeeper::update_run_time();
         this->update();
-    }
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // }
 
-    TargetWindow::hide();
+    // TargetWindow::hide();
     Renderer::wait_device_idle();
     this->shutdown();
 }

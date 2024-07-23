@@ -28,11 +28,11 @@ public:
 
 private:
     vk::DescriptorSetLayout _handle;
+    vk::Device _device;
 
     using LayoutBindings = std::vector<vk::DescriptorSetLayoutBinding>;
     LayoutBindings _bindings;
 
-    vk::Device _device;
 };
 
 } // namespace btx
