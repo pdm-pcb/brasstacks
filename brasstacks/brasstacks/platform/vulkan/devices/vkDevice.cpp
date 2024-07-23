@@ -97,7 +97,7 @@ void vkDevice::create() {
     BTX_TRACE("Created logical device {}", _handle);
 
     // Set up the queue abstraction
-    _graphics_queue->create(physical_device.queue_family_index());
+    _graphics_queue->set(physical_device.queue_family_index());
 
     // This is the final step in providing the dynamic loader with information
     VULKAN_HPP_DEFAULT_DISPATCHER.init(_handle);
@@ -109,7 +109,7 @@ void vkDevice::create() {
 // =============================================================================
 void vkDevice::destroy() {
     _transient_pool->destroy();
-    _graphics_queue->destroy();
+    _graphics_queue->clear();
 
     BTX_TRACE("Destroying logical device {}", _handle);
     _handle.destroy();

@@ -36,30 +36,30 @@ void vkShaderProgram::destroy() {
 
 // =============================================================================
 void vkShaderProgram::_merge_push_constants() {
-    for(auto const &stage : _stages) {
-        auto const &block = stage.push_constants();
-        if(block.stageFlags) {
-            if(_push_constants.size == 0u) {
-                _push_constants.offset = block.offset;
-                _push_constants.size = block.size;
-            }
+    // for(auto const &stage : _stages) {
+    //     auto const &block = stage.push_constants();
+    //     if(block.stageFlags) {
+    //         if(_push_constants.size == 0u) {
+    //             _push_constants.offset = block.offset;
+    //             _push_constants.size = block.size;
+    //         }
 
-            assert(_push_constants.size == block.size);
-            assert(_push_constants.offset == block.offset);
+    //         assert(_push_constants.size == block.size);
+    //         assert(_push_constants.offset == block.offset);
 
-            _push_constants.stageFlags |= block.stageFlags;
-        }
-    }
+    //         _push_constants.stageFlags |= block.stageFlags;
+    //     }
+    // }
 
-    BTX_TRACE(
-        "\nPush Constant Block:"
-        "\n\toffset: {}"
-        "\n\tsize: {}"
-        "\n\tstages: {:s}",
-        _push_constants.offset,
-        _push_constants.size,
-        vk::to_string(_push_constants.stageFlags)
-    );
+    // BTX_TRACE(
+    //     "\nPush Constant Block:"
+    //     "\n\toffset: {}"
+    //     "\n\tsize: {}"
+    //     "\n\tstages: {:s}",
+    //     _push_constants.offset,
+    //     _push_constants.size,
+    //     vk::to_string(_push_constants.stageFlags)
+    // );
 }
 
 // =============================================================================

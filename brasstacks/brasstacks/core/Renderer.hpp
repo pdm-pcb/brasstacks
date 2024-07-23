@@ -8,8 +8,6 @@
 
 namespace btx {
 
-class Application;
-class vkSurface;
 class vkFramebuffer;
 class vkRenderPassBase;
 class vkColorDepth;
@@ -53,11 +51,8 @@ public:
     Renderer & operator=(Renderer const &) = delete;
 
 private:
-    static Application *_application;
-
     static Config _config;
 
-    static vkSurface *_surface;
     static vkDevice  _device;
 
     static vkDescriptorPool *_descriptor_pool;
@@ -76,7 +71,6 @@ private:
 
     [[nodiscard]] static bool _present_image();
 
-    static void _create_surface();
     static void _select_physical_device();
     static void _create_device();
     static void _create_swapchain();

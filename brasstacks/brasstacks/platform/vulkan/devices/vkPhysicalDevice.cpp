@@ -2,7 +2,6 @@
 #include "brasstacks/platform/vulkan/devices/vkPhysicalDevice.hpp"
 
 #include "brasstacks/platform/vulkan/vkInstance.hpp"
-#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 
 namespace btx {
 

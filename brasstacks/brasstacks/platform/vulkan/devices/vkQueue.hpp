@@ -21,8 +21,8 @@ public:
     vkQueue();
     ~vkQueue() = default;
 
-    void create(uint32_t const family_index);
-    void destroy();
+    void set(uint32_t const family_index);
+    void clear();
 
     /**
      * @brief Return the queue family index

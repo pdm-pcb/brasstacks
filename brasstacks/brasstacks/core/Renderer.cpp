@@ -14,7 +14,6 @@ namespace btx {
 
 Renderer::Config Renderer::_config { };
 
-vkSurface *Renderer::_surface { nullptr };
 vkDevice   Renderer::_device  { };
 
 vkDescriptorPool *Renderer::_descriptor_pool { nullptr };
@@ -30,7 +29,8 @@ void Renderer::init(Config const &config) {
     _config = config;
 
     vkInstance::create();
-    _create_surface();
+    TargetWindow::create_surface();
+
     _select_physical_device();
     _create_device();
     _create_swapchain();
@@ -43,47 +43,12 @@ void Renderer::shutdown() {
 
     vkPhysicalDevice::clear_device_list();
 
-    _surface->destroy();
-    delete _surface;
-    _surface = nullptr;
-
+    TargetWindow::destroy_surface();
     vkInstance::destroy();
 }
 
 // =============================================================================
-void Renderer::_create_surface() {
-    if(_surface != nullptr) {
-        BTX_CRITICAL("Surface already created");
-        return;
-    }
-
-#ifdef BTX_LINUX
-    vk::XlibSurfaceCreateInfoKHR const create_info {
-        .pNext = nullptr,
-        .flags = { },
-        .dpy = TargetWindow::display(),
-        .window = TargetWindow::native()
-    };
-#elif BTX_WINDOWS
-    vk::Win32SurfaceCreateInfoKHR const create_info {
-        .pNext = nullptr,
-        .flags = { },
-        .hinstance = nullptr,
-        .hwnd = TargetWindow::native()
-    };
-#endif // BTX platform
-
-    _surface = new vkSurface;
-    _surface->create(create_info);
-}
-
-// =============================================================================
 void Renderer::_select_physical_device() {
-    if(!_surface->native()) {
-        BTX_CRITICAL("Cannot select physical device without surface.");
-        return;
-    }
-
     auto features13 = vk::PhysicalDeviceVulkan13Features {
         .pNext = nullptr,
         // .synchronization2 = VK_TRUE,
@@ -115,7 +80,9 @@ void Renderer::_select_physical_device() {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
-    vkPhysicalDevice::populate_device_list(*_surface, features, extensions);
+    vkPhysicalDevice::populate_device_list(TargetWindow::surface(),
+                                           features,
+                                           extensions);
 }
 
 // =============================================================================
@@ -135,7 +102,7 @@ void Renderer::_create_swapchain() {
         return;
     }
 
-    _swapchain.create(_device.native(), *_surface);
+    _swapchain.create(_device.native(), TargetWindow::surface());
     _image_index = std::numeric_limits<uint32_t>::max();
 }
 

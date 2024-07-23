@@ -25,7 +25,7 @@ public:
 
 private:
     std::vector<vkShaderStage> _stages;
-    vk::PushConstantRange _push_constants;
+    std::vector<vk::PushConstantRange> _push_constants;
     std::vector<vk::DescriptorSetLayoutBinding> _desc_sets;
 
     void _merge_push_constants();

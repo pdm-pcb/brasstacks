@@ -2,6 +2,7 @@
 #define BRASSTACKS_CORE_TARGETWINDOW_HPP
 
 #include "brasstacks/pch.hpp"
+#include "brasstacks/platform/vulkan/swapchain/vkSurface.hpp"
 
 #ifdef BTX_LINUX
     #define GLFW_EXPOSE_NATIVE_X11
@@ -19,17 +20,15 @@ public:
     static void init(std::string_view const app_name);
     static void shutdown();
 
+    static void create_surface();
+    static void destroy_surface();
+
     static inline void show() { ::glfwShowWindow(_window); }
     static inline void hide() { ::glfwHideWindow(_window); }
 
     [[nodiscard]] static bool poll_events();
 
-#ifdef BTX_LINUX
-    static inline auto native() { return ::glfwGetX11Window(_window); }
-    static inline auto * display() { return ::glfwGetX11Display(); }
-#elif BTX_WINDOWS
-    static inline auto * native() { return ::glfwGetWin32Window(_window); }
-#endif // BTX platform
+    [[nodiscard]] static auto const &surface() { return _surface; }
 
     TargetWindow() = delete;
     ~TargetWindow() = delete;
@@ -46,6 +45,8 @@ private:
     static Offset _screen_center;
     static Size   _window_size;
     static Offset _window_position;
+
+    static vkSurface _surface;
 
     static void _get_resolution();
     static void _size_and_place();

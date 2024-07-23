@@ -29,7 +29,7 @@ private:
     vk::ShaderStageFlagBits _stage;
     std::vector<vk::VertexInputBindingDescription> _input_bindings;
     std::vector<vk::VertexInputAttributeDescription> _input_attribs;
-    vk::PushConstantRange _push_constants;
+    std::vector<vk::PushConstantRange> _push_constants;
 
     struct DescriptorSetInfo {
         uint32_t set_number;
@@ -44,10 +44,10 @@ private:
     static BinaryData _string_to_binary(StringData const &shader_string);
 
     void _reflect_shader(StringData const &shader_string);
-    bool _get_stage(::SpvReflectShaderModule const &module);
-    bool _get_inputs(::SpvReflectShaderModule const &module);
-    bool _get_push_constants(::SpvReflectShaderModule const &module);
-    bool _get_descriptor_sets(::SpvReflectShaderModule const &module);
+    void _get_stage(::SpvReflectShaderModule const &module);
+    void _get_inputs(::SpvReflectShaderModule const &module);
+    void _get_push_constants(::SpvReflectShaderModule const &module);
+    void _get_descriptor_sets(::SpvReflectShaderModule const &module);
 
     static vk::Format _get_format(::SpvReflectFormat const format);
 

@@ -10,6 +10,8 @@ Offset TargetWindow::_screen_center   { };
 Size   TargetWindow::_window_size     { };
 Offset TargetWindow::_window_position { };
 
+vkSurface TargetWindow::_surface { };
+
 // =============================================================================
 void TargetWindow::init(std::string_view const app_name) {
     if(::glfwInit() == 0) {
@@ -52,6 +54,31 @@ void TargetWindow::init(std::string_view const app_name) {
 void TargetWindow::shutdown() {
     ::glfwDestroyWindow(_window);
     ::glfwTerminate();
+}
+
+// =============================================================================
+void TargetWindow::create_surface() {
+#ifdef BTX_LINUX
+    vk::XlibSurfaceCreateInfoKHR const create_info {
+        .pNext = nullptr,
+        .flags = { },
+        .dpy = ::glfwGetX11Display(),
+        .window = ::glfwGetX11Window(_window),
+    };
+#elif BTX_WINDOWS
+    vk::Win32SurfaceCreateInfoKHR const create_info {
+        .pNext = nullptr,
+        .flags = { },
+        .hinstance = nullptr,
+        .hwnd = ::glfwGetWin32Window(_window)
+    };
+#endif // BTX platform
+    _surface.create(create_info);
+}
+
+// =============================================================================
+void TargetWindow::destroy_surface() {
+    _surface.destroy();
 }
 
 // =============================================================================

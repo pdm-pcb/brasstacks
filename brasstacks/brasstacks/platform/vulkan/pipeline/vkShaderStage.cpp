@@ -122,81 +122,67 @@ void vkShaderStage::_reflect_shader(StringData const &shader_string) {
         return;
     }
 
-    // Gather the basics
-    if(!_get_stage(module)) {
-        ::spvReflectDestroyShaderModule(&module);
-        return;
-    }
-
-    // Gather input details
-    if(module.input_variable_count > 0u && !_get_inputs(module)) {
-        ::spvReflectDestroyShaderModule(&module);
-        return;
-    }
-
-    // Gather push constants
-    if(module.push_constant_block_count > 0u && !_get_push_constants(module)) {
-        ::spvReflectDestroyShaderModule(&module);
-        return;
-    }
-
-    // Gather descriptors
-    if(module.descriptor_set_count > 0u && !_get_descriptor_sets(module)) {
-        ::spvReflectDestroyShaderModule(&module);
-        return;
-    }
+    // Gather the reflected details
+    _get_stage(module);
+    _get_inputs(module);
+    _get_push_constants(module);
+    _get_descriptor_sets(module);
 
 	::spvReflectDestroyShaderModule(&module);
 }
 
 // =============================================================================
-bool vkShaderStage::_get_stage(::SpvReflectShaderModule const &module)
+void vkShaderStage::_get_stage(::SpvReflectShaderModule const &module)
 {
-    if(module.shader_stage == SPV_REFLECT_SHADER_STAGE_VERTEX_BIT) {
-        _stage = vk::ShaderStageFlagBits::eVertex;
-        return true;
-    }
-    if(module.shader_stage == SPV_REFLECT_SHADER_STAGE_TESSELLATION_CONTROL_BIT) {
-        _stage = vk::ShaderStageFlagBits::eTessellationControl;
-        return true;
-    }
-    if(module.shader_stage == SPV_REFLECT_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) {
-        _stage = vk::ShaderStageFlagBits::eTessellationEvaluation;
-        return true;
-    }
-    if(module.shader_stage == SPV_REFLECT_SHADER_STAGE_GEOMETRY_BIT) {
-        _stage = vk::ShaderStageFlagBits::eGeometry;
-        return true;
-    }
-    if(module.shader_stage == SPV_REFLECT_SHADER_STAGE_FRAGMENT_BIT) {
-        _stage = vk::ShaderStageFlagBits::eFragment;
-        return true;
-    }
-    if(module.shader_stage == SPV_REFLECT_SHADER_STAGE_COMPUTE_BIT) {
-        _stage = vk::ShaderStageFlagBits::eCompute;
-        return true;
-    }
+    switch(module.shader_stage) {
+        case SPV_REFLECT_SHADER_STAGE_VERTEX_BIT:
+            _stage = vk::ShaderStageFlagBits::eVertex;
+            break;
 
-    BTX_CRITICAL("Unsupported SPIRV-reflect shader stage: {:#x}",
-                 module.shader_stage);
+        case SPV_REFLECT_SHADER_STAGE_TESSELLATION_CONTROL_BIT:
+            _stage = vk::ShaderStageFlagBits::eTessellationControl;
+            break;
 
-    return false;
+        case SPV_REFLECT_SHADER_STAGE_TESSELLATION_EVALUATION_BIT:
+            _stage = vk::ShaderStageFlagBits::eTessellationEvaluation;
+            break;
+
+        case SPV_REFLECT_SHADER_STAGE_GEOMETRY_BIT:
+            _stage = vk::ShaderStageFlagBits::eGeometry;
+            break;
+
+        case SPV_REFLECT_SHADER_STAGE_FRAGMENT_BIT:
+            _stage = vk::ShaderStageFlagBits::eFragment;
+            break;
+
+        case SPV_REFLECT_SHADER_STAGE_COMPUTE_BIT:
+            _stage = vk::ShaderStageFlagBits::eCompute;
+            break;
+
+        default:
+            BTX_CRITICAL("Unsupported SPIRV-reflect shader stage: {:#x}",
+                         module.shader_stage);
+    }
 }
 
 // =============================================================================
-bool vkShaderStage::_get_inputs(::SpvReflectShaderModule const &module) {
+void vkShaderStage::_get_inputs(::SpvReflectShaderModule const &module) {
+    if(module.input_variable_count == 0u) {
+        return;
+    }
+
     _input_attribs.reserve(module.input_variable_count);
 
     uint32_t initial_offset = module.input_variables[0]->word_offset.location;
 
-    for(uint32_t i = 0u; i < module.input_variable_count; ++i) {
-        auto const *input = module.input_variables[i];
+    for(uint32_t input = 0u; input < module.input_variable_count; ++input) {
+        auto const &refl_input = *(module.input_variables[input]);
 
         _input_attribs.emplace_back(vk::VertexInputAttributeDescription {
-            .location = input->location,
+            .location = refl_input.location,
             .binding = 0u,
-            .format = _get_format(input->format),
-            .offset = input->word_offset.location - initial_offset
+            .format = _get_format(refl_input.format),
+            .offset = refl_input.word_offset.location - initial_offset
         });
 
         BTX_TRACE(
@@ -213,35 +199,48 @@ bool vkShaderStage::_get_inputs(::SpvReflectShaderModule const &module) {
             _input_attribs.back().offset
         );
     }
-
-    return true;
 }
 
 // =============================================================================
-bool vkShaderStage::_get_push_constants(::SpvReflectShaderModule const &module)
+void vkShaderStage::_get_push_constants(::SpvReflectShaderModule const &module)
 {
-    // This has got to be wrong... right?
-    _push_constants = vk::PushConstantRange {
-        .stageFlags = _stage,
-        .offset = module.push_constant_blocks->offset,
-        .size = module.push_constant_blocks->size
-    };
+    if(module.push_constant_block_count == 0u) {
+        return;
+    }
 
-    BTX_TRACE(
-        "\n{:s} Push Constant Block"
-        "\n\toffset: {}"
-        "\n\tsize: {}",
-        vk::to_string(_push_constants.stageFlags),
-        _push_constants.offset,
-        _push_constants.size
-    );
+    _push_constants.reserve(module.push_constant_block_count);
 
-    return true;
+    for(uint32_t block = 0u; block < module.push_constant_block_count; ++block)
+    {
+        auto const &refl_block = module.push_constant_blocks[block];
+
+        _push_constants.emplace_back(vk::PushConstantRange {
+            .stageFlags = _stage,
+            .offset = refl_block.offset,
+            .size = refl_block.size,
+        });
+
+        BTX_TRACE(
+            "\n{:s} Push Constant Block {}"
+            "\n\toffset: {}"
+            "\n\tsize: {}",
+            vk::to_string(_push_constants.back().stageFlags),
+            _push_constants.size(),
+            _push_constants.back().offset,
+            _push_constants.back().size
+        );
+    }
 }
 
 // =============================================================================
-bool vkShaderStage::_get_descriptor_sets(::SpvReflectShaderModule const &module)
+void vkShaderStage::_get_descriptor_sets(::SpvReflectShaderModule const &module)
 {
+    if(module.descriptor_set_count == 0u) {
+        return;
+    }
+
+    _descriptor_sets.reserve(module.descriptor_set_count);
+
     for(uint32_t set = 0u; set < module.descriptor_set_count; ++set) {
         _descriptor_sets.emplace_back();
 
@@ -285,8 +284,6 @@ bool vkShaderStage::_get_descriptor_sets(::SpvReflectShaderModule const &module)
             );
         }
     }
-
-    return true;
 }
 
 // =============================================================================
