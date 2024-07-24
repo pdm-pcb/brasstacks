@@ -4,6 +4,8 @@
 #include "brasstacks/core/TargetWindow.hpp"
 #include "brasstacks/core/Renderer.hpp"
 
+#include <thread>
+
 namespace btx {
 
 // =============================================================================
