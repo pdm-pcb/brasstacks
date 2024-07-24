@@ -12,6 +12,7 @@ vkShaderStage::vkShaderStage(std::string_view const filepath) :
     _handle          { nullptr },
     _device          { Renderer::device().native() },
     _stage           { },
+    _entry_point     { },
     _input_bindings  { },
     _input_attribs   { },
     _push_constants  { },
@@ -124,6 +125,7 @@ void vkShaderStage::_reflect_shader(StringData const &shader_string) {
 
     // Gather the reflected details
     _get_stage(module);
+    _get_entry_point(module);
     _get_inputs(module);
     _get_push_constants(module);
     _get_descriptor_sets(module);
@@ -132,8 +134,7 @@ void vkShaderStage::_reflect_shader(StringData const &shader_string) {
 }
 
 // =============================================================================
-void vkShaderStage::_get_stage(::SpvReflectShaderModule const &module)
-{
+void vkShaderStage::_get_stage(::SpvReflectShaderModule const &module) {
     switch(module.shader_stage) {
         case SPV_REFLECT_SHADER_STAGE_VERTEX_BIT:
             _stage = vk::ShaderStageFlagBits::eVertex;
@@ -163,6 +164,19 @@ void vkShaderStage::_get_stage(::SpvReflectShaderModule const &module)
             BTX_CRITICAL("Unsupported SPIRV-reflect shader stage: {:#x}",
                          module.shader_stage);
     }
+}
+
+// =============================================================================
+void vkShaderStage::_get_entry_point(::SpvReflectShaderModule const &module) {
+    if(module.entry_point_count != 1) {
+        BTX_CRITICAL("Shader module has {} entry points; must only have one.",
+                     module.entry_point_count);
+        return;
+    }
+
+    _entry_point = std::string(module.entry_points[0].name);
+
+    BTX_TRACE("Entry point: '{:s}'", _entry_point);
 }
 
 // =============================================================================
@@ -221,13 +235,16 @@ void vkShaderStage::_get_push_constants(::SpvReflectShaderModule const &module)
         });
 
         BTX_TRACE(
-            "\n{:s} Push Constant Block {}"
+            "\nPush Constant Block {}"
             "\n\toffset: {}"
-            "\n\tsize: {}",
-            vk::to_string(_push_constants.back().stageFlags),
+            "\n\tsize: {}"
+            "\n\tmember count: {}"
+            "\n\tstage: {:s}",
             _push_constants.size(),
             _push_constants.back().offset,
-            _push_constants.back().size
+            _push_constants.back().size,
+            refl_block.member_count,
+            vk::to_string(_push_constants.back().stageFlags)
         );
     }
 }

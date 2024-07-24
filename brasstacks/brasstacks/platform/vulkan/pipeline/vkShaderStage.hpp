@@ -27,6 +27,7 @@ private:
     vk::Device _device;
 
     vk::ShaderStageFlagBits _stage;
+    std::string _entry_point;
     std::vector<vk::VertexInputBindingDescription> _input_bindings;
     std::vector<vk::VertexInputAttributeDescription> _input_attribs;
     std::vector<vk::PushConstantRange> _push_constants;
@@ -45,6 +46,7 @@ private:
 
     void _reflect_shader(StringData const &shader_string);
     void _get_stage(::SpvReflectShaderModule const &module);
+    void _get_entry_point(::SpvReflectShaderModule const &module);
     void _get_inputs(::SpvReflectShaderModule const &module);
     void _get_push_constants(::SpvReflectShaderModule const &module);
     void _get_descriptor_sets(::SpvReflectShaderModule const &module);
