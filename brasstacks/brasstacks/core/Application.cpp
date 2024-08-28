@@ -29,9 +29,9 @@ void Application::run() {
     // TargetWindow::show();
 
     // while(!TargetWindow::poll_events()) {
-        TimeKeeper::update_run_time();
-        this->update();
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    //     TimeKeeper::update_run_time();
+    //     this->update();
+    //     Renderer::run();
     // }
 
     // TargetWindow::hide();

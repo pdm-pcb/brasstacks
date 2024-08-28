@@ -34,10 +34,12 @@ void Renderer::init(Config const &config) {
     _select_physical_device();
     _create_device();
     _create_swapchain();
+    _create_frame_sync();
 }
 
 // =============================================================================
 void Renderer::shutdown() {
+    _destroy_frame_sync();
     _swapchain.destroy();
     _device.destroy();
 
@@ -45,6 +47,105 @@ void Renderer::shutdown() {
 
     TargetWindow::destroy_surface();
     vkInstance::destroy();
+}
+
+// =============================================================================
+void Renderer::run() {
+    auto const swapchain_index = _acquire_next_image();
+    if(swapchain_index == std::numeric_limits<uint32_t>::max()) {
+        BTX_WARN("Swapchain provided invalid index.");
+        // recreate_swapchain();
+        return;
+    }
+
+    if(swapchain_index != _image_index) {
+        BTX_ERROR("Swapchain reported {} and we're on {}",
+                  swapchain_index, _image_index);
+    }
+
+    _begin_recording();
+
+    _end_recording();
+    _submit_commands();
+
+    if(!_present_image()) {
+        BTX_WARN("Swapchain presentation failed.");
+        // recreate_swapchain();
+    }
+}
+
+// =============================================================================
+uint32_t Renderer::_acquire_next_image() {
+    _image_index = (_image_index + 1u) % _swapchain.images().size();
+    auto &frame = _frame_sync[_image_index];
+    frame.wait_and_reset();
+
+    return _swapchain.get_next_image_index(frame.present_semaphore());
+}
+
+// =============================================================================
+void Renderer::_begin_recording() {
+    _frame_sync[_image_index].cmd_buffer().begin_one_time_submit();
+}
+
+// =============================================================================
+void Renderer::_end_recording() {
+    _frame_sync[_image_index].cmd_buffer().end_recording();
+}
+
+// =============================================================================
+void Renderer::_submit_commands() {
+    auto const &frame_sync = _frame_sync[_image_index];
+
+    auto const cmd_submit_info = vk::CommandBufferSubmitInfo {
+        .pNext = nullptr,
+        .commandBuffer = frame_sync.cmd_buffer().native(),
+        .deviceMask = { },
+    };
+
+    auto const wait_info = vk::SemaphoreSubmitInfoKHR {
+        .pNext = nullptr,
+        .semaphore = frame_sync.present_semaphore(),
+        .value = { },
+        .stageMask = vk::PipelineStageFlagBits2KHR::eColorAttachmentOutput,
+        .deviceIndex = { },
+    };
+
+    auto const signal_info = vk::SemaphoreSubmitInfoKHR {
+        .pNext = nullptr,
+        .semaphore = frame_sync.queue_semaphore(),
+        .value = { },
+        .stageMask = vk::PipelineStageFlagBits2KHR::eAllGraphics,
+        .deviceIndex = { },
+    };
+
+    auto const queue_submit_info = vk::SubmitInfo2KHR {
+      .pNext = nullptr,
+      .flags = { },
+      .waitSemaphoreInfoCount = 1u,
+      .pWaitSemaphoreInfos = &wait_info,
+      .commandBufferInfoCount = 1u,
+      .pCommandBufferInfos = &cmd_submit_info,
+      .signalSemaphoreInfoCount = 1u,
+      .pSignalSemaphoreInfos = &signal_info,
+    };
+
+    auto const result = _device.graphics_queue().native().submit2KHR(
+        1u,
+        &queue_submit_info,
+        frame_sync.queue_fence()
+    );
+
+    if(result != vk::Result::eSuccess) {
+        BTX_CRITICAL("Failed to submit commands to device queue: '{}'",
+                     vk::to_string(result));
+    }
+}
+
+// =============================================================================
+bool Renderer::_present_image() {
+    auto &frame_sync = _frame_sync[_image_index];
+    return _swapchain.present(frame_sync, _image_index);
 }
 
 // =============================================================================

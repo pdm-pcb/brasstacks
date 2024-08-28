@@ -22,6 +22,8 @@ public:
     static void init(Config const &config);
     static void shutdown();
 
+    static void run();
+
     static inline void wait_device_idle() { _device.wait_idle(); }
 
     static inline auto const & config()    { return _config; }

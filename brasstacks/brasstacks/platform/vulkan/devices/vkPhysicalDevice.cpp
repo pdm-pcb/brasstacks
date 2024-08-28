@@ -106,7 +106,7 @@ vkPhysicalDevice::vkPhysicalDevice(vk::PhysicalDevice const handle) :
     _driver_version = _get_driver_version(_handle);
 
     BTX_TRACE(
-        "\n\n"
+        "\n"
         "\tDevice Name:    {}\n"
         "\tDevice Type:    {}\n"
         "\tVRAM:           {} MB\n"

@@ -17,7 +17,7 @@ public:
     void create();
     void destroy();
 
-    vkShaderProgram(vkShaderProgram &&rhs);
+    vkShaderProgram(vkShaderProgram &&rhs) = delete;
     vkShaderProgram(vkShaderProgram const &) = delete;
 
     vkShaderProgram& operator=(vkShaderProgram &&) = delete;
@@ -27,6 +27,8 @@ private:
     std::vector<vkShaderStage> _stages;
     std::vector<vk::PushConstantRange> _push_constants;
     std::vector<vk::DescriptorSetLayoutBinding> _desc_sets;
+
+
 
     void _merge_push_constants();
     void _merge_descriptor_sets();
