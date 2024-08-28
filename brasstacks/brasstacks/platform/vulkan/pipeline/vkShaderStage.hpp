@@ -11,6 +11,8 @@ public:
     ~vkShaderStage();
 
     inline auto const & native() const { return _handle; }
+    inline auto const & stage() const { return _stage; }
+    inline std::string_view const entry_point() const { return _entry_point; }
     inline auto const & push_constants() const { return _push_constants; }
     inline auto const & descriptor_sets() const { return _descriptor_sets; }
 

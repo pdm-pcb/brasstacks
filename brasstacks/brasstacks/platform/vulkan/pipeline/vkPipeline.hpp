@@ -36,6 +36,8 @@ public:
         float         depth_bias_slope    = 0.0f;
     };
 
+    vkPipeline & add_shader(vkShaderStage const &stage);
+
     void create(Config const &config);
     void destroy();
 
@@ -69,7 +71,7 @@ private:
     vk::Pipeline _handle;
     vk::Device   _device;
 
-    std::vector<vkShaderStage> _shader_stages;
+    std::vector<vk::PipelineShaderStageCreateInfo> _shader_stages;
 
     vk::Viewport _viewport;
     vk::Rect2D   _scissor;

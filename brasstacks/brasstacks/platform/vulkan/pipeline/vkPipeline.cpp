@@ -44,6 +44,20 @@ vkPipeline::~vkPipeline() {
 }
 
 // =============================================================================
+vkPipeline & vkPipeline::add_shader(vkShaderStage const &stage) {
+    _shader_stages.emplace_back( vk::PipelineShaderStageCreateInfo {
+        .pNext = nullptr,
+        .flags = { },
+        .stage = stage.stage(),
+        .module = stage.native(),
+        .pName = stage.entry_point().data(),
+        .pSpecializationInfo = nullptr,
+    });
+
+    return *this;
+}
+
+// =============================================================================
 void vkPipeline::create(Config const &config) {
     if(_handle) {
         BTX_CRITICAL("Pipeline {} already exists", _handle);
@@ -70,8 +84,8 @@ void vkPipeline::create(Config const &config) {
             .flags = vk::PipelineCreateFlagBits::eDisableOptimization,
         #endif // BTX_DEBUG
 
-        // .stageCount = static_cast<uint32_t>(_shader_stages.size()),
-        // .pStages    = _shader_stages.data(),
+        .stageCount = static_cast<uint32_t>(_shader_stages.size()),
+        .pStages    = _shader_stages.data(),
 
         .pVertexInputState   = &_vert_input_info,
         .pInputAssemblyState = &_assembly_info,
@@ -378,8 +392,7 @@ void vkPipeline::_init_rendering_info() {
     _rendering_info.viewMask                = 0u;
     _rendering_info.colorAttachmentCount    = 1u;
     _rendering_info.pColorAttachmentFormats = _color_attachment_formats.data();
-    _rendering_info.depthAttachmentFormat   =
-        Renderer::color_depth().depth_format();
+    _rendering_info.depthAttachmentFormat   = vk::Format::eUndefined;
     _rendering_info.stencilAttachmentFormat = vk::Format::eUndefined;
 }
 
