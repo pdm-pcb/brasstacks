@@ -13,10 +13,10 @@ size_t MemTracker::total_bytes = 0;
 size_t MemTracker::alloc_count = 0;
 size_t MemTracker::free_count  = 0;
 
-static auto const *success_string =
-    "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
-    "                         Mission accomplished"
-    "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+// static auto const *success_string =
+//     "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+//     "                         Mission accomplished"
+//     "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
 
 void * operator new(size_t bytes) {
     MemTracker::total_bytes += bytes;
@@ -95,9 +95,9 @@ void operator delete(void *memory) noexcept {
 #endif
 
     ::free(&(static_cast<size_t *>(memory)[-1]));
-    if(MemTracker::total_bytes == 0) {
-        ::printf("%s", success_string);
-    }
+    // if(MemTracker::total_bytes == 0) {
+    //     ::printf("%s", success_string);
+    // }
 }
 
 void operator delete[](void *memory) noexcept {
@@ -119,9 +119,9 @@ void operator delete[](void *memory) noexcept {
     );
 #endif
     ::free(&(static_cast<size_t *>(memory)[-1]));
-    if(MemTracker::total_bytes == 0) {
-        ::printf("%s", success_string);
-    }
+    // if(MemTracker::total_bytes == 0) {
+    //     ::printf("%s", success_string);
+    // }
 }
 
 
@@ -146,9 +146,9 @@ void operator delete(void *memory, size_t bytes) noexcept {
 #endif
 
     ::free(&(static_cast<size_t *>(memory)[-1]));
-    if(MemTracker::total_bytes == 0) {
-        ::printf("%s", success_string);
-    }
+    // if(MemTracker::total_bytes == 0) {
+    //     ::printf("%s", success_string);
+    // }
 }
 
 void operator delete[](void *memory, size_t bytes) noexcept {
@@ -171,9 +171,9 @@ void operator delete[](void *memory, size_t bytes) noexcept {
     );
 #endif
     ::free(&(static_cast<size_t *>(memory)[-1]));
-    if(MemTracker::total_bytes == 0) {
-        ::printf("%s", success_string);
-    }
+    // if(MemTracker::total_bytes == 0) {
+    //     ::printf("%s", success_string);
+    // }
 }
 
 
@@ -196,9 +196,9 @@ void operator delete(void *memory, const std::nothrow_t&) noexcept {
     );
 #endif
     ::free(&(static_cast<size_t *>(memory)[-1]));
-    if(MemTracker::total_bytes == 0) {
-        ::printf("%s", success_string);
-    }
+    // if(MemTracker::total_bytes == 0) {
+    //     ::printf("%s", success_string);
+    // }
 }
 
 #ifdef BTX_CLANG

@@ -14,6 +14,11 @@ void vkPhysicalDevice::populate_device_list(
     vk::PhysicalDeviceFeatures2 const &features,
     std::span<char const * const> const extensions)
 {
+    if(vkInstance::native() == nullptr) {
+        BTX_ERROR("Cannot poll physical devices without a valid instance.");
+        return;
+    }
+
     // Ask the instance for a list of devices
     auto const devices = vkInstance::native().enumeratePhysicalDevices();
 
@@ -172,9 +177,8 @@ vkPhysicalDevice::_get_driver_version(vk::PhysicalDevice const device) {
 void vkPhysicalDevice::_print_family_flags(uint32_t const family,
                                            vk::QueueFlags const flags)
 {
-    std::string flags_str;
+    std::string flags_str = fmt::format("{}: ", family);
     flags_str.reserve(128);
-    flags_str = fmt::format("{}: ", family);
 
     if(flags & vk::QueueFlagBits::eGraphics) {
         flags_str += "Graphics        ";
@@ -219,7 +223,6 @@ void vkPhysicalDevice::_print_family_flags(uint32_t const family,
 // =============================================================================
 bool vkPhysicalDevice::_check_queue_families(vkSurface const &surface) {
     auto const &families = _handle.getQueueFamilyProperties();
-    // BTX_TRACE("Found {} queue families for {}", families.size(), _name);
 
     for(uint32_t i = 0u; i < families.size(); ++i) {
         _print_family_flags(i, families[i].queueFlags);

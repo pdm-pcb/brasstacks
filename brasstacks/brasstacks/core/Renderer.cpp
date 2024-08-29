@@ -25,10 +25,31 @@ uint32_t Renderer::_image_index { std::numeric_limits<uint32_t>::max() };
 vkColorDepth *Renderer::_color_depth { nullptr };
 
 // =============================================================================
-void Renderer::init(Config const &config) {
+void Renderer::init(Config const &config,
+                    std::string_view const app_name,
+                    uint32_t const app_version)
+{
     _config = config;
 
-    vkInstance::create();
+    vkInstance::Config const instance_config {
+        .extensions = {
+            VK_KHR_SURFACE_EXTENSION_NAME,
+            #ifdef BTX_LINUX
+                VK_KHR_XLIB_SURFACE_EXTENSION_NAME,
+            #elif BTX_WINDOWS
+                VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+            #endif // BTX platform
+        },
+
+            #ifdef BTX_DEBUG
+                .enable_validation = true,
+            #else
+                .enable_validation = false,
+            #endif // BTX_DEBUG
+    };
+
+    vkInstance::create(instance_config, app_name, app_version);
+
     TargetWindow::create_surface();
 
     _select_physical_device();
@@ -152,8 +173,8 @@ bool Renderer::_present_image() {
 void Renderer::_select_physical_device() {
     auto features13 = vk::PhysicalDeviceVulkan13Features {
         .pNext = nullptr,
-        // .synchronization2 = VK_TRUE,
-        // .dynamicRendering = VK_TRUE,
+        .synchronization2 = VK_TRUE,
+        .dynamicRendering = VK_TRUE,
     };
 
     auto features12 = vk::PhysicalDeviceVulkan12Features {

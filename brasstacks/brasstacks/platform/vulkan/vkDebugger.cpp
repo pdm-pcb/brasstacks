@@ -83,6 +83,10 @@ void vkDebugger::create() {
 
 // =============================================================================
 void vkDebugger::destroy() {
+    if(_handle == nullptr) {
+        return;
+    }
+
     BTX_TRACE("Destroying vkDebugger messenger {}", _handle);
     _instance.destroy(_handle);
     _handle = nullptr;

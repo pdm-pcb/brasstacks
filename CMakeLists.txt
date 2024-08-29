@@ -25,12 +25,14 @@ add_debug_flags()   # Disable optimizations and add debugging info
 add_release_flags() # Enable optimizations and strip excess symbols
 
 # External dependencies
+include("fetch_catch2")
 include("fetch_fmt")
 include("fetch_spdlog")
 include("fetch_glfw3")
 include("fetch_VulkanMemoryAllocator")
 include("fetch_SPIRVReflect")
 
+fetch_catch2()
 fetch_fmt()
 fetch_spdlog()
 fetch_glfw3()
@@ -61,3 +63,5 @@ add_subdirectory(brasstacks)
 if(PROJECT_IS_TOP_LEVEL)
     add_subdirectory(demo)
 endif()
+
+add_subdirectory(tests)

@@ -11,6 +11,9 @@ namespace btx {
 
 vk::Instance vkInstance::_handle { nullptr };
 
+std::string vkInstance::_app_name { };
+std::uint32_t vkInstance::_app_version = 0u;
+
 vk::DynamicLoader         vkInstance::_loader { };
 vk::ApplicationInfo       vkInstance::_app_info { };
 std::vector<char const *> vkInstance::_enabled_layers;
@@ -21,23 +24,33 @@ std::vector<vk::ValidationFeatureDisableEXT> vkInstance::_vvl_disabled;
 vk::ValidationFeaturesEXT vkInstance::_vvl_features { };
 
 // =============================================================================
-void vkInstance::create() {
+bool vkInstance::create(Config const &config,
+                        std::string_view const app_name, uint32_t app_version)
+{
     if(_handle) {
         BTX_CRITICAL("Vulkan instance {} already exists", _handle);
-        return;
+        return false;
     }
+
+    _app_name = app_name;
+    _app_version = app_version;
+
+    _enabled_extensions = config.extensions;
 
     _init_dynamic_loader(); // The first step for using the dynamic loader
     _init_app_info();       // Provide hints about this app to the driver
-    _init_layers();         // Init the validation layer, if we're in debug
-    _init_extensions();     // Extensions are often implementation defined
+
+    // If validation is requested, add the layers, extensions, and features
+    if(config.enable_validation) {
+        _init_validation();
+    }
 
     // Run through the extensions the driver offers and make sure we've got
     // what we need
     if(!_check_layers()) {
         BTX_CRITICAL("Could not get support for all requested instance "
                      "layers.");
-        return;
+        return false;
     }
 
     // Run through the extensions the driver offers and make sure we've got
@@ -45,18 +58,16 @@ void vkInstance::create() {
     if(!_check_extensions()) {
         BTX_CRITICAL("Could not get support for all requested instance "
                      "extensions.");
-        return;
+        return false;
     }
 
     // Bringing it all together. If we want validation layer functionality,
     // the pNext member of vk::InstanceCreateInfo must point to the
     // structure assembled above.
     const vk::InstanceCreateInfo instance_info {
-#ifdef BTX_DEBUG
-        .pNext = reinterpret_cast<void *>(&_vvl_features),
-#else
-        .pNext = nullptr,
-#endif // BTX_DEBUG
+        .pNext = (config.enable_validation ?
+                  reinterpret_cast<void *>(&_vvl_features)
+                  : nullptr),
         .flags = { },
         .pApplicationInfo = &_app_info,
         .enabledLayerCount =
@@ -75,11 +86,9 @@ void vkInstance::create() {
 
     // If this didn't work, we can go no further.
     if(result != vk::Result::eSuccess) {
-        BTX_CRITICAL(
-            "Failed to create Vulkan instance: '{}'",
-            vk::to_string(result)
-        );
-        return;
+        BTX_CRITICAL("Failed to create Vulkan instance: '{}'",
+                     vk::to_string(result));
+        return false;
     }
 
     // Inform the dynamic dispatcher that we've got an instance.
@@ -93,16 +102,21 @@ void vkInstance::create() {
         _handle
     );
 
-#ifdef BTX_DEBUG
-    vkDebugger::create();
-#endif // BTX_DEBUG
+    if(config.enable_validation) {
+        vkDebugger::create();
+    }
+
+    return true;
 }
 
 // =============================================================================
-void vkInstance::destroy() {
-#ifdef BTX_DEBUG
+bool vkInstance::destroy() {
+    if(_handle == nullptr) {
+        BTX_ERROR("Must create vkInstance before calling destroy().");
+        return false;
+    }
+
     vkDebugger::destroy();
-#endif // BTX_DEBUG
 
     BTX_TRACE(
         "Destroying Vulkan v{}.{}.{} instance: {}",
@@ -114,6 +128,8 @@ void vkInstance::destroy() {
 
     _handle.destroy();
     _handle = nullptr;
+
+    return true;
 }
 
 // =============================================================================
@@ -131,42 +147,21 @@ void vkInstance::_init_dynamic_loader() {
 
 // =============================================================================
 void vkInstance::_init_app_info() {
-    _app_info.pApplicationName   = nullptr;
-    _app_info.applicationVersion = 0u;
+    _app_info.pApplicationName   = _app_name.data();
+    _app_info.applicationVersion = _app_version;
     _app_info.pEngineName        = BTX_NAME;
     _app_info.engineVersion      = BTX_VERSION;
     _app_info.apiVersion         = BTX_VK_TARGET_VERSION;
 }
 
 // =============================================================================
-void vkInstance::_init_layers() {
+void vkInstance::_init_validation() {
     // The validation layer helps you know if you've strayed too far from the
     // expected path. It's also extremely opinionated, so each message should
     // be considered individually.
-#ifdef BTX_DEBUG
-    _enabled_layers = { "VK_LAYER_KHRONOS_validation" };
-#endif // BTX_DEBUG
-}
+    _enabled_layers.emplace_back("VK_LAYER_KHRONOS_validation");
 
-// =============================================================================
-void vkInstance::_init_extensions() {
-    // Surfaces describe the spaces to which you can draw in Vulkan.
-    _enabled_extensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
-
-    // They're also platform-dependent.
-#ifdef BTX_LINUX
-    _enabled_extensions.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
-#elif BTX_WINDOWS
-    _enabled_extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#endif // BTX platform
-
-#ifdef BTX_DEBUG
-    // This extension enables debugging callbacks from Vulkan
-    // "VK_EXT_debug_utils has been introduced based on feedback for the initial
-    //  Vulkan debugging extensions VK_EXT_debug_report and VK_EXT_debug_marker,
-    //  combining these into a single instance extensions with some added
-    //  functionality."
-    // https://docs.vulkan.org/samples/latest/samples/extensions/debug_utils/README.html
+    // We'll need the debug messenger to receive validation layer messages
     _enabled_extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     // Next we configure what we want the validation layers to report
@@ -190,7 +185,6 @@ void vkInstance::_init_extensions() {
             static_cast<uint32_t>(_vvl_disabled.size()),
         .pDisabledValidationFeatures = _vvl_disabled.data(),
     };
-#endif // BTX_DEBUG
 }
 
 // =============================================================================

@@ -19,7 +19,9 @@ public:
         bool vsync_on = true;
     };
 
-    static void init(Config const &config);
+    static void init(Config const &config,
+                     std::string_view const app_name,
+                     uint32_t const app_version);
     static void shutdown();
 
     static void run();

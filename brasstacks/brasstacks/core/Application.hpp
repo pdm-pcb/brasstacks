@@ -7,7 +7,7 @@ namespace btx {
 
 class Application {
 public:
-    explicit Application(std::string_view const app_name);
+    Application(std::string_view const app_name, uint32_t const app_version);
     virtual ~Application();
 
     void run();
