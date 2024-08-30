@@ -92,7 +92,7 @@ private:
     std::vector<vk::Format> _color_attachment_formats;
     vk::PipelineRenderingCreateInfoKHR _rendering_info;
 
-    std::vector<vkDescriptorSetLayout> _desc_set_layouts;
+    std::vector<vk::DescriptorSetLayout> _desc_set_layouts;
 
     std::vector<vk::PushConstantRange> _push_constants;
     size_t _push_constant_offset;
@@ -103,6 +103,7 @@ private:
 
     vkCmdBuffer const *_cmd_buffer;
 
+    void _init_vert_input();
     void _init_assembly();
     void _init_viewport(Config const &config);
     void _init_raster(Config const &config);

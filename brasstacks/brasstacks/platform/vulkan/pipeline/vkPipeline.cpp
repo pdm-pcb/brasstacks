@@ -66,6 +66,7 @@ void vkPipeline::create(Config const &config) {
 
     _device = Renderer::device().native();
 
+    _init_vert_input();
     _init_assembly();
     _init_viewport(config);
     _init_raster(config);
@@ -232,6 +233,31 @@ void vkPipeline::update_dimensions(Size const &size, Offset const &offset) {
     );
 }
 
+static const vk::VertexInputBindingDescription bind_desc {
+      .binding = { },
+      .stride = { },
+      .inputRate = { },
+};
+
+static const vk::VertexInputAttributeDescription attr_desc {
+      .location = { },
+      .binding = { },
+      .format = { },
+      .offset = { },
+};
+
+// =============================================================================
+void vkPipeline::_init_vert_input() {
+    _vert_input_info = {
+        .pNext = nullptr,
+        .flags = { },
+        .vertexBindingDescriptionCount = 1u,
+        .pVertexBindingDescriptions = &bind_desc,
+        .vertexAttributeDescriptionCount = 1u,
+        .pVertexAttributeDescriptions = &attr_desc
+    };
+}
+
 // =============================================================================
 void vkPipeline::_init_assembly() {
     // The primitive assembly stage requires knowing how to interpret the
@@ -362,23 +388,15 @@ void vkPipeline::_init_dynamic_states() {
 
 // =============================================================================
 void vkPipeline::_init_layout() {
-    // for(auto const &shader : _shaders) {
-    //     for(auto const &binding : shader.bindings()) {
-    //         _desc_set_layouts.add_binding(binding);
-    //     }
-    // }
+    vk::PipelineLayoutCreateInfo const layout_info {
+        .setLayoutCount         = static_cast<uint32_t>(_desc_set_layouts.size()),
+        .pSetLayouts            = _desc_set_layouts.data(),
+        .pushConstantRangeCount = static_cast<uint32_t>(_push_constants.size()),
+        .pPushConstantRanges    = _push_constants.data()
+    };
 
-    // _desc_set_layout.create();
-
-    // vk::PipelineLayoutCreateInfo const layout_info {
-    //     .setLayoutCount         = static_cast<uint32_t>(_desc_set_layouts.size()),
-    //     .pSetLayouts            = _desc_set_layouts.data(),
-    //     .pushConstantRangeCount = static_cast<uint32_t>(_push_constants.size()),
-    //     .pPushConstantRanges    = _push_constants.data()
-    // };
-
-    // _layout = _device.createPipelineLayout(layout_info);
-    // BTX_TRACE("Created pipeline layout {}", _layout);
+    _layout = _device.createPipelineLayout(layout_info);
+    BTX_TRACE("Created pipeline layout {}", _layout);
 }
 
 // =============================================================================

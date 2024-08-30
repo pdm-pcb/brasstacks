@@ -22,11 +22,6 @@ void Demo::init() {
                 .viewport_extent { .width = 1920, .height = 1080 },
                 .viewport_offset { .x = 0, .y = 0 }
             });
-
-    // btx::vkShaderProgram shader;
-    // shader.add_stage("shaders/demo.vert")
-    //       .add_stage("shaders/demo.frag")
-    //       .create();
 }
 
 // =============================================================================
